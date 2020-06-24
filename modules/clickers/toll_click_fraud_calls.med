@@ -1,0 +1,23 @@
+#Description: 'Detects calls to API functions which are common for click and toll fraud malware'
+#Help: "hooks getSimOperator,setWifiEnabled"
+#Code:
+
+
+		console.log('\n--------Common toll fraud1 -module-------');
+		console.log('----------twiter:@Ch0pin-------------------');
+		
+		    var wifiManager = Java.use("android.net.wifi.WifiManager");
+		    var telephonyManager = Java.use('android.telephony.TelephonyManager');
+		
+		    telephonyManager.getSimOperator.overload().implementation = function(){
+		        console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
+		        return this.getSimOperator();
+		    }
+			telephonyManager.getSimOperator.overload('int').implementation = function(sm){
+		        console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
+		        return this.getSimOperator(sm);
+		    }
+		    wifiManager.setWifiEnabled.implementation = function(enabled){
+		        console.log('[!] A call to android.net.wifi.WifiManager.setWifiEnabled detected');
+		        return this.setWifiEnabled(enabled);
+		    }

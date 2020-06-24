@@ -1,0 +1,38 @@
+
+#Description: 'Detects compression/decompression operations'
+#Help: "Abusal may arrise when it is used to 'hide' data during http communication"
+#Code:
+
+
+console.log('\n----------Gzip interceptor-module--------');
+console.log('----------twiter:@Ch0pin-------------------');
+
+
+
+    var gzipInputStream = Java.use('java.util.zip.GZIPInputStream');
+    var gzipOutputStream = Java.use('java.util.zip.GZIPOutputStream');
+
+    gzipOutputStream.write.implementation = function(buff, off, len_n){
+
+        var buffer = Java.array('byte', buff);
+        var result = "";
+        for(var i = 0; i < buffer.length; ++i){
+            result+= (String.fromCharCode(buffer[i]));
+        }
+
+        console.log('[+] Zipped OUTPUT stream: ' + result);
+        return this.write(buff,off,len_n);
+    }
+
+    gzipInputStream.read.implementation = function(buf,off,len_n){
+
+        var buffer = Java.array('byte', buff);
+        var result = "";
+        for(var i = 0; i < buffer.length; ++i){
+            result+= (String.fromCharCode(buffer[i]));
+        }
+
+        console.log('[+] Zipped INPUT stream: ' + result);
+        return this.write(buff,off,len_n);
+    }
+    

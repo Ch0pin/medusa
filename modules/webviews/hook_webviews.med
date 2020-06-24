@@ -1,0 +1,90 @@
+#Description: 'Displays info of webview instances loaded by the application'
+#Help: "webviewHook traces call to basic api functions displaying infor about loaded URLs, javascript interfaces e.t.c."
+#Code:
+
+console.log('\n---WebView Hook------------');
+
+var webView = Java.use('android.webkit.WebView');
+
+webView.setVisibility.implementation = function(a){
+    if(a == 2){
+        console.log('Webview visibility set to Gone');
+        console.log('Cancelling ...' );
+    }
+    else if (a == 1){
+        console.log('Webview visibility set to Hidden');
+        console.log('Cancelling....');
+    }
+        
+    return this.setVisibility(0);
+    
+}
+webView.addJavascriptInterface.implementation = function(object, name){
+    console.log('[i] Javascript interface detected:' + object.$className + ' instatiated as' + name);
+    this.addJavascriptInterface(object,name);
+}
+
+
+webView.evaluateJavascript.implementation = function(script, resultCallback){
+    console.log('[i] evaluateJavascript called with the following script: '+script);
+    this.evaluateJavascript(script,resultCallback);
+}
+
+webView.getOriginalUrl.implementation = function(){
+    console.log('[i] Original URL: ' + this.getOriginalUrl());
+    return this.getOriginalUrl();
+}
+
+webView.getUrl.implementation = function(){
+    console.log('[i] Current Loaded url:' + this.getUrl());
+    return this.getUrl();
+}
+
+webView.loadData.implementation = function(data,mimeType, encoding){
+    console.log('[i] Load data called with the following parameters:\n' + 'Data:' + data + '\nMime type: '+mimeType+'\nEncoding: '+ encoding);
+    this.loadData(data,mimeType,encoding);
+}
+
+webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,  encoding,  historyUrl){
+    console.log('[i] loadDataWithBaseURL call detected, having the following parameters:'+
+    '\nBaseUrl: ' + baseUrl +
+    '\nData: ' + data+
+    '\nmimeType: ' + mimeType+
+    '\nhistory URL' + historyUrl);
+
+    this.loadDataWithBaseURL(baseUrl,data,mimeType,encoding,historyUrl);
+}
+
+webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
+    console.log('[i] Loading URL: ' + url);
+    this.loadUrl(url,additionalHttpHeaders);
+}
+
+
+webView.loadUrl.overload('java.lang.String').implementation = function(url){
+    console.log('[i] Loading URL:' + url);
+    this.loadUrl(url);
+}
+
+webView.postUrl.implementation = function (url,postData){
+            
+    var buffer = Java.array('byte', postData);
+    var result = "";
+
+    for(var i = 0; i < buffer.length; ++i){
+        result+= (String.fromCharCode(buffer[i]));
+    }
+
+    console.log('[i] Post request using the webview detected ' + '\nURL: '+url+'Post data:'+result);
+    this.postUrl(url,postData);
+}
+
+webView.removeJavascriptInterface.implementation = function(name){
+    console.log('The ' + name + ' Javascript interface removed');
+    this.removeJavascriptInterface(name);
+}
+
+webView.setWebViewClient.implementation = function(client){
+    console.log('Webview client: ' + client.$className);
+    this.setWebViewClient(client);
+}

@@ -1,0 +1,22 @@
+#Description: 'Use this script to hook content provider queries'
+#Help: "Hooks the android db cursor, used to query content providers e.g. contacts, sms e.t.c. Displays messages regarding the queries taking place"
+#Code:
+
+console.log('\n---AbstractCursor Hook----');
+
+
+var abstractCursor = Java.use('android.database.AbstractCursor');
+
+abstractCursor.getColumnIndex.implementation = function(columnName){
+        console.log('[+-------Query Detected-----------+]');
+        var res = '';
+        var index = this.getColumnIndex(columnName);
+        this.moveToFirst();
+        if(!this.isAfterLast() && this != null)
+         res = this.getString(index);
+        
+        console.log("[+] DB Query for:" + columnName + " ,Result:" + res); 
+
+        this.moveToFirst();
+        return this.getColumnIndex(columnName);
+}

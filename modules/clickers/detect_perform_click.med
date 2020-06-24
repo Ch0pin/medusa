@@ -1,0 +1,16 @@
+#Description: 'Detects clicks performed by invoking the performClick function'
+#Help: "https://developer.android.com/reference/android/view/View#performClick()"
+#Code:
+
+
+console.log('\n----------PerformClick-module--------------');
+console.log('----------twiter:@Ch0pin-------------------');
+
+var viewClassHook = Java.use('android.view.View');
+
+
+
+viewClassHook.performClick.implementation = function(){
+    console.log('[+] Perform Click detected');
+    return this.performClick();
+}

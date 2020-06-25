@@ -1,0 +1,22 @@
+#Description: 'Hooks various firebase messaging functions and displays the processed data'
+#Help: "https://firebase.google.com/docs/reference/android/com/google/firebase/messaging/FirebaseMessagingService"
+#Code:
+
+console.log('\n--------FirebaseMessagingService interceptor module--------------------');
+
+var firebaseMessagingService = Java.use('com.google.firebase.messaging.FirebaseMessagingService');
+var hashMapNode = Java.use('java.util.HashMap$Node');
+
+firebaseMessagingService.onMessageReceived.implementation = function(msg){
+    var map = msg.getData();
+    var iterator = hashmap.entrySet().iterator();
+    console.log('[+] onMessageReceived called, dumping message');
+
+    
+
+    while (iterator.hasNext()) {
+        var entry = Java.cast(iterator.next(), HashMapNode);
+        console.log('key: '+ entry.getKey() + ' ' + 'value: ' + entry.getValue());
+    }
+    this.onMessageReceived(msg);
+}

@@ -28,6 +28,8 @@ for device in device_list[1:-1]:
     index+=1
 
 index = int(input('Please choose the device to operate:'))
+
 p = parser()
 p.device = device_list[index].split()[0]
+p.init_packages()
 p.cmdloop()

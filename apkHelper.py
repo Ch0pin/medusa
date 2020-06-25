@@ -149,3 +149,11 @@ try:
             print('Invalid command or Command was not understood')
 except Exception as e:
     print(e)
+
+
+if os.path.isfile('./manifest.xml'):
+    ask = input('\n[!] do you want to delete the manifest file ? (yes/no) ')
+    if 'yes' in ask:
+        os.remove('./manifest.xml')
+
+print('\nBye !!')

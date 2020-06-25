@@ -20,6 +20,7 @@ REVERSE = "\033[;7m"
 class parser(cmd.Cmd):
 
     all_mods = []
+    packages = []
     show_commands=['mods','categories','all']
     module_list=[]
     prompt = BLUE+'medusa>'+RESET
@@ -41,11 +42,18 @@ class parser(cmd.Cmd):
 
         print(b)
              
-          
-
     
     def do_clear(self,line):
         subprocess.run('clear', shell=True)
+    
+    def init_packages(self):
+        j=0
+        for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device)):
+            self.packages.append(line1.split(':')[1].strip('\n'))
+        print('Installed packages:\n')
+        for pkg in self.packages:
+            print('[{}] {}'.format(j,pkg))
+            j +=1
 
     def __init__(self):
         super(parser,self).__init__()
@@ -55,8 +63,11 @@ class parser(cmd.Cmd):
                     filepath = os.path.join(root,filename)
                     self.all_mods.append(filepath)
         print('Total modules: ' + str(len(self.all_mods)))
+        
 
-    def do_reset(self):
+
+
+    def do_reset(self,line):
         self.module_list = []
         self.modified = False
 
@@ -66,6 +77,16 @@ class parser(cmd.Cmd):
         else:
             completions = [ f
                             for f in self.show_commands
+                            if f.startswith(text)
+                            ]
+        return completions
+
+    def complete_run(self, text, line, begidx, endidx):
+        if not text:
+            completions = self.packages[:]
+        else:
+            completions = [ f
+                            for f in self.packages
                             if f.startswith(text)
                             ]
         return completions
@@ -111,16 +132,20 @@ class parser(cmd.Cmd):
         print()
 
     def do_show(self,what):
-        if what == 'categories':
-            self.show_categories()
-        elif what == 'all':
-            self.show_all()
-        elif what == 'mods':
-            self.show_mods()
-        elif what.split(' ')[0] == 'modules':
-            self.show_modules(what.split(' ')[1])
-        else:
-            print('Invalid command!')
+        try:
+            if what == 'categories':
+                self.show_categories()
+            elif what == 'all':
+                self.show_all()
+            elif what == 'mods':
+                self.show_mods()
+            elif what.split(' ')[0] == 'modules':
+                self.show_modules(what.split(' ')[1])
+            else:
+                print('Invalid command!')
+        except Exception as e:
+            print(e)
+            print('Invalid command - please check usage !')
             
     def show_mods(self):
         print("\nCurrent Mods:")
@@ -164,34 +189,40 @@ class parser(cmd.Cmd):
         subprocess.run('{}'.format(shell), shell=True)
 
     def show_modules(self,category):
-        presentation = {}
-        
-        for root, directories, filenames in os.walk('modules/{}'.format(category)):
-            for filename in filenames:
-                if filename.endswith('.med'):
-                    filepath = os.path.join(root,filename)
-                    presentation.update({filepath: self.display_tag(filepath,'Description')})
-        
-        if len(presentation) == 0:
-            print('No such category or this category does not contain modules')
-        else:
-            print('\nModules in this category:\n')
-            for key,value in presentation.items():
-                print('Name: '+GREEN+key+' '+BLUE+value+RESET, end = '')
+        try:
+            presentation = {}
+            
+            for root, directories, filenames in os.walk('modules/{}'.format(category)):
+                for filename in filenames:
+                    if filename.endswith('.med'):
+                        filepath = os.path.join(root,filename)
+                        presentation.update({filepath: self.display_tag(filepath,'Description')})
+            
+            if len(presentation) == 0:
+                print('No such category or this category does not contain modules')
+            else:
+                print('\nModules in this category:\n')
+                for key,value in presentation.items():
+                    print('Name: '+GREEN+key+' '+BLUE+value+RESET, end = '')
+        except Exception as e:
+            print(e)
+            print('Usage: show modules [category]')
 
 
     def display_tag(self,file, what_tag):
-        with open(file) as fl:
+        with open(file) as fl: 
             for line in fl:
                 if line.startswith('#{}'.format(what_tag)):
                     return line
 
     def do_compile(self,line):
         self.parse_module(self.module_list)
+        self.modified = False
+        return
 
 
     def parse_module(self,mods):
-        hooks = ['Java.perform(function() {']
+        hooks = ["'use strict'; \n\nJava.perform(function() {"]
         for file in mods:
             with open(file) as mod:
                 hooks.append(' try { ')
@@ -209,6 +240,7 @@ class parser(cmd.Cmd):
             for line in hooks:
                 agent.write('%s\n' % line)
         print("\nScript is compiled\n")
+        modified = False
     
     def do_run(self,line):
         if self.modified == True:
@@ -251,11 +283,19 @@ class parser(cmd.Cmd):
                 subprocess.run('frida -D {} -l agent.js {}'.format(device,package_name), shell=True)
 
     def do_list(self,line):
+        self.packages = []
+        j=0
         if 'packages' in line:
-            subprocess.run('adb -s {} shell pm list packages -3'.format(self.device), shell=True)
+            for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device)):
+                self.packages.append(line1.split(':')[1].strip('\n'))
+            print('Installed packages:\n')
+            for pkg in self.packages:
+                print('[{}] {}'.format(j,pkg))
+                j +=1
         else:
             print('Invalid flag !')
 
+        
 
 
     def do_type(self,text):

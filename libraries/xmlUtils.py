@@ -59,7 +59,8 @@ def start_activity(activity_list,device,package):
 
 def print_list(lst):
     for item in lst:
-        print('\t\t'+item)
+        if type(item) is str:
+            print('\t\t'+item)
     
 def print_help():
     print("""Available commands:

@@ -1,8 +1,9 @@
 
 Java.perform(function(){
-	X=Java.use("class_name");
+    var X=Java.use("me.hawkshaw.HawkshawMainActivity$showLoginUI$1");
+    var y = Java.use('me.hawkshaw.HawkshawMainActivity');
 	Java.scheduleOnMainThread(function(){
-		b=X.$new();
-        console.log(b.method_name(params));
+		var b=X.$new(y.$new());
+        console.log('');
 	})
 })

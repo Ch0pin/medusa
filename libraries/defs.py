@@ -222,7 +222,11 @@ class parser(cmd.Cmd):
 
 
     def parse_module(self,mods):
-        hooks = ["'use strict'; \n\nJava.perform(function() {"]
+        hooks = []
+        with open('libraries/utils.js','r') as file:
+            header = file.read();
+        hooks.append(header);
+        hooks.append("\n\nJava.perform(function() {")
         for file in mods:
             with open(file) as mod:
                 hooks.append(' try { ')
@@ -240,7 +244,7 @@ class parser(cmd.Cmd):
             for line in hooks:
                 agent.write('%s\n' % line)
         print("\nScript is compiled\n")
-        modified = False
+        self.modified = False
     
     def do_run(self,line):
         if self.modified == True:

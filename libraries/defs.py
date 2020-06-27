@@ -3,6 +3,7 @@ import cmd
 import os, sys
 import readline
 import rlcompleter
+from libraries.dumper import dump_pkg
 
 if 'libedit' in readline.__doc__:
     readline.parse_and_bind("bind ^I rl_complete")
@@ -26,7 +27,9 @@ class parser(cmd.Cmd):
     prompt = BLUE+'medusa>'+RESET
     device = ''
     modified = False
+    device_index =0
 
+    
     def do_trigger(self,line):
         with open('triger.js','r') as file:
             data = file.read()
@@ -65,7 +68,18 @@ class parser(cmd.Cmd):
         print('Total modules: ' + str(len(self.all_mods)))
         
 
+    def do_dump(self,line):
+        dump_pkg(line.split(' ')[0])
 
+    def complete_dump(self, text, line, begidx, endidx):
+        if not text:
+            completions = self.packages[:]
+        else:
+            completions = [ f
+                            for f in self.packages
+                            if f.startswith(text)
+                            ]
+        return completions
 
     def do_reset(self,line):
         self.module_list = []
@@ -107,7 +121,7 @@ class parser(cmd.Cmd):
 
     def do_rem(self,mod):
         self.module_list.remove(mod)
-        print("\nCurrent Mods:")
+        print("\nRemoved:")
         for module in self.module_list:
             print(mod.replace('_',' '))
         self.modified = True
@@ -305,6 +319,15 @@ class parser(cmd.Cmd):
     def do_type(self,text):
         os.popen("adb -s {} shell input text {}".format(self.device,text))
 
+    def complete_help(self, text, line, begidx, endidx):
+        if not text:
+            completions = self.all_mods[:]
+        else:
+            completions = [ f
+                            for f in self.all_mods
+                            if f.startswith(text)
+                            ]
+        return completions
 
 
     def do_help(self,line):
@@ -327,6 +350,7 @@ class parser(cmd.Cmd):
                             **Adding '-d' in the options above will run Frida detached from the current shell,
                             (works only on macOS)
 
+                            - dump  package_name        : dumps the requested package name
                             - type 'text'               : sends the text to the device
                             - list packages             : Lists 3rd party packages in the mobile device 
                             - shell                     : Opens an interactive shell

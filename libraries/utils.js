@@ -91,7 +91,7 @@ var normalize = function(input) {
     }
     return normalized;
   }
-  
+
 var normalizeInput = function(input) {
   if (input.array) {
     var normalized = byteArraytoHexString(input.array());

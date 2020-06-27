@@ -20,7 +20,7 @@ console.log('\n\nDB monitor by Nishant Das Patnaik-----------');
  * See the License for the specific language governing permissions and
  * limitations under the License.
 **/	
-    
+    var ContextWrapper = Java.use("android.content.ContextWrapper");
     
     if (ContextWrapper.openOrCreateDatabase) {
 	

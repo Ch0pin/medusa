@@ -2,16 +2,9 @@
 #Help: "N/A"
 #Code:
 
-const Class = Java.use("me.hawkshaw.HawkshawMainActivity$showLoginUI$1");
-function inspectClass(obj) {
-    const obj_class = Java.cast(obj.getClass(), Class);
-    const fields = obj_class.getDeclaredFields();
-    const methods = obj_class.getMethods();
-    console.log("Inspect " + obj.getClass().toString());
-    console.log("\tFields:");
-    for (var i in fields)
-        console.log("\t" + fields[i].toString());
-    console.log("\tMethods:");
-    for (var i in methods)
-        console.log("\t" + methods[i].toString());
+var enable = Java.use('d.a.a.e.a');
+
+enable.a.implementation = function(){
+    console.log('here');
+    return True;
 }

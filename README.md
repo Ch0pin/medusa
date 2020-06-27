@@ -7,6 +7,7 @@
 **Medusa** is an extensible framework for **Android Applications** which automates processes and techniques practised during the **dynamic analysis** of an assessment.  It's functionality can be summarised as follows:
 
 - Tracing and instrumentation of API calls using the FRIDA framework
+- Dump dex on memory (Credits: https://github.com/hluwa/FRIDA-DEXDump.git)
 - Triggering of various system broadcasts
 - Triggering of application's components (Activities, services e.t.c.)
 - Wrapping of adb commands (e.g. cchange proxy settings, insert keys e.t.c.)

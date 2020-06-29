@@ -9,6 +9,7 @@
 - Tracing and instrumentation of API calls using the FRIDA framework
 - Dump dex on memory (Credits: https://github.com/hluwa/FRIDA-DEXDump.git)
 - Triggering of various system broadcasts
+- Translate UI to English
 - Triggering of application's components (Activities, services e.t.c.)
 - Wrapping of adb commands (e.g. cchange proxy settings, insert keys e.t.c.)
 

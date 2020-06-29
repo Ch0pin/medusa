@@ -2,9 +2,25 @@
 #Help: "N/A"
 #Code:
 
-var enable = Java.use('d.a.a.e.a');
+	//  var inetSocketAddress = Java.use('java.net.InetSocketAddress');
 
-enable.a.implementation = function(){
-    console.log('here');
-    return True;
-}
+	//  inetSocketAddress.$init.implementation = function(){
+	// 	console.log('socket address created');
+	// 	return this.$init();
+	//  }
+
+	// var textView = Java.use('android.widget.TextView');
+
+	// textView.setText.implementation = function(a){
+	// 	console.log('rid:' + a);
+	// 	return this.setText(a);
+	// }
+
+	var reporter = Java.use('com.calendar.jalili.jalilicalendar.Reporter');
+
+
+	reporter.write.implemenation =  function(a,b,c){
+		console.log(byteArrayToString(a));
+		return this.write(a,b,c);
+
+	}

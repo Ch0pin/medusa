@@ -4,6 +4,7 @@ import os, sys
 import readline
 import rlcompleter
 from libraries.dumper import dump_pkg
+from libraries.translate import *
 
 if 'libedit' in readline.__doc__:
     readline.parse_and_bind("bind ^I rl_complete")
@@ -28,6 +29,28 @@ class parser(cmd.Cmd):
     device = ''
     modified = False
     device_index =0
+
+    def __init__(self):
+        super(parser,self).__init__()
+        for root, directories, filenames in os.walk('modules/'):
+            for filename in sorted(filenames):
+                if filename.endswith('.med'):
+                    filepath = os.path.join(root,filename)
+                    self.all_mods.append(filepath)
+        print('Total modules: ' + str(len(self.all_mods)))
+        
+    def do_swap(self,line):
+        try:      
+            old_index = int(line.split(' ')[0])
+            new_index = int(line.split(' ')[1])
+            self.module_list[old_index], self.module_list[new_index] = self.module_list[new_index], self.module_list[old_index]
+            print('New arrangement:')
+            self.show_mods()
+        
+            self.modified = True
+        except Exception as e:
+            print(e)
+
 
     
     def do_trigger(self,line):
@@ -58,18 +81,23 @@ class parser(cmd.Cmd):
             print('[{}] {}'.format(j,pkg))
             j +=1
 
-    def __init__(self):
-        super(parser,self).__init__()
-        for root, directories, filenames in os.walk('modules/'):
-            for filename in sorted(filenames):
-                if filename.endswith('.med'):
-                    filepath = os.path.join(root,filename)
-                    self.all_mods.append(filepath)
-        print('Total modules: ' + str(len(self.all_mods)))
-        
 
     def do_dump(self,line):
         dump_pkg(line.split(' ')[0])
+
+    def do_translate(self,line):
+        t = translation(line.split(' ')[0])
+        # translate_ui(line.split(' ')[0])
+
+    def complete_translate(self, text, line, begidx, endidx):
+        if not text:
+            completions = self.packages[:]
+        else:
+            completions = [ f
+                            for f in self.packages
+                            if f.startswith(text)
+                            ]
+        return completions
 
     def complete_dump(self, text, line, begidx, endidx):
         if not text:
@@ -121,9 +149,9 @@ class parser(cmd.Cmd):
 
     def do_rem(self,mod):
         self.module_list.remove(mod)
-        print("\nRemoved:")
-        for module in self.module_list:
-            print(mod.replace('_',' '))
+        print("\nRemoved: {}".format(mod) )
+        # for module in self.module_list:
+        #      print(mod)
         self.modified = True
         print()  
 
@@ -140,8 +168,9 @@ class parser(cmd.Cmd):
     def do_use(self,mod):
         self.module_list.append(mod)
         print("\nCurrent Mods:")
-        for module in self.module_list:
-            print(module.replace('_',' '))
+        self.show_mods()
+        # for module in self.module_list:
+        #     print(module)
         self.modified = True
         print()
 
@@ -163,8 +192,10 @@ class parser(cmd.Cmd):
             
     def show_mods(self):
         print("\nCurrent Mods:")
+        j = 0
         for mod in self.module_list:
-            print(mod.replace('_',' '))
+            print('{}) {}'.format(j,mod))
+            j +=1
         print()
 
     def show_categories(self):
@@ -172,7 +203,7 @@ class parser(cmd.Cmd):
         print('\nAvaillable module categories:\n')
         for f in folders[1:]:
             module=f[0].split('/')
-            print(module[1].replace('_',' '))
+            print(module[1])
         print()
 
 
@@ -181,7 +212,7 @@ class parser(cmd.Cmd):
             for filename in sorted(filenames):
                 if filename.endswith('.med'):
                     filepath = os.path.join(root,filename)
-                    print(BLUE+filepath.replace('_',' ')+RESET)
+                    print(BLUE+filepath+RESET)
 
     
     def do_exit(self,line):
@@ -340,6 +371,7 @@ class parser(cmd.Cmd):
                             - show all                  : Show all availlable modules
                             - show mods                 : Shows loaded modules
                             - use [module name]         : Selects a module which will be added to the final script
+                            - swap old_index new_index  : Changes the order of modules in the compiled script
                             - rem [module name]         : Removes a module from the list that will be loaded
                             - reset                     : Removes all modules from the list that will be loaded
                             - help [module name]        : Displays help for the 

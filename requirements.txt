@@ -1,0 +1,3 @@
+frida==12.10.4
+googletrans==3.0.0
+click==7.1.2

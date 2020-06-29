@@ -133,3 +133,14 @@ var normalizeKey = function(cert_or_key) {
   }
 
 }
+var byteArrayToString = function(input){
+  var buffer = Java.array('byte', input);
+  console.log(buffer.length);
+  var result = "";
+  for(var i = 0; i < buffer.length; ++i){
+      result+= (String.fromCharCode(buffer[i]));
+  }
+  return result;
+
+}
+

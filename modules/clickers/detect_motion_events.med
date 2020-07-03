@@ -27,7 +27,8 @@ motionEvent.obtain.overload('android.view.MotionEvent').implementation = functio
 
 
 
-motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'int').implementation = function(downTime,eventTime,action,x,y,metaState){
+
+motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'int').implementation = function(downTime,eventTime,action,x,y,metastate){
     var actionType ='';
     if(action == '0'){
         actionType = 'ACTION_DOWN';
@@ -42,7 +43,7 @@ motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'int').impl
     + '\naction: '+actionType
     + '\nx: '+x
     + '\ny: '+y
-    + '\nmetaState: '+metastate);
+    + '\nmetastate: '+metastate);
     return this.obtain(downTime, eventTime, action,x,y,metastate);
 }
 
@@ -64,7 +65,7 @@ motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'float', 'f
     + '\ny: '+y
     + '\npressure: '+pressure
     + '\nsize: '+size
-    + '\nmetaState: '+metastate
+    + '\nmetastate: '+metastate
     + '\nxPrecission: '+xPrecission
     + '\nyPrecission: '+yPrecission
     + '\ndeviceId: '+deviceId
@@ -73,13 +74,13 @@ motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'float', 'f
 }
 
 motionEvent.obtain.overload('long', 'long', 'int', 'int', '[I', '[Landroid.view.MotionEvent$PointerCoords;', 'int', 'float', 'float', 'int', 'int', 'int', 'int').implementation = 
-function(downTime,eventTime,action,pointerCount,pointerIds,pointerCoords,metaState,xPrecission,yPrecission,deviceId,edgeFlags,source,flags){
+function(downTime,eventTime,action,pointerCount,pointerIds,pointerCoords,metastate,xPrecission,yPrecission,deviceId,edgeFlags,source,flags){
     console.log('[!] Motion event detected using obtain which was Deprecated in API level 15');
-    return this.obtain(downTime,eventTime,action,pointerCount,pointerIds,pointerCoords,metaState,xPrecission,yPrecission,deviceId,edgeFlags,source,flags);
+    return this.obtain(downTime,eventTime,action,pointerCount,pointerIds,pointerCoords,metastate,xPrecission,yPrecission,deviceId,edgeFlags,source,flags);
 }
 
 motionEvent.obtain.overload('long', 'long', 'int', 'int', 'float', 'float', 'float', 'float', 'int', 'float', 'float', 'int', 'int').implementation = 
-function(downTime,eventTime,action,pointerCount,x,y,pressure,size,metaState,xPrecission,deviceId,edgeFlags){
+function(downTime,eventTime,action,pointerCount,x,y,pressure,size,metastate,xPrecission,deviceId,edgeFlags){
     var actionType ='';
     if(action == '0'){
         actionType = 'ACTION_DOWN';
@@ -97,12 +98,12 @@ function(downTime,eventTime,action,pointerCount,x,y,pressure,size,metaState,xPre
     + '\ny: '+y
     + '\npressure: '+pressure
     + '\nsize: '+size
-    + '\nmetaState: '+metaState
+    + '\nmetastate: '+metastate
     + '\nxPrecission: '+xPrecission
     + '\nyPrecission: '+yPrecission
     + '\ndeviceId: '+deviceId
     + '\nedgeFlags: ' + edgeFlags);
-    return this.obtain(downTime,eventTime,action,pointerCount,x,y,pressure,size,metaState,xPrecission,deviceId,edgeFlags);           
+    return this.obtain(downTime,eventTime,action,pointerCount,x,y,pressure,size,metastate,xPrecission,deviceId,edgeFlags);           
 }
 motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'float', 'float', 'int', 'float', 'float', 'int', 'int', 'int', 'int').implementation = function(a,b,c,d,e,f,g,h,i,j,k,l,m,n){
     console.log('[+] Motion Event detected');
@@ -110,7 +111,7 @@ motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'float', 'f
 }
 
 motionEvent.obtain.overload('long', 'long', 'int', 'int', '[Landroid.view.MotionEvent$PointerProperties;', '[Landroid.view.MotionEvent$PointerCoords;', 'int', 'int', 'float', 'float', 'int', 'int', 'int', 'int').implementation = 
-function(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,metaState,buttonState,xPrecission,yPrecission,deviceId,edgeFlags,source,flags){
+function(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,metastate,buttonState,xPrecission,yPrecission,deviceId,edgeFlags,source,flags){
     var actionType ='';
     if(action == '0'){
         actionType = 'ACTION_DOWN';
@@ -126,7 +127,7 @@ function(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,
     + '\npointerCount: ' + pointerCount
     + '\npointerProperties: ' + pointerProperties
     + '\npointerCoords: ' + pointerCoords
-    + '\nmetaState: '+metaState
+    + '\nmetastate: '+metastate
     + '\nbuttonState: '+buttonState
     + '\nxPrecission: '+xPrecission
     + '\nyPrecission: '+yPrecission
@@ -134,7 +135,7 @@ function(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,
     + '\nedgeFlags: ' + edgeFlags
     + '\nsource: ' + source
     + '\nflags: '+flags);
-    return this.obtain(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,metaState,buttonState,xPrecission,yPrecission,deviceId,edgeFlags,source,flags);
+    return this.obtain(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,metastate,buttonState,xPrecission,yPrecission,deviceId,edgeFlags,source,flags);
 }
 motionEvent.obtain.overload('long', 'long', 'int', 'int', '[Landroid.view.MotionEvent$PointerProperties;', '[Landroid.view.MotionEvent$PointerCoords;', 'int', 'int', 'float', 'float', 'int', 'int', 'int', 'int', 'int').implementation = 
 function(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o){

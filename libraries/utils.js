@@ -144,3 +144,6 @@ var byteArrayToString = function(input){
 
 }
 
+function getContext() {
+	return Java.use('android.app.ActivityThread').currentApplication().getApplicationContext();
+  }

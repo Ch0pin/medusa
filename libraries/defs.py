@@ -2,9 +2,12 @@ import subprocess
 import cmd
 import os, sys
 import readline
+import logging
 import rlcompleter
+import time
+import frida
 from libraries.dumper import dump_pkg
-from libraries.translate import *
+from googletrans import Translator
 
 if 'libedit' in readline.__doc__:
     readline.parse_and_bind("bind ^I rl_complete")
@@ -14,6 +17,8 @@ else:
 RED   = "\033[1;31m"  
 BLUE  = "\033[1;34m"
 CYAN  = "\033[1;36m"
+WHITE = "\033[1;37m"
+YELLOW= "\033[1;33m"
 GREEN = "\033[0;32m"
 RESET = "\033[0;0m"
 BOLD    = "\033[;1m"
@@ -26,9 +31,13 @@ class parser(cmd.Cmd):
     show_commands=['mods','categories','all']
     module_list=[]
     prompt = BLUE+'medusa>'+RESET
-    device = ''
+    device = None
     modified = False
     device_index =0
+    translator = Translator()
+    script = None
+   
+
 
     def __init__(self):
         super(parser,self).__init__()
@@ -37,7 +46,10 @@ class parser(cmd.Cmd):
                 if filename.endswith('.med'):
                     filepath = os.path.join(root,filename)
                     self.all_mods.append(filepath)
-        print('Total modules: ' + str(len(self.all_mods)))
+        print('\nTotal modules: ' + str(len(self.all_mods)))
+
+
+
         
     def do_swap(self,line):
         try:      
@@ -74,9 +86,9 @@ class parser(cmd.Cmd):
     
     def init_packages(self):
         j=0
-        for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device)):
+        for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
             self.packages.append(line1.split(':')[1].strip('\n'))
-        print('Installed packages:\n')
+        print('\nInstalled packages:\n')
         for pkg in self.packages:
             print('[{}] {}'.format(j,pkg))
             j +=1
@@ -316,26 +328,72 @@ class parser(cmd.Cmd):
             if '-f' in flags[0] and '-d' in flags[1]:
                 self.run_frida(True,True,flags[2],self.device)
 
+    def my_message_handler(self,message,payload):
 
+        if message["type"] == "send":
+            data = message["payload"].split(":")[0].strip()
+            result = self.translator.translate(data)
+            self.script.post({"my_data": result.text}) 
 
+    
     def run_frida(self,force, detached, package_name, device):
-        if detached == True:
-            path = os.getcwd()
-            if force == True:
-                os.system("""osascript -e 'tell application "Terminal" to do script "frida -D {} -l {}/agent.js -f {} --no-pause"' """.format(device,path,package_name))
+
+        session = self.frida_session_handler(device,force,package_name)
+
+        with open("agent.js") as f:
+            self.script = session.create_script(f.read())
+        self.script.on("message",self.my_message_handler)  # register the message handler
+        self.script.load()  
+        s = input(WHITE+'in-session-logging (type exit to end session)>')
+        while 'exit' not in s:
+            s = input(WHITE+'in-session-logging:>')
+        self.script.unload()
+        print(RESET)
+        return
+        # input()
+
+    def frida_session_handler(self,con_device,force,pkg):
+        time.sleep(1)
+        if force == False:
+            frida_session = con_device.attach(pkg)
+            if frida_session:
+                print(WHITE+"Attaching frida session to PID - {0}".format(frida_session._impl.pid))
             else:
-                os.system("""osascript -e 'tell application "Terminal" to do script "frida -D {} -l {}/agent.js {}"' """.format(device,path,package_name))
+                print("Could not attach the requested process"+RESET)
+        elif force == True:
+            pid = con_device.spawn(pkg)
+            if pid:
+                frida_session = con_device.attach(pid)
+                print(WHITE+"Spawned package : {0} on pid {1}".format(pkg,frida_session._impl.pid))
+                    # resume app after spawning
+                con_device.resume(pid)
+            else:
+                print(RED+"Could not spawn the requested package")
+                return None
         else:
-            if force == True:
-                subprocess.run('frida -D {} -l agent.js -f {} --no-pause'.format(device,package_name), shell=True)
-            else:
-                subprocess.run('frida -D {} -l agent.js {}'.format(device,package_name), shell=True)
+            return None
+        return frida_session
+
+    # def run_frida(self,force, detached, package_name, device):
+    #     if detached == True:
+    #         path = os.getcwd()
+    #         if force == True:
+    #             os.system("""osascript -e 'tell application "Terminal" to do script "frida -D {} -l {}/agent.js -f {} --no-pause"' """.format(device.id,path,package_name))
+    #         else:
+    #             os.system("""osascript -e 'tell application "Terminal" to do script "frida -D {} -l {}/agent.js {}"' """.format(device.id,path,package_name))
+    #     else:
+    #         if force == True:
+    #             subprocess.run('frida -D {} -l agent.js -f {} --no-pause'.format(device.id,package_name), shell=True)
+    #         else:
+    #             subprocess.run('frida -D {} -l agent.js {}'.format(device.id,package_name), shell=True)
+
+
 
     def do_list(self,line):
         self.packages = []
         j=0
         if 'packages' in line:
-            for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device)):
+            for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
                 self.packages.append(line1.split(':')[1].strip('\n'))
             print('Installed packages:\n')
             for pkg in self.packages:
@@ -348,7 +406,7 @@ class parser(cmd.Cmd):
 
 
     def do_type(self,text):
-        os.popen("adb -s {} shell input text {}".format(self.device,text))
+        os.popen("adb -s {} shell input text {}".format(self.device.id,text))
 
     def complete_help(self, text, line, begidx, endidx):
         if not text:
@@ -377,11 +435,7 @@ class parser(cmd.Cmd):
                             - help [module name]        : Displays help for the 
                             - compile                   : Compiles the modules to a frida script
                             - run        [package name] : Initiates a Frida session and attaches to the sellected package
-                            - run -f    [package name]  : Initiates a Frida session and spawns the sellected package
-
-                            **Adding '-d' in the options above will run Frida detached from the current shell,
-                            (works only on macOS)
-
+                            - run -f     [package name] : Initiates a Frida session and spawns the sellected package
                             - dump  package_name        : dumps the requested package name
                             - type 'text'               : sends the text to the device
                             - list packages             : Lists 3rd party packages in the mobile device 

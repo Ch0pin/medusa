@@ -2,25 +2,18 @@
 #Help: "N/A"
 #Code:
 
-	//  var inetSocketAddress = Java.use('java.net.InetSocketAddress');
-
-	//  inetSocketAddress.$init.implementation = function(){
-	// 	console.log('socket address created');
-	// 	return this.$init();
-	//  }
-
-	// var textView = Java.use('android.widget.TextView');
-
-	// textView.setText.implementation = function(a){
-	// 	console.log('rid:' + a);
-	// 	return this.setText(a);
-	// }
-
-	var reporter = Java.use('com.calendar.jalili.jalilicalendar.Reporter');
+com.mopub.mobileads.MoPubView 
 
 
-	reporter.write.implemenation =  function(a,b,c){
-		console.log(byteArrayToString(a));
-		return this.write(a,b,c);
+Java.perform(function(){
+    var X=Java.use("com.jiubang.go.music.ad.DailyRecommendActivity$2");
+    
+	Java.scheduleOnMainThread(function(){
+        var b=X.$new();
+        b.a();
+        console.log('');
+	})
 
-	}
+
+
+})

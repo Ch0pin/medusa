@@ -18,19 +18,34 @@ Welcome to:
 
 
 
-device_list = os.popen("adb devices -l").read().split('\n')
+# device_list = os.popen("adb devices -l").read().split('\n')
 
-device_list.pop()
-index = 1
+# device_list.pop()
+# index = 1
 
-for device in device_list[1:-1]:
-    print("{}) {}".format(index,device))
-    index+=1
+# for device in device_list[1:-1]:
+#     print("{}) {}".format(index,device))
+#     index+=1
 
-index = int(input('Please choose the device to operate:'))
+# index = int(input('Please choose the device to operate:'))
+
+
+try:
+    print('Availlable devices:\n')
+    devices = frida.enumerate_devices()
+    i = 0
+
+    for dv in devices:
+        print('{}) {}'.format(i,dv))
+        i += 1
+    j = input('\nEnter the index of device to use:')
+    device = devices[int(j)] 
+except:
+    device = frida.get_remote_device()
 
 p = parser()
-p.device_index = index
-p.device = device_list[index].split()[0]
+# p.device_index = index
+# p.device = device_list[index].split()[0]
+p.device = device
 p.init_packages()
 p.cmdloop()

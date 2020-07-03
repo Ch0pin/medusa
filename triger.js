@@ -1,9 +1,10 @@
 
 Java.perform(function(){
-    var X=Java.use("me.hawkshaw.HawkshawMainActivity$showLoginUI$1");
-    var y = Java.use('me.hawkshaw.HawkshawMainActivity');
+    var X=Java.use("com.jiubang.go.music.ad.DailyRecommendActivity$2");
+    
 	Java.scheduleOnMainThread(function(){
-		var b=X.$new(y.$new());
+        var b=X.$new();
+        b.a();
         console.log('');
 	})
 })

@@ -156,4 +156,10 @@ if os.path.isfile('./manifest.xml'):
     if 'yes' in ask:
         os.remove('./manifest.xml')
 
+if APK == True:
+    install = input("Do you want to uninstall the apk ? (yes/no)")
+    if 'yes' in install:
+        subprocess.run('adb -s {} uninstall {}'.format(operation_device,package,shell=True)
+
+
 print('\nBye !!')

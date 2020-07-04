@@ -304,29 +304,40 @@ class parser(cmd.Cmd):
         self.modified = False
     
     def do_run(self,line):
-        if self.modified == True:
-            comp = input('Module list has been modified, do you want to recompile ? (yes/no)')
-            if 'yes' in comp:
-                self.parse_module(self.module_list)
+        
+        try:
+        
+            if self.modified == True:
+                comp = input('Module list has been modified, do you want to recompile ? (yes/no)')
+                if 'yes' in comp:
+                    self.parse_module(self.module_list)
+                else:
+                    pass
+ 
+            flags = line.split(' ');
+            length = len(flags)
+            if length == 1:
+                self.run_frida(False,False,line,self.device)
+            elif length == 2:
+                print(flags[1])
+                if '-f' in flags[0]:
+                    self.run_frida(True,False,flags[1],self.device)
+                # elif '-d' in flags[0]:
+                #     self.run_frida(False,True,flags[1],self.device)
+                else:
+                    print('Invalid flag given!')
+            # elif length == 3:
+            #     print(' {} {} {}'.format(flags[0],flags[1],flags[2]))
+            #     if '-f' in flags[0] and '-d' in flags[1]:
+            #         self.run_frida(True,True,flags[2],self.device)
             else:
-                pass
+                print('Invalid flags given')
+        except Exception as e:
+            print(e)
 
-        flags = line.split(' ');
-        length = len(flags)
-        if length == 1:
-            self.run_frida(False,False,line,self.device)
-        elif length == 2:
-            print(flags[1])
-            if '-f' in flags[0]:
-                self.run_frida(True,False,flags[1],self.device)
-            elif '-d' in flags[0]:
-                self.run_frida(False,True,flags[1],self.device)
-            else:
-                print('Invalid flag given!')
-        elif length == 3:
-            print(' {} {} {}'.format(flags[0],flags[1],flags[2]))
-            if '-f' in flags[0] and '-d' in flags[1]:
-                self.run_frida(True,True,flags[2],self.device)
+
+
+
 
     def my_message_handler(self,message,payload):
 
@@ -339,15 +350,18 @@ class parser(cmd.Cmd):
     def run_frida(self,force, detached, package_name, device):
 
         session = self.frida_session_handler(device,force,package_name)
-
-        with open("agent.js") as f:
-            self.script = session.create_script(f.read())
-        self.script.on("message",self.my_message_handler)  # register the message handler
-        self.script.load()  
-        s = input(WHITE+'in-session-logging (type exit to end session)>')
-        while 'exit' not in s:
-            s = input(WHITE+'in-session-logging:>')
-        self.script.unload()
+        try:
+            with open("agent.js") as f:
+                self.script = session.create_script(f.read())
+            self.script.on("message",self.my_message_handler)  # register the message handler
+            self.script.load()  
+            s = input(WHITE+'in-session-logging (type exit to end session)>')
+            while 'exit' not in s:
+                s = input(WHITE+'in-session-logging:>')
+            if self.script:
+                self.script.unload()
+        except Exception as e:
+            print(e)
         print(RESET)
         return
         # input()

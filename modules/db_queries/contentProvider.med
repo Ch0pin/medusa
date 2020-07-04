@@ -6,6 +6,22 @@ console.log('\n--------AbstractCursor Hook----------------');
 
 
 var abstractCursor = Java.use('android.database.AbstractCursor');
+var cursor = Java.use('android.database.Cursor');
+
+
+cursor.getColumnIndex.implementation = function(columnName){
+        console.log('[+-------Query Detected-----------+]');
+        var res = '';
+        var index = this.getColumnIndex(columnName);
+        //this.moveToFirst();
+        if(!this.isAfterLast() && this != null)
+         res = this.getString(index);
+        
+        console.log("[+] DB Query for:" + columnName + " ,Result:" + res); 
+
+        //this.moveToFirst();
+        return this.getColumnIndex(columnName);
+}
 
 abstractCursor.getColumnIndex.implementation = function(columnName){
         console.log('[+-------Query Detected-----------+]');

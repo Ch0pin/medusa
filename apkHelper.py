@@ -17,7 +17,7 @@ BOLD    = "\033[;1m"
 REVERSE = "\033[;7m"
 
 APK = False
-
+INSTALL = False
 
 def print_usage():
     print("\nInput file is missing ! \nUsage: \n\t{} path_to_AndroidManifest.xml OR ".format(sys.argv[0]))
@@ -99,6 +99,7 @@ if APK == True:
     install = input("Do you want to install the apk ? (yes/no)")
     if 'yes' in install:
         subprocess.run('adb -s {} install {}'.format(operation_device,sys.argv[1]),shell=True)
+        INSTALL = True
 
 cmd = ''
 try:
@@ -156,10 +157,10 @@ if os.path.isfile('./manifest.xml'):
     if 'yes' in ask:
         os.remove('./manifest.xml')
 
-if APK == True:
-    install = input("Do you want to uninstall the apk ? (yes/no)")
-    if 'yes' in install:
-        subprocess.run('adb -s {} uninstall {}'.format(operation_device,package,shell=True)
+if INSTALL == True:
+    uninstall = input("[!] Do you want to uninstall the apk ? (yes/no)")
+    if 'yes' in uninstall:
+        subprocess.run('adb -s {} uninstall {}'.format(operation_device,package),shell=True)
 
 
 print('\nBye !!')

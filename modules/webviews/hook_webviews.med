@@ -2,7 +2,8 @@
 #Help: "webviewHook traces call to basic api functions displaying infor about loaded URLs, javascript interfaces e.t.c."
 #Code:
 
-console.log('\n---WebView Hook------------');
+				console.log('\n--------WebView hook module--------------');
+				console.log('----------twiter:@Ch0pin-------------------');
 
 var webView = Java.use('android.webkit.WebView');
 

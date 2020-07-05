@@ -2,18 +2,7 @@
 #Help: "N/A"
 #Code:
 
-com.mopub.mobileads.MoPubView 
-
-
-Java.perform(function(){
-    var X=Java.use("com.jiubang.go.music.ad.DailyRecommendActivity$2");
-    
-	Java.scheduleOnMainThread(function(){
-        var b=X.$new();
-        b.a();
-        console.log('');
-	})
+console.log('\n--------SCRATCH PAD LOADING-------------------');
 
 
 
-})

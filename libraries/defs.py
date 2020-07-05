@@ -267,10 +267,19 @@ class parser(cmd.Cmd):
 
 
     def display_tag(self,file, what_tag):
-        with open(file) as fl: 
-            for line in fl:
-                if line.startswith('#{}'.format(what_tag)):
-                    return line
+        tag_content = ''
+        with open(file) as fl:
+            content = fl.readlines();
+
+        for i in range(len(content)):
+            if content[i].startswith('#{}'.format(what_tag)):
+                tag_content += content[i]
+                i +=1
+                while not content[i].startswith('#'):
+                    tag_content+=content[i]
+                    i+=1
+            
+        return tag_content
 
     def do_compile(self,line):
         self.parse_module(self.module_list)
@@ -292,7 +301,7 @@ class parser(cmd.Cmd):
                         hooks.append('\t\t'+line.strip('\n'))
 
                 hooks.append("""    } catch (err) {
-                    console.log('Error loading module %s');
+                    console.log('Error loading module %s, Error:'+err);
             }"""%file)
         
         hooks.append('});')

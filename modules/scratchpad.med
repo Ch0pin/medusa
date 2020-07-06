@@ -4,5 +4,28 @@
 
 console.log('\n--------SCRATCH PAD LOADING-------------------');
 
+var avos = Java.use('com.avos.avoscloud.AVQuery');
+
+avos.$init.overload('java.lang.String').implementation = function(a){
+    console.log('inside com.avos.avoscloud.AVQuerycom.avos.avoscloud.AVQuerycom.avos.avoscloud.AVQuerycom.avos.avoscloud.AVQuery:' + a);
+    return this.$init(a);
+
+}
+
+avos.$init.overload('java.lang.String', 'java.lang.Class').implementation = function(a,b){
+    console.log('inside com.avos.avoscloud.AVQuerycom.avos.avoscloud.AVQuerycom.avos.avoscloud.AVQuerycom.avos.avoscloud.AVQuery:' + a);
+    return this.$init(a,b);
+
+}
+avos.$init.overload().implementation = function(){
+    console.log('com.avos.avoscloud.AVQuery');
+    return this.$init();
+}
+
+var getall = Java.use('com.cp5596.Cputil');
 
 
+getall.getal.implementation = function(p4){
+    console.log('0000000000000');
+    return this.getal(p4);
+}

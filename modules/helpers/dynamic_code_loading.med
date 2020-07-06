@@ -65,10 +65,10 @@ if(1){
      var dexclassLoader = Java.use("dalvik.system.BaseDexClassLoader");
      var ClassUse = Java.use("java.lang.Class");
      dexclassLoader.loadClass.overload("java.lang.String").implementation = function(className){
-         console.log("[i] ClassName=" + className+'\n');
+         console.log("[i] DEX Class loader for ClassName=" + className+'\n');
          var result = this.loadClass(className);
          var resultCast = Java.cast(result, ClassUse);
-         console.log("[+] Methods=" + resultCast.getMethods()+'\n');
+         //console.log("[+] Methods=" + resultCast.getMethods()+'\n');
          return result;
      }
 }

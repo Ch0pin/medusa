@@ -148,6 +148,7 @@ function getContext() {
 	return Java.use('android.app.ActivityThread').currentApplication().getApplicationContext();
   }
 
+  //---------------CREDITS TO: https://github.com/brompwnie/uitkyk
   
   var objectsToLookFor = ["java.net.Socket", "dalvik.system.DexClassLoader", "java.net.URLConnection", "java.net.URL", "java.security.cert.X509Certificate"];
   for (var i in objectsToLookFor) {

@@ -92,7 +92,12 @@ ApiClient.checkTrustedRecursive.implementation = function(a1, a2, a3, a4, a5, a6
 
 
 
+CREDITS:
 
+- https://github.com/frida/frida
+
+- https://github.com/dpnishant/appmon
+- https://github.com/brompwnie/uitkyk
 
 
 

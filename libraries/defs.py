@@ -294,16 +294,34 @@ class parser(cmd.Cmd):
         hooks.append(header);
         hooks.append("\n\nJava.perform(function() {")
         for file in mods:
-            with open(file) as mod:
-                hooks.append(' try { ')
-                for line in mod:
-                    if not line.startswith('#'):
-                        hooks.append('\t\t'+line.strip('\n'))
+            codeline_found = False
 
-                hooks.append("""    } catch (err) {
-                    console.log('Error loading module %s, Error:'+err);
-            }"""%file)
+            with open(file) as mod:
+                content = mod.readlines()
+                hooks.append(' try { ')
+
+            for i in range(len(content)):
+                if content[i].startswith('#Code:'):
+                    codeline_found = True
+                    i += 1
+                if codeline_found:
+                    hooks.append('\t\t'+content[i].strip('\n'))
         
+                    # for line in mod:
+                    #     if not line.startswith('#Code'):
+                    #         continue
+                    #         print(line)
+                    #     else:
+                    #         After_codeline = True
+                    # print(After_codeline)
+                    # if After_codeline == False:
+                    #     print(line.strip('\n'))
+                    #     hooks.append('\t\t'+line.strip('\n'))
+
+            hooks.append("""    } catch (err) {
+                        console.log('Error loading module %s, Error:'+err);
+                }"""%file)
+            
         hooks.append('});')
 
         with open('agent.js','w') as agent:

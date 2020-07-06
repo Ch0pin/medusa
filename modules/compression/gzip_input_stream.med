@@ -17,7 +17,8 @@ console.log('----------twiter:@Ch0pin-------------------');
         var buffer = Java.array('byte', buff);
         var result = "";
         for(var i = 0; i < buffer.length; ++i){
-            result+= (String.fromCharCode(buffer[i]));
+            if(buffer[i] >= 32 && buffer[i]<127)
+                result+= (String.fromCharCode(buffer[i]));
         }
 
         console.log('[+] Zipped OUTPUT stream: ' + result);
@@ -29,7 +30,8 @@ console.log('----------twiter:@Ch0pin-------------------');
         var buffer = Java.array('byte', buff);
         var result = "";
         for(var i = 0; i < buffer.length; ++i){
-            result+= (String.fromCharCode(buffer[i]));
+            if(buffer[i] >= 32 && buffer[i]<127)
+                result+= (String.fromCharCode(buffer[i]));
         }
 
         console.log('[+] Zipped INPUT stream: ' + result);

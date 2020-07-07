@@ -1,13 +1,42 @@
 #Description: 'Use this script to hook content provider queries'
-#Help: "Hooks the android db cursor, used to query content providers e.g. contacts, sms e.t.c. Displays messages regarding the queries taking place"
+#Help: 
+"Hooks API calls related to spyware software, including 
+- context provider queries"
 #Code:
 
-console.log('\n--------AbstractCursor Hook----------------');
+console.log('\n--------Spyware Hooks----------------');
+
+
+
+
 
 
 var abstractCursor = Java.use('android.database.AbstractCursor');
 var cursor = Java.use('android.database.Cursor');
+var clipboardManager = Java.use('android.content.ClipboardManager');
 
+
+clipboardManager.getText.implementation = function(){
+        console.log('[i] Application is trying to retrieve text from clipboard:');
+        console.log('Text: '+this.getText());
+        return this.getText();
+
+}
+
+clipboardManager.getPrimaryClip.implementation = function(){
+        console.log('[i] Application is trying to retrieve text from clipboard !');
+        return this.getPrimaryClip();
+
+}
+
+clipboardManager.hasPrimaryClip.implementation = function(){
+        console.log('[i] Application is checking if the clipbard has data!');
+        return this.hasPrimaryClip();   
+}
+clipboardManager.hasText.implementation = function(){
+        console.log('[i] Application is checking if the clipbard has data!');
+        return this.hasText();   
+}
 
 cursor.getColumnIndex.implementation = function(columnName){
         console.log('[+-------Query Detected-----------+]');

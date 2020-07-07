@@ -36,7 +36,7 @@ class parser(cmd.Cmd):
     device_index =0
     translator = Translator()
     script = None
-   
+    detached = False
 
 
     def __init__(self):
@@ -373,6 +373,10 @@ class parser(cmd.Cmd):
             result = self.translator.translate(data)
             self.script.post({"my_data": result.text}) 
 
+    def on_detached(self,reason):
+        print("script detached:", reason)
+        self.detached = True
+        
     
     def run_frida(self,force, detached, package_name, device):
 
@@ -383,8 +387,9 @@ class parser(cmd.Cmd):
             self.script.on("message",self.my_message_handler)  # register the message handler
             self.script.load()  
             s = input(WHITE+'in-session-logging (type exit to end session)>')
-            while 'exit' not in s:
-                s = input(WHITE+'in-session-logging:>')
+            while ('exit' not in s) and (not self.detached):
+                session.on('detached',self.on_detached)
+                s = input(WHITE+'in-session:>')
             if self.script:
                 self.script.unload()
         except Exception as e:

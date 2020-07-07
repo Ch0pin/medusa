@@ -71,24 +71,80 @@ A module (.med file) consists of three sections.
 
   
 
-  What follows is an example of a 'well known' SSL pinning bypass module:
+  What follows is an example of the translation module:
 
 ```js
-#Description: 'Use this module to bypass certificate pinning implementations based on TrustManagerImpl'
-#Help: 'The script will display the message: Bypassing SSL Pinning in case of successful bypass'
+
+#Description: 'Use this module to translate UI text to english'
+#Help: 
+"Hooks the setText, setMessage, setTitle functions of basic android UI components 
+ and translates the applied text using google's translation API"
 #Code:
 
-var array_list = Java.use("java.util.ArrayList");
-var ApiClient = Java.use('com.android.org.conscrypt.TrustManagerImpl');
+console.log('\n----------TRANSLATOR SCRIPT -------------');
+console.log('----------twiter:@Ch0pin-------------------');
+   
+    var textViewClass = Java.use("android.widget.TextView");
+    var alertDialog = Java.use("android.app.AlertDialog");
+    var String = Java.use("java.lang.String");
+   
 
-ApiClient.checkTrustedRecursive.implementation = function(a1, a2, a3, a4, a5, a6) {
+    alertDialog.setMessage.implementation = function(originalTxt){
+        var string_to_send = originalTxt.toString();
+        var string_to_recv = "";
+        send(string_to_send); // send data to python code
+        recv(function (received_json_object) {
+            string_to_recv = received_json_object.my_data;
+        }).wait(); 
+        console.log('Translating: ' + string_to_send +" ---> "+ string_to_recv)
+  
+        var castTostring = String.$new(string_to_recv);
 
-    console.log('Bypassing SSL Pinning');
-    var k = array_list.$new();
+        this.setMessage(castTostring);
 
-    return k;
-}
+    }
+    alertDialog.setTitle.implementation = function(originalTxt){
+        var string_to_send = originalTxt.toString();
+        var string_to_recv = "";
+        send(string_to_send); // send data to python code
+        recv(function (received_json_object) {
+            string_to_recv = received_json_object.my_data;
+        }).wait(); 
+        console.log('Translating: ' + string_to_send +" ---> "+ string_to_recv)
+  
+        var castTostring = String.$new(string_to_recv);
+
+        this.setTitle(castTostring);
+    }
+ 
+    textViewClass.setText.overload('java.lang.CharSequence').implementation = function (originalTxt) {
+        var string_to_send = originalTxt.toString();
+        var string_to_recv = "";
+        send(string_to_send); // send data to python code
+        recv(function (received_json_object) {
+            string_to_recv = received_json_object.my_data;
+        }).wait(); 
+        console.log('Translating: ' + string_to_send +" ---> "+ string_to_recv)
+  
+        var castTostring = String.$new(string_to_recv);
+
+        return this.setText(castTostring);
+ 
+    }
+
 ```
+
+
+
+**Translation script**
+
+<img src="https://user-images.githubusercontent.com/4659186/86785673-e59bbd00-c05a-11ea-8fb0-9c3f86043104.png" width="250" height="450"><img src="https://user-images.githubusercontent.com/4659186/86785688-e9c7da80-c05a-11ea-838f-e4c7568c7c2a.png" width="250" height="450">
+
+
+
+
+
+<img src="https://user-images.githubusercontent.com/4659186/86785693-eb919e00-c05a-11ea-901e-8cc180d6274a.png" width="550" height="250">
 
 
 

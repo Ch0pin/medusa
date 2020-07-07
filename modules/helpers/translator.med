@@ -1,15 +1,45 @@
 
 #Description: 'Use this module to translate UI text to english'
-#Help: "Hooks the setText function and translates the applied text using google's translation API"
+#Help: 
+"Hooks the setText, setMessage, setTitle functions of basic android UI components 
+ and translates the applied text using google's translation API"
 #Code:
 
 console.log('\n----------TRANSLATOR SCRIPT -------------');
 console.log('----------twiter:@Ch0pin-------------------');
    
     var textViewClass = Java.use("android.widget.TextView");
+    var alertDialog = Java.use("android.app.AlertDialog");
     var String = Java.use("java.lang.String");
    
 
+    alertDialog.setMessage.implementation = function(originalTxt){
+        var string_to_send = originalTxt.toString();
+        var string_to_recv = "";
+        send(string_to_send); // send data to python code
+        recv(function (received_json_object) {
+            string_to_recv = received_json_object.my_data;
+        }).wait(); 
+        console.log('Translating: ' + string_to_send +" ---> "+ string_to_recv)
+  
+        var castTostring = String.$new(string_to_recv);
+
+        this.setMessage(castTostring);
+
+    }
+    alertDialog.setTitle.implementation = function(originalTxt){
+        var string_to_send = originalTxt.toString();
+        var string_to_recv = "";
+        send(string_to_send); // send data to python code
+        recv(function (received_json_object) {
+            string_to_recv = received_json_object.my_data;
+        }).wait(); 
+        console.log('Translating: ' + string_to_send +" ---> "+ string_to_recv)
+  
+        var castTostring = String.$new(string_to_recv);
+
+        this.setTitle(castTostring);
+    }
  
     textViewClass.setText.overload('java.lang.CharSequence').implementation = function (originalTxt) {
         var string_to_send = originalTxt.toString();

@@ -1,0 +1,12 @@
+
+#Description: 'Cancels application exit'
+#Help: "Hooks system.exit to cancel application's exit"
+#Code:
+
+  
+console.log("-----------Hooking SYSTEM EXIT----------------------");
+
+  var sysexit = Java.use("java.lang.System");
+  sysexit.exit.overload("int").implementation = function(var_0) {
+    console.log("[i] Avoiding exiting the application ");
+  };

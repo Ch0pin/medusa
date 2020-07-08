@@ -1,13 +1,16 @@
-#Description: 'Detects triggering of motion events'
-#Help: "https://developer.android.com/reference/kotlin/android/view/MotionEvent"
+#Description: 'Detects auto click API calls'
+#Help: The specific module hooks a series of API calls used to mimic 
+click events, including:
+- Motion events
+- Perform click
 #Code:
 
 
-console.log('\n----Loading motionEvent Hooks-----');
+console.log('\n----Loading click_fraud Hooks-----');
 console.log('----gitHub: Ch0pin-----------------');
 
 
-
+var viewClassHook = Java.use('android.view.View');
 var motionEvent = Java.use('android.view.MotionEvent');
 
 
@@ -141,4 +144,11 @@ motionEvent.obtain.overload('long', 'long', 'int', 'int', '[Landroid.view.Motion
 function(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o){
     console.log('[+] Motion Event Detected');
     return this.obtain(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o);
+}
+
+
+
+viewClassHook.performClick.implementation = function(){
+    console.log('[+] Perform Click detected');
+    return this.performClick();
 }

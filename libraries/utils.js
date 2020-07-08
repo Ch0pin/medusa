@@ -8,6 +8,31 @@ var requestBody = "";
 var responseHeaders = "";
 var responseBody = "";
 
+var Color = {
+  RESET: "\x1b[39;49;00m", Black: "0;01", Blue: "4;01", Cyan: "6;01", Gray: "7;11", Green: "2;01", Purple: "5;01", Red: "1;01", Yellow: "3;01",
+  Light: {
+      Black: "0;11", Blue: "4;11", Cyan: "6;11", Gray: "7;01", Green: "2;11", Purple: "5;11", Red: "1;11", Yellow: "3;11"
+  }
+};
+
+var colorLog = function (input, kwargs) {
+  kwargs = kwargs || {};
+  var logLevel = kwargs['l'] || 'log', colorPrefix = '\x1b[3', colorSuffix = 'm';
+  if (typeof input === 'object')
+      input = JSON.stringify(input, null, kwargs['i'] ? 2 : null);
+  if (kwargs['c'])
+      input = colorPrefix + kwargs['c'] + colorSuffix + input + Color.RESET;
+  console[logLevel](input);
+};
+
+var printBacktrace=function () {
+  Java.perform(function() {
+      var android_util_Log = Java.use('android.util.Log'), java_lang_Exception = Java.use('java.lang.Exception');
+      // getting stacktrace by throwing an exception
+      colorLog(android_util_Log.getStackTraceString(java_lang_Exception.$new()), { c: Color.Gray });
+  });
+};
+
 var processArgs = function(command, envp, dir) {
     var output = {};
     if (command) {
@@ -150,39 +175,39 @@ function getContext() {
 
   //---------------CREDITS TO: https://github.com/brompwnie/uitkyk
   
-  var objectsToLookFor = ["java.net.Socket", "dalvik.system.DexClassLoader", "java.net.URLConnection", "java.net.URL", "java.security.cert.X509Certificate"];
-  for (var i in objectsToLookFor) {
-    Java.perform(function () {
-      Java.choose(objectsToLookFor[i], {
-        "onMatch": function (instance) {
-          if (objectsToLookFor[i] == "java.net.URL" && instance.getProtocol() != "file") {
-            console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
-            console.log("[*] Process is communicating via " + instance.getProtocol());
-            console.log("[+] Communication Details: " + instance.toString());
-          }
-          if (objectsToLookFor[i] == "dalvik.system.DexClassLoader") {
-            console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
-            console.log("[*] Process is making use of DexClassLoader");
-            console.log("[+] Loader Details: " + instance.toString());
-          }
-          if (objectsToLookFor[i] == "java.net.Socket") {
-            console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
-            console.log("[*] Process is making use of a Socket Connection");
-            console.log("[+] Socket Details: " + instance.toString());
-          }
-          if (objectsToLookFor[i] == "java.net.URLConnection") {
-            console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
-            console.log("[*] Process is making use of a URL Connection");
-            console.log("[+] Details: " + instance.toString());
-          }
-          if (objectsToLookFor[i] == "java.security.cert.X509Certificate") {
-            console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
-            console.log("[*] Process is making use of a X509Certificate");
-            console.log("[+] X509Certificate Details: " + instance.toString());
-          }
-        },
-        "onComplete": function () {
-        }
-      });
-    });
-  }
+  // var objectsToLookFor = ["java.net.Socket", "dalvik.system.DexClassLoader", "java.net.URLConnection", "java.net.URL", "java.security.cert.X509Certificate"];
+  // for (var i in objectsToLookFor) {
+  //   Java.perform(function () {
+  //     Java.choose(objectsToLookFor[i], {
+  //       "onMatch": function (instance) {
+  //         if (objectsToLookFor[i] == "java.net.URL" && instance.getProtocol() != "file") {
+  //           console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
+  //           console.log("[*] Process is communicating via " + instance.getProtocol());
+  //           console.log("[+] Communication Details: " + instance.toString());
+  //         }
+  //         if (objectsToLookFor[i] == "dalvik.system.DexClassLoader") {
+  //           console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
+  //           console.log("[*] Process is making use of DexClassLoader");
+  //           console.log("[+] Loader Details: " + instance.toString());
+  //         }
+  //         if (objectsToLookFor[i] == "java.net.Socket") {
+  //           console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
+  //           console.log("[*] Process is making use of a Socket Connection");
+  //           console.log("[+] Socket Details: " + instance.toString());
+  //         }
+  //         if (objectsToLookFor[i] == "java.net.URLConnection") {
+  //           console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
+  //           console.log("[*] Process is making use of a URL Connection");
+  //           console.log("[+] Details: " + instance.toString());
+  //         }
+  //         if (objectsToLookFor[i] == "java.security.cert.X509Certificate") {
+  //           console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
+  //           console.log("[*] Process is making use of a X509Certificate");
+  //           console.log("[+] X509Certificate Details: " + instance.toString());
+  //         }
+  //       },
+  //       "onComplete": function () {
+  //       }
+  //     });
+  //   });
+  // }

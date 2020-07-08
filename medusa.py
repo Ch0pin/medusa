@@ -17,19 +17,6 @@ Welcome to:
 888  888  888 "Y8888  "Y88888 "Y88888 88888P'"Y888888\n\n\n Type help for options\n\n"""+RESET)
 
 
-
-# device_list = os.popen("adb devices -l").read().split('\n')
-
-# device_list.pop()
-# index = 1
-
-# for device in device_list[1:-1]:
-#     print("{}) {}".format(index,device))
-#     index+=1
-
-# index = int(input('Please choose the device to operate:'))
-
-
 try:
     print('Availlable devices:\n')
     devices = frida.enumerate_devices()

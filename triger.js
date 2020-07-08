@@ -8,3 +8,6 @@ Java.perform(function(){
         console.log('');
 	})
 })
+
+
+//frida-trace -U -f com.ziipin.softkeyboard.uzbekistan --runtime=v8 -j '*!*'

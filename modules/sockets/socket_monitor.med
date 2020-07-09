@@ -1,0 +1,151 @@
+#Description: 'Monitor calls to socket operations'
+#Help: Hooks availlable
+-webSocketClient constructor
+-send 
+
+#Code:
+
+
+// var socket = Java.use('java.net.Socket');
+var WebSocketClient = Java.use('org.java_websocket.client.WebSocketClient');
+
+
+/*
+Socket()
+Creates an unconnected socket, with the system-default type of SocketImpl.
+
+Socket(Proxy proxy)
+Creates an unconnected socket, specifying the type of proxy, if any, that should be used regardless of any other settings.
+
+Socket(String host, int port)
+Creates a stream socket and connects it to the specified port number on the named host.
+
+Socket(InetAddress address, int port)
+Creates a stream socket and connects it to the specified port number at the specified IP address.
+
+Socket(String host, int port, InetAddress localAddr, int localPort)
+Creates a socket and connects it to the specified remote host on the specified remote port.
+
+Socket(InetAddress address, int port, InetAddress localAddr, int localPort)
+Creates a socket and connects it to the specified remote address on the specified remote port.
+
+Socket(String host, int port, boolean stream)
+This constructor is deprecated. Use DatagramSocket instead for UDP transport.
+
+Socket(InetAddress host, int port, boolean stream)
+This constructor is deprecated. Use DatagramSocket instead for UDP trans
+
+*/
+// socket.$init.overloads[0].implementation = function(){
+
+//     console.log('[+] Creating socket [0]....');
+//     return this.$init();
+
+// }
+
+
+
+// socket.$init.overloads[1].implementation = function(proxy){
+
+//     console.log('[+] Creating socket [1]: '+proxy.toString());
+//     return this.$init(proxy);
+
+// }
+
+
+// socket.$init.overloads[2].implementation = function(socketImpl){
+
+//     console.log('[+] Creating socket for host[2]: ' + socketImpl.address.getHostName() +':'+port);
+//     return this.$init(host,port);
+
+// }
+
+// socket.$init.overloads[3].implementation = function(inetAddress, port){
+
+//     console.log('[+] Creating socket for host[3]: ' + inetAddress.getHostName() +':'+port);
+//     return this.$init(inetAddress,port);
+
+// }
+
+// socket.$init.overloads[4].implementation = function(host,  port){
+
+//     console.log('[+] Creating socket for host[4]: ' + host +':'+port);
+//     return this.$init(host,port);
+
+// }
+
+// socket.$init.overloads[5].implementation = function(host ,  port,  stream){
+
+//     console.log('[+] Creating socket for host[5]: ' + host +':'+port);
+//     return this.$init(host ,  port,  stream);
+
+// }
+
+// socket.$init.overloads[6].implementation = function(inetAddress ,  port,  localAddress,  localPort){
+
+//     console.log('[+] Creating socket for host[6]: ' + inetAddress.getHostName() +':'+port);
+//     return this.$init(inetAddress ,  port,  localAddress,  localPort);
+
+// }
+
+// socket.$init.overloads[7].implementation = function(inetAddress ,  port,  socketAddress, stream){
+
+//     console.log('[+] Creating socket for host[7]: '+inetAddress.getHostName()+':'+port);
+//     return this.$init(inetAddress ,  port,  socketAddress, stream);
+
+// }
+
+
+// socket.$init.overloads[8].implementation = function(inetAddress ,  port,  localAddress,  localPort){
+
+//     console.log('[+] Creating socket for host[8]: ' + inetAddress.getHostName() +':'+port);
+//     return this.$init(inetAddress ,  port,  localAddress,  localPort);
+
+// }
+
+WebSocketClient.$init.overloads[0].implementation = function(uri){
+    console.log('[+] Creating web socket client: '+uri);
+    return this.$init(uri);
+}
+WebSocketClient.$init.overloads[1].implementation = function(uri,draft){
+    console.log('[+] Creating web socket client: '+uri);
+    return this.$init(uri,draft);
+}
+
+WebSocketClient.$init.overloads[2].implementation = function(uri,headers){
+    console.log('[+] Creating web socket client: '+uri);
+    return this.$init(uri,headers);
+}
+
+WebSocketClient.$init.overloads[3].implementation = function(uri,draft,headers){
+    console.log('[+] Creating web socket client: '+uri);
+    return this.$init(uri,draft,headers);
+}
+WebSocketClient.$init.overloads[4].implementation = function(uri,draft,headers,connecttimeout){
+    console.log('[+] Creating web socket client: '+uri);
+    return this.$init(uri,draft,headers,connecttimeout);
+}
+// byteArrayToString
+// send(byte[] data)
+// Sends binary data to the connected webSocket server.
+// void	send(ByteBuffer bytes)
+// Send Binary data (plain bytes) to the other end.
+// void	send(String text)
+
+WebSocketClient.send.overloads[0].implementation = function(byteArray){
+    console.log('[+] Web socket client is sending data: '+byteArrayToString(byteArray));
+     this.send(byteArray);
+}
+
+WebSocketClient.send.overloads[0].implementation = function(byteBuffers){
+    console.log('[+] Web socket client is sending data (byteBuffers) ');
+     this.send(byteBuffers);
+}
+
+WebSocketClient.send.overloads[0].implementation = function(str){
+    console.log('[+] send to : ');
+    colorLog(this.getURI()+ ' data: '+str,{ c: Color.Green });
+     this.send(str);
+}
+
+console.log('---------------------SOCKET MONITOR by @ch0pin ----------------------');

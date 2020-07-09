@@ -7,7 +7,7 @@ console.log('\nLOADING -----GET SYSTEM PROPERTIES------------');
 var systemProperties = Java.use('android.os.SystemProperties');
 
 systemProperties.get.overload('java.lang.String').implementation = function(key){
-    console.log('[+] Get system properties called using key---------------------------: ' + key);
+    console.log('[+] Get system properties called using key: ' + key);
     return this.get(key);
     
 }

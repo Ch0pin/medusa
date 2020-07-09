@@ -8,7 +8,7 @@
  var intent = Java.use('android.content.Intent');
  
 	intent.$init.overload().implementation = function(){
-        console.log('[+] Empty intent created===================');
+        colorLog('\n[+] Empty intent created===================', { c: Color.Green });
         console.log('[+] Action: '+this.getAction());
         console.log('[+] Data string: '+this.getDataString());
         return this.$init();
@@ -16,38 +16,48 @@
     }
     intent.$init.overload('java.lang.String').implementation = function(action)
     {
-        console.log('[+] Intent Created=================== \n+Action: '+action);
+        colorLog('\n[+] Intent created===================', { c: Color.Green });
+        console.log('Action: '+action);
         console.log('[+] Data string: '+this.getDataString());
     
         return this.$init(action);
     }
     intent.$init.overload('java.lang.String', 'android.net.Uri').implementation = function(action,uri){
-        console.log('[+] Intent Created=================== \n+Action: '+action+
+        colorLog('\n[+] Intent created===================', { c: Color.Green });
+
+        console.log('\n+Action: '+action+
         '\nURI:' + uri.toString());
         console.log('[+] Data string: '+this.getDataString());
         return this.$init(action,uri);      
     }
     intent.$init.overload('java.lang.String', 'android.net.Uri', 'android.content.Context', 'java.lang.Class').implementation = function(action,uri,context,cls){
-        console.log('[+] Intent Created==================='+
+        colorLog('\n[+] Intent created===================', { c: Color.Green });
+
+        console.log(''+
         '\nAction: '+ action+
         '\nURI: '+uri.toString());
         return this.$init(action,uri,context,cls);
     }
 	intent.$init.overload('android.content.Context', 'java.lang.Class').implementation = function(context, classA){
-        console.log('[+] Intent Created==================='+
+        colorLog('\n[+] Intent created===================', { c: Color.Green });
+
+        console.log(''+
         '\nClass: '+classA.$className);
         console.log('[+] Action: '+this.getAction());
         console.log('[+] Data string: '+this.getDataString());
         return this.$init(context,classA);
     }
 	intent.$init.overload('android.os.Parcel').implementation = function(parcel){
-        console.log('[+] Intent created===================');
+        colorLog('\n[+] Intent created===================', { c: Color.Green });
+
         console.log('[+] Action: '+this.getAction());
         console.log('[+] Data string: '+this.getDataString());
         return this.$init(parcel);
     }
     intent.$init.overload('android.content.Intent').implementation = function(intentA){
-        console.log('[+] Intent copied===================');
+
+        colorLog('\n[+] Intent created===================', { c: Color.Green });
+
         console.log('[+] Action: '+this.getAction());
         console.log('[+] Data string: '+this.getDataString());
         return this.$init(intentA);
@@ -55,7 +65,8 @@
 
 
     intent.$init.overload('android.content.Intent', 'int').implementation = function(intentA,integerA){
-        console.log('[+] Intent created===================');
+        colorLog('\n[+] Intent created===================', { c: Color.Green });
+
         console.log('[+] Action: '+this.getAction());
         console.log('[+] Data string: '+this.getDataString());
 
@@ -63,7 +74,8 @@
     }
 
     intent.setClassName.overload('java.lang.String', 'java.lang.String').implementation = function( packageName,  className){
-        console.log('[+] Intent created===================');
+        colorLog('\n[+] Intent created===================', { c: Color.Green });
+
         console.log('Package Name:'+packageName);
         console.log('Class Name: ' + className);
         console.log('[+] Action: '+this.getAction());

@@ -12,19 +12,56 @@ console.log('\n-----------@ch0pin-------------------');
 var mediaRecorder = Java.use('android.media.MediaRecorder')
 var audioRecord = Java.use('android.media.AudioRecord');
 var abstractCursor = Java.use('android.database.AbstractCursor');
-// var cursor = Java.use('android.database.Cursor');
+var cursor = Java.use('android.database.Cursor');
 var clipboardManager = Java.use('android.content.ClipboardManager');
 var Location = Java.use('android.location.Location');
+var telephonyManager = Java.use('android.telephony.TelephonyManager');
+var systemProperties = Java.use('android.os.SystemProperties');
+var contextWrapper = Java.use("android.content.ContextWrapper");
+
+
+telephonyManager.getCallState.overloads[0].implementation = function(){
+        console.log('[i] Application asks for the state of all calls on the device ')
+        return this.getCallState();
+}
+telephonyManager.getCallState.overloads[1].implementation = function(state){
+        console.log('[i] Application asks for the state of all calls on the device ')
+        return this.getCallState(state);
+}
+telephonyManager.getDeviceId.overloads[0].implementation = function(){
+        console.log('[i] Application asks for device IMEI')
+        return this.getDeviceId();
+}
+telephonyManager.getDeviceId.overloads[1].implementation = function(slot){
+        console.log('[i] Application asks for device IMEI')
+        return this.getDeviceId(slot);
+}
+
+telephonyManager.getImei.overloads[0].implementation = function(){
+        console.log('[i] Application asks for device IMEI')
+        return this.getDeviceId();
+}
+telephonyManager.getImei.overloads[1].implementation = function(slot){
+        console.log('[i] Application asks for device IMEI')
+        return this.getDeviceId(slot);
+}
+
+systemProperties.get.overload('java.lang.String').implementation = function(key){
+    console.log('[+] Get system properties called using key: ' + key);
+    return this.get(key);
+    
+}
+
 
 Location.getLatitude.implementation = function() {
 
         console.log('[i] Application is getting latitude ');
 
-        return 0.0;
+        return this.getLatitude();
 }
 Location.getLongitude.implementation = function() {
         console.log('[i] Application is getting longtitude ');
-        return 0.0();
+        return this.getLongitude();
 }
 
 mediaRecorder.setOutputFile.overloads[0].implementation = function(fd){
@@ -164,8 +201,7 @@ cursor.getColumnIndex.implementation = function(columnName){
          if(!this.isAfterLast() && this != null)
           res = this.getString(index);
          
-         console.log("[+] Cursor DB Query for:          " + columnName + " ,Result:             " + res); 
- 
+        colorLog("[+] AbstractCursor DB Query for: " + columnName + " ,               Result :" + res,{ c: Color.Red }); 
          //this.moveToFirst();
          return this.getColumnIndex(columnName);
  }
@@ -180,8 +216,18 @@ cursor.getColumnIndex.implementation = function(columnName){
          if(!this.isAfterLast() && this != null)
           res = this.getString(index);
          
-         console.log("[+] Abstract Cursor DB Query for:         " + columnName + " ,Result:             " + res); 
+        colorLog("[+] AbstractCursor DB Query for: " + columnName + " ,               Result :" + res,{ c: Color.Red }); 
  
          //this.moveToFirst();
          return this.getColumnIndex(columnName);
  }
+
+
+ contextWrapper.openFileInput.overload("java.lang.String").implementation = function(fileName) {
+		          
+        /*   --- Payload Header --- */
+        console.log('[+] Application is opening the file: '+fileName+' for reading ');
+    
+        return this.openFileInput.overload("java.lang.String").apply(this, arguments);
+     
+}

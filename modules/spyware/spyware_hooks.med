@@ -18,8 +18,53 @@ var Location = Java.use('android.location.Location');
 var telephonyManager = Java.use('android.telephony.TelephonyManager');
 var systemProperties = Java.use('android.os.SystemProperties');
 var contextWrapper = Java.use("android.content.ContextWrapper");
+var locationListener = Java.use("android.location.LocationListener");
+var locationManager = Java.use('android.location.LocationManager');
+
+// void	getCurrentLocation(String provider, CancellationSignal cancellationSignal, Executor executor, Consumer<Location> consumer)
+// Asynchronously returns a single current location fix.
+
+// locationManager.getCurrentLocation.implementation = function(provider,cancellationSignal,executor,consumer){
+//         console.log('[+] Application is asking for current location from the provider: '+provider);
+//         return this.getLastKnownLocation(provider,cancellationSignal,executor,consumer);
+// }
+
+// // public Location getLastKnownLocation (String provider)
+// // Gets the last known location from the given provider, or null if there is no last known location. The returned location may be quite old in some circumstances, so the age of the location should always be checked.
 
 
+locationManager.getLastKnownLocation.implementation = function(provider){
+        console.log('[+] Application is asking for last known location from the provider: '+provider);
+        return this.getLastKnownLocation(provider);
+
+} 
+
+// abstract void	onLocationChanged(Location location)
+// Called when the location has changed.
+
+// default void	onProviderDisabled(String provider)
+// Called when the provider is disabled by the user.
+
+// default void	onProviderEnabled(String provider)
+// Called when the provider is enabled by the user.
+
+// default void	onStatusChanged(String provider, int status, Bundle extras)
+// This method was deprecated in API level 29. This callback will never be invoked on Android Q and above.
+
+locationListener.onLocationChanged.implementation = function(location){
+        console.log('[i] Listener for location change triggered');
+        this.onLocationChanged(location);
+}
+locationListener.onProviderDisabled.implementation = function(provider){
+        console.log('Provider :'+provider+' has been disabled by the user');
+        this.onProviderDisabled(provider);
+
+}
+locationListener.onStatusChanged.implementation = function(provider,status,extras){
+        console.log('On status changed listener triggered ');
+        console.log('Data: ' +provider+' , status: '+status);
+        this.onProviderDisabled(provider,status,extras);
+}
 telephonyManager.getCallState.overloads[0].implementation = function(){
         console.log('[i] Application asks for the state of all calls on the device ')
         return this.getCallState();

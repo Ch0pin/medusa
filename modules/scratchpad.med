@@ -2,11 +2,3 @@
 #Help: "N/A"
 #Code:
 
-console.log('\n--------SCRATCH PAD LOADING-------------------');
-
-var socket = Java.use('com.qwqer.client.tabchat2.common.websocket.ChatWebSocketClient');
-
-socket.send.implemetation = function(a,b){
-    console.log('SENDING:' + b);
-    return this.send(a,b);
-}

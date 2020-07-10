@@ -7,13 +7,18 @@
 **Medusa** is an extensible framework for **Android Applications** which automates processes and techniques practised during the **dynamic analysis** of an assessment.  It's functionality can be summarised as follows:
 
 - Tracing and instrumentation of API calls using the FRIDA framework
+
 - Dump dex on memory (Credits: https://github.com/hluwa/FRIDA-DEXDump.git)
+
 - Triggering of various system broadcasts
+
 - Translate UI to English
+
 - Triggering of application's components (Activities, services e.t.c.)
+
 - Wrapping of adb commands (e.g. cchange proxy settings, insert keys e.t.c.)
 
-
+  
 
 ### Usage:
 
@@ -27,10 +32,15 @@ Medusa's functionality is based the following two scripts:
   > - Logging of encryption processes (keys, IVs, data to be encrypted)
   > - Logging of webview events
   > - Intent monitoring 
-  > - Auto-Click detection 
   > - HTTP operations monitoring
   > - Database interactions
   > - ...and many more
+  >
+  > **Malware modules:**
+  >
+  > - Spyware
+  > - click fraud
+  > - toll fraud
   >
   > **To be added**: Modules for popular frameworks like firebase, cordova e.t.c.
 
@@ -69,8 +79,6 @@ A module (.med file) consists of three sections.
 
 - The **Code** is where the javascript code should be inserted in order to hook a specific API call. 
 
-  
-
   What follows is an example of the translation module:
 
 ```js
@@ -89,34 +97,7 @@ console.log('----------twiter:@Ch0pin-------------------');
     var String = Java.use("java.lang.String");
    
 
-    alertDialog.setMessage.implementation = function(originalTxt){
-        var string_to_send = originalTxt.toString();
-        var string_to_recv = "";
-        send(string_to_send); // send data to python code
-        recv(function (received_json_object) {
-            string_to_recv = received_json_object.my_data;
-        }).wait(); 
-        console.log('Translating: ' + string_to_send +" ---> "+ string_to_recv)
-  
-        var castTostring = String.$new(string_to_recv);
-
-        this.setMessage(castTostring);
-
-    }
-    alertDialog.setTitle.implementation = function(originalTxt){
-        var string_to_send = originalTxt.toString();
-        var string_to_recv = "";
-        send(string_to_send); // send data to python code
-        recv(function (received_json_object) {
-            string_to_recv = received_json_object.my_data;
-        }).wait(); 
-        console.log('Translating: ' + string_to_send +" ---> "+ string_to_recv)
-  
-        var castTostring = String.$new(string_to_recv);
-
-        this.setTitle(castTostring);
-    }
- 
+...
     textViewClass.setText.overload('java.lang.CharSequence').implementation = function (originalTxt) {
         var string_to_send = originalTxt.toString();
         var string_to_recv = "";
@@ -134,13 +115,29 @@ console.log('----------twiter:@Ch0pin-------------------');
 
 ```
 
+#### Spyware module
+
+> Hooks api calls which found to be common for this kind of malware, including:
+>
+> - Contact exfiltration 
+> - Call log exfiltration
+> - Camera usage
+> - Microphone usage
+> - Location tracking
+> - File uploading
+> - Media recording
+> - Clipboard tracking
+> - Device recon
 
 
-**Translation script**
+
+#### Translation module
+
+> Translates the application's UI by hooking 'setText' functions 
+
+
 
 <img src="https://user-images.githubusercontent.com/4659186/86785673-e59bbd00-c05a-11ea-8fb0-9c3f86043104.png" width="250" height="450">                             <img src="https://user-images.githubusercontent.com/4659186/86785688-e9c7da80-c05a-11ea-838f-e4c7568c7c2a.png" width="250" height="450">     
-
-
 
 
 
@@ -148,7 +145,11 @@ console.log('----------twiter:@Ch0pin-------------------');
 
 
 
-CREDITS:
+
+
+
+
+**CREDITS**:
 
 - https://github.com/frida/frida
 

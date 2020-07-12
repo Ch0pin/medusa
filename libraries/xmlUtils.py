@@ -39,47 +39,5 @@ def get_element_list(xmlDoc,node,attrib):
     
     return elements
 
-def start_activity(activity_list,device,package):
-    index = 0
-    choice = ''
-    for activity in activity_list:
-        print('{}) {}'.format(index,activity))
-        index += 1
-    choice = int(input('Enter activity index (0 to {}): '.format(index)))
-  
-    try:
-        while str(choice) != 'exit':
-            activities = os.popen("adb -s {} shell 'am start -n {}/{}'".format(device,package,activity_list[choice]))
-            print('\nStarting {}'.format(activity_list[choice]))
-            choice = int(input(BLUE+'medusa_helper>start activity>'+RESET))
-    except:
-        return
-
-
-
-def print_list(lst):
-    for item in lst:
-        if type(item) is str:
-            print('\t\t'+item)
-    
-def print_help():
-    print("""Available commands:
-                    - show permissions          : Prints the apps permissions
-                    - show activities           : Prints a list with the application's activities
-                    - show services             : Prints a list with the application's services
-                    - show receivers            : Prints a list with the application's receivers
-                    - show providers            : Prints a list with the application's content providers
-                    - show filters
-                    - start activity            : Starts and activity from a printed list
-                    - send broadcast
-                    - send keys                 : Sends a text to the device
-                    - screencap -o filename     : Takes a device screenshot and saves it as 'filaname'
-                    - set proxy <ip>:<port>     : Sets a global proxy at a given ip and port
-                    - unset proxy               : resets proxy settings
-                    - get proxy                 : displays proxy settings of the device
-
-            Available System commands: clear, ls, nano, cat
-
-                    """)
     
 

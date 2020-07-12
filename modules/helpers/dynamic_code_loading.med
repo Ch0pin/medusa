@@ -1,12 +1,12 @@
 
 #Description: 'Dynamic Code loading hook module'
 #Help: Hooks the following functions: 
-- DexClassLoader 
-- constructor
+- DexClassLoader init
+- loadclass 
+
 #Code:
 
-console.log('\n--------DCL hook module--------------');
-console.log('----------twiter:@Ch0pin-------------------');
+console.log('\n--------DCL hook module by @ch0pin--------------');
 
 
 // var dexter = Java.use('dalvik.system.DexClassLoader');

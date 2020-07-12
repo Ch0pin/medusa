@@ -1,18 +1,73 @@
 #Description: 'Detects auto click API calls'
 #Help: The specific module hooks a series of API calls used to mimic 
 click events, including:
-- Motion events
-- Perform click
+-Motion events
+-Perform click
+-Webview javascript injection
 #Code:
 
 
-console.log('\n----Loading click_fraud Hooks-----');
-console.log('----gitHub: Ch0pin-----------------');
+console.log('\n----Loading click_fraud Hooks by @ch0pin-----');
 
 
 var viewClassHook = Java.use('android.view.View');
 var motionEvent = Java.use('android.view.MotionEvent');
+var webView = Java.use('android.webkit.WebView');
 
+
+webView.addJavascriptInterface.implementation = function(object, name){
+    console.log('[i] Javascript interface detected:' + object.$className + ' instatiated as' + name);
+    this.addJavascriptInterface(object,name);
+}
+
+
+webView.evaluateJavascript.implementation = function(script, resultCallback){
+    console.log('[i] evaluateJavascript called with the following script: '+script);
+    this.evaluateJavascript(script,resultCallback);
+}
+
+webView.getUrl.implementation = function(){
+    console.log('[i] Current Loaded url:' + this.getUrl());
+    return this.getUrl();
+}
+
+webView.loadData.implementation = function(data,mimeType, encoding){
+    console.log('[i] Load data called with the following parameters:\n' + 'Data:' + data + '\nMime type: '+mimeType+'\nEncoding: '+ encoding);
+    this.loadData(data,mimeType,encoding);
+}
+
+webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,  encoding,  historyUrl){
+    console.log('[i] loadDataWithBaseURL call detected, having the following parameters:'+
+    '\nBaseUrl: ' + baseUrl +
+    '\nData: ' + data+
+    '\nmimeType: ' + mimeType+
+    '\nhistory URL' + historyUrl);
+
+    this.loadDataWithBaseURL(baseUrl,data,mimeType,encoding,historyUrl);
+}
+
+webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
+    console.log('[i] Loading URL: ' + url);
+    this.loadUrl(url,additionalHttpHeaders);
+}
+
+
+webView.loadUrl.overload('java.lang.String').implementation = function(url){
+    console.log('[i] Loading URL:' + url);
+    this.loadUrl(url);
+}
+
+
+webView.setWebViewClient.implementation = function(client){
+    console.log('Webview client: ' + client.$className);
+    this.setWebViewClient(client);
+}
+
+
+
+
+
+//--------------------------------------------------------
 
 motionEvent.obtain.overload().implementation = function(){
     console.log("MotionEvent called without paremeters");

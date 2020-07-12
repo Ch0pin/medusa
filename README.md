@@ -4,70 +4,87 @@
 
 ### Description:
 
-**Medusa** is an extensible framework for **Android Applications** which automates processes and techniques practised during the **dynamic analysis** of an assessment.  It's functionality can be summarised as follows:
+**Medusa** is an extensible framework for **Android applications** which automates processes and techniques practised during the **dynamic analysis** of a malware investigation.  
 
-- Tracing and instrumentation of API calls using the FRIDA framework
+It's functionality can be summarised as follows:
 
-- Dump dex on memory (Credits: https://github.com/hluwa/FRIDA-DEXDump.git)
-
-- Triggering of various system broadcasts
-
-- Translate UI to English
-
-- Triggering of application's components (Activities, services e.t.c.)
-
+- Tracing and instrumentation of API calls used by common malware categories
+- Unpacking of packed apps (effective for most of the weel known packers, including Qihoo, Secshell e.t.c.)
+- Triggering of various system events in order to initiate a malicious behaviour
+- Triggering of application's components (Activities, Services e.t.c.)
+- Translation of UI to English in order to enhance user interaction
 - Wrapping of adb commands (e.g. cchange proxy settings, insert keys e.t.c.)
 
-  
 
 ### Usage:
 
-Medusa's functionality is based the following two scripts:
+Medusa's functionality is based the following scripts:
 
-- **./medusa.py** 
+- **medusa.py** 
 
-  > Is used to dynamically add or remove tracing of API calls during application's runtime. The tracing 'comes' in a form of modules, where each one of them 'specializes' in an abstract aspect. **As an example, to trace the cryptographic procedures of the application (e.g.  fetch AES keys or the plaintext that will be encrypted), simply inject the AES module during the application runtime and observer the output**. Since these module are constantly developed it is not possible to enumerate all of them, indicatively though, they include:
+  > Is used to dynamically add or remove tracing of API calls during application's runtime. The tracing 'comes' in a form of modules, where each one of them 'specializes' in an abstract aspect. As an example, to trace the cryptographic procedures of the application (e.g.  fetch AES keys or the plaintext that will be encrypted), simply inject the AES module  and observer the output. 
+  >
+  > Indicatively some of the  functionalities which are implemented so far, include the following: 
   >
   > -  SSL pinning bypass
-  > - Logging of encryption processes (keys, IVs, data to be encrypted)
-  > - Logging of webview events
-  > - Intent monitoring 
-  > - HTTP operations monitoring
-  > - Database interactions
-  > - ...and many more
+  > -  UI restriction bypass (e.g. Flag secure, button enable)
+  > -  Class enumeration
+  > -  Monitoring of:
+  >    -  Encryption process (keys, IVs, data to be encrypted)
+  >    -  Intents
+  >    -  Http operations
+  >    -  Websockets
+  >    -  Webview events
+  >    -  File operations
+  >    -  Database interactions
+  >    -  Bluetooth operations
+  >    -  Clipboard
+  > -  Monitoring of API calls used by malware applications, such as:
+  >    -  Spyware
+  >    -  Click Fraud
+  >    -  Toll Fraud
+  >    -  Sms Fraud
   >
-  > **Malware modules:**
+  > **To be added**: 
   >
-  > - Spyware
-  > - click fraud
-  > - toll fraud
+  > - Modules for popular frameworks like firebase, cordova e.t.c.
+  > - Modules to interact with native calls
   >
-  > **To be added**: Modules for popular frameworks like firebase, cordova e.t.c.
+  > 
 
-- **./apkHelper.py** **file.[xml or apk]**
+  
 
-  > The specific module can be used to parse an apk or an AndroidManifest file and based on the results lets the user to create events that may change the applications behaviour. These events include:
+- **apkutils.py** 
+
+  > Given a **manifest or and apk file**, the specific script is able to perform the following functionalities:
   >
-  > - Message Broacasting
-  > - Intent creation
-  > - Activities, services e.t.c. triggering 
-  >
-  > Additionally, this script autmates tasks like:
-  >
-  > - Sending text from a host to a mobile device
-  > - Changing proxy settings on the fly 
-  > - ...and many more
+  > - Display the application's components and technical characteristics, including:
+  >   - Activities
+  >   - Services
+  >   - Receivers
+  >   - Permissions
+  >   - Intent Filters 
+  >   - Content providers
+  > - Trace application's functions (using frida-trace)
+  > - Trigger an activity, service or an intent
+  > - Automate actions performed during dynamic analysis:
+  >   - Change device proxy settings
+  >   - Capture screenshots of the device
+  >   - Install/Uninstall applications
 
-****
-
-
+  
 
 ### Requirements:
 
-- A rooted device
-- Frida framework
+See **requirements.txt** for python requirements. 
+
+Additionally:
+
+- Frida installation (version > 12.10.4)
 - Apktool (in case of processing APKs)
 - Adb
+
+A rooted device is highly recomended in order to use the framework's full capabilities
 
 ### Modules:
 
@@ -152,9 +169,9 @@ console.log('----------twiter:@Ch0pin-------------------');
 **CREDITS**:
 
 - https://github.com/frida/frida
-
 - https://github.com/dpnishant/appmon
 - https://github.com/brompwnie/uitkyk
+- https://github.com/hluwa/FRIDA-DEXDump.git
 
 
 

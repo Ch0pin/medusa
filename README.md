@@ -146,7 +146,7 @@ console.log('----------twiter:@Ch0pin-------------------');
 > - Clipboard tracking
 > - Device recon
 
-
+<img src="https://user-images.githubusercontent.com/4659186/87245281-1c4b4c00-c43c-11ea-9cad-195ceb42794a.png" width="450" height="460">
 
 #### Translation module
 

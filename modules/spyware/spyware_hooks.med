@@ -99,14 +99,15 @@ systemProperties.get.overload('java.lang.String').implementation = function(key)
 
 
 Location.getLatitude.implementation = function() {
+        var lt = this.getLatitude();
+        console.log('[i] Application is getting latitude:' + lt);
 
-        console.log('[i] Application is getting latitude ');
-
-        return this.getLatitude();
+        return lt;
 }
 Location.getLongitude.implementation = function() {
-        console.log('[i] Application is getting longtitude ');
-        return this.getLongitude();
+        var lgt = this.getLongitude();
+        console.log('[i] Application is getting longtitude:'+lgt);
+        return lgt;
 }
 
 mediaRecorder.setOutputFile.overloads[0].implementation = function(fd){
@@ -246,7 +247,8 @@ cursor.getColumnIndex.implementation = function(columnName){
          if(!this.isAfterLast() && this != null)
           res = this.getString(index);
          
-        colorLog("[+] AbstractCursor DB Query for: " + columnName + " ,               Result :" + res,{ c: Color.Red }); 
+        colorLog("[+] AbstractCursor DB Query for: " + columnName ,{ c: Color.Red }); 
+        colorLog("[+] Result: " + res,{ c: Color.Red } )
          //this.moveToFirst();
          return this.getColumnIndex(columnName);
  }
@@ -260,9 +262,9 @@ cursor.getColumnIndex.implementation = function(columnName){
          //this.moveToFirst();
          if(!this.isAfterLast() && this != null)
           res = this.getString(index);
-         
-        colorLog("[+] AbstractCursor DB Query for: " + columnName + " ,               Result :" + res,{ c: Color.Red }); 
- 
+        console.log('----------------------------------------------------');
+        colorLog("[+] AbstractCursor DB Query for: " + columnName ,{ c: Color.Red }); 
+        colorLog("[+] Result: " + res,{ c: Color.Green } ) 
          //this.moveToFirst();
          return this.getColumnIndex(columnName);
  }

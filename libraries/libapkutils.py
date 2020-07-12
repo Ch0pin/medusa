@@ -307,7 +307,7 @@ class parser(cmd.Cmd):
             if self.INSTALL == True:
                 uninstall = input("[!] Do you want to uninstall the apk ? (yes/no)")
                 if 'yes' in uninstall:
-                    subprocess.run('adb -s {} uninstall {}'.format(self.device.id,package),shell=True)
+                    subprocess.run('adb -s {} uninstall {}'.format(self.device.id,self.package),shell=True)
             
             if os.path.exists("__handlers__/"):
                 uninstall = input("[!] Do you want to delete the __handlers__ folder? (yes/no)")

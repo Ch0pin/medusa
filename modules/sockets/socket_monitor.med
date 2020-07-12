@@ -6,7 +6,7 @@
 #Code:
 
 
-// var socket = Java.use('java.net.Socket');
+var socket = Java.use('java.net.Socket');
 var WebSocketClient = Java.use('org.java_websocket.client.WebSocketClient');
 
 
@@ -53,55 +53,55 @@ This constructor is deprecated. Use DatagramSocket instead for UDP trans
 // }
 
 
-// socket.$init.overloads[2].implementation = function(socketImpl){
+socket.$init.overloads[2].implementation = function(socketImpl){
 
-//     console.log('[+] Creating socket for host[2]: ' + socketImpl.address.getHostName() +':'+port);
-//     return this.$init(host,port);
+    console.log('[+] Creating socket for host[2]: ' + socketImpl.address.getHostName() +':'+port);
+    return this.$init(host,port);
 
-// }
+}
 
-// socket.$init.overloads[3].implementation = function(inetAddress, port){
+socket.$init.overloads[3].implementation = function(inetAddress, port){
 
-//     console.log('[+] Creating socket for host[3]: ' + inetAddress.getHostName() +':'+port);
-//     return this.$init(inetAddress,port);
+    console.log('[+] Creating socket for host[3]: ' + inetAddress.getHostName() +':'+port);
+    return this.$init(inetAddress,port);
 
-// }
+}
 
-// socket.$init.overloads[4].implementation = function(host,  port){
+socket.$init.overloads[4].implementation = function(host,  port){
 
-//     console.log('[+] Creating socket for host[4]: ' + host +':'+port);
-//     return this.$init(host,port);
+    console.log('[+] Creating socket for host[4]: ' + host +':'+port);
+    return this.$init(host,port);
 
-// }
+}
 
-// socket.$init.overloads[5].implementation = function(host ,  port,  stream){
+socket.$init.overloads[5].implementation = function(host ,  port,  stream){
 
-//     console.log('[+] Creating socket for host[5]: ' + host +':'+port);
-//     return this.$init(host ,  port,  stream);
+    console.log('[+] Creating socket for host[5]: ' + host +':'+port);
+    return this.$init(host ,  port,  stream);
 
-// }
+}
 
-// socket.$init.overloads[6].implementation = function(inetAddress ,  port,  localAddress,  localPort){
+socket.$init.overloads[6].implementation = function(inetAddress ,  port,  localAddress,  localPort){
 
-//     console.log('[+] Creating socket for host[6]: ' + inetAddress.getHostName() +':'+port);
-//     return this.$init(inetAddress ,  port,  localAddress,  localPort);
+    console.log('[+] Creating socket for host[6]: ' + inetAddress.getHostName() +':'+port);
+    return this.$init(inetAddress ,  port,  localAddress,  localPort);
 
-// }
+}
 
-// socket.$init.overloads[7].implementation = function(inetAddress ,  port,  socketAddress, stream){
+socket.$init.overloads[7].implementation = function(inetAddress ,  port,  socketAddress, stream){
 
-//     console.log('[+] Creating socket for host[7]: '+inetAddress.getHostName()+':'+port);
-//     return this.$init(inetAddress ,  port,  socketAddress, stream);
+    console.log('[+] Creating socket for host[7]: '+inetAddress.getHostName()+':'+port);
+    return this.$init(inetAddress ,  port,  socketAddress, stream);
 
-// }
+}
 
 
-// socket.$init.overloads[8].implementation = function(inetAddress ,  port,  localAddress,  localPort){
+socket.$init.overloads[8].implementation = function(inetAddress ,  port,  localAddress,  localPort){
 
-//     console.log('[+] Creating socket for host[8]: ' + inetAddress.getHostName() +':'+port);
-//     return this.$init(inetAddress ,  port,  localAddress,  localPort);
+    console.log('[+] Creating socket for host[8]: ' + inetAddress.getHostName() +':'+port);
+    return this.$init(inetAddress ,  port,  localAddress,  localPort);
 
-// }
+}
 
 WebSocketClient.$init.overloads[0].implementation = function(uri){
     console.log('[+] Creating web socket client: '+uri);

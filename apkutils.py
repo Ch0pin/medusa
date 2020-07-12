@@ -129,7 +129,7 @@ except Exception as e:
 # js = """Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){console.log(c);}});});"""
 try:
     pid = device.spawn(package)
-    print(pid)
+    print("[i] Starting process {} [pid:{}] to dump classes ".format(package,pid))
     session = device.attach(pid)
     device.resume(pid)
     script = session.create_script(js)

@@ -80,7 +80,7 @@ See **requirements.txt** for python requirements.
 
 Additionally:
 
-- Frida installation (version > 12.10.4)
+- Frida installation (preffered version 12.10.4)
 - Apktool (in case of processing APKs)
 - Adb
 

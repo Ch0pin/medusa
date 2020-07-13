@@ -32,10 +32,15 @@ def get_elements_sub(xmlDoc):
 
 def get_element_list(xmlDoc,node,attrib):
     elements = []
-    node = xmlDoc.getElementsByTagName(node)
+    nod = xmlDoc.getElementsByTagName(node)
    
-    for  atr in node:
+    for  atr in nod:
+
         elements.append(atr.getAttribute(attrib))
+        if 'true' in atr.getAttribute("android:exported"):
+            print(RED + '{:10}'.format(node)+'{:80}'.format(atr.getAttribute(attrib)) + CYAN+' is exported')
+
+       
     
     return elements
 

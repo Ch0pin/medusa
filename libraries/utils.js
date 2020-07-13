@@ -173,6 +173,19 @@ function getContext() {
 	return Java.use('android.app.ActivityThread').currentApplication().getApplicationContext();
   }
 
+  function readStreamToHex (stream) {
+    var data = [];
+    var byteRead = stream.read();
+    while (byteRead != -1)
+    {
+        data.push( ('0' + (byteRead & 0xFF).toString(16)).slice(-2) );
+                /* <---------------- binary to hex ---------------> */
+        byteRead = stream.read();
+    }
+    stream.close();
+    return data.join('');
+}
+
   //---------------CREDITS TO: https://github.com/brompwnie/uitkyk
   
   // var objectsToLookFor = ["java.net.Socket", "dalvik.system.DexClassLoader", "java.net.URLConnection", "java.net.URL", "java.security.cert.X509Certificate"];

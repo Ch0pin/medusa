@@ -37,6 +37,7 @@ class parser(cmd.Cmd):
     translator = Translator()
     script = None
     detached = False
+    pid = None
 
 
     def __init__(self):
@@ -374,7 +375,7 @@ class parser(cmd.Cmd):
             self.script.post({"my_data": result.text}) 
 
     def on_detached(self,reason):
-        print("script detached:", reason)
+        print("Session is detached due to:", reason)
         self.detached = True
         
     
@@ -384,12 +385,18 @@ class parser(cmd.Cmd):
         try:
             with open("agent.js") as f:
                 self.script = session.create_script(f.read())
+            
+            session.on('detached',self.on_detached)
             self.script.on("message",self.my_message_handler)  # register the message handler
             self.script.load()  
+            device.resume(self.pid)
+
             s = input(WHITE+'in-session-logging (type exit to end session)>')
+
             while ('exit' not in s) and (not self.detached):
-                session.on('detached',self.on_detached)
                 s = input(WHITE+'in-session:>')
+                    
+
             if self.script:
                 self.script.unload()
         except Exception as e:
@@ -407,12 +414,12 @@ class parser(cmd.Cmd):
             else:
                 print("Could not attach the requested process"+RESET)
         elif force == True:
-            pid = con_device.spawn(pkg)
-            if pid:
-                frida_session = con_device.attach(pid)
+            self.pid = con_device.spawn(pkg)
+            if self.pid:
+                frida_session = con_device.attach(self.pid)
                 print(WHITE+"Spawned package : {0} on pid {1}".format(pkg,frida_session._impl.pid))
                     # resume app after spawning
-                con_device.resume(pid)
+                #con_device.resume(pid)
             else:
                 print(RED+"Could not spawn the requested package")
                 return None

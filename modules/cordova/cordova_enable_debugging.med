@@ -1,0 +1,16 @@
+#Description: 'Cordova Enable Webview Debugging'
+#Help: 
+
+https://codeshare.frida.re/@gameFace22/cordova---enable-webview-debugging/
+
+#Code:
+
+
+    var Webview = Java.use("android.webkit.WebView")
+    Webview.loadUrl.overload("java.lang.String").implementation = function(url) {
+        console.log("\n[+]Loading URL from", url);
+        console.log("[+]Setting the value of setWebContentsDebuggingEnabled() to TRUE");
+        this.setWebContentsDebuggingEnabled(true);
+        this.loadUrl.overload("java.lang.String").call(this, url);
+
+console.log('-----------Cordova Enable Webview Debugging loaded---------------');

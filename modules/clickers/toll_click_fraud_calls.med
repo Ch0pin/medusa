@@ -20,7 +20,11 @@
 		        return this.getSimOperator(sm);
 		    }
 		    wifiManager.setWifiEnabled.implementation = function(enabled){
-		        console.log('[!] A call to android.net.wifi.WifiManager.setWifiEnabled detected');
+				if(enabled == false)
+					colorLog('[!] Application is disabling the WiFi',{ c: Color.Red });
+				else
+					colorLog('[!] A call to android.net.wifi.WifiManager.setWifiEnabled detected',{c: Color.Red});
+
 		        return this.setWifiEnabled(enabled);
 			}
 			

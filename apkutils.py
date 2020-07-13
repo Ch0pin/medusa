@@ -75,21 +75,25 @@ except Exception as e:
     
 
 print(GREEN+"""\n-----------Package Details-------------:
-Name:               {}
-Version code:       {}
-Version Name:       {}
-Mimimum SDK:        {}
-Target SDK:         {}
-App Name:           {}
-Allow Backup        {}
+Name            :{}
+Version code    :{}
+Version Name    :{}
+Mimimum SDK     :{}
+Target  SDK     :{}
+App     Name    :{}
+Allow   Backup  :{}
+---------------------------------------
+Debuggable      :{}         
 
-Type 'help' for a list with the availlable commands\n\n""".format(get_elements(xmlDoc,'manifest','package')
+Exported Components:
+""".format(get_elements(xmlDoc,'manifest','package')
             ,get_elements(xmlDoc,'manifest','android:versionCode')
             ,get_elements(xmlDoc,'manifest','android:versionName')
             ,get_elements(xmlDoc,'uses-sdk','android:minSdkVersion')
             ,get_elements(xmlDoc,'uses-sdk','android:targetSdkVersion')
             ,get_elements(xmlDoc,'application','android:name')
-            ,get_elements(xmlDoc,'application','android:allowBackup')))
+            ,get_elements(xmlDoc,'application','android:allowBackup')
+            ,get_elements(xmlDoc,'application','android:debuggable')))
 package = get_elements(xmlDoc,'manifest','package')
 permissions = get_element_list(xmlDoc,'uses-permission','android:name')
 activities = get_element_list(xmlDoc,'activity','android:name')
@@ -128,13 +132,14 @@ except Exception as e:
 
 # js = """Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){console.log(c);}});});"""
 try:
-    pid = device.spawn(package)
-    print("[i] Starting process {} [pid:{}] to dump classes ".format(package,pid))
-    session = device.attach(pid)
-    device.resume(pid)
-    script = session.create_script(js)
-    script.on('message', on_message)
-    script.load()
+    if INSTALL==True:
+        pid = device.spawn(package)
+        print("[i] Starting process {} [pid:{}] to dump classes ".format(package,pid))
+        session = device.attach(pid)
+        device.resume(pid)
+        script = session.create_script(js)
+        script.on('message', on_message)
+        script.load()
 except Exception as e:
     print(e)
 

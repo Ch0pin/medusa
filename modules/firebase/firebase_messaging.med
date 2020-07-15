@@ -4,8 +4,8 @@
 
 console.log('\n--------FirebaseMessagingService interceptor module--------------------');
 
-var firebaseMessagingService = Java.use('com.google.firebase.messaging.FirebaseMessagingService');
 var hashMapNode = Java.use('java.util.HashMap$Node');
+var firebaseMessagingService = Java.use('com.google.firebase.messaging.FirebaseMessagingService');
 
 firebaseMessagingService.onMessageReceived.implementation = function(msg){
     var map = msg.getData();

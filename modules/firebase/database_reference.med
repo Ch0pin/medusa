@@ -1,0 +1,177 @@
+#Description: 'Hooks to DatabaseReference class'
+#Help: This class is the starting point for all Database operations. 
+After you've initialized it with a URL, you can use it to read data, 
+write data, and to create new DatabaseReferences.
+
+#Code:
+
+
+var databaseReference = Java.use('com.google.firebase.database.DatabaseReference');
+
+
+
+/*
+
+
+.overload('java.lang.String', 'com.google.firebase.database.core.DatabaseConfig')
+.overload('com.google.firebase.database.core.utilities.ParsedUrl', 'com.google.firebase.database.core.DatabaseConfig')
+.overload('com.google.firebase.database.core.Repo', 'com.google.firebase.database.core.Path')
+*/
+
+
+
+databaseReference.$init.overloads[0].implementation = function(parseUrl, dbconfig){
+    
+
+    colorLog('[Database reference: '+parseUrl,{c: Color.Green});
+    return this.$init(parseUrl,dbconfig);
+}
+
+databaseReference.$init.overloads[1].implementation = function(parseUrl, dbconfig){
+    
+
+    colorLog('[Database reference: '+parseUrl.toString(),{c: Color.Green});
+    return this.$init(parseUrl,dbconfig);
+}
+
+databaseReference.$init.overloads[2].implementation = function(repo, path){
+    
+
+    colorLog('[Database reference: '+repo.toString(),{c: Color.Green});
+    return this.$init(repo,path);
+}
+
+
+/*
+public DatabaseReference child (String pathString)
+Also: Google Play services
+Get a reference to location relative to this one
+
+Parameters
+pathString	The relative path from this reference to the new one that should be created
+Returns A new DatabaseReference to the given path
+*/
+
+databaseReference.child.implementation = function(pathString){
+
+    console.log('[+] Application is acquiring a reference to: '+pathString);
+    return this.child(pathString);
+}
+
+
+/*
+public FirebaseDatabase getDatabase ()
+Gets the Database instance associated with this reference.
+Returns
+The Database object for this reference.
+*/
+
+databaseReference.getDatabase.implementation = function(){
+
+    console.log('[+] Application is acquiring an instance associate with this reference');
+    return this.getDatabase();
+}
+
+/*
+public String getKey ()
+
+Returns
+The last token in the location pointed to by this reference or null if this reference points to the database root
+public DatabaseReference getParent ()
+*/
+
+
+
+databaseReference.getKey.implementation = function(){
+
+    var key = this.getkey();
+
+    console.log('[+] The last token in the location pointed to by this reference is:'+key);
+    return key;
+}
+
+/*
+public static void goOffline ()
+Also: Google Play services
+Manually disconnect the Firebase Database client from the server and disable automatic reconnection.
+
+Invoking this method will impact all Firebase Database connections.
+*/
+
+databaseReference.goOffline.overloads[0].implementation = function(){
+
+    console.log('[+] The app disconnects the Firebase Database client from the server and disable automatic reconnection');
+    this.goOffline();
+}
+databaseReference.goOffline.overloads[1].implementation = function(dbConfig){
+
+    console.log('[+] The app disconnects the Firebase Database client from the server and disable automatic reconnection');
+    this.goOffline(dbConfig);
+}
+
+
+/*
+public static void goOnline ()
+Also: Google Play services
+Manually reestablish a connection to the Firebase Database server and enable automatic reconnection.
+Note: Invoking this method will impact all Firebase Database connections.
+*/
+databaseReference.goOnline.overloads[0].implementation = function(){
+
+    console.log('[+] The app disconnects the Firebase Database client from the server and disable automatic reconnection');
+    this.goOnline();
+}
+databaseReference.goOnline.overloads[1].implementation = function(dbConfig){
+
+    console.log('[+] The app disconnects the Firebase Database client from the server and disable automatic reconnection');
+    this.goOnline(dbConfig);
+}
+
+/*
+	.overload('java.lang.Object')
+	.overload('java.lang.Object', 'com.google.firebase.database.DatabaseReference$CompletionListener')
+	.overload('java.lang.Object', 'java.lang.Object')
+	.overload('java.lang.Object', 'java.lang.Object', 'com.google.firebase.database.DatabaseReference$CompletionListener')
+*/
+
+
+databaseReference.setValue.overloads[0].implementation = function(obj,completionListener){
+
+    console.log('[+] set value for: ' + obj.toString());
+    this.setValue(obj,completionListener);
+}
+databaseReference.setValue.overloads[1].implementation = function(obja,objb){
+
+    console.log('[+] set value for: ' + obja.toString() + ' , '+objb.toString());
+    this.setValue(obja,objb);
+}
+databaseReference.setValue.overloads[2].implementation = function(obja,objb,objc,completionListener){
+
+    console.log('[+] set value for: ' + obja.toString() + ' , '+objb.toString() + ' ' +objc.toString());
+    this.setValue(obja,objb,objc,completionListener);
+}
+
+
+/*
+Task<Void>	
+updateChildren(Map<String, Object> update)
+Update the specific child keys to the specified values.
+void	
+updateChildren(Map<String, Object> update, DatabaseReference.CompletionListener listener)
+Update the specific child keys to the specified values.
+*/
+
+databaseReference.updateChildren.overloads[0].implementation = function(map){
+
+    colorLog('[+] The app updates the firebase ',{c:Color.Red})
+    console.log('[+] key:'+map.getKey());
+    console.log('[+] Value: '+map.getValue());
+    this.updateChildren(map);
+}
+databaseReference.updateChildren.overloads[1].implementation = function(map,dbreference){
+    colorLog('[+] The app updates the firebase ',{c:Color.Red})
+    console.log('[+] key:'+map.getKey());
+    console.log('[+] Value: '+map.getValue());
+    this.updateChildren(map,dbreference);
+}
+

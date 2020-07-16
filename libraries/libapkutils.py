@@ -208,12 +208,15 @@ class parser(cmd.Cmd):
             if 'get' in command:
                 self.print_proxy()
             elif 'reset' in command:
-                os.popen("adb -s {} shell settings put global http_proxy :0".format(self.device.id))   
+                os.popen("adb -s {} shell settings put global http_proxy :0".format(self.device.id))  
+                time.sleep(2) 
                 self.print_proxy()
             elif 'set' in command:
                 ip = line.split(' ')[1].split(':')[0]
                 port = line.split(' ')[1].split(':')[1]
                 os.popen("adb -s {} shell settings put global http_proxy {}:{}".format(self.device.id,ip,port)) 
+                time.sleep(2) 
+
                 self.print_proxy()
             else:
                 print('[!] Usage: proxy [set,get,reset] [<ip>:<port>]')

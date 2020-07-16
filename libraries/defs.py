@@ -392,7 +392,7 @@ class parser(cmd.Cmd):
             device.resume(self.pid)
 
             s = input(WHITE+'in-session-logging (type exit to end session)>')
-
+            self.detached = False
             while ('exit' not in s) and (not self.detached):
                 s = input(WHITE+'in-session:>')
                     

@@ -50,9 +50,14 @@ Medusa's functionality is based the following scripts:
   > - Modules for popular frameworks like firebase, cordova e.t.c.
   > - Modules to interact with native calls
   >
-  > 
+  
 
   
+<img src="https://user-images.githubusercontent.com/4659186/87720238-87827e80-c7ac-11ea-989c-fb80b9aa06b6.png" width="7650" height="350">
+
+
+
+
 
 - **apkutils.py** 
 
@@ -73,6 +78,10 @@ Medusa's functionality is based the following scripts:
   >   - Install/Uninstall applications
 
   
+  
+  **apkutils.py:**
+  
+  <img src="https://user-images.githubusercontent.com/4659186/87721141-e3013c00-c7ad-11ea-843c-66eb34d44c96.png" width="7650" height="490">
 
 ### Requirements:
 

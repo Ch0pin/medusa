@@ -36,7 +36,7 @@ class parser(cmd.Cmd):
     device_index =0
     translator = Translator()
     script = None
-    detached = False
+    detached = True
     pid = None
 
 
@@ -380,7 +380,7 @@ class parser(cmd.Cmd):
         
     
     def run_frida(self,force, detached, package_name, device):
-
+        self.detached = False
         session = self.frida_session_handler(device,force,package_name)
         try:
             with open("agent.js") as f:
@@ -389,16 +389,17 @@ class parser(cmd.Cmd):
             session.on('detached',self.on_detached)
             self.script.on("message",self.my_message_handler)  # register the message handler
             self.script.load()  
-            device.resume(self.pid)
-
+            if force:
+                device.resume(self.pid)
             s = input(WHITE+'in-session-logging (type exit to end session)>')
-            self.detached = False
+            
             while ('exit' not in s) and (not self.detached):
                 s = input(WHITE+'in-session:>')
                     
-
+            
             if self.script:
                 self.script.unload()
+
         except Exception as e:
             print(e)
         print(RESET)
@@ -411,6 +412,7 @@ class parser(cmd.Cmd):
             frida_session = con_device.attach(pkg)
             if frida_session:
                 print(WHITE+"Attaching frida session to PID - {0}".format(frida_session._impl.pid))
+                
             else:
                 print("Could not attach the requested process"+RESET)
         elif force == True:

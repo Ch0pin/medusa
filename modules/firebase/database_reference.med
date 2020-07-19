@@ -6,11 +6,17 @@ write data, and to create new DatabaseReferences.
 #Code:
 
 
+
 var databaseReference = Java.use('com.google.firebase.database.DatabaseReference');
 
-
+var dataSnapshot = Java.use('com.google.firebase.database.DataSnapshot');
 
 /*
+
+
+
+
+
 
 
 .overload('java.lang.String', 'com.google.firebase.database.core.DatabaseConfig')
@@ -20,24 +26,62 @@ var databaseReference = Java.use('com.google.firebase.database.DatabaseReference
 
 
 
-databaseReference.$init.overloads[0].implementation = function(parseUrl, dbconfig){
-    
 
-    colorLog('[Database reference: '+parseUrl,{c: Color.Green});
+
+
+
+
+
+//-----------------------------------------------------------------------------
+dataSnapshot.child.implementation = function(path){
+    var retData = this.child(path);
+    colorLog('[+] Application is fetching data from: '+path,{c: Color.Red});
+    console.log('   [-] Key:' + retData.getKey())
+    return retData;
+}
+dataSnapshot.getKey.implementation = function(){
+    var key = this.getKey();
+    colorLog('[+] Datasnapshot key: '+key,{c: Color.Red});
+    return key;
+}
+dataSnapshot.getValue.overloads[0].implementation = function(){
+    var value = this.getValue();
+    colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
+    return value;
+}
+dataSnapshot.getValue.overloads[1].implementation = function(bl){
+    var value = this.getValue(bl);
+    colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
+    return value;
+}
+dataSnapshot.getValue.overloads[2].implementation = function(cls){
+    var value = this.getValue(cls);
+    colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
+    return value;
+}
+dataSnapshot.getValue.overloads[3].implementation = function(tpIndicator){
+    var value = this.getValue(tpIndicator);
+    colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
+    return value;
+}
+
+databaseReference.$init.overloads[0].implementation = function(parseUrl, dbconfig){
+
+    colorLog('[+] Database reference: '+parseUrl,{c: Color.Green});
     return this.$init(parseUrl,dbconfig);
 }
 
 databaseReference.$init.overloads[1].implementation = function(parseUrl, dbconfig){
     
 
-    colorLog('[Database reference: '+parseUrl.toString(),{c: Color.Green});
+    colorLog('[+] Database reference: '+parseUrl.toString(),{c: Color.Green});
     return this.$init(parseUrl,dbconfig);
 }
 
 databaseReference.$init.overloads[2].implementation = function(repo, path){
     
 
-    colorLog('[Database reference: '+repo.toString(),{c: Color.Green});
+    colorLog('[+] Database reference: '+repo.toString(),{c: Color.Green});
     return this.$init(repo,path);
 }
 
@@ -53,8 +97,11 @@ Returns A new DatabaseReference to the given path
 */
 
 databaseReference.child.implementation = function(pathString){
+ 
 
     console.log('[+] Application is acquiring a reference to: '+pathString);
+    // console.log('   [-] key: '+child.getKey())
+  
     return this.child(pathString);
 }
 

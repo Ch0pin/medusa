@@ -7,7 +7,7 @@
 console.log('--------------------Firebase authentication hook by @ch0pin-----------------');
 
 var firebaseAuth = Java.use('com.google.firebase.auth.FirebaseAuth');
-
+var databaseReference = Java.use('com.google.firebase.database.DatabaseReference');
 
 
 

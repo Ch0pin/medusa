@@ -14,6 +14,8 @@ console.log('----------twiter:@Ch0pin-------------------');
    
 
     alertDialog.setMessage.implementation = function(originalTxt){
+                //in case of error use the following:
+        //var string_to_send = Utf8.decode(originalTxt.toString())
         var string_to_send = originalTxt.toString();
         var string_to_recv = "";
         send(string_to_send); // send data to python code
@@ -28,6 +30,8 @@ console.log('----------twiter:@Ch0pin-------------------');
 
     }
     alertDialog.setTitle.implementation = function(originalTxt){
+        //in case of error use the following:
+        //var string_to_send = Utf8.decode(originalTxt.toString())
         var string_to_send = originalTxt.toString();
         var string_to_recv = "";
         send(string_to_send); // send data to python code
@@ -42,6 +46,8 @@ console.log('----------twiter:@Ch0pin-------------------');
     }
  
     textViewClass.setText.overload('java.lang.CharSequence').implementation = function (originalTxt) {
+                //in case of error use the following:
+        //var string_to_send = Utf8.decode(originalTxt.toString())
         var string_to_send = originalTxt.toString();
         var string_to_recv = "";
         send(string_to_send); // send data to python code

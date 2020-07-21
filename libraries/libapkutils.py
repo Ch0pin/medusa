@@ -262,12 +262,51 @@ class parser(cmd.Cmd):
             return
 
 
+
     def complete_start(self, text, line, begidx, endidx):
         if not text:
             completions = self.activities[:]
         else:
             completions = [ f
                             for f in self.activities
+                            if f.startswith(text)
+                            ]
+        return completions
+
+
+
+    def do_startsrv(self,line):
+        try:         
+            output=os.popen("adb -s {} shell 'am startservice -n {}/{}'".format(self.device.id,self.package,line.split(' ')[0])).read()
+            print(output)
+        except Exception as e:
+            print(e)
+            return
+
+    def complete_startsrv(self, text, line, begidx, endidx):
+        if not text:
+            completions = self.services[:]
+        else:
+            completions = [ f
+                            for f in self.services
+                            if f.startswith(text)
+                            ]
+        return completions
+
+    def do_stopsrv(self,line):
+        try:         
+            output=os.popen("adb -s {} shell 'am stopservice -n {}/{}'".format(self.device.id,self.package,line.split(' ')[0])).read()
+            print(output)
+        except Exception as e:
+            print(e)
+            return
+
+    def complete_stopsrv(self, text, line, begidx, endidx):
+        if not text:
+            completions = self.services[:]
+        else:
+            completions = [ f
+                            for f in self.services
                             if f.startswith(text)
                             ]
         return completions
@@ -358,6 +397,8 @@ class parser(cmd.Cmd):
                     ---------------------
 
                     - start      [tab]          : Starts and activity 
+                    - startsrv   [tab]          : Starts a service
+                    - stopsrv    [tab]          : Stops a service
                     - broadcast  [tab]          : Broadcast an intent 
 
                     ===========================================================================================

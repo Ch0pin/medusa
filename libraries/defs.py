@@ -1,4 +1,5 @@
 import subprocess
+import platform
 import cmd
 import os, sys
 import readline
@@ -308,16 +309,6 @@ class parser(cmd.Cmd):
                 if codeline_found:
                     hooks.append('\t\t'+content[i].strip('\n'))
         
-                    # for line in mod:
-                    #     if not line.startswith('#Code'):
-                    #         continue
-                    #         print(line)
-                    #     else:
-                    #         After_codeline = True
-                    # print(After_codeline)
-                    # if After_codeline == False:
-                    #     print(line.strip('\n'))
-                    #     hooks.append('\t\t'+line.strip('\n'))
 
             hooks.append("""    } catch (err) {
                         console.log('Error loading module %s, Error:'+err);
@@ -380,9 +371,11 @@ class parser(cmd.Cmd):
         
     
     def run_frida(self,force, detached, package_name, device):
+        creation_time = modified_time = None
         self.detached = False
         session = self.frida_session_handler(device,force,package_name)
         try:
+            creation_time = self.modification_time("agent.js")
             with open("agent.js") as f:
                 self.script = session.create_script(f.read())
             
@@ -391,11 +384,28 @@ class parser(cmd.Cmd):
             self.script.load()  
             if force:
                 device.resume(self.pid)
-            s = input(WHITE+'in-session-logging (type exit to end session)>')
+            s = input(WHITE+'in-session-commands |' +GREEN+'e:'+ WHITE+ 'exit |'+GREEN+ 'r:'+ WHITE+'reload | ' + GREEN + '?:' + WHITE + 'help'+WHITE+'|>')
             
-            while ('exit' not in s) and (not self.detached):
-                s = input(WHITE+'in-session:>')
-                    
+            while ('e' not in s) and (not self.detached):
+                s = input(WHITE+'in-session (? for help):>')
+                if 'r' in s:
+                    #handle changes during runtime
+                 
+                    modified_time = self.modification_time("agent.js")
+                
+                    if modified_time != creation_time:
+                        print(RED+"Script changed, reloading ...."+RESET)
+                        creation_time = modified_time
+                        self.script.unload()
+                        with open("agent.js") as f:
+                            self.script = session.create_script(f.read())
+                        session.on('detached',self.on_detached)
+                        self.script.on("message",self.my_message_handler)  # register the message handler
+                        self.script.load()  
+                    else:
+                         print(GREEN+"Script unchanged, nothing to reload ...."+RESET)
+                if '?' in s:
+                    print(WHITE+'|' +GREEN+'e:'+ WHITE+ 'exit |'+GREEN+ 'r:'+ WHITE+'reload | ' + GREEN + '?:' + WHITE + 'help'+WHITE+'|')                
             
             if self.script:
                 self.script.unload()
@@ -404,7 +414,26 @@ class parser(cmd.Cmd):
             print(e)
         print(RESET)
         return
-        # input()
+
+
+
+    def modification_time(self, path_to_file):
+  
+        if platform.system() == 'Windows':
+            return os.path.getmtime(path_to_file)
+        else:
+            stat = time.ctime(os.path.getmtime(path_to_file)) #os.stat(path_to_file)
+            try:
+                return stat
+            except AttributeError:
+                # We're probably on Linux. No easy way to get creation dates here,
+                # so we'll settle for when its content was last modified.
+                return stat
+
+
+
+
+
 
     def frida_session_handler(self,con_device,force,pkg):
         time.sleep(1)

@@ -4,7 +4,7 @@ https://codeshare.frida.re/@dzonerzy/fridantiroot/
 
 #Code:
     
-    
+    console.log('\n---------LOADING ANTI ROOT DETECTION SCRIPT-------------------');
     
     var RootPackages = ["com.noshufou.android.su", "com.noshufou.android.su.elite", "eu.chainfire.supersu",
         "com.koushikdutta.superuser", "com.thirdparty.superuser", "com.yellowes.su", "com.koushikdutta.rommanager",
@@ -78,13 +78,25 @@ https://codeshare.frida.re/@dzonerzy/fridantiroot/
         send("KeyInfo hook not loaded");
     }
 
-    PackageManager.getPackageInfo.implementation = function(pname, flags) {
+
+    PackageManager.getPackageInfo.overloads[0].implementation = function(pname, flags) {
         var shouldFakePackage = (RootPackages.indexOf(pname) > -1);
         if (shouldFakePackage) {
             send("Bypass root check for package: " + pname);
             pname = "set.package.name.to.a.fake.one.so.we.can.bypass.it";
         }
         return this.getPackageInfo.call(this, pname, flags);
+    };
+
+
+
+    PackageManager.getPackageInfo.overloads[1].implementation = function(sname, flags) {
+        var shouldFakePackage = (RootPackages.indexOf(sname) > -1);
+        if (shouldFakePackage) {
+            send("Bypass root check for package: " + sname);
+            pname = "set.package.name.to.a.fake.one.so.we.can.bypass.it";
+        }
+        return this.getPackageInfo.call(this, sname, flags);
     };
 
     NativeFile.exists.implementation = function() {
@@ -272,8 +284,23 @@ https://codeshare.frida.re/@dzonerzy/fridantiroot/
     */
 
 
-    BufferedReader.readLine.implementation = function() {
+    BufferedReader.readLine.overloads[0].implementation = function() {
         var text = this.readLine.call(this);
+        if (text === null) {
+            // just pass , i know it's ugly as hell but test != null won't work :(
+        } else {
+            var shouldFakeRead = (text.indexOf("ro.build.tags=test-keys") > -1);
+            if (shouldFakeRead) {
+                send("Bypass build.prop file read");
+                text = text.replace("ro.build.tags=test-keys", "ro.build.tags=release-keys");
+            }
+        }
+        return text;
+    };
+
+
+    BufferedReader.readLine.overloads[1].implementation = function(boolean_) {
+        var text = this.readLine(boolean_);
         if (text === null) {
             // just pass , i know it's ugly as hell but test != null won't work :(
         } else {

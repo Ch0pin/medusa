@@ -93,7 +93,7 @@ Additionally:
 - Apktool (in case of processing APKs)
 - Adb
 
-A rooted device is highly recomended in order to use the framework's full capabilities
+A rooted device or an emulator is highly recomended in order to use the framework's full capabilities
 
 ### Modules:
 

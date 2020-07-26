@@ -1,4 +1,4 @@
-#Description: 'Bypass root detection'
+#Description: 'Bypass root, debug detection'
 #Help: 
 https://codeshare.frida.re/@dzonerzy/fridantiroot/
 
@@ -6,6 +6,17 @@ https://codeshare.frida.re/@dzonerzy/fridantiroot/
     
     console.log('\n---------LOADING ANTI ROOT DETECTION SCRIPT-------------------');
     
+    var antidebug = Java.use('android.os.Debug');
+
+
+antidebug.isDebuggerConnected.implementation = function(){
+    console.log('[!] overwriting is debugger connected  ');
+    return false;
+}
+
+
+
+
     var RootPackages = ["com.noshufou.android.su", "com.noshufou.android.su.elite", "eu.chainfire.supersu",
         "com.koushikdutta.superuser", "com.thirdparty.superuser", "com.yellowes.su", "com.koushikdutta.rommanager",
         "com.koushikdutta.rommanager.license", "com.dimonvideo.luckypatcher", "com.chelpus.lackypatch",

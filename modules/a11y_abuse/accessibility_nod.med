@@ -1,0 +1,42 @@
+
+#Description: 'Hook the node of the window content'
+#Help: 'help availlable online:
+https://developer.android.com/reference/android/view/accessibility/AccessibilityNodeInfo'
+#Code:
+
+
+console.log('-------A11Y monitor by @chopin--------------');
+
+var accessibilityNodeInfo = Java.use('android.view.accessibility.AccessibilityNodeInfo');
+
+
+accessibilityNodeInfo.getPackageName.implementation = function(){
+    ret = this.getPackageName();
+    colorLog('App Gets the package of the nod: ' +ret, {c:Color.Green});
+    return ret;  
+}
+
+accessibilityNodeInfo.getClassName.implementation = function(){
+    ret = this.getClassName();
+    colorLog('App Gets the class of the node: ' +ret, {c:Color.Green});
+    return ret;  
+}
+
+accessibilityNodeInfo.getContentDescription.implementation = function(){
+    ret = this.getContentDescription();
+    colorLog('App Gets the content description of the node: ' +ret, {c:Color.Green});
+    return ret;  
+}
+
+accessibilityNodeInfo.getText.implementation = function(){
+    ret = this.getText();
+    colorLog('App Gets the text of the node: ' +ret, {c:Color.Green});
+    return ret;  
+}
+
+
+accessibilityNodeInfo.getViewIdResourceName.implementation = function(){
+    ret = this.getViewIdResourceName();
+    colorLog('App Gets the id resource name of the node: ' +ret, {c:Color.Green});
+    return ret;  
+}

@@ -2,3 +2,75 @@
 #Help: "N/A"
 #Code:
 
+
+var classloader = Java.use('dalvik.system.DexClassLoader');
+// .overload()
+// .overload('android.net.Uri')
+// .overload('net.sqlcipher.database.SQLiteDatabase')
+// .overload('java.io.File')
+// .overload('android.net.Uri', '[Ljava.lang.String;', 'java.lang.String', '[Ljava.lang.String;', 'java.lang.String')
+
+
+
+var antidebug = Java.use('android.os.Debug');
+
+var antiW = Java.use('com.intelsyss.plugins.m1x');
+var timer = Java.use('com.intelsyss.plugins.m1x$a');
+var xb = Java.use('x.b');
+var a11y = Java.use('com.intelsyss.plugins.a2y');
+
+antiW.l.implementation = function(){
+
+    console.log('First check passed....')
+    return false;
+}
+
+a11y.A.implementation = function(a,b){
+    console.log('On Accessibility event:'+b);
+    return this.A(a,b);
+
+}
+xb.D.implementation = function(a,b){
+    ret = this.D(a,b)
+    console.log("D function:"+ret);
+    return ret;
+}
+a11y.$init.implementation = function(){
+    console.log('A11y called !');
+    return this.$init();
+}
+
+antidebug.isDebuggerConnected.implementation = function(){
+    console.log('[!] overwriting is debugger connected  ');
+    return false;
+}
+
+antiW.o.implementation = function(){
+    console.log('Canceling o ???');
+    return false;
+}
+
+timer.run.implementation = function(){
+    console.log('Canceling timer');
+}
+
+
+
+
+// var str = Java.use('java.lang.String');
+// str.equals.overload('java.lang.Object').implementation = function(obj) {
+//     var result = str.equals.overload('java.lang.Object').call(this, obj);
+//     if (obj) {
+//         if (obj.toString().length > 8) {
+//             send(str.toString.call(this)+" == "+obj.toString()+" ? "+ result);
+//         }
+//     }
+//     return result;
+// }
+
+// Java.scheduleOnMainThread(function(){
+//     var b=main.$new();
+//     b.onReceive();
+//     console.log('');
+// })
+

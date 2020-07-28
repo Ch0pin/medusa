@@ -1,0 +1,13 @@
+
+
+#Description: 'Prevent file from being deleted observation script '
+#Help: https://codeshare.frida.re/@dzonerzy/dereflector/
+#Code:
+
+console.log('\n-----------Loading Un-Delete prevention module---------');
+
+  var File = Java.use('java.io.File');
+  File.delete.implementation = function() {
+    colorLog('[+] Un-deleting ' + this.getAbsolutePath(),{c:Color.Red});
+    return true;  // true means "deleted successfully"
+  };

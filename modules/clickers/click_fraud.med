@@ -4,6 +4,7 @@ click events, including:
 -Motion events
 -Perform click
 -Webview javascript injection
+-dispatchEvent
 #Code:
 
 
@@ -14,6 +15,11 @@ var viewClassHook = Java.use('android.view.View');
 var motionEvent = Java.use('android.view.MotionEvent');
 var webView = Java.use('android.webkit.WebView');
 
+viewClassHook.dispatchTouchEvent.implementation = function(motionEvent){
+    colorLog('[+] Dispatch touch event called, printing stacktrace: ',{c:Color.Green} );
+    printBacktrace();
+    return this.dispatchTouchEvent(motionEvent);
+}
 
 webView.addJavascriptInterface.implementation = function(object, name){
     console.log('[i] Javascript interface detected:' + object.$className + ' instatiated as' + name);

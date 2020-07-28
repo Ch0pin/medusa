@@ -5,7 +5,7 @@
 
 #Code:
 
-console.log('\n\nBackdoor monitor  loaded-----------');
+console.log('\n\n--------------Backdoor monitor by @Ch0pin-----------');
 
     var targetClass = Java.use("java.lang.Runtime");
 
@@ -46,49 +46,6 @@ console.log('\n\nBackdoor monitor  loaded-----------');
     };
 
 
-    if(0){
-        var dexclassLoader = Java.use("dalvik.system.DexClassLoader");
-        console.log("dexclassLoader=" + dexclassLoader); 
-        dexclassLoader.$init.implementation = function(dexPath,  optimizedDirectory,  librarySearchPath,  parent){
-            console.log("dexPath=" + dexPath );
-            console.log("optimizedDirectory=" + optimizedDirectory);
-            console.log("librarySearchPath=" + librarySearchPath);
-            console.log("parent=" + parent);
-            this.$init(dexPath, optimizedDirectory,  librarySearchPath,  parent);
-        }
-    }
-    
-    if(0){
-       var index = 0;
-       var dexclassLoader = Java.use("dalvik.system.BaseDexClassLoader");
-        console.log("dexclassLoader=" + dexclassLoader); 
-        dexclassLoader.$init.overload("java.lang.String", "java.io.File", "java.lang.String", "java.lang.ClassLoader").implementation = function(dexPath,  optimizedDirectory,  librarySearchPath,  parent){
-           console.log( ++index +"、--------------------------");
-            console.log("dexPath=" + dexPath );
-            console.log("optimizedDirectory=" + optimizedDirectory);
-            console.log("librarySearchPath=" + librarySearchPath);
-            console.log("parent=" + parent);           
-            this.$init(dexPath, optimizedDirectory,  librarySearchPath,  parent);
-        }
-        dexclassLoader.$init.overload("[Ljava.nio.ByteBuffer;", "java.lang.ClassLoader").implementation = function(byteBuffer,   parent){
-            console.log(++index +"、--------------------------");
-            console.log("byteBuffer=" + byteBuffer );           
-            console.log("parent=" + parent);            
-            this.$init(byteBuffer, parent);
-        }
-    }
-    
-    if(1){
-         var dexclassLoader = Java.use("dalvik.system.BaseDexClassLoader");
-         var ClassUse = Java.use("java.lang.Class");
-         dexclassLoader.loadClass.overload("java.lang.String").implementation = function(className){
-             console.log("[i] DEX Class loader for ClassName=" + className+'\n');
-             var result = this.loadClass(className);
-             var resultCast = Java.cast(result, ClassUse);
-             //console.log("[+] Methods=" + resultCast.getMethods()+'\n');
-             return result;
-         }
-    }
-    
+   
     
     

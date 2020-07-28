@@ -1,0 +1,45 @@
+
+
+#Description: 'De-reflection observation script '
+#Help: https://codeshare.frida.re/@dzonerzy/dereflector/
+#Code:
+
+console.log('-----De reflection script by @dzonerzy + mods by @ch0pin-----------------');
+
+    var internalClasses = ["android.", "com.android", "java.lang", "java.io","org.chromium","com.google"]; // comment this for no filtering
+
+    var classDef = Java.use('java.lang.Class');
+
+    var classLoaderDef = Java.use('java.lang.ClassLoader');
+
+    var loadClass = classLoaderDef.loadClass.overload('java.lang.String', 'boolean');
+
+
+    classDef.forName.overloads[0].implementation = function(name){
+        
+        var name = this.forName(name);
+        colorLog("Reflection => class => " + name,{c:Color.Yellow} );//+ " => " + method.toGenericString());
+        return name;
+
+    }
+    classDef.getDeclaredMethod.implementation = function(name, clazz){
+        
+        
+        colorLog("Reflection => method => " + name,{c:Color.Red} );//+ " => " + method.toGenericString());
+        return this.getDeclaredMethod(name,clazz)
+
+    }
+
+
+    loadClass.implementation = function(class_name, resolve) {
+        var isGood = true;
+        for (var i = 0; i < internalClasses.length; i++) {
+            if (class_name.startsWith(internalClasses[i])) {
+                isGood = false;
+            }
+        }
+        if (isGood) {
+            colorLog("Reflection => loadClass => " + class_name,{c:Color.Red});
+        }
+        return loadClass.call(this, class_name, resolve);
+    }

@@ -9,25 +9,6 @@
 console.log('\n--------DCL hook module by @ch0pin--------------');
 
 
-// var dexter = Java.use('dalvik.system.DexClassLoader');
-
-// dexter.loadClass.overloads[0].implementation = function(class_name){
-//     console.log('[i] Loading Class:'+class_name);
-//     return this.loadClass(class_name);
-// }
-// dexter.loadClass.overloads[0].implementation = function(class_name,bool_var){
-//     console.log('[i] Loading Class:'+class_name);
-//     return this.loadClass(class_name,bool_var);
-// }
-
-// dexter.$init.implementation = function(dexpath,optimizedDir,librarySearchPath,parent){
-//     console.log('[i] Dex class loader called with the following params:');
-//     console.log('Dex path: '+dexpath);
-//     console.log('Optimized dir: '+optimizedDir);
-//     console.log('Lib search Path: '+librarySearchPath);
-//     console.log('Parent: '+parent)
-//     return this.$init(dexpath,optimizedDir,librarySearchPath,parent);
-
 // }
 if(0){
     var dexclassLoader = Java.use("dalvik.system.DexClassLoader");

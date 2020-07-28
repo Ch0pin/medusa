@@ -89,11 +89,14 @@ var colorLog = function (input, kwargs) {
   console[logLevel](input);
 };
 
+
+
+
 var printBacktrace=function () {
   Java.perform(function() {
       var android_util_Log = Java.use('android.util.Log'), java_lang_Exception = Java.use('java.lang.Exception');
-      // getting stacktrace by throwing an exception
-      colorLog(android_util_Log.getStackTraceString(java_lang_Exception.$new()), { c: Color.Gray });
+      var exc = android_util_Log.getStackTraceString(java_lang_Exception.$new());
+      colorLog(exc, { c: Color.Green });
   });
 };
 
@@ -168,7 +171,8 @@ var displayString = function(input){
 
 	}
 
-	console.log("[+] PARSING TO STRING: " + ret);
+  colorLog("[+] PARSING TO STRING: " + ret,{c:Color.Green});
+  colorLog('',{c:Color.RESET});
 }
 var normalize = function(input) {
     if (input.length && input.length > 0) {
@@ -224,11 +228,15 @@ var normalizeKey = function(cert_or_key) {
 }
 var byteArrayToString = function(input){
   var buffer = Java.array('byte', input);
-  console.log(buffer.length);
   var result = "";
   for(var i = 0; i < buffer.length; ++i){
-      result+= (String.fromCharCode(buffer[i]));
-  }
+      if(buffer[i] > 31 && buffer[i]<127)
+        result+= (String.fromCharCode(buffer[i]));
+      else result += ' ';
+  
+    }
+      
+  
   return result;
 
 }

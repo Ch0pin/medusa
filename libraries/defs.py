@@ -97,6 +97,7 @@ class parser(cmd.Cmd):
 
 
     def do_dump(self,line):
+      
         dump_pkg(line.split(' ')[0])
 
     def do_translate(self,line):
@@ -114,6 +115,13 @@ class parser(cmd.Cmd):
         return completions
 
     def complete_dump(self, text, line, begidx, endidx):
+
+        #refresh installed packages
+        self.packages = []
+
+        for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
+            self.packages.append(line1.split(':')[1].strip('\n'))
+        #-----------------
         if not text:
             completions = self.packages[:]
         else:
@@ -137,7 +145,14 @@ class parser(cmd.Cmd):
                             ]
         return completions
 
-    def complete_run(self, text, line, begidx, endidx):
+    def complete_run(self, text, line, begidx, endidx):  
+        
+        #refresh installed packages
+        self.packages = []
+
+        for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
+            self.packages.append(line1.split(':')[1].strip('\n'))
+        #----------------- 
         if not text:
             completions = self.packages[:]
         else:
@@ -323,7 +338,7 @@ class parser(cmd.Cmd):
         self.modified = False
     
     def do_run(self,line):
-        
+   
         try:
         
             if self.modified == True:

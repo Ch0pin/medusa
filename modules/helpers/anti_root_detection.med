@@ -1,6 +1,7 @@
 #Description: 'Bypass root, debug detection'
 #Help: 
 https://codeshare.frida.re/@dzonerzy/fridantiroot/
+- Overwrite: isDebuggerConnected
 
 #Code:
     

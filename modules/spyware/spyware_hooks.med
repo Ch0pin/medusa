@@ -4,11 +4,15 @@ Hooks API calls related to spyware software, including
 - Context provider queries
 - Record audio and media
 - Monitor clipboard
+- Location tracking
+- Screen capture
+
 #Code:
 
-console.log('\n--------Spyware Hooks----------------');
-console.log('\n-----------@ch0pin-------------------');
+console.log('\n---------------Spyware Hooks by @ch0pin------------------');
 
+
+var telephonyManager = Java.use('android.telephony.TelephonyManager');
 var mediaRecorder = Java.use('android.media.MediaRecorder')
 var audioRecord = Java.use('android.media.AudioRecord');
 var abstractCursor = Java.use('android.database.AbstractCursor');
@@ -20,18 +24,54 @@ var systemProperties = Java.use('android.os.SystemProperties');
 var contextWrapper = Java.use("android.content.ContextWrapper");
 var locationListener = Java.use("android.location.LocationListener");
 var locationManager = Java.use('android.location.LocationManager');
+var accessibilityNodeInfo = Java.use('android.view.accessibility.AccessibilityNodeInfo');
+var systemProperties = Java.use('android.os.SystemProperties');
+var screenCapture = Java.use('android.media.projection.MediaProjectionManager');
 
-// void	getCurrentLocation(String provider, CancellationSignal cancellationSignal, Executor executor, Consumer<Location> consumer)
-// Asynchronously returns a single current location fix.
+//SCREEN CAPTURE
 
-// locationManager.getCurrentLocation.implementation = function(provider,cancellationSignal,executor,consumer){
-//         console.log('[+] Application is asking for current location from the provider: '+provider);
-//         return this.getLastKnownLocation(provider,cancellationSignal,executor,consumer);
-// }
+screenCapture.createScreenCaptureIntent.implementation = function(){
+        colorLog('[+] ScreeenCapture intent was created',{c: Color.Red});
+        return this.createScreenCaptureIntent();
+}
 
-// // public Location getLastKnownLocation (String provider)
-// // Gets the last known location from the given provider, or null if there is no last known location. The returned location may be quite old in some circumstances, so the age of the location should always be checked.
+screenCapture.getMediaProjection.implementation = function(resultCode, resultData){
+        colorLog('[+] ScreeenCapture started',{c: Color.Red});
+        return this.getMediaProjection(resultCode,resultData);
 
+}
+
+
+//DEVICE RECON:
+
+
+systemProperties.get.overload('java.lang.String').implementation = function(key){
+        console.log('[+] Get system properties called using key: ' + key);
+        return this.get(key);
+        
+    }
+    
+
+telephonyManager.getSimOperator.overload().implementation = function(){
+        console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
+        return this.getSimOperator();
+    }
+        telephonyManager.getSimOperator.overload('int').implementation = function(sm){
+        console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
+        return this.getSimOperator(sm);
+    }
+
+
+
+//KEYLOGGER HOOKS
+
+accessibilityNodeInfo.getText.implementation = function(){
+        ret = this.getText();
+        colorLog('[+] App Gets the text of the accesiblity node: ' +ret, {c:Color.Green});
+        return ret;  
+    }
+
+//-----------LOCATION API CALLS------------------------
 
 locationManager.getLastKnownLocation.implementation = function(provider){
         console.log('[+] Application is asking for last known location from the provider: '+provider);
@@ -39,17 +79,6 @@ locationManager.getLastKnownLocation.implementation = function(provider){
 
 } 
 
-// abstract void	onLocationChanged(Location location)
-// Called when the location has changed.
-
-// default void	onProviderDisabled(String provider)
-// Called when the provider is disabled by the user.
-
-// default void	onProviderEnabled(String provider)
-// Called when the provider is enabled by the user.
-
-// default void	onStatusChanged(String provider, int status, Bundle extras)
-// This method was deprecated in API level 29. This callback will never be invoked on Android Q and above.
 
 locationListener.onLocationChanged.implementation = function(location){
         console.log('[i] Listener for location change triggered');
@@ -109,6 +138,12 @@ Location.getLongitude.implementation = function() {
         console.log('[i] Application is getting longtitude:'+lgt);
         return lgt;
 }
+
+
+
+//---------CAMERA RECORDING MONITORS------------------------------
+
+
 
 mediaRecorder.setOutputFile.overloads[0].implementation = function(fd){
         console.log('[i] Application is setting the media record file: '+fd);
@@ -237,6 +272,9 @@ clipboardManager.hasText.implementation = function(){
         return this.hasText();   
 }
 
+
+//-----------context queries
+
 cursor.getColumnIndex.implementation = function(columnName){
         // console.log('[+-------Query Detected-----------+]');
         //console.log(Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new()));
@@ -278,3 +316,6 @@ cursor.getColumnIndex.implementation = function(columnName){
         return this.openFileInput.overload("java.lang.String").apply(this, arguments);
      
 }
+
+
+

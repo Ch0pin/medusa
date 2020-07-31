@@ -5,7 +5,7 @@ https://developer.android.com/reference/android/view/accessibility/Accessibility
 #Code:
 
 
-console.log('-------A11Y monitor by @chopin--------------');
+console.log('---------------A11Y monitor by @chopin--------------');
 
 var accessibilityNodeInfo = Java.use('android.view.accessibility.AccessibilityNodeInfo');
 

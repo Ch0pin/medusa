@@ -2,9 +2,7 @@
 #Help: "N/A"
 #Code:
 
-
-
-
+//-------------------trigger a function--------------------
 // Java.perform(function(){
 //     var X=Java.use("com.jiubang.go.music.ad.DailyRecommendActivity$2");
     
@@ -12,25 +10,7 @@
 //         var b=X.$new();
 //         b.a();
 //         console.log('');
-// 	})
+// 	}) 
 // })
 
-
-    var X=Java.use("cn.smssdk.utils.SPHelper");
-    var B = Java.use('cn.smssdk.net.b');
-	Java.scheduleOnMainThread(function(){
-        var b=X.$new();
-        // var bb = B.$new();
-        
-        colorLog('TRIGGERED PERFORMED :'+b.getConfig(),{c:Color.Red});
-	})
-
-
-
-    X.getConfig.implementation = function(){
-        config = this.getConfig();
-        console.log('CONFIRMED PERFORMED !');
-        colorLog(config, {c:Color.Red});
-        return config;
-    }
 

@@ -6,7 +6,7 @@
 #Code:
 
 
-		console.log('\n--------Common toll fraud1 by @ch0pin-------');
+		console.log('\n---------------Common toll fraud1 by @ch0pin-----------------');
 		
 		    var wifiManager = Java.use("android.net.wifi.WifiManager");
 		    var telephonyManager = Java.use('android.telephony.TelephonyManager');

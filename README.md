@@ -148,7 +148,7 @@ console.log('----------twiter:@Ch0pin-------------------');
 
 Save a set of modules to a file in order to be used in another session. Simply, export a set of used modules as a recipe by typing: 
 
-**medusa>**export
+**medusa>** export
 
 Import the recipe by simply typing:
 

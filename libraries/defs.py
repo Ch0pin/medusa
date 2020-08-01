@@ -91,6 +91,22 @@ class parser(cmd.Cmd):
 
 #---------------------------------------------------------------------------------------------------------------
 
+    def do_search(self, line):
+        found = False
+        try:
+            what = line.split(' ')[0]
+            for module in self.all_mods:
+                if what in module:
+                    print(module[:str(module).find(what)]+GREEN+what+RESET+module[str(module).find(what)+len(what):])
+                    found = True
+            if not found:
+                print('No modules found containing: {} !'.format(what))
+                
+        except Exception as e:
+            print(e)
+
+#------------------
+
     def do_swap(self,line):
         try:      
             old_index = int(line.split(' ')[0])
@@ -279,7 +295,7 @@ class parser(cmd.Cmd):
             for filename in sorted(filenames):
                 if filename.endswith('.med'):
                     filepath = os.path.join(root,filename)
-                    print(BLUE+filepath+RESET)
+                    print(filepath)
 
     
     def do_exit(self,line):
@@ -560,25 +576,33 @@ class parser(cmd.Cmd):
         if line != '':
             print('\n'+BLUE+self.display_tag(line,'Help')+RESET)
         else:
-            print("""Available commands:
-                            - show categories           : Displays the availlable module categories (start here)
-                            - show modules [category]   : Displays the availlable modules for the selected category
-                            - show all                  : Show all availlable modules
-                            - show mods                 : Shows loaded modules
-                            - use [module name]         : Selects a module which will be added to the final script
-                            - swap old_index new_index  : Changes the order of modules in the compiled script
-                            - rem [module name]         : Removes a module from the list that will be loaded
-                            - reset                     : Removes all modules from the list that will be loaded
-                            - export                    : Saves the current module list to 'recipe.txt'
-                            - help [module name]        : Displays help for the 
-                            - compile                   : Compiles the modules to a frida script
-                            - run        [package name] : Initiates a Frida session and attaches to the sellected package
-                            - run -f     [package name] : Initiates a Frida session and spawns the sellected package
-                            - dump  package_name        : dumps the requested package name
-                            - type 'text'               : sends the text to the device
-                            - list packages             : Lists 3rd party packages in the mobile device 
-                            - shell                     : Opens an interactive shell
-                            - clear                     : Clears the screen
+            print("""
+                Module operations:
+                        - search [keyword]          : Search for a module containing a specific keyword 
+                        - help [module name]        : Display help for a module
+                        - use [module name]         : Select a module to add to the final script
+                        - show mods                 : Show selected modules
+                        - show categories           : Display the availlable module categories (start here)
+                        - show modules [category]   : Display the availlable modules for the selected category
+                        - show all                  : Show all availlable modules
+                        - rem [module name]         : Remove a module from the list that will be loaded
+                        - swap old_index new_index  : Change the order of modules in the compiled script
+                        - reset                     : Remove all modules from the list that will be loaded
 
-                            Tip: Use the /modules/myModules/scratchpad.med to insert your own hooks and include them to the agent.js 
-                            using the 'compile script' command""")
+                    Script operations:
+                        - export                    : Save the current module list to 'recipe.txt'
+                        - compile                   : Compile the modules to a frida script
+
+                    Frida Session:
+                        - run        [package name] : Initiate a Frida session and attache to the sellected package
+                        - run -f     [package name] : Initiate a Frida session and spawn the sellected package
+                        - dump  package_name        : dump the requested package name
+                    
+                    Helpers:
+                        - type 'text'               : send a text to the device
+                        - list packages             : List 3rd party packages in the mobile device 
+                        - shell                     : Open an interactive shell
+                        - clear                     : Clear the screen
+
+                        Tip: Use the /modules/scratchpad.med to insert your own hooks and include them to the agent.js 
+                        using the 'compile script' command""")

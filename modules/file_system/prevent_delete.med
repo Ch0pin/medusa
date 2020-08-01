@@ -10,4 +10,4 @@ console.log('\n-----------Loading Un-Delete prevention module---------');
   File.delete.implementation = function() {
     colorLog('[+] Un-deleting ' + this.getAbsolutePath(),{c:Color.Red});
     return true;  // true means "deleted successfully"
-  };
+  }

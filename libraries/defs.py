@@ -51,8 +51,46 @@ class parser(cmd.Cmd):
         print('\nTotal modules: ' + str(len(self.all_mods)))
 
 
+    def do_export(self,line):
+        try:
 
-        
+            with open('recipe.txt','w') as file:
+                for module in self.module_list:
+                    file.write('%s\n' % module)
+            print('Recipe exported to dir: {} as recipe.txt'.format(os.getcwd()))
+        except Exception as e:
+            print(e) 
+
+#------------------------------ON THE FLY HOOK--------------------------------------------------
+    # classes = []
+    # def do_classdump(self,line,package):
+    #     js = """Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){send(c);}});});"""
+    #     try:
+    #         pid = self.device.spawn(package)
+    #         print("[i] Starting process {} [pid:{}] to dump classes ".format(package,pid))
+    #         session = self.device.attach(pid)
+    #         self.device.resume(pid)
+    #         script = session.create_script(js)
+    #         script.on('message', on_classdump_result)
+    #         script.load()
+    #     except Exception as e:
+    #         print(e)
+
+    #     with open('classes.txt','w') as file:
+    #         for clazz in self.classes:
+    #             file.write('%s\n' % clazz)
+    #         print('Recipe exported to dir: {} as classes.txt'.format(os.getcwd()))
+
+    # def on_classdump_result(message,data):
+    #     try:
+    #         if message["type"] == "send":
+    #             self.classes.append( message["payload"].split(":")[0].strip())
+    #     except Exception as e:
+    #         print('exception: ' + e) 
+    
+
+#---------------------------------------------------------------------------------------------------------------
+
     def do_swap(self,line):
         try:      
             old_index = int(line.split(' ')[0])
@@ -531,6 +569,7 @@ class parser(cmd.Cmd):
                             - swap old_index new_index  : Changes the order of modules in the compiled script
                             - rem [module name]         : Removes a module from the list that will be loaded
                             - reset                     : Removes all modules from the list that will be loaded
+                            - export                    : Saves the current module list to 'recipe.txt'
                             - help [module name]        : Displays help for the 
                             - compile                   : Compiles the modules to a frida script
                             - run        [package name] : Initiates a Frida session and attaches to the sellected package

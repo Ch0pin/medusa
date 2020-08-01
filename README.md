@@ -53,6 +53,7 @@ Medusa's functionality is based the following scripts:
   
 
   
+
 <img src="https://user-images.githubusercontent.com/4659186/87720238-87827e80-c7ac-11ea-989c-fb80b9aa06b6.png" width="7650" height="350">
 
 
@@ -70,12 +71,12 @@ Medusa's functionality is based the following scripts:
   >   - Permissions
   >   - Intent Filters 
   >   - Content providers
-  > - Trace application's functions (using frida-trace)
+  > - Trace application functions 
   > - Trigger an activity, service or an intent
   > - Automate actions performed during dynamic analysis:
   >   - Change device proxy settings
   >   - Capture screenshots of the device
-  >   - Install/Uninstall applications
+  >   - Install/Uninstall/kill an application
 
   
   
@@ -141,6 +142,29 @@ console.log('----------twiter:@Ch0pin-------------------');
 
 ```
 
+
+
+### Recipes:
+
+Save a set of modules to a file in order to be used in another session. Simply, export a set of used modules as a recipe by typing: 
+
+**medusa>**export
+
+Import the recipe by simply typing:
+
+**./medusa.py** -r recipe.txt
+
+
+
+### Contribute:
+
+- Create an interesting module or...
+- Suggest an improvement or...
+- Share this tool or...
+- Leave a comment :-)
+
+
+
 #### Spyware module
 
 > Hooks api calls which found to be common for this kind of malware, including:
@@ -154,6 +178,7 @@ console.log('----------twiter:@Ch0pin-------------------');
 > - Media recording
 > - Clipboard tracking
 > - Device recon
+> - Screenshot capture
 
 <img src="https://user-images.githubusercontent.com/4659186/87245281-1c4b4c00-c43c-11ea-9cad-195ceb42794a.png" width="450" height="460">
 

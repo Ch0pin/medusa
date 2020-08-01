@@ -1,30 +1,32 @@
 #Description: 'Detects calls to API functions which are common for click and toll fraud malware'
-#Help: hooks functions common for toll fraud malware including:
+#Help: hooks functions common for toll fraud malware includin
 - getSimOperator
 - setWifiEnabled
-- Dynamic class loading
+- Dynamic class loading'
 #Code:
 
 
-		console.log('\n---------------Common toll fraud1 by @ch0pin-----------------');
+console.log('\n---------------Common toll fraud1 by @ch0pin-----------------');
 		
-		    var wifiManager = Java.use("android.net.wifi.WifiManager");
-		    var telephonyManager = Java.use('android.telephony.TelephonyManager');
+var wifiManager = Java.use("android.net.wifi.WifiManager");
+var telephonyManager = Java.use('android.telephony.TelephonyManager');
 		
-		    telephonyManager.getSimOperator.overload().implementation = function(){
-		        console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
-		        return this.getSimOperator();
-		    }
-			telephonyManager.getSimOperator.overload('int').implementation = function(sm){
-		        console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
-		        return this.getSimOperator(sm);
-		    }
-		    wifiManager.setWifiEnabled.implementation = function(enabled){
-				if(enabled == false)
-					colorLog('[!] Application is disabling the WiFi',{ c: Color.Red });
-				else
-					colorLog('[!] A call to android.net.wifi.WifiManager.setWifiEnabled detected',{c: Color.Red});
+telephonyManager.getSimOperator.overload().implementation = function(){
+	console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
+	return this.getSimOperator();
+}
 
-		        return this.setWifiEnabled(enabled);
-			}
+telephonyManager.getSimOperator.overload('int').implementation = function(sm){
+	console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
+	return this.getSimOperator(sm);
+}
+
+wifiManager.setWifiEnabled.implementation = function(enabled){
+	if(enabled == false)
+		colorLog('[!] Application is disabling the WiFi',{ c: Color.Red });
+	else
+		colorLog('[!] A call to android.net.wifi.WifiManager.setWifiEnabled detected',{c: Color.Red});
+
+	return this.setWifiEnabled(enabled);
+}
 			

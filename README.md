@@ -91,8 +91,8 @@ See **requirements.txt** for python requirements.
 Additionally:
 
 - Frida installation (preffered version 12.10.4)
-- Apktool (in case of processing APKs)
-- Adb
+- apktool (included in the dependencies folder)
+- adb
 
 A rooted device or an emulator is highly recomended in order to use the framework's full capabilities
 

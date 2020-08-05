@@ -24,18 +24,20 @@ INSTALL = False
 
 #enumerate classes
 js = """Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){send(c);}});});"""
+apktool="./Dependencies/apktool.jar"
+
 classes = []
 shell = os.environ.get('SHELL', 'sh')
 
 
 def print_usage():
     print("\nInput file is missing ! \nUsage: \n\t{} path_to_AndroidManifest.xml OR ".format(sys.argv[0]))
-    print('\t{} path_to_apk (requires apktool installation)\n\n'.format(sys.argv[0]))
+    print('\t{} path_to_apk \n\n'.format(sys.argv[0]))
 
 def extract_manifest(file):
     print('Unpacking apk....')
-    
-    subprocess.run('apktool d {} -o tmp'.format(file), shell=True)
+
+    subprocess.run('java -jar '+ apktool +' d {} -o tmp'.format(file), shell=True)
     subprocess.run('cp tmp/AndroidManifest.xml ./manifest.xml', shell=True)
     shutil.rmtree('./tmp')
 

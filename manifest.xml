@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto" package="com.mbv.a.wp">
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.SET_WALLPAPER"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.SEND_SMS"/>
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION"/>
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID_NOTIFICATION"/>
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
+    <uses-permission android:name="com.google.android.providers.talk.permission.READ_ONLY"/>
+    <uses-permission android:name="com.google.android.providers.talk.permission.WRITE_ONLY"/>
+    <application android:allowBackup="true" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:supportsRtl="true" android:theme="@style/ActionBarTheme">
+        <activity android:configChanges="keyboardHidden|orientation|screenSize" android:label="@string/app_name" android:name="com.mbv.a.wp.TabWallPaperListActivity" android:theme="@style/ActionBarTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:name="com.mbv.a.wp.PreviewImagesActivity"/>
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
+        <activity android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize" android:label="@string/app_name" android:name="com.facebook.FacebookActivity" android:theme="@style/com_facebook_activity_theme"/>
+        <activity android:exported="true" android:name="com.facebook.CustomTabActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="@string/fb_login_protocol_scheme"/>
+            </intent-filter>
+        </activity>
+        <receiver android:exported="true" android:name="com.mbv.a.sdklibrary.receiver.ReReceiver">
+            <intent-filter>
+                <action android:name="com.android.vending.INSTALL_REFERRER"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:exported="true" android:name="com.mbv.a.sdklibrary.receiver.Alarmreceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="com.mbv.a.restart_action"/>
+            </intent-filter>
+        </receiver>
+        <service android:enabled="true" android:name="com.mbv.a.sdklibrary.service.SdkService">
+            <intent-filter android:priority="1000">
+                <action android:name="com.mbv.a.servicce"/>
+            </intent-filter>
+        </service>
+        <activity android:name="com.facebook.CustomTabMainActivity"/>
+        <activity android:exported="false" android:name="com.google.android.gms.common.api.GoogleApiActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
+        <meta-data android:name="android.support.VERSION" android:value="26.1.0"/>
+        <provider android:authorities="com.mbv.a.wp.FacebookInitProvider" android:exported="false" android:name="com.facebook.internal.FacebookInitProvider"/>
+    </application>
+</manifest>

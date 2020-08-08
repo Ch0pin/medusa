@@ -52,6 +52,13 @@ systemProperties.get.overload('java.lang.String').implementation = function(key)
     }
     
 
+telephonyManager.getLine1Number.implementation = function() {
+        colorLog('[+] Application is fetching the phone number',{c: Color.Green});
+        return this.getMediaProjection(resultCode,resultData);
+}
+
+
+
 telephonyManager.getSimOperator.overload().implementation = function(){
         console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
         return this.getSimOperator();

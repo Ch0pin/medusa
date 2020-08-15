@@ -21,6 +21,12 @@ telephonyManager.getSimOperator.overload('int').implementation = function(sm){
 	return this.getSimOperator(sm);
 }
 
+telephonyManager.getLine1Number.implementation = function() {
+	colorLog('[+] Application is fetching the phone number',{c: Color.Green});
+	return this.getMediaProjection(resultCode,resultData);
+}
+
+
 wifiManager.setWifiEnabled.implementation = function(enabled){
 	if(enabled == false)
 		colorLog('[!] Application is disabling the WiFi',{ c: Color.Red });

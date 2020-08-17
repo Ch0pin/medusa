@@ -21,7 +21,7 @@ telephonyManager.getSimOperator.overload('int').implementation = function(sm){
 	return this.getSimOperator(sm);
 }
 
-telephonyManager.getLine1Number.implementation = function() {
+telephonyManager.getLine1Number.overloads[0].implementation = function() {
 	colorLog('[+] Application is fetching the phone number',{c: Color.Green});
 	return this.getMediaProjection(resultCode,resultData);
 }

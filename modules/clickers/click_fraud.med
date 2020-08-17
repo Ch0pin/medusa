@@ -16,7 +16,7 @@ var motionEvent = Java.use('android.view.MotionEvent');
 var webView = Java.use('android.webkit.WebView');
 
 viewClassHook.dispatchTouchEvent.implementation = function(motionEvent){
-    colorLog('[+] Dispatch touch event called, printing stacktrace: ',{c:Color.Green} );
+    colorLog('[+] Dispatch touch event called ',{c:Color.Green} );
     return this.dispatchTouchEvent(motionEvent);
 }
 

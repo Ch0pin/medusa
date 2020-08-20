@@ -1,0 +1,41 @@
+#Description: 'Tracks keylogging attempts from the under trace application'
+#Help: 
+'Keylogging in the Android OS is implemented by abusing the accesiblity Service'
+'The specific module hooks api calls related with the specific service and it is'
+'similar to the a11y abuse, with some focus on key logging'
+
+#Code:
+
+
+console.log('------------Keylogger detection module by @Ch0pin--------------')
+
+
+var accessibilityEventW = Java.use('android.view.accessibility.AccessibilityEvent');
+var accessibilityNodeInfoW = Java.use('android.view.accessibility.AccessibilityNodeInfo');
+
+accessibilityEventW.getEventType.implementation = function(){
+    var ret = this.getEventType();
+    colorLog('[+] AccessibilityEvent, getEventType called: ' +ret, {c:Color.Green});
+    return ret;  
+}
+
+accessibilityEventW.getAction.implementation = function(){
+    var ret = this.getAction();
+    colorLog('[+] accessibilityEvent, GetAction called: ' +ret, {c:Color.Green});
+    return ret;  
+}
+
+accessibilityEventW.getText.implementation = function(){
+    var ret = this.getText();
+    colorLog('[+] accessibilityEvent, GetText called: ' +ret.toString(), {c:Color.Green});
+    return ret;  
+}
+
+
+
+accessibilityNodeInfoW.getText.implementation = function(){
+    var ret = this.getText();
+    colorLog('AaccessibilityNodeInfo getText called: ' +ret.toString(), {c:Color.Green});
+    return ret;  
+}
+

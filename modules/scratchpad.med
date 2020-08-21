@@ -13,4 +13,71 @@
 // 	}) 
 // })
 
+        var hook = Java.use('com.app.formi.activities.SplashActivity');
+                    var overloadCount = hook['onCreate'].overloads.length;
+                    console.log("Tracing " +'onCreate' + " [" + overloadCount + " overload(s)]");
+                    for (var i = 0; i < overloadCount; i++) {
+                    hook['onCreate'].overloads[i].implementation = function() {
+                    console.warn("*** entered " +'onCreate');
 
+        Java.perform(function() {
+             var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
+                console.log("nBacktrace:n" + bt);
+        });   
+
+        if (arguments.length) console.log();
+        for (var j = 0; j < arguments.length; j++) {
+            console.log("arg[" + j + "]: " + arguments[j]);
+        }
+        var retval = this['onCreate'].apply(this, arguments); // rare crash (Frida bug?)
+        console.log("nretval: " + retval);
+        console.warn("n*** exiting " + 'onCreate');
+        return retval;
+    }
+}
+
+        var hook = Java.use('com.app.formi.activities.SplashActivity');
+                    var overloadCount = hook['onCreate'].overloads.length;
+                    console.log("Tracing " +'onCreate' + " [" + overloadCount + " overload(s)]");
+                    for (var i = 0; i < overloadCount; i++) {
+                    hook['onCreate'].overloads[i].implementation = function() {
+                    colorLog("*** entered " +'onCreate',{ c: Color.Green });
+
+        Java.perform(function() {
+             var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
+                console.log("Backtrace:" + bt);
+        });   
+
+        if (arguments.length) console.log();
+        for (var j = 0; j < arguments.length; j++) {
+            console.log("arg[" + j + "]: " + arguments[j]);
+        }
+        var retval = this['onCreate'].apply(this, arguments); // rare crash (Frida bug?)
+        console.log("nretval: " + retval);
+        colorLog("*** exiting " + 'onCreate',{ c: Color.Green });
+        return retval;
+    }
+}
+
+        var hook = Java.use('com.app.formi.activities.SplashActivity');
+                    var overloadCount = hook['onCreate'].overloads.length;
+                    console.log("Tracing " +'onCreate' + " [" + overloadCount + " overload(s)]");
+                    for (var i = 0; i < overloadCount; i++) {
+                    hook['onCreate'].overloads[i].implementation = function() {
+                    colorLog("*** entered " +'onCreate',{ c: Color.Green });
+
+        Java.perform(function() {
+             var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
+                console.log("Backtrace:" + bt);
+        });   
+
+        if (arguments.length) console.log();
+        for (var j = 0; j < arguments.length; j++) {
+            console.log("arg[" + j + "]: " + arguments[j]);
+        }
+        var retval = this['onCreate'].apply(this, arguments); // rare crash (Frida bug?)
+        console.log("nretval: " + retval);
+        colorLog("*** exiting " + 'onCreate',{ c: Color.Green });
+        return retval;
+    }
+}

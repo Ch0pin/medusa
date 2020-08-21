@@ -35,11 +35,55 @@ class parser(cmd.Cmd):
     services = None
     receivers = None
     providers = None
-    filters = None
+    filters = []
 
     classes = []
     packages = []
 
+
+    def do_search(self, line):
+        found = False
+        try:
+            what = line.split(' ')[0]
+
+            for module in self.activities:
+                if what in module:
+                    print(module[:str(module).find(what)]+GREEN+what+RESET+module[str(module).find(what)+len(what):])
+                    found = True
+            if not found:
+                print('No Activities found containing: {} !'.format(what))
+
+            found = False
+            for module in self.services:
+                if what in module:
+                    print(module[:str(module).find(what)]+GREEN+what+RESET+module[str(module).find(what)+len(what):])
+                    found = True
+            if not found:
+                print('No Services found containing: {} !'.format(what))
+
+            found = False
+            for module in self.receivers:
+                if what in module:
+                    print(module[:str(module).find(what)]+GREEN+what+RESET+module[str(module).find(what)+len(what):])
+                    found = True
+            if not found:
+                print('No Receivers found containing: {} !'.format(what))
+
+
+            found = False
+            for module in self.providers:
+                if what in module:
+                    print(module[:str(module).find(what)]+GREEN+what+RESET+module[str(module).find(what)+len(what):])
+                    found = True
+            if not found:
+                print('No Providers found containing: {} !'.format(what))
+                
+
+
+        except Exception as e:
+            print(e)
+
+    
 
 
     def do_trace(self,line):
@@ -391,6 +435,7 @@ class parser(cmd.Cmd):
                     - show receivers            : Prints a list with the application's receivers
                     - show providers            : Prints a list with the application's content providers
                     - show filters              : Prints broadcast filters
+                    - search [keyword]          : Search components containing the given keyword
                     ===========================================================================================
 
                     [+] TRIGERS:

@@ -8,7 +8,41 @@ https://developer.android.com/reference/android/view/accessibility/Accessibility
 console.log('---------------A11Y monitor by @chopin--------------');
 
 var accessibilityNodeInfo = Java.use('android.view.accessibility.AccessibilityNodeInfo');
+var accessibilityEvent = Java.use('android.view.accessibility.AccessibilityEvent');
+var accessibilityRecord= Java.use('android.view.accessibility.AccessibilityRecord');
 
+
+
+accessibilityRecord.getText.implementation = function(){
+    ret = this.getText();
+    colorLog('[+] accessibilityRecord, Get Text called: ' +ret, {c:Color.Green});
+    return ret;  
+}
+
+
+accessibilityEvent.eventTypeToString.implementation = function(eventType){
+    ret = this.eventTypeToString(eventType);
+    colorLog('[+] accessibilityEvent, Get Event Type called: ' +ret, {c:Color.Green});
+    return ret;  
+}
+
+accessibilityEvent.getAction.implementation = function(){
+    ret = this.getAction();
+    colorLog('[+] accessibilityEvent, GetAction called: ' +ret, {c:Color.Green});
+    return ret;  
+}
+
+accessibilityEvent.setAction.implementation = function(action){
+    this.setAction(action);
+    colorLog('[+] accessibilityEvent, setAction called with action set to: ' +action, {c:Color.Green});
+}
+
+accessibilityEvent.getPackageName.implementation = function(){
+    ret = this.getPackageName();
+    colorLog('[+] accessibilityEvent, Get Package Name called: ' +ret, {c:Color.Green});
+    return ret;  
+
+}
 
 accessibilityNodeInfo.getPackageName.implementation = function(){
     ret = this.getPackageName();

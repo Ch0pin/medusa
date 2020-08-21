@@ -89,6 +89,41 @@ class parser(cmd.Cmd):
     #         print('exception: ' + e) 
     
 
+
+
+    def do_hook(self,line):
+        className = input("Enter the full name of the function's class: ")
+        functionName = input("Enter the function name: ")
+        codejs = """
+        var hook = Java.use('"""+className+"""');
+                    var overloadCount = hook['"""+functionName+"""'].overloads.length;
+                    console.log("Tracing " +'"""+ functionName+"""' + " [" + overloadCount + " overload(s)]");
+                    for (var i = 0; i < overloadCount; i++) {
+                    hook['"""+functionName+"""'].overloads[i].implementation = function() {
+                    colorLog("*** entered " +'"""+ functionName+ """',{ c: Color.Green });
+
+        Java.perform(function() {
+             var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
+                console.log("Backtrace:" + bt);
+        });   
+
+        if (arguments.length) console.log();
+        for (var j = 0; j < arguments.length; j++) {
+            console.log("arg[" + j + "]: " + arguments[j]);
+        }
+        var retval = this['"""+functionName+"""'].apply(this, arguments); // rare crash (Frida bug?)
+        console.log("nretval: " + retval);
+        colorLog("*** exiting " + '"""+functionName+"""',{ c: Color.Green });
+        return retval;
+    }
+}
+"""
+        with open('modules/scratchpad.med','a') as script:
+            script.write(codejs)
+            
+        print("Hook has been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may inlude it in the final script")
+
+
 #---------------------------------------------------------------------------------------------------------------
 
     def do_search(self, line):
@@ -592,6 +627,7 @@ class parser(cmd.Cmd):
                     Script operations:
                         - export                    : Save the current module list to 'recipe.txt'
                         - compile                   : Compile the modules to a frida script
+                        - hook                      : Initiates a dialog for hooking a function
 
                     Frida Session:
                         - run        [package name] : Initiate a Frida session and attache to the sellected package

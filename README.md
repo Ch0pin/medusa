@@ -9,11 +9,33 @@
 It's functionality can be summarised as follows:
 
 - Tracing and instrumentation of API calls used by common malware categories
+
 - Unpacking of packed apps (effective for most of the weel known packers, including Qihoo, Secshell e.t.c.)
+
 - Triggering of various system events in order to initiate a malicious behaviour
+
 - Triggering of application's components (Activities, Services e.t.c.)
+
 - Translation of UI to English in order to enhance user interaction
+
 - Wrapping of adb commands (e.g. cchange proxy settings, insert keys e.t.c.)
+
+  
+
+### Updates:
+
+**21/08/2020**: Hook a function by giving the name and its class name (example):
+
+```
+medusa>hook
+
+Enter the full name of the function's class: foo.com
+Enter the function name: onCreate
+
+Hook has been added to the modules/schratchpad.me ,you may inlude it in the final script
+```
+
+
 
 
 ### Usage:
@@ -55,8 +77,6 @@ Medusa's functionality is based the following scripts:
   
 
 <img src="https://user-images.githubusercontent.com/4659186/87720238-87827e80-c7ac-11ea-989c-fb80b9aa06b6.png" width="7650" height="350">
-
-
 
 
 

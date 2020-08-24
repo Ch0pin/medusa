@@ -10,6 +10,7 @@ import pty
 from libraries.xmlUtils import *
 from libraries.libapkutils import *
 from xml.dom import minidom
+from libraries.APKEnum import performRecon
 
 RED   = "\033[1;31m"  
 BLUE  = "\033[1;34m"
@@ -39,6 +40,7 @@ def extract_manifest(file):
 
     subprocess.run('java -jar '+ apktool +' d {} -o tmp'.format(file), shell=True)
     subprocess.run('cp tmp/AndroidManifest.xml ./manifest.xml', shell=True)
+    performRecon("./tmp")
     shutil.rmtree('./tmp')
 
 
@@ -104,6 +106,11 @@ receivers = get_element_list(xmlDoc,'receiver','android:name')
 providers = get_element_list(xmlDoc,'provider','android:name')
 
 
+
+
+
+
+
 print(RESET)
 
 pty.openpty()
@@ -132,7 +139,6 @@ except Exception as e:
 
 
 
-# js = """Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){console.log(c);}});});"""
 try:
     if INSTALL==True:
         pid = device.spawn(package)

@@ -226,6 +226,7 @@ Import the recipe by simply typing:
 - https://github.com/dpnishant/appmon
 - https://github.com/brompwnie/uitkyk
 - https://github.com/hluwa/FRIDA-DEXDump.git
+- https://github.com/shivsahni/APKEnum
 
 
 

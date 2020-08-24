@@ -65,6 +65,7 @@ class parser(cmd.Cmd):
 
 
     def do_hook(self,line):
+
         className = input("Enter the full name of the function's class: ")
         functionName = input("Enter the function name: ")
         codejs = """
@@ -88,9 +89,9 @@ class parser(cmd.Cmd):
         console.log("nretval: " + retval);
         colorLog("*** exiting " + '"""+functionName+"""',{ c: Color.Green });
         return retval;
-    }
-}
-"""
+        }
+        }
+        """
         with open('modules/scratchpad.med','a') as script:
             script.write(codejs)
             

@@ -61,33 +61,6 @@ class parser(cmd.Cmd):
         except Exception as e:
             print(e) 
 
-#------------------------------ON THE FLY HOOK--------------------------------------------------
-    # classes = []
-    # def do_classdump(self,line,package):
-    #     js = """Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){send(c);}});});"""
-    #     try:
-    #         pid = self.device.spawn(package)
-    #         print("[i] Starting process {} [pid:{}] to dump classes ".format(package,pid))
-    #         session = self.device.attach(pid)
-    #         self.device.resume(pid)
-    #         script = session.create_script(js)
-    #         script.on('message', on_classdump_result)
-    #         script.load()
-    #     except Exception as e:
-    #         print(e)
-
-    #     with open('classes.txt','w') as file:
-    #         for clazz in self.classes:
-    #             file.write('%s\n' % clazz)
-    #         print('Recipe exported to dir: {} as classes.txt'.format(os.getcwd()))
-
-    # def on_classdump_result(message,data):
-    #     try:
-    #         if message["type"] == "send":
-    #             self.classes.append( message["payload"].split(":")[0].strip())
-    #     except Exception as e:
-    #         print('exception: ' + e) 
-    
 
 
 

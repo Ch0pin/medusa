@@ -14,20 +14,20 @@ var accessibilityRecord= Java.use('android.view.accessibility.AccessibilityRecor
 
 
 accessibilityRecord.getText.implementation = function(){
-    ret = this.getText();
+    var ret = this.getText();
     colorLog('[+] accessibilityRecord, Get Text called: ' +ret, {c:Color.Green});
     return ret;  
 }
 
 
 accessibilityEvent.eventTypeToString.implementation = function(eventType){
-    ret = this.eventTypeToString(eventType);
+    var ret = this.eventTypeToString(eventType);
     colorLog('[+] accessibilityEvent, Get Event Type called: ' +ret, {c:Color.Green});
     return ret;  
 }
 
 accessibilityEvent.getAction.implementation = function(){
-    ret = this.getAction();
+    var ret = this.getAction();
     colorLog('[+] accessibilityEvent, GetAction called: ' +ret, {c:Color.Green});
     return ret;  
 }
@@ -38,39 +38,50 @@ accessibilityEvent.setAction.implementation = function(action){
 }
 
 accessibilityEvent.getPackageName.implementation = function(){
-    ret = this.getPackageName();
+    var ret = this.getPackageName();
     colorLog('[+] accessibilityEvent, Get Package Name called: ' +ret, {c:Color.Green});
     return ret;  
 
 }
 
 accessibilityNodeInfo.getPackageName.implementation = function(){
-    ret = this.getPackageName();
+    var ret = this.getPackageName();
     colorLog('App Gets the package of the nod: ' +ret, {c:Color.Green});
     return ret;  
 }
 
 accessibilityNodeInfo.getClassName.implementation = function(){
-    ret = this.getClassName();
+    var ret = this.getClassName();
     colorLog('App Gets the class of the node: ' +ret, {c:Color.Green});
     return ret;  
 }
 
 accessibilityNodeInfo.getContentDescription.implementation = function(){
-    ret = this.getContentDescription();
+    var ret = this.getContentDescription();
     colorLog('App Gets the content description of the node: ' +ret, {c:Color.Green});
     return ret;  
 }
 
 accessibilityNodeInfo.getText.implementation = function(){
-    ret = this.getText();
+    var ret = this.getText();
     colorLog('App Gets the text of the node: ' +ret, {c:Color.Green});
     return ret;  
 }
 
+accessibilityNodeInfo.performAction.overloads[0].implementation = function(action,bundle){
+
+    colorLog('accessibilityNodeInfo.performAction: ' +action, {c:Color.Green});
+    return this.performAction(action,bundle); 
+}
+
+accessibilityNodeInfo.performAction.overloads[1].implementation = function(action){
+
+    colorLog('accessibilityNodeInfo.performAction: ' +action, {c:Color.Green});
+    return this.performAction(action); 
+}
 
 accessibilityNodeInfo.getViewIdResourceName.implementation = function(){
-    ret = this.getViewIdResourceName();
+    var ret = this.getViewIdResourceName();
     colorLog('App Gets the id resource name of the node: ' +ret, {c:Color.Green});
     return ret;  
 }

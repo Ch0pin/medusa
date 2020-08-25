@@ -62,40 +62,66 @@ class parser(cmd.Cmd):
             print(e) 
 
 
+    def do_hookall(self,line):
 
+        aclass = line.split(' ')[0]
+
+        if  aclass == '':
+            print('[i] Usage: hookall [name]')
+        else:
+            className = aclass
+            codejs = "traceClass('"+className+"')"
+            with open('modules/scratchpad.med','a') as script:
+                script.write(codejs)
+
+            print("\nHooks has been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may inlude it in the final script.")
+
+
+    
 
     def do_hook(self,line):
 
-        className = input("Enter the full name of the function's class: ")
-        functionName = input("Enter the function name: ")
-        codejs = """
-        var hook = Java.use('"""+className+"""');
-                    var overloadCount = hook['"""+functionName+"""'].overloads.length;
-                    console.log("Tracing " +'"""+ functionName+"""' + " [" + overloadCount + " overload(s)]");
-                    for (var i = 0; i < overloadCount; i++) {
-                    hook['"""+functionName+"""'].overloads[i].implementation = function() {
-                    colorLog("*** entered " +'"""+ functionName+ """',{ c: Color.Green });
+        className = input("Enter the full name of the function(s) class: ")
 
-        Java.perform(function() {
-             var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
-                console.log("Backtrace:" + bt);
-        });   
+        codejs = """var hook = Java.use('"""+className+"""');"""
+        functionName = input("Enter a function name (CTRL+C to Exit): ")
 
-        if (arguments.length) console.log();
-        for (var j = 0; j < arguments.length; j++) {
-            console.log("arg[" + j + "]: " + arguments[j]);
-        }
-        var retval = this['"""+functionName+"""'].apply(this, arguments); // rare crash (Frida bug?)
-        console.log("nretval: " + retval);
-        colorLog("*** exiting " + '"""+functionName+"""',{ c: Color.Green });
-        return retval;
-        }
-        }
-        """
-        with open('modules/scratchpad.med','a') as script:
-            script.write(codejs)
+        while (True):
             
-        print("Hook has been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may inlude it in the final script")
+            try:
+
+                codejs += """
+                var overloadCount = hook['"""+functionName+"""'].overloads.length;
+                colorLog("Tracing " +'"""+ functionName+"""' + " [" + overloadCount + " overload(s)]",{ c: Color.Green });
+                    
+                    for (var i = 0; i < overloadCount; i++) {
+                        hook['"""+functionName+"""'].overloads[i].implementation = function() {
+                        colorLog("*** entered " +'"""+ functionName+ """',{ c: Color.Green });
+
+                Java.perform(function() {
+                    var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
+                        console.log("Backtrace:" + bt);
+                });   
+
+                if (arguments.length) console.log();
+                for (var j = 0; j < arguments.length; j++) {
+                    console.log("arg[" + j + "]: " + arguments[j]);
+                }
+                var retval = this['"""+functionName+"""'].apply(this, arguments); // rare crash (Frida bug?)
+                console.log("retval: " + retval);
+                colorLog("*** exiting " + '"""+functionName+"""',{ c: Color.Green });
+                return retval;
+                }
+                }
+                """
+                print('[+] Function: {} hook added !'.format(functionName))
+                functionName = input("Enter a function name (CTRL+C to Exit): ")
+
+            except KeyboardInterrupt:
+                with open('modules/scratchpad.med','a') as script:
+                    script.write(codejs)
+                print("\nHooks has been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may inlude it in the final script.")
+                break
 
 
 #---------------------------------------------------------------------------------------------------------------
@@ -317,6 +343,19 @@ class parser(cmd.Cmd):
                 if 'yes' in agent_del:
                     with open('agent.js','w'):
                         pass
+    
+        scratch_reset = input('Do you want to reset the scratchpad ? (yes/no) ')
+
+        scratchpad = """#Description: 'Use this module to add your hooks'
+#Help: "N/A"
+#Code:
+
+"""
+
+        if 'yes' in scratch_reset:
+            with open('modules/scratchpad.med','w') as scratch:
+                scratch.write(scratchpad)
+                        
 
         print('Bye !!')
         exit()
@@ -361,10 +400,14 @@ class parser(cmd.Cmd):
             
         return tag_content
 
+
+
     def do_compile(self,line):
         self.parse_module(self.module_list)
         self.modified = False
         return
+
+
 
 
     def parse_module(self,mods):
@@ -399,11 +442,13 @@ class parser(cmd.Cmd):
                 agent.write('%s\n' % line)
         print("\nScript is compiled\n")
         self.modified = False
+
+
+
     
     def do_run(self,line):
    
         try:
-        
             if self.modified == True:
                 comp = input('Module list has been modified, do you want to recompile ? (yes/no)')
                 if 'yes' in comp:
@@ -419,14 +464,10 @@ class parser(cmd.Cmd):
                 print(flags[1])
                 if '-f' in flags[0]:
                     self.run_frida(True,False,flags[1],self.device)
-                # elif '-d' in flags[0]:
-                #     self.run_frida(False,True,flags[1],self.device)
+
                 else:
                     print('Invalid flag given!')
-            # elif length == 3:
-            #     print(' {} {} {}'.format(flags[0],flags[1],flags[2]))
-            #     if '-f' in flags[0] and '-d' in flags[1]:
-            #         self.run_frida(True,True,flags[2],self.device)
+
             else:
                 print('Invalid flags given')
         except Exception as e:
@@ -495,6 +536,8 @@ class parser(cmd.Cmd):
 
 
 
+
+
     def modification_time(self, path_to_file):
   
         if platform.system() == 'Windows':
@@ -507,9 +550,6 @@ class parser(cmd.Cmd):
                 # We're probably on Linux. No easy way to get creation dates here,
                 # so we'll settle for when its content was last modified.
                 return stat
-
-
-
 
 
 
@@ -535,19 +575,6 @@ class parser(cmd.Cmd):
         else:
             return None
         return frida_session
-
-    # def run_frida(self,force, detached, package_name, device):
-    #     if detached == True:
-    #         path = os.getcwd()
-    #         if force == True:
-    #             os.system("""osascript -e 'tell application "Terminal" to do script "frida -D {} -l {}/agent.js -f {} --no-pause"' """.format(device.id,path,package_name))
-    #         else:
-    #             os.system("""osascript -e 'tell application "Terminal" to do script "frida -D {} -l {}/agent.js {}"' """.format(device.id,path,package_name))
-    #     else:
-    #         if force == True:
-    #             subprocess.run('frida -D {} -l agent.js -f {} --no-pause'.format(device.id,package_name), shell=True)
-    #         else:
-    #             subprocess.run('frida -D {} -l agent.js {}'.format(device.id,package_name), shell=True)
 
 
 

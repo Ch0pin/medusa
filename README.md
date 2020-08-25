@@ -24,15 +24,25 @@ It's functionality can be summarised as follows:
 
 ### Updates:
 
+**25/08/2020**: Hook all functions of a given class (example):
+
+```
+medusa>hookall com.foo.class
+
+Hook has been added to the modules/schratchpad.me ,you may inlude it in the final script.
+```
+
+
+
 **21/08/2020**: Hook a function by giving the name and its class name (example):
 
 ```
 medusa>hook
 
-Enter the full name of the function's class: foo.com
-Enter the function name: onCreate
+Enter the full name of the function(s) class: foo.com
+Enter a function name (CTRL+C to Exit): onCreate
 
-Hook has been added to the modules/schratchpad.me ,you may inlude it in the final script
+Hook has been added to the modules/schratchpad.me ,you may inlude it in the final script.
 ```
 
 
@@ -227,6 +237,7 @@ Import the recipe by simply typing:
 - https://github.com/brompwnie/uitkyk
 - https://github.com/hluwa/FRIDA-DEXDump.git
 - https://github.com/shivsahni/APKEnum
+- https://github.com/0xdea/frida-scripts
 
 
 

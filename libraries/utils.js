@@ -16,6 +16,79 @@ var Color = {
 };
 
 
+function traceClass(targetClass)
+{
+
+	console.log("entering traceClass")
+
+	var hook = Java.use(targetClass);
+	var methods = hook.class.getDeclaredMethods();
+	hook.$dispose();
+
+	console.log("entering pasedMethods")
+
+	var parsedMethods = [];
+	methods.forEach(function(method) {
+		try{
+			parsedMethods.push(method.toString().replace(targetClass + ".", "TOKEN").match(/\sTOKEN(.*)\(/)[1]);
+		}
+		catch(err){}
+	});
+
+	console.log("entering traceMethods")
+
+
+	var targets = uniqBy(parsedMethods, JSON.stringify);
+	targets.forEach(function(targetMethod) {
+		try{
+			traceMethod(targetClass + "." + targetMethod);
+		}
+		catch(err){}
+	});
+}
+
+function uniqBy(array, key)
+{
+        var seen = {};
+        return array.filter(function(item) {
+                var k = key(item);
+                return seen.hasOwnProperty(k) ? false : (seen[k] = true);
+        });
+}
+
+function traceMethod(targetClassMethod)
+{
+	var delim = targetClassMethod.lastIndexOf(".");
+	if (delim === -1) return;
+
+	var targetClass = targetClassMethod.slice(0, delim)
+	var targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length)
+
+	var hook = Java.use(targetClass);
+	var overloadCount = hook[targetMethod].overloads.length;
+
+	console.log("Tracing " + targetClassMethod + " [" + overloadCount + " overload(s)]");
+
+	for (var i = 0; i < overloadCount; i++) {
+
+		hook[targetMethod].overloads[i].implementation = function() {
+			console.warn("\n*** entered " + targetClassMethod);
+
+			if (arguments.length) console.log();
+			for (var j = 0; j < arguments.length; j++) {
+				console.log("arg[" + j + "]: " + arguments[j]);
+			}
+
+			// print retval
+			var retval = this[targetMethod].apply(this, arguments); // rare crash (Frida bug?)
+			console.log("\nretval: " + retval);
+			console.warn("\n*** exiting " + targetClassMethod);
+			return retval;
+		}
+	}
+}
+
+
 var Utf8 = {
   encode : function (string) {
       string = string.replace(/\r\n/g,"\n");
@@ -258,52 +331,4 @@ function getContext() {
     return data.join('');
 }
 
-  //---------------CREDITS TO: https://github.com/brompwnie/uitkyk
-  
-  // var objectsToLookFor = ["java.net.Socket", "dalvik.system.DexClassLoader", "java.net.URLConnection", "java.net.URL", "java.security.cert.X509Certificate"];
-  // for (var i in objectsToLookFor) {
-  //   Java.perform(function () {
-  //     Java.choose(objectsToLookFor[i], {
-  //       "onMatch": function (instance) {
-  //         if (objectsToLookFor[i] == "java.net.URL" && instance.getProtocol() != "file") {
-  //           console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
-  //           console.log("[*] Process is communicating via " + instance.getProtocol());
-  //           console.log("[+] Communication Details: " + instance.toString());
-  //         }
-  //         if (objectsToLookFor[i] == "dalvik.system.DexClassLoader") {
-  //           console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
-  //           console.log("[*] Process is making use of DexClassLoader");
-  //           console.log("[+] Loader Details: " + instance.toString());
-  //         }
-  //         if (objectsToLookFor[i] == "java.net.Socket") {
-  //           console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
-  //           console.log("[*] Process is making use of a Socket Connection");
-  //           console.log("[+] Socket Details: " + instance.toString());
-  //         }
-  //         if (objectsToLookFor[i] == "java.net.URLConnection") {
-  //           console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
-  //           console.log("[*] Process is making use of a URL Connection");
-  //           console.log("[+] Details: " + instance.toString());
-  //         }
-  //         if (objectsToLookFor[i] == "java.security.cert.X509Certificate") {
-  //           console.log("\n[+] Process has Instantiated instance of: " + objectsToLookFor[i]);
-  //           console.log("[*] Process is making use of a X509Certificate");
-  //           console.log("[+] X509Certificate Details: " + instance.toString());
-  //         }
-  //       },
-  //       "onComplete": function () {
-  //       }
-  //     });
-  //   });
-  // }
-
-
-// --------------------------------------------------------------------------------------
-// colorLog(input, kwargs)               change the color of the output
-// usage: colorLog('text', { c: Color.Blue });
-// getContext()                          returns the application context
-// printBacktrace()                      trace the calling class by raising an exception
-// _byteArraytoHexString(byteArray)     
-// hexToAscii = function(input) 
-// byteArrayToString = function(input)
   

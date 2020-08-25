@@ -74,7 +74,7 @@ class parser(cmd.Cmd):
             with open('modules/scratchpad.med','a') as script:
                 script.write(codejs)
 
-            print("\nHooks has been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may inlude it in the final script.")
+            print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may include it in the final script.")
 
 
     
@@ -120,7 +120,7 @@ class parser(cmd.Cmd):
             except KeyboardInterrupt:
                 with open('modules/scratchpad.med','a') as script:
                     script.write(codejs)
-                print("\nHooks has been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may inlude it in the final script.")
+                print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may include it in the final script.")
                 break
 
 

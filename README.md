@@ -29,7 +29,7 @@ It's functionality can be summarised as follows:
 ```
 medusa>hookall com.foo.class
 
-Hook has been added to the modules/schratchpad.me ,you may inlude it in the final script.
+Hook has been added to the modules/schratchpad.me ,you may include it in the final script.
 ```
 
 
@@ -42,7 +42,7 @@ medusa>hook
 Enter the full name of the function(s) class: foo.com
 Enter a function name (CTRL+C to Exit): onCreate
 
-Hook has been added to the modules/schratchpad.me ,you may inlude it in the final script.
+Hook has been added to the modules/schratchpad.me ,you may include it in the final script.
 ```
 
 

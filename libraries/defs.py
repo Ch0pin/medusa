@@ -51,6 +51,23 @@ class parser(cmd.Cmd):
         print('\nTotal modules: ' + str(len(self.all_mods)))
 
 
+
+
+    def do_scratchreset(self,line):
+        
+        scratch_reset = input('Do you want to reset the scratchpad ? (yes/no) ')
+        scratchpad = """#Description: 'Use this module to add your hooks'
+#Help: "N/A"
+#Code:
+
+"""
+        if 'yes' in scratch_reset:
+            with open('modules/scratchpad.med','w') as scratch:
+                scratch.write(scratchpad)
+
+
+
+
     def do_export(self,line):
         try:
 
@@ -67,10 +84,10 @@ class parser(cmd.Cmd):
         aclass = line.split(' ')[0]
 
         if  aclass == '':
-            print('[i] Usage: hookall [name]')
+            print('[i] Usage: hookall [class name]')
         else:
             className = aclass
-            codejs = "traceClass('"+className+"')"
+            codejs = "traceClass('"+className+"');\n"
             with open('modules/scratchpad.med','a') as script:
                 script.write(codejs)
 
@@ -628,7 +645,9 @@ class parser(cmd.Cmd):
                     Script operations:
                         - export                    : Save the current module list to 'recipe.txt'
                         - compile                   : Compile the modules to a frida script
-                        - hook                      : Initiates a dialog for hooking a function
+                        - hook                      : Initiate a dialog for hooking a function
+                        - hookall [class name]      : Set hooks for all the functions of the given class
+                        - scratchreset              : Reset the scratchpad module
 
                     Frida Session:
                         - run        [package name] : Initiate a Frida session and attache to the sellected package

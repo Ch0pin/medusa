@@ -67,22 +67,22 @@ function traceMethod(targetClassMethod)
 	var hook = Java.use(targetClass);
 	var overloadCount = hook[targetMethod].overloads.length;
 
-	console.log("Tracing " + targetClassMethod + " [" + overloadCount + " overload(s)]");
+	colorLog("Tracing " + targetClassMethod + " [" + overloadCount + " overload(s)]",{c: Color.Green});
 
 	for (var i = 0; i < overloadCount; i++) {
 
 		hook[targetMethod].overloads[i].implementation = function() {
-			console.warn("\n*** entered " + targetClassMethod);
+		  colorLog("\n*** entered " + targetClassMethod,{c: Color.Red});
 
 			if (arguments.length) console.log();
 			for (var j = 0; j < arguments.length; j++) {
-				console.log("arg[" + j + "]: " + arguments[j]);
+				colorLog("arg[" + j + "]: " + arguments[j], {c: Color.Blue});
 			}
 
 			// print retval
 			var retval = this[targetMethod].apply(this, arguments); // rare crash (Frida bug?)
-			console.log("\nretval: " + retval);
-			console.warn("\n*** exiting " + targetClassMethod);
+			colorLog("\nretval: " + retval, {c: Color.Yellow});
+			colorLog("\n*** exiting " + targetClassMethod, {c: Color.Green});
 			return retval;
 		}
 	}

@@ -152,6 +152,31 @@ class parser(cmd.Cmd):
             print(e)
             return
 
+
+    def do_spawn(self,package):
+        try:         
+            print('[+] Starting {}'.format(package))
+            os.popen("adb -s {} shell  monkey -p {} -c 'android.intent.category.LAUNCHER 1'".format(self.device.id,package.split(' ')[0])).read()
+            print('[+] {} started'.format(package))
+        except Exception as e:
+            print(e)
+            return
+
+    
+    def complete_spawn(self, text, line, begidx, endidx):
+
+        self.init_packages()
+        if not text:
+            completions = self.packages[:]
+            self.packages = []
+        else:
+            completions = [ f
+                            for f in self.packages
+                            if f.startswith(text)
+                            ]
+            self.packages = []
+        return completions
+
     def complete_kill(self, text, line, begidx, endidx):
 
         self.init_packages()

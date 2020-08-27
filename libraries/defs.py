@@ -53,7 +53,7 @@ class parser(cmd.Cmd):
 
 
 
-    def do_scratchreset(self,line):
+    def scratchreset(self):
         
         scratch_reset = input('Do you want to reset the scratchpad ? (yes/no) ')
         scratchpad = """#Description: 'Use this module to add your hooks'
@@ -79,7 +79,7 @@ class parser(cmd.Cmd):
             print(e) 
 
 
-    def do_hookall(self,line):
+    def hookall(self,line):
 
         aclass = line.split(' ')[0]
 
@@ -98,47 +98,60 @@ class parser(cmd.Cmd):
 
     def do_hook(self,line):
 
-        className = input("Enter the full name of the function(s) class: ")
+        option = line.split(' ')[0]
 
-        codejs = """var hook = Java.use('"""+className+"""');"""
-        functionName = input("Enter a function name (CTRL+C to Exit): ")
+        if '-f' in option:
+            className = input("Enter the full name of the function(s) class: ")
 
-        while (True):
-            
-            try:
+            codejs = """var hook = Java.use('"""+className+"""');"""
+            functionName = input("Enter a function name (CTRL+C to Exit): ")
 
-                codejs += """
-                var overloadCount = hook['"""+functionName+"""'].overloads.length;
-                colorLog("Tracing " +'"""+ functionName+"""' + " [" + overloadCount + " overload(s)]",{ c: Color.Green });
-                    
-                    for (var i = 0; i < overloadCount; i++) {
-                        hook['"""+functionName+"""'].overloads[i].implementation = function() {
-                        colorLog("*** entered " +'"""+ functionName+ """',{ c: Color.Green });
+            while (True):
+                
+                try:
 
-                Java.perform(function() {
-                    var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
-                        console.log("Backtrace:" + bt);
-                });   
+                    codejs += """
+                    var overloadCount = hook['"""+functionName+"""'].overloads.length;
+                    colorLog("Tracing " +'"""+ functionName+"""' + " [" + overloadCount + " overload(s)]",{ c: Color.Green });
+                        
+                        for (var i = 0; i < overloadCount; i++) {
+                            hook['"""+functionName+"""'].overloads[i].implementation = function() {
+                            colorLog("*** entered " +'"""+ functionName+ """',{ c: Color.Green });
 
-                if (arguments.length) console.log();
-                for (var j = 0; j < arguments.length; j++) {
-                    console.log("arg[" + j + "]: " + arguments[j]);
-                }
-                var retval = this['"""+functionName+"""'].apply(this, arguments); // rare crash (Frida bug?)
-                console.log("retval: " + retval);
-                colorLog("*** exiting " + '"""+functionName+"""',{ c: Color.Green });
-                return retval;
-                }
-                }
-                """
-                print('[+] Function: {} hook added !'.format(functionName))
-                functionName = input("Enter a function name (CTRL+C to Exit): ")
+                    Java.perform(function() {
+                        var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
+                            console.log("Backtrace:" + bt);
+                    });   
 
-            except KeyboardInterrupt:
-                with open('modules/scratchpad.med','a') as script:
-                    script.write(codejs)
-                print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may include it in the final script.")
-                break
+                    if (arguments.length) console.log();
+                    for (var j = 0; j < arguments.length; j++) {
+                        console.log("arg[" + j + "]: " + arguments[j]);
+                    }
+                    var retval = this['"""+functionName+"""'].apply(this, arguments); // rare crash (Frida bug?)
+                    console.log("retval: " + retval);
+                    colorLog("*** exiting " + '"""+functionName+"""',{ c: Color.Green });
+                    return retval;
+                    }
+                    }
+                    """
+                    print('[+] Function: {} hook added !'.format(functionName))
+                    functionName = input("Enter a function name (CTRL+C to Exit): ")
+
+                except KeyboardInterrupt:
+                    with open('modules/scratchpad.med','a') as script:
+                        script.write(codejs)
+                    print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may include it in the final script.")
+                    break
+
+        elif "-a" in option:
+            aclass = line.split(' ')[1].strip()
+            if aclass == '':
+                print('[i] Usage hook -a class_name')
+            else:
+                self.hookall(aclass)
+        elif '-r' in option:
+            self.scratchreset()
+
 
 
 #---------------------------------------------------------------------------------------------------------------
@@ -203,8 +216,12 @@ class parser(cmd.Cmd):
 
 
     def do_dump(self,line):
-      
-        dump_pkg(line.split(' ')[0])
+        
+        pkg = line.split(' ')[0].strip()
+        if pkg == '':
+            print('[i] Usage: dump package_name')
+        else:
+            dump_pkg(pkg)
 
     def do_translate(self,line):
         t = translation(line.split(' ')[0])
@@ -645,9 +662,9 @@ class parser(cmd.Cmd):
                     Script operations:
                         - export                    : Save the current module list to 'recipe.txt'
                         - compile                   : Compile the modules to a frida script
-                        - hook                      : Initiate a dialog for hooking a function
-                        - hookall [class name]      : Set hooks for all the functions of the given class
-                        - scratchreset              : Reset the scratchpad module
+                        - hook -f                   : Initiate a dialog for hooking a function
+                        - hook -a [class name]      : Set hooks for all the functions of the given class
+                        - hook -r                   : Reset the hooks setted so far
 
                     Frida Session:
                         - run        [package name] : Initiate a Frida session and attache to the sellected package

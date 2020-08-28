@@ -37,7 +37,7 @@ class parser(cmd.Cmd):
     providers = None
     filters = []
 
-    classes = []
+    # classes = []
     packages = []
 
 
@@ -90,44 +90,66 @@ class parser(cmd.Cmd):
 
         opsys = platform.system()
         script = self.create_script(opsys,line)
-    
-        if 'Darwin' in opsys:
-            subprocess.run("""osascript -e 'tell application "Terminal" to do script "{}" ' """.format(script), shell=True)
-        elif 'Linux' in opsys:
-            subprocess.run("""x-terminal-emulator -e {}""".format(script)) 
-        elif 'Windows' in opsys:
-            subprocess.call('start /wait {}'.format(script), shell=True)
+
+        if not 'Error' in script:
+   
+            if 'Darwin' in opsys:
+                subprocess.run("""osascript -e 'tell application "Terminal" to do script "{}" ' """.format(script), shell=True)
+            elif 'Linux' in opsys:
+                subprocess.run("""x-terminal-emulator -e {}""".format(script)) 
+            elif 'Windows' in opsys:
+                subprocess.call('start /wait {}'.format(script), shell=True)
 
 
     def create_script(self,opsys,line):
-        param1 = line.split(' ')[0]+ '*!*'
-        param = """frida-trace -D {} {} --runtime=v8 -j '{}' """.format(self.device.id,self.package,param1)
-        path = os.getcwd()
 
-        if 'Windows' in opsys:
-            script = path + '/script.bat'
-            with open(script,'w') as file:
-                file.write(param) 
+        switch = line.split(' ')[0].strip()
+        valid = True
+
+        if '-j' in switch:
+            param1 = line.split(' ')[1]+ '*!*'
+            param = """frida-trace -D {} {} --runtime=v8 -j '{}' """.format(self.device.id,self.package,param1)
+        elif '-n' in switch:
+            param1 = line.split(' ')[1]+ '*'
+            param = """frida-trace -D {} -i '{}' {}""".format(self.device.id,param1,self.package)
+        elif '-a' in switch:
+            param1 = line.split(' ')[1].strip()
+            param = """frida-trace -D {} -I '{}' {}""".format(self.device.id,param1,self.package)
         else:
-            script = path + '/script.sh'
-            with open(script,'w') as file:
-                file.write(param) 
-            os.chmod(script, 0o775)
+            print('[E] Invalid command, run help for options!')  
+            valid = False        
+
+        if valid:
+            path = os.getcwd()
+
+            if 'Windows' in opsys:
+                script = path + '/script.bat'
+                with open(script,'w') as file:
+                    file.write(param) 
+            else:
+                script = path + '/script.sh'
+                with open(script,'w') as file:
+                    file.write(param) 
+                os.chmod(script, 0o775)
+        else:
+            script = 'Error'
 
         return script
         
         
-    def complete_trace(self, text, line, begidx, endidx):
-        if not text:
-            completions = self.classes[:]
-            self.packages = []
-        else:
-            completions = [ f
-                            for f in self.classes
-                            if f.startswith(text)
-                            ]
-            self.packages = []
-        return completions
+    # def complete_trace(self, text, line, begidx, endidx):
+    #     # text = line.split(' ')[1].strip('\n')
+    #     # print(text)
+    #     if not text:
+    #         completions = self.classes[:]
+    #         self.packages = []
+    #     else:
+    #         completions = [ f
+    #                         for f in self.classes
+    #                         if f.startswith(text)
+    #                         ]
+    #         self.packages = []
+    #     return completions
 
     def init_packages(self):
         for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
@@ -437,39 +459,37 @@ class parser(cmd.Cmd):
         else:
             print("""Available commands:
 
-                    [+] TRACE A FUNCTION:
+                    [+] TRACE Functions using frida-trace:
                     ---------------------
 
-                    - trace [tab]               : Traces the functions of a class using frida-trace
+                    - trace -j com.myapp.name*          : Trace all the functions of the com.myapp.name* class
+                    - trace -n foo                      : Trace a native function
+                    - trace -a library.so               : Trace the functions of the library.so
 
-                    Using the [tab] after trace presents the user with the classes loaded by the app, giving the
-                    option to select the ones to trace."""+GREEN+"""
-
-                    example: trace com.myapp.name* 
-
-                    Will spawn a new terminal window and trace all the functions under the com.myapp.name* class+"""+RESET+""" 
+                    Will spawn a new frida-trace instance with the given options
 
                     ===========================================================================================
 
                     [+] MANIFEST PARSER:
                     ---------------------
 
-                    - show permissions          : Prints the application's permissions
-                    - show activities           : Prints a list with the application's activities
-                    - show services             : Prints a list with the application's services
-                    - show receivers            : Prints a list with the application's receivers
-                    - show providers            : Prints a list with the application's content providers
-                    - show filters              : Prints broadcast filters
+                    - show permissions          : Print the application's permissions
+                    - show activities           : Print a list with the application's activities
+                    - show services             : Print a list with the application's services
+                    - show receivers            : Print a list with the application's receivers
+                    - show providers            : Print a list with the application's content providers
+                    - show filters              : Print broadcast filters
                     - search [keyword]          : Search components containing the given keyword
                     ===========================================================================================
 
                     [+] TRIGERS:
                     ---------------------
 
-                    - start      [tab]          : Starts and activity 
-                    - startsrv   [tab]          : Starts a service
-                    - stopsrv    [tab]          : Stops a service
+                    - start      [tab]          : Start and activity 
+                    - startsrv   [tab]          : Start a service
+                    - stopsrv    [tab]          : Stop a service
                     - broadcast  [tab]          : Broadcast an intent 
+                    - spawn [tab]               : Spawn an application
 
                     ===========================================================================================
 

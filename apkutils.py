@@ -24,7 +24,7 @@ APK = False
 INSTALL = False
 
 #enumerate classes
-js = """Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){send(c);}});});"""
+# js = """Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){send(c);}});});"""
 apktool="./Dependencies/apktool.jar"
 
 classes = []
@@ -44,12 +44,12 @@ def extract_manifest(file):
     shutil.rmtree('./tmp')
 
 
-def on_message(message, data):
-    try:
-        if message["type"] == "send":
-            classes.append( message["payload"].split(":")[0].strip())
-    except Exception as e:
-        print('exception: ' + e) 
+# def on_message(message, data):
+#     try:
+#         if message["type"] == "send":
+#             classes.append( message["payload"].split(":")[0].strip())
+#     except Exception as e:
+#         print('exception: ' + e) 
 
 
 
@@ -139,17 +139,17 @@ except Exception as e:
 
 
 
-try:
-    if INSTALL==True:
-        pid = device.spawn(package)
-        print("[i] Starting process {} [pid:{}] to dump classes ".format(package,pid))
-        session = device.attach(pid)
-        device.resume(pid)
-        script = session.create_script(js)
-        script.on('message', on_message)
-        script.load()
-except Exception as e:
-    print(e)
+# try:
+#     if INSTALL==True:
+#         pid = device.spawn(package)
+#         print("[i] Starting process {} [pid:{}] to dump classes ".format(package,pid))
+#         session = device.attach(pid)
+#         device.resume(pid)
+#         script = session.create_script(js)
+#         script.on('message', on_message)
+#         script.load()
+# except Exception as e:
+#     print(e)
 
 
 
@@ -164,7 +164,7 @@ p.providers = providers
 p.device = device
 p.INSTALL = INSTALL
 p.filters = filters
-p.classes = classes
+# p.classes = classes
 p.cmdloop()
 
 

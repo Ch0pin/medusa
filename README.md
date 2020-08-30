@@ -27,7 +27,7 @@ It's functionality can be summarised as follows:
 **25/08/2020**: Hook all functions of a given class (example):
 
 ```
-medusa>hookall com.foo.class
+medusa>hoo -a com.foo.class
 
 Hook has been added to the modules/schratchpad.me ,you may include it in the final script.
 ```
@@ -37,7 +37,7 @@ Hook has been added to the modules/schratchpad.me ,you may include it in the fin
 **21/08/2020**: Hook a function by giving the name and its class name (example):
 
 ```
-medusa>hook
+medusa>hook -f
 
 Enter the full name of the function(s) class: foo.com
 Enter a function name (CTRL+C to Exit): onCreate

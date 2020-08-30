@@ -27,9 +27,9 @@ It's functionality can be summarised as follows:
 **25/08/2020**: Hook all functions of a given class (example):
 
 ```
-medusa>hoo -a com.foo.class
+medusa>hook -a com.foo.class
 
-Hook has been added to the modules/schratchpad.me ,you may include it in the final script.
+Hook(s) have been added to the modules/schratchpad.me ,you may include it in the final script.
 ```
 
 

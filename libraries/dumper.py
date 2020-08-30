@@ -105,7 +105,7 @@ def dump_pkg(pkg):
     session = device.attach(target.pid)
     path = '.'#os.path.dirname(save_path)
     #path = path if path else "."
-    script = session.create_script(open(path + "/agent_1.js").read())
+    script = session.create_script(open(path + "/dexdump.js").read())
     script.load()
 
     dump(pkg_name, script.exports)

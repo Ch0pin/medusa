@@ -797,14 +797,20 @@ class parser(cmd.Cmd):
                     Script operations:
                         - export                    : Save the current module list to 'recipe.txt'
                         - compile                   : Compile the modules to a frida script
-                        - hook -f                   : Initiate a dialog for hooking a function
-                        - hook -a [class name]      : Set hooks for all the functions of the given class
-                        - hook -r                   : Reset the hooks setted so far
-                        - hook -n                   : Initiate a dialog for hooking a native function
+                        - hook (-f,-a,-r-n)
+                            -f                      : Initiate a dialog for hooking a function
+                            -a [class name]         : Set hooks for all the functions of the given class
+                            -n                      : Initiate a dialog for hooking a native function
+                            -r                      : Reset the hooks setted so far
 
                     Native operations:
-                        - libs [-a, -s, -j] package : List Application's loaded libraries
-                        - enumerate package lib     : Enumerate lib's exported functions 
+                        - libs (-a, -s, -j) package_name    
+
+                            -a                      : List ALL loaded libraries
+                            -s                      : List System loaded libraries
+                            -j                      : List Application's Libraries
+
+                        - enumerate package libname : Enumerate lib's exported functions 
 
                         (e.g. - enumerate com.foo.gr libfoo)
 

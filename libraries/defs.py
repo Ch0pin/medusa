@@ -69,15 +69,14 @@ class parser(cmd.Cmd):
         
         if 'yes' in hexdumpEnable:
             buffersize = input('[?] Buffer read size (0-1024):')
-        hexdump = """ 
-		var buf = Memory.readByteArray(ptr(retval),"""+buffersize+""");
-		 console.log(hexdump(buf, {
-	 		offset: 0, 
-		 		length:"""+buffersize+""", 
-		 		header: true,
-		 		ansi: false
-		 	}));
-""" 
+            hexdump = """ 
+            var buf = Memory.readByteArray(ptr(retval),"""+buffersize+""");
+            console.log(hexdump(buf, {
+                offset: 0, 
+                    length:"""+buffersize+""", 
+                    header: true,
+                    ansi: false
+                }));""" 
         else:
             hexdump = ''
 
@@ -289,7 +288,7 @@ class parser(cmd.Cmd):
                     for (var j = 0; j < arguments.length; j++) {
                         console.log("arg[" + j + "]: " + arguments[j]);
                     }
-                    var retval = this['"""+functionName+"""'].apply(this, arguments); // rare crash (Frida bug?)
+                    var retval = this['"""+functionName+"""'].apply(this, arguments); 
                     console.log("retval: " + retval);
                     colorLog("*** exiting " + '"""+functionName+"""',{ c: Color.Green });
                     return retval;

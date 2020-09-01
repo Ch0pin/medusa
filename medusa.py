@@ -31,10 +31,11 @@ try:
 except:
     device = frida.get_remote_device()
 
+
 p = parser()
-# p.device_index = index
-# p.device = device_list[index].split()[0]
 p.device = device
+
+
 
 try:
     if len(sys.argv) > 1:

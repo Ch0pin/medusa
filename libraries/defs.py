@@ -9,6 +9,9 @@ import time
 import frida
 from libraries.dumper import dump_pkg
 from googletrans import Translator
+from libraries.natives import *
+
+
 
 if 'libedit' in readline.__doc__:
     readline.parse_and_bind("bind ^I rl_complete")
@@ -29,6 +32,8 @@ class parser(cmd.Cmd):
 
     all_mods = []
     packages = []
+    system_libraries = []
+    app_libraries = []
     show_commands=['mods','categories','all']
     module_list=[]
     prompt = BLUE+'medusa>'+RESET
@@ -39,10 +44,13 @@ class parser(cmd.Cmd):
     script = None
     detached = True
     pid = None
+    native_handler = None
+    native_functions= []
 
 
     def __init__(self):
         super(parser,self).__init__()
+        
         for root, directories, filenames in os.walk('modules/'):
             for filename in sorted(filenames):
                 if filename.endswith('.med'):
@@ -51,6 +59,163 @@ class parser(cmd.Cmd):
         print('\nTotal modules: ' + str(len(self.all_mods)))
 
 
+#==================START OF NATIVE OPERATIONS=============================
+
+    def hook_native(self):
+        library = input('[?] Libary name:').strip()
+        function = input('[?] Function name:').strip()
+        backtraceEnable = input('[?] Enable backtrace (yes/no):')
+        hexdumpEnable = input('[?] Enable memory read (yes/no):')
+        
+        if 'yes' in hexdumpEnable:
+            buffersize = input('[?] Buffer read size (0-1024):')
+        hexdump = """ 
+		var buf = Memory.readByteArray(ptr(retval),"""+buffersize+""");
+		 console.log(hexdump(buf, {
+	 		offset: 0, 
+		 		length:"""+buffersize+""", 
+		 		header: true,
+		 		ansi: false
+		 	}));
+""" 
+        else:
+            hexdump = ''
+
+
+        if 'yes' in backtraceEnable:
+            tracejs = """
+            colorLog("Backtrace: ",{ c: Color.Green });
+            var trace = Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress);
+        for (var j in trace)
+            console.log('\t'+trace[j]);"""
+        else:
+            tracejs = ''
+
+
+        codejs = """Interceptor.attach(Module.getExportByName('"""+library+"""', '"""+function+"""'), {
+    onEnter: function(args) {
+      
+      colorLog("Entering Native function: " +" """+ function+"""",{ c: Color.Red });"""+tracejs+"""
+      
+
+    },
+    onLeave: function(retval) {
+
+      colorLog("Leaving Native function: " +" """+ function+""" ",{ c: Color.Red });
+      colorLog("Return Value: " + retval , {c: Color.Green});"""+hexdump+"""
+      
+      //retval.replace();
+    }
+});
+"""
+        with open('modules/scratchpad.med','a') as script:
+            script.write(codejs)
+        print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may include it in the final script.")
+
+
+
+    def do_enumerate(self, line):
+        libname = line.split(' ')[1].strip()
+        package = line.split(' ')[0].strip()
+
+        if libname == '' or package == '':
+            print('[i] Usage: exports com.foo.com libname.so')
+        else:
+            self.prepare_native("enumerateExportsJs('"+libname+"');\n")
+
+        self.native_functions = []
+        self.native_handler = nativeHandler()
+        self.native_handler.device = self.device
+        self.native_handler.getModules(package)
+        for function in self.native_handler.modules:
+            self.native_functions.append(function)
+        self.native_functions.sort()
+        self.print_list(self.native_functions,"[i] Printing lib's: "+libname+" exported functions:")
+
+
+    def complete_enumerate(self, text, line, begidx, endidx):
+
+        self.packages = []
+
+        for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
+            self.packages.append(line1.split(':')[1].strip('\n'))
+        #-----------------
+        if not text:
+            completions = self.packages[:]
+        else:
+            completions = [ f
+                            for f in self.packages
+                            if f.startswith(text)
+                            ]
+        return completions
+
+
+    def prepare_native(self,operation):
+
+        with open('libraries/native.med','r') as file:
+            precode = file.read()
+        script = precode + 'Java.perform(function() {\n'+operation+' \n});'
+
+        with open('libraries/native.js','w') as file:
+            file.write(script)
+
+
+
+
+    def do_libs(self, line):
+
+        self.prepare_native("enumerateModules();")
+
+        self.system_libraries = []
+        self.app_libraries = []
+
+        option = line.split(' ')[0]
+        self.native_handler = nativeHandler()
+        self.native_handler.device = self.device
+        package = line.split(' ')[1].strip()
+        self.native_handler.getModules(package)
+
+        for library in self.native_handler.modules:
+            if library.startswith('/data/app'):
+                self.app_libraries.append(library)
+            else:
+                self.system_libraries.append(library)
+        
+        if '-a' in option:
+            print(GREEN+'Printing all Libraries:'+RESET)
+            self.print_list(self.system_libraries,"[i] Printing system's loaded modules:")
+            self.print_list(self.app_libraries,"[i] Printing Application's modules:")
+        elif '-s' in option:
+            print(GREEN+'Printing System Libraries:'+RESET)
+            self.print_list(self.system_libraries, "[i] Printing system's loaded modules:")
+        elif '-j' in option:
+            print(GREEN+'Printing Application Libraries:'+RESET)
+            self.print_list(self.app_libraries,"[i] Printing Application's modules:")
+        else:
+            print('[A] Command was not understood.')
+
+    def print_list(self, listName, message):
+        print(GREEN+message+RESET)
+        for item in listName:
+            print(item)
+
+    def complete_libs(self, text, line, begidx, endidx):
+
+        self.packages = []
+
+        for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
+            self.packages.append(line1.split(':')[1].strip('\n'))
+        #-----------------
+        if not text:
+            completions = self.packages[:]
+        else:
+            completions = [ f
+                            for f in self.packages
+                            if f.startswith(text)
+                            ]
+        return completions
+
+#-------------------------EOF NATIVE OPERATIONS------------------
 
 
     def scratchreset(self):
@@ -64,9 +229,6 @@ class parser(cmd.Cmd):
         if 'yes' in scratch_reset:
             with open('modules/scratchpad.med','w') as scratch:
                 scratch.write(scratchpad)
-
-
-
 
     def do_export(self,line):
         try:
@@ -151,6 +313,9 @@ class parser(cmd.Cmd):
                 self.hookall(aclass)
         elif '-r' in option:
             self.scratchreset()
+        elif '-n' in option:
+            self.hook_native()
+        
 
 
 
@@ -183,23 +348,6 @@ class parser(cmd.Cmd):
             self.modified = True
         except Exception as e:
             print(e)
-
-
-    
-    def do_trigger(self,line):
-        with open('triger.js','r') as file:
-            data = file.read()
-            a = data.replace('class_name',line.split(' ')[0])
-        params = ''
-        j = 'a'
-        for i in range(int(line.split(' ')[1])):
-            params +=  j 
-            j = chr(ord(j)+1)
-            params += ','
- 
-            b = a.replace('params',params[:-1])
-
-        print(b)
              
     
     def do_clear(self,line):
@@ -223,19 +371,6 @@ class parser(cmd.Cmd):
         else:
             dump_pkg(pkg)
 
-    def do_translate(self,line):
-        t = translation(line.split(' ')[0])
-        # translate_ui(line.split(' ')[0])
-
-    def complete_translate(self, text, line, begidx, endidx):
-        if not text:
-            completions = self.packages[:]
-        else:
-            completions = [ f
-                            for f in self.packages
-                            if f.startswith(text)
-                            ]
-        return completions
 
     def complete_dump(self, text, line, begidx, endidx):
 
@@ -665,6 +800,13 @@ class parser(cmd.Cmd):
                         - hook -f                   : Initiate a dialog for hooking a function
                         - hook -a [class name]      : Set hooks for all the functions of the given class
                         - hook -r                   : Reset the hooks setted so far
+                        - hook -n                   : Initiate a dialog for hooking a native function
+
+                    Native operations:
+                        - libs [-a, -s, -j] package : List Application's loaded libraries
+                        - enumerate package lib     : Enumerate lib's exported functions 
+
+                        (e.g. - enumerate com.foo.gr libfoo)
 
                     Frida Session:
                         - run        [package name] : Initiate a Frida session and attache to the sellected package

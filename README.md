@@ -24,6 +24,45 @@ It's functionality can be summarised as follows:
 
 ### Updates:
 
+**01/09/2020**: Native hook support added:
+
+```
+medusa>hook -n
+[?] Libary name:libjpeg.so
+[?] Function name:jpeg_CreateDecompress
+[?] Enable backtrace (yes/no):yes
+[?] Enable memory read (yes/no):yes
+[?] Buffer read size (0-1024):1024
+
+Entering Native function:  jpeg_CreateDecompress
+Backtrace:
+	0x7891e6d40c libhwui.so!_ZN7SkCodec13skipScanlinesEi+0xa18
+	0x7891e6cd18 libhwui.so!_ZN7SkCodec13skipScanlinesEi+0x324
+	0x7891e6d970 libhwui.so!_ZN6SkData17MakeUninitializedEm+0x3e8
+	0x7891e6d898 libhwui.so!_ZN6SkData17MakeUninitializedEm+0x310
+	0x7891e618c8 libhwui.so!_ZN7SkCodec14MakeFromStreamENSt3__110unique_ptrI8SkStreamNS0_14default_deleteIS2_EEEEPNS_6ResultEP16SkPngChunkReader+0x104
+	0x7892326b84 libandroid_runtime.so!_Z38register_android_graphics_ImageDecoderP7_JNIEnv+0x1738
+	0x7892325834 libandroid_runtime.so!_Z38register_android_graphics_ImageDecoderP7_JNIEnv+0x3e8
+	0x714050e4 boot-framework.oat!0x28b0e4
+Leaving Native function:  jpeg_CreateDecompress
+Return Value: 0x77a01c6180
+           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
+00000000  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000010  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000020  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000030  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000050  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+000000a0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+000000b0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+```
+
+
+
 **25/08/2020**: Hook all functions of a given class (example):
 
 ```

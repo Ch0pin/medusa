@@ -15,6 +15,21 @@ var Color = {
   }
 };
 
+function enumerateModules(){
+  
+  var modules = Process.enumerateModules();
+  colorLog('[+] Enumerating loaded modules:',{c: Color.Blue});
+
+  for (var i = 0; i < modules.length; i++)
+    console.log(modules[i].path + modules[i].name);
+
+  
+}
+
+
+function getContext() {
+	return Java.use('android.app.ActivityThread').currentApplication().getApplicationContext();
+  }
 
 function traceClass(targetClass)
 {
@@ -308,15 +323,9 @@ var byteArrayToString = function(input){
       else result += ' ';
   
     }
-      
-  
   return result;
-
 }
 
-function getContext() {
-	return Java.use('android.app.ActivityThread').currentApplication().getApplicationContext();
-  }
 
   function readStreamToHex (stream) {
     var data = [];
@@ -331,4 +340,5 @@ function getContext() {
     return data.join('');
 }
 
-  
+
+

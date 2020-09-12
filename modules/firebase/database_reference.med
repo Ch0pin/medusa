@@ -10,7 +10,7 @@ write data, and to create new DatabaseReferences.
 var databaseReference = Java.use('com.google.firebase.database.DatabaseReference');
 
 var dataSnapshot = Java.use('com.google.firebase.database.DataSnapshot');
-
+var firebaseDatabase = Java.use('com.google.firebase.database.FirebaseDatabase')
 /*
 
 
@@ -71,19 +71,64 @@ databaseReference.$init.overloads[0].implementation = function(parseUrl, dbconfi
     return this.$init(parseUrl,dbconfig);
 }
 
-databaseReference.$init.overloads[1].implementation = function(parseUrl, dbconfig){
+// databaseReference.$init.overloads[1].implementation = function(parseUrl, dbconfig){
     
 
-    colorLog('[+] Database reference: '+parseUrl.toString(),{c: Color.Green});
-    return this.$init(parseUrl,dbconfig);
-}
+//     colorLog('[+] Database reference: '+parseUrl.toString(),{c: Color.Green});
+//     return this.$init(parseUrl,dbconfig);
+// }
 
-databaseReference.$init.overloads[2].implementation = function(repo, path){
+// databaseReference.$init.overloads[2].implementation = function(repo, path){
     
 
-    colorLog('[+] Database reference: '+repo.toString(),{c: Color.Green});
-    return this.$init(repo,path);
+//     colorLog('[+] Database reference: '+repo.toString(),{c: Color.Green});
+//     return this.$init(repo,path);
+// }
+
+/*
+DatabaseReference	
+getReference()
+Gets a DatabaseReference for the database root node.
+DatabaseReference	
+getReference(String path)
+Gets a DatabaseReference for the provided path.
+DatabaseReference	
+getReferenceFromUrl(String url)
+Gets a DatabaseReference for the provided URL.
+*/
+
+
+firebaseDatabase.getReference.overloads[0].implementation = function(){
+
+    console.log('[+] Application is acquiring a  DatabaseReference for the database root node.');
+    // console.log('   [-] key: '+child.getKey())
+  
+    return this.getReference();
+
 }
+firebaseDatabase.getReference.overloads[1].implementation = function(path){
+
+    console.log('[+] Application is acquiring a  DatabaseReference for the path:'+path);
+    // console.log('   [-] key: '+child.getKey())
+  
+    return this.getReference(path);
+
+}
+
+firebaseDatabase.getReferenceFromUrl.implementation = function(uri){
+
+    console.log('[+] Application is acquiring a  DatabaseReference for the path:'+uri);
+    // console.log('   [-] key: '+child.getKey())
+  
+    return this.getReferenceFromUrl(uri);
+
+}
+
+
+
+
+
+
 
 
 /*
@@ -95,6 +140,8 @@ Parameters
 pathString	The relative path from this reference to the new one that should be created
 Returns A new DatabaseReference to the given path
 */
+
+
 
 databaseReference.child.implementation = function(pathString){
  
@@ -137,42 +184,9 @@ databaseReference.getKey.implementation = function(){
     return key;
 }
 
-/*
-public static void goOffline ()
-Also: Google Play services
-Manually disconnect the Firebase Database client from the server and disable automatic reconnection.
-
-Invoking this method will impact all Firebase Database connections.
-*/
-
-databaseReference.goOffline.overloads[0].implementation = function(){
-
-    console.log('[+] The app disconnects the Firebase Database client from the server and disable automatic reconnection');
-    this.goOffline();
-}
-databaseReference.goOffline.overloads[1].implementation = function(dbConfig){
-
-    console.log('[+] The app disconnects the Firebase Database client from the server and disable automatic reconnection');
-    this.goOffline(dbConfig);
-}
 
 
-/*
-public static void goOnline ()
-Also: Google Play services
-Manually reestablish a connection to the Firebase Database server and enable automatic reconnection.
-Note: Invoking this method will impact all Firebase Database connections.
-*/
-databaseReference.goOnline.overloads[0].implementation = function(){
 
-    console.log('[+] The app disconnects the Firebase Database client from the server and disable automatic reconnection');
-    this.goOnline();
-}
-databaseReference.goOnline.overloads[1].implementation = function(dbConfig){
-
-    console.log('[+] The app disconnects the Firebase Database client from the server and disable automatic reconnection');
-    this.goOnline(dbConfig);
-}
 
 /*
 	.overload('java.lang.Object')
@@ -184,17 +198,17 @@ databaseReference.goOnline.overloads[1].implementation = function(dbConfig){
 
 databaseReference.setValue.overloads[0].implementation = function(obj,completionListener){
 
-    console.log('[+] set value for: ' + obj.toString());
+    colorLog('[+] SET VALUE --> ' + obj.toString(),{c: Color.Green});
     this.setValue(obj,completionListener);
 }
 databaseReference.setValue.overloads[1].implementation = function(obja,objb){
 
-    console.log('[+] set value for: ' + obja.toString() + ' , '+objb.toString());
+    colorLog('[+] SET VALUE --> ' + obja.toString() + ' , '+objb.toString(), {c: Color.Green});
     this.setValue(obja,objb);
 }
 databaseReference.setValue.overloads[2].implementation = function(obja,objb,objc,completionListener){
 
-    console.log('[+] set value for: ' + obja.toString() + ' , '+objb.toString() + ' ' +objc.toString());
+    colorLog('[+] SET VALUE --> ' + obja.toString() + ' , '+objb.toString() + ' ' +objc.toString(), {c: Color.Green});
     this.setValue(obja,objb,objc,completionListener);
 }
 

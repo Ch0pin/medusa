@@ -46,6 +46,9 @@ class parser(cmd.Cmd):
     pid = None
     native_handler = None
     native_functions= []
+    currentPackage = None
+    libname = None
+
 
 
     def __init__(self):
@@ -58,6 +61,22 @@ class parser(cmd.Cmd):
                     self.all_mods.append(filepath)
         print('\nTotal modules: ' + str(len(self.all_mods)))
 
+    def do_status(self,line):
+        print('[+] Dumping processed data:')
+        if(self.device):
+            print('   --> Current Device:'+self.device.id)
+        if(self.currentPackage):
+            print('   --> Current Package:'+self.currentPackage)
+        if(self.app_libraries):
+            self.print_list(self.app_libraries,"   --> Application Libraries:")
+        if(self.libname):
+            print('   --> Current Library:'+self.libname)
+        if(self.native_functions):
+            self.print_list(self.native_functions,'   --> Current Native Functions:')
+
+        
+
+
 
 #==================START OF NATIVE OPERATIONS=============================
 
@@ -68,7 +87,7 @@ class parser(cmd.Cmd):
         hexdumpEnable = input('[?] Enable memory read (yes/no):')
         
         if 'yes' in hexdumpEnable:
-            buffersize = input('[?] Buffer read size (0-1024):')
+            buffersize = input('[?] Read Buffer size (0-1024):')
             hexdump = """ 
             var buf = Memory.readByteArray(ptr(retval),"""+buffersize+""");
             console.log(hexdump(buf, {
@@ -114,23 +133,37 @@ class parser(cmd.Cmd):
 
 
     def do_enumerate(self, line):
-        libname = line.split(' ')[1].strip()
-        package = line.split(' ')[0].strip()
+        try:
 
-        if libname == '' or package == '':
-            print('[i] Usage: exports com.foo.com libname.so')
-        else:
-            self.prepare_native("enumerateExportsJs('"+libname+"');\n")
+            libname = line.split(' ')[1].strip()
+            package = line.split(' ')[0].strip()
+            self.libname = libname
+            self.currentPackage = package
+            if libname == '' or package == '':
+                print('[i] Usage: exports com.foo.com libname.so')
+            else:
+                self.prepare_native("enumerateExportsJs('"+libname+"');\n")
 
-        self.native_functions = []
-        self.native_handler = nativeHandler()
-        self.native_handler.device = self.device
-        self.native_handler.getModules(package)
-        for function in self.native_handler.modules:
-            self.native_functions.append(function)
-        self.native_functions.sort()
-        self.print_list(self.native_functions,"[i] Printing lib's: "+libname+" exported functions:")
+            self.native_functions = []
+            self.native_handler = nativeHandler(self.device)
+            #self.native_handler.device = self.device
 
+            if len(line.split(' ')) > 2:
+                if '--attach' in line.split(' ')[2]:
+                    modules = self.native_handler.getModules(package,False)
+                else:
+                    print("[i] Usage: enumerate package libary [--attach]")
+            else:
+                modules = self.native_handler.getModules(package,True)
+
+            for function in modules:
+                self.native_functions.append(function)
+            self.native_functions.sort()
+            self.print_list(self.native_functions,"[i] Printing lib's: "+libname+" exported functions:")
+
+        except Exception as e:
+            print(e)
+            print("[i] Usage: enumerate package libary [--attach]")
 
     def complete_enumerate(self, text, line, begidx, endidx):
 
@@ -163,40 +196,53 @@ class parser(cmd.Cmd):
 
     def do_libs(self, line):
 
-        self.prepare_native("enumerateModules();")
+        try:
 
-        self.system_libraries = []
-        self.app_libraries = []
+            self.prepare_native("enumerateModules();")
 
-        option = line.split(' ')[0]
-        self.native_handler = nativeHandler()
-        self.native_handler.device = self.device
-        package = line.split(' ')[1].strip()
-        self.native_handler.getModules(package)
+            self.system_libraries = []
+            self.app_libraries = []
 
-        for library in self.native_handler.modules:
-            if library.startswith('/data/app'):
-                self.app_libraries.append(library)
+            option = line.split(' ')[0]
+            self.native_handler = nativeHandler(self.device)
+            #self.native_handler.device = self.device
+            package = line.split(' ')[1].strip()
+            self.currentPackage = package
+
+            if len(line.split(' ')) > 2:
+                if '--attach' in line.split(' ')[2]:
+                    modules = self.native_handler.getModules(package,False)
+                else:
+                    print("[i] Usage: libs [option] package [--attach]")
             else:
-                self.system_libraries.append(library)
-        
-        if '-a' in option:
-            print(GREEN+'Printing all Libraries:'+RESET)
-            self.print_list(self.system_libraries,"[i] Printing system's loaded modules:")
-            self.print_list(self.app_libraries,"[i] Printing Application's modules:")
-        elif '-s' in option:
-            print(GREEN+'Printing System Libraries:'+RESET)
-            self.print_list(self.system_libraries, "[i] Printing system's loaded modules:")
-        elif '-j' in option:
-            print(GREEN+'Printing Application Libraries:'+RESET)
-            self.print_list(self.app_libraries,"[i] Printing Application's modules:")
-        else:
-            print('[A] Command was not understood.')
+                modules = self.native_handler.getModules(package,True)
+               
+            for library in modules:
+                if library.startswith('/data/app'):
+                    self.app_libraries.append(library)
+                else:
+                    self.system_libraries.append(library)
+
+            self.app_libraries.sort()
+            self.system_libraries.sort()
+            if '-a' in option:
+                self.print_list(self.system_libraries,"[i] Printing system loaded modules:")
+                self.print_list(self.app_libraries,"[i] Printing Application modules:")
+            elif '-s' in option:
+                self.print_list(self.system_libraries, "[i] Printing system loaded modules:")
+            elif '-j' in option:
+                self.print_list(self.app_libraries,"[i] Printing Application modules:")
+            else:
+                print('[i] Command was not understood.')
+            
+        except Exception as e:
+            print(e)
+            print('[i] Usage: libs [option] package [--attach]')
 
     def print_list(self, listName, message):
         print(GREEN+message+RESET)
         for item in listName:
-            print(item)
+            print("""       {}""".format(item))
 
     def complete_libs(self, text, line, begidx, endidx):
 
@@ -671,10 +717,10 @@ class parser(cmd.Cmd):
             self.script.load()  
             if force:
                 device.resume(self.pid)
-            s = input(WHITE+'in-session-commands |' +GREEN+'e:'+ WHITE+ 'exit |'+GREEN+ 'r:'+ WHITE+'reload | ' + GREEN + '?:' + WHITE + 'help'+WHITE+'|>')
+            s = input(WHITE+'in-session-commands |' +GREEN+'e:'+ WHITE+ 'exit |'+GREEN+ 'r:'+ WHITE+'reload | ' + GREEN + '?:' + WHITE + 'help'+WHITE+'|:')
             
             while ('e' not in s) and (not self.detached):
-                s = input(WHITE+'in-session (? for help):>')
+                s = input(WHITE+'[in-session] |' +GREEN+'e:'+ WHITE+ 'exit |'+GREEN+ 'r:'+ WHITE+'reload | ' + GREEN + '?:' + WHITE + 'help'+WHITE+'|:')
                 if 'r' in s:
                     #handle changes during runtime
                  
@@ -724,7 +770,8 @@ class parser(cmd.Cmd):
     def frida_session_handler(self,con_device,force,pkg):
         time.sleep(1)
         if force == False:
-            frida_session = con_device.attach(pkg)
+            self.pid = con_device.get_process(pkg).pid
+            frida_session = con_device.attach(self.pid)
             if frida_session:
                 print(WHITE+"Attaching frida session to PID - {0}".format(frida_session._impl.pid))
                 
@@ -782,6 +829,7 @@ class parser(cmd.Cmd):
         else:
             print("""
                 Module operations:
+
                         - search [keyword]          : Search for a module containing a specific keyword 
                         - help [module name]        : Display help for a module
                         - use [module name]         : Select a module to add to the final script
@@ -792,37 +840,48 @@ class parser(cmd.Cmd):
                         - rem [module name]         : Remove a module from the list that will be loaded
                         - swap old_index new_index  : Change the order of modules in the compiled script
                         - reset                     : Remove all modules from the list that will be loaded
+                ===================================================================================================
 
-                    Script operations:
+                Script operations:
                         - export                    : Save the current module list to 'recipe.txt'
                         - compile                   : Compile the modules to a frida script
-                        - hook (-f,-a,-r-n)
-                            -f                      : Initiate a dialog for hooking a function
+                        - hook [option]
+                    
                             -a [class name]         : Set hooks for all the functions of the given class
+                            -f                      : Initiate a dialog for hooking a Java function
                             -n                      : Initiate a dialog for hooking a native function
                             -r                      : Reset the hooks setted so far
+                ===================================================================================================
 
-                    Native operations:
-                        - libs (-a, -s, -j) package_name    
+                Native operations:
 
-                            -a                      : List ALL loaded libraries
-                            -s                      : List System loaded libraries
-                            -j                      : List Application's Libraries
+                        - libs (-a, -s, -j) package_name [--attach]  
 
-                        - enumerate package libname : Enumerate lib's exported functions 
+                            -a                          : List ALL loaded libraries
+                            -s                          : List System loaded libraries
+                            -j                          : List Application's Libraries
+                            --attach                    : Attach to the process (Default is spawn) 
 
-                        (e.g. - enumerate com.foo.gr libfoo)
+                        - enumerate pkg_name libname [--attach]    
+                        
+                        Enumerate a library's exported functions (e.g. - enumerate com.foo.gr libfoo)
+                ===================================================================================================
 
-                    Frida Session:
+                Frida Session:
+
                         - run        [package name] : Initiate a Frida session and attache to the sellected package
                         - run -f     [package name] : Initiate a Frida session and spawn the sellected package
-                        - dump  package_name        : dump the requested package name
+                        - dump       [package_name] : Dump the requested package name (works for most unpackers)
+                ====================================================================================================
                     
-                    Helpers:
-                        - type 'text'               : send a text to the device
+                Helpers:
+
+                        - type 'text'               : Send a text to the device
                         - list packages             : List 3rd party packages in the mobile device 
+                        - status                    : Print Current Package/Libs/Native-Functions
                         - shell                     : Open an interactive shell
                         - clear                     : Clear the screen
+                ==============================================================================================
 
                         Tip: Use the /modules/scratchpad.med to insert your own hooks and include them to the agent.js 
                         using the 'compile script' command""")

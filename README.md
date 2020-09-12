@@ -253,7 +253,7 @@ Import the recipe by simply typing:
 
 #### Translation module
 
-> Translates the application's UI by hooking 'setText' functions 
+> Translates the application's UI by hooking 'setText' calls  
 
 
 

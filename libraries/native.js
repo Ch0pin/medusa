@@ -32,11 +32,12 @@ function enumerateExportsJs(libname) {
 
       var exports = modulesArray[i].enumerateExports();
         for(var j = 0; j < exports.length; j++)
-          send(exports[j].name);
-        
+          send(exports[j].name);        
           var op = recv('input', function(value) {});
           op.wait();
+          
     }
+    
         if (found) break;
     }
 }
@@ -49,13 +50,10 @@ function enumerateModules(){
 
     for (var i = 0; i < modules.length; i++)
       send(modules[i].path);
-      var op = recv('input', function(value) {
-        
-      });
+      var op = recv('input', function(value) {});
       op.wait();
   }
 
 Java.perform(function() {
-enumerateExportsJs('libjpeg.so');
- 
+enumerateModules(); 
 });

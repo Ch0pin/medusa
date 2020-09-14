@@ -61,6 +61,32 @@ class parser(cmd.Cmd):
                     self.all_mods.append(filepath)
         print('\nTotal modules: ' + str(len(self.all_mods)))
 
+
+
+    def do_memops(self,line):
+
+        self.native_handler = nativeHandler(self.device)
+        self.native_handler.memops(line)
+
+
+
+    def complete_memops(self, text, line, begidx, endidx):
+        self.packages = []
+
+        for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
+            self.packages.append(line1.split(':')[1].strip('\n'))
+        #----------------- 
+        if not text:
+            completions = self.packages[:]
+        else:
+            completions = [ f
+                            for f in self.packages
+                            if f.startswith(text)
+                            ]
+        return completions
+  
+
+
     def do_status(self,line):
         print('[+] Dumping processed data:')
         if(self.device):
@@ -83,9 +109,21 @@ class parser(cmd.Cmd):
     def hook_native(self):
         library = input('[?] Libary name:').strip()
         function = input('[?] Function name:').strip()
+        number_of_args = input('[?] Number of arguments (Insert 0 to disable trace):')
         backtraceEnable = input('[?] Enable backtrace (yes/no):')
         hexdumpEnable = input('[?] Enable memory read (yes/no):')
         
+        argread = ''
+
+        for i in range(int(number_of_args)):
+            argread += '\n\nvar arg'+str(i)+" = Memory.readUtf8String(arg["+str(i)+"]);\n"+"""console.log(hexdump(buf, {
+                offset: 0, 
+                    length:"""+str(24)+""", 
+                    header: true,
+                    ansi: false
+                }));\n""" 
+
+
         if 'yes' in hexdumpEnable:
             buffersize = input('[?] Read Buffer size (0-1024):')
             hexdump = """ 
@@ -113,7 +151,7 @@ class parser(cmd.Cmd):
         codejs = """Interceptor.attach(Module.getExportByName('"""+library+"""', '"""+function+"""'), {
     onEnter: function(args) {
       
-      colorLog("Entering Native function: " +" """+ function+"""",{ c: Color.Red });"""+tracejs+"""
+      colorLog("Entering Native function: " +" """+ function+"""",{ c: Color.Red });"""+argread+tracejs+"""
       
 
     },
@@ -128,7 +166,10 @@ class parser(cmd.Cmd):
 """
         with open('modules/scratchpad.med','a') as script:
             script.write(codejs)
-        print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may include it in the final script.")
+        self.module_list.append('modules/scratchpad.med')
+        self.modified = True
+        print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" run 'compile' to include it in your final script")
+        
 
 
 
@@ -280,7 +321,11 @@ class parser(cmd.Cmd):
 
             with open('recipe.txt','w') as file:
                 for module in self.module_list:
+                    if 'scratchpad' in module:
+                        with open('modules/scratchpad.med','r') as file1:
+                            scratchDat = file1.read()
                     file.write('%s\n' % module)
+                file.write(scratchDat)
             print('Recipe exported to dir: {} as recipe.txt'.format(os.getcwd()))
         except Exception as e:
             print(e) 
@@ -298,7 +343,9 @@ class parser(cmd.Cmd):
             with open('modules/scratchpad.med','a') as script:
                 script.write(codejs)
 
-            print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may include it in the final script.")
+        self.module_list.append('modules/scratchpad.med')
+        self.modified = True
+        print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" run 'compile' to include it in your final script")
 
 
     
@@ -347,7 +394,10 @@ class parser(cmd.Cmd):
                 except KeyboardInterrupt:
                     with open('modules/scratchpad.med','a') as script:
                         script.write(codejs)
-                    print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" ,you may include it in the final script.")
+
+                    self.module_list.append('modules/scratchpad.med')
+                    self.modified = True
+                    print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" run 'compile' to include it in your final script")
                     break
 
         elif "-a" in option:
@@ -828,7 +878,7 @@ class parser(cmd.Cmd):
             print('\n'+BLUE+self.display_tag(line,'Help')+RESET)
         else:
             print("""
-                Module operations:
+                MODULE OPERATIONS:
 
                         - search [keyword]          : Search for a module containing a specific keyword 
                         - help [module name]        : Display help for a module
@@ -842,8 +892,8 @@ class parser(cmd.Cmd):
                         - reset                     : Remove all modules from the list that will be loaded
                 ===================================================================================================
 
-                Script operations:
-                        - export                    : Save the current module list to 'recipe.txt'
+                SCRIPT OPERATIONS:
+                        - export                    : Save the current module list (and extra hooks) to 'recipe.txt'
                         - compile                   : Compile the modules to a frida script
                         - hook [option]
                     
@@ -853,7 +903,9 @@ class parser(cmd.Cmd):
                             -r                      : Reset the hooks setted so far
                 ===================================================================================================
 
-                Native operations:
+                NATIVE OPERATIONS:
+
+                        - memops package_name library   : Read Process Memory
 
                         - libs (-a, -s, -j) package_name [--attach]  
 
@@ -867,14 +919,14 @@ class parser(cmd.Cmd):
                         Enumerate a library's exported functions (e.g. - enumerate com.foo.gr libfoo)
                 ===================================================================================================
 
-                Frida Session:
+                FRIDA SESSION:
 
                         - run        [package name] : Initiate a Frida session and attache to the sellected package
                         - run -f     [package name] : Initiate a Frida session and spawn the sellected package
                         - dump       [package_name] : Dump the requested package name (works for most unpackers)
                 ====================================================================================================
                     
-                Helpers:
+                HELPERS:
 
                         - type 'text'               : Send a text to the device
                         - list packages             : List 3rd party packages in the mobile device 

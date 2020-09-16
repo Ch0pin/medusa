@@ -21,7 +21,7 @@ class nativeHandler():
     modules = []
     device = None
     script = None
-    prompt_ = WHITE+'|' +GREEN+'exit:'+ WHITE+ 'exit |'+GREEN+ 'r@offset:'+ WHITE+' Read at offset '+ WHITE+'|' +GREEN+'enter:'+ WHITE+ 'Next Page |>'
+    prompt_ = WHITE+'|' +GREEN+'(E)xit '+ WHITE+  '|'+GREEN+ 'r@offset ' + WHITE+'|' +GREEN+ 'w@offset '+ WHITE+'|' +GREEN+'⏎ '+ WHITE+ '|' + GREEN + '? (help)' +WHITE + '|:'
 
 
     def __init__(self,device):
@@ -108,21 +108,63 @@ class nativeHandler():
             
 
             cmd = input(self.prompt_) 
-            prev_cmd = 'exit'
+            prev_cmd = 'e'
 
-            while( 'exit' not in cmd):
-                if 'r@' in cmd:
+            while( not cmd.lower().startswith('e')):
+                if cmd.startswith('r@'):
                     cmd = self.read_memory(cmd[2:],script,session,codejs,prolog,epilog,payload)
                     continue
-                # elif cmd == '':
-                #     cmd = prev_cmd
-                #     continue
-                # prev_cmd = cmd
+                elif cmd.startswith('w@'):
+                    in_bytes = input("Bytes to write (in the form of 00 11 22 33):")
+                    bytesx = self.form_bytes(in_bytes)
+                    print("Bytes in:{}".format(bytesx))
+                    self.write_memory(cmd[2:],script,session,codejs,prolog,epilog,payload,bytesx)
+                elif cmd.startswith('?'):
+                    self.display_help()
+              
+
                 cmd = input(self.prompt_) 
 
             script.unload()
         except Exception as e:
             print(e)   
+
+    def display_help(self):
+        print("""Availlable commands:
+        
+        exit:       exit memops
+        r@offset:   read @ offet (e.g. r@beaf)
+        Return:     read next 296 bytes
+        w@offset:   write @ offset (e.g. w@beaf)
+        ?:          Display this message
+        """)
+
+    def write_memory(self,offset, script_in,session_in,codejs_in,prolog_in,epilog_in,payload_in,bytes):
+        script = script_in
+        session = session_in
+        codejs = codejs_in
+        prolog = prolog_in
+        epilog = epilog_in
+        payload=payload_in
+        offset_in = offset
+        arithemetic_offset = int(offset_in,16)
+     
+        
+        try:
+
+            payload += '\nvar address = p_foo.add('+str(arithemetic_offset)+');'
+            payload += '\nvar offset = '+str(arithemetic_offset);
+            payload += "\nconsole.log('Write op started');"
+            payload += '\nMemory.protect(address, 0x5, "rwx");'
+            payload += "\nMemory.writeByteArray(ptr(address), {})".format(bytes)
+            payload += "\nconsole.log('Write op finished');"
+            codejs = prolog + payload + epilog
+            script = session.create_script(codejs)
+            script.load()
+            payload = ''     
+        except Exception as e:
+            print(e)
+
 
 
 
@@ -172,7 +214,8 @@ class nativeHandler():
         return cmd
 
 
-
+    def form_bytes(self,bytes):
+	    return '[%s]' % ','.join(["0x%02x" % int(x, 16) for x in bytes.split(' ')])
 
     def __getitem__(self,key):
         return self.modules

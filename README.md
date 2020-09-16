@@ -24,6 +24,65 @@ It's functionality can be summarised as follows:
 
 ### Updates:
 
+**16/09/2020:** Read/Write process memory
+
+By issuing  **medusa> memops** **package_name** **module_name**, the framework can be used to perform read/write operations in the process memory.
+
+```
+medusa>memops com.camera.zueffect libiio.so
+[i] Using device with id Device(id="192.168.1.5:1111", name="Dev", type='usb')
+[i] Attaching to process com.foo.app [pid:19538]
+|(E)xit |r@offset |⏎ |w@offset |? (help)|:
+```
+
+Issuing a read command (**r@2000**)
+
+```
+READ MEMORY:
+
+|(E)xit |r@offset |⏎ |w@offset |? (help)|:r@2000
+
+0x2000
+Base Address:0x7b62471000 Dumping at:0x7b62473000 Offset:2000
+           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
+00000000  88 0d 00 00 11 00 0c 00 2f ff 02 00 00 00 00 00  ......../.......
+00000010  1d 00 00 00 00 00 00 00 a0 22 00 00 10 00 f1 ff  ........."......
+00000020  30 20 04 00 00 00 00 00 00 00 00 00 00 00 00 00  0 ..............
+00000030  72 0f 00 00 11 00 0c 00 24 fd 02 00 00 00 00 00  r.......$.......
+00000040  01 00 00 00 00 00 00 00 42 0d 00 00 12 00 0b 00  ........B.......
+00000050  3c 08 01 00 00 00 00 00 a8 0c 00 00 00 00 00 00  <...............
+00000060  08 0e 00 00 11 00 0c 00 68 05 03 00 00 00 00 00  ........h.......
+00000070  19 00 00 00 00 00 00 00 c2 02 00 00 11 00 0c 00  ................
+```
+
+Issuing a write command (**w@2000**)
+
+```
+|(E)xit |r@offset |⏎ |w@offset |? (help)|:w@2000
+Bytes to write (in the form of 00 11 22 33):90 90 90 90
+Bytes in:[0x90,0x90,0x90,0x90]
+```
+
+```
+Base Address:0x7b62471000 Dumping at:0x7b62473000 Offset:2000
+           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
+00000000  90 90 90 90 11 00 0c 00 2f ff 02 00 00 00 00 00  ......../.......
+00000010  1d 00 00 00 00 00 00 00 a0 22 00 00 10 00 f1 ff  ........."......
+00000020  30 20 04 00 00 00 00 00 00 00 00 00 00 00 00 00  0 ..............
+00000030  72 0f 00 00 11 00 0c 00 24 fd 02 00 00 00 00 00  r.......$.......
+00000040  01 00 00 00 00 00 00 00 42 0d 00 00 12 00 0b 00  ........B.......
+00000050  3c 08 01 00 00 00 00 00 a8 0c 00 00 00 00 00 00  <...............
+00000060  08 0e 00 00 11 00 0c 00 68 05 03 00 00 00 00 00  ........h.......
+00000070  19 00 00 00 00 00 00 00 c2 02 00 00 11 00 0c 00  ................
+00000080  fa ff 02 00 00 00 00 00 19 00 00 00 00 00 00 00  ................
+```
+
+
+
+
+
+
+
 **01/09/2020**: Native hook support added:
 
 ```

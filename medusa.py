@@ -20,6 +20,7 @@ try:
                         p.module_list.append(module)
                     else:
                         data += line
+            p.modified = True
         if data != '':
             print("[+] Writing to scratchpad...")
             with open('modules/scratchpad.med','w') as file:

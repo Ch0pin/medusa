@@ -317,6 +317,7 @@ class parser(cmd.Cmd):
                 scratch.write(scratchpad)
 
     def do_export(self,line):
+        scratchDat = ''
         try:
 
             with open('recipe.txt','w') as file:

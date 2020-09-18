@@ -894,6 +894,7 @@ class parser(cmd.Cmd):
                 ===================================================================================================
 
                 SCRIPT OPERATIONS:
+
                         - export                    : Save the current module list (and extra hooks) to 'recipe.txt'
                         - compile                   : Compile the modules to a frida script
                         - hook [option]
@@ -906,15 +907,13 @@ class parser(cmd.Cmd):
 
                 NATIVE OPERATIONS:
 
-                        - memops package_name library   : Read Process Memory
-
+                        - memops package_name library   : READ/WRITE/SEARCH process memory
                         - libs (-a, -s, -j) package_name [--attach]  
 
                             -a                          : List ALL loaded libraries
                             -s                          : List System loaded libraries
                             -j                          : List Application's Libraries
                             --attach                    : Attach to the process (Default is spawn) 
-
                         - enumerate pkg_name libname [--attach]    
                         
                         Enumerate a library's exported functions (e.g. - enumerate com.foo.gr libfoo)

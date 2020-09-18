@@ -24,7 +24,7 @@ It's functionality can be summarised as follows:
 
 ### Updates:
 
-**16/09/2020:** Read/Write process memory
+**16/09/2020:** READ/WRITE/SEARCH process memory
 
 By issuing  **medusa> memops** **package_name** **module_name**, the framework can be used to perform read/write operations in the process memory.
 

@@ -21,7 +21,7 @@ class nativeHandler():
     modules = []
     device = None
     script = None
-    prompt_ = WHITE+'|' +GREEN+'(E)xit '+ WHITE+  '|'+GREEN+ 'r@offset ' + WHITE+'|' +GREEN+ 'w@offset '+ WHITE+'|' +GREEN+'⏎ '+ WHITE+ '|' + GREEN + '? (help)' +WHITE + '|:'
+    prompt_ = WHITE+'|' +GREEN+'(E)xit '+ WHITE+  '|'+GREEN+ 'r@offset ' + WHITE+'|' +GREEN+ 'w@offset '+ WHITE+'|' +GREEN+'⏎ '+ WHITE+ '|' +GREEN+ 'scan '+ WHITE+'|'+ GREEN + '(h)elp' +WHITE + '|:'
 
 
     def __init__(self,device):
@@ -76,13 +76,19 @@ class nativeHandler():
         try:
 
             args = line.split(' ')
+
             if len(args)<2:
                 print('Usage: readmem package_name libfoo.so')
+                return
+
 
             package = args[0]
             lib = args[1]
 
+            
+
             prolog = 'Java.perform(function () {\n\n'
+            prolog += 'var module = Process.findModuleByName("'+lib+'");\n'
             prolog += 'var p_foo = Module.findBaseAddress("'+lib+'");'+"""
             if (!p_foo) {
                 console.log("Could not find module....");
@@ -119,8 +125,17 @@ class nativeHandler():
                     bytesx = self.form_bytes(in_bytes)
                     print("Bytes in:{}".format(bytesx))
                     self.write_memory(cmd[2:],script,session,codejs,prolog,epilog,payload,bytesx)
-                elif cmd.startswith('?'):
+                elif cmd.startswith('h'):
                     self.display_help()
+                elif cmd.startswith('scan'):
+                    in_bytes = input("Enter a text or byte array in form of bytes(DE 00 11 ?? ?? BE AF):")
+                    if in_bytes.startswith('bytes('):
+                        pattern = in_bytes[6:].strip(')')
+                    else:
+                        pattern = self.form_scan_input(in_bytes)
+                    print("BYTES IN: {}".format(pattern))
+                    
+                    self.scan_memory(lib,pattern,session,script)
               
 
                 cmd = input(self.prompt_) 
@@ -129,13 +144,73 @@ class nativeHandler():
         except Exception as e:
             print(e)   
 
+
+    def scan_memory(self,lib,pattern,session,script):
+        
+        try:
+            codejs = "var module = Process.findModuleByName('"+lib+"');"
+            codejs += "var pattern = '"+pattern+"';"
+            codejs += """
+    var ranges = Process.enumerateRangesSync({protection: 'r--', coalesce: true});
+    var range;
+    var baseAddress = parseInt(module.base,16);
+    var endAddress = module.size + baseAddress;
+
+    console.log('Module base address:'+module.base);
+    console.log('Module end Address: 0x'+endAddress.toString(16));
+    
+
+
+
+    function processNext(){
+        range = ranges.pop();
+
+        
+        if(!range){
+            // we are done
+            return;
+        }
+
+        var rangeAddress = parseInt(range.base,16);
+
+        if (baseAddress <= rangeAddress)
+        {
+            //console.log('IN RANGE');
+            Memory.scan(range.base, range.size, pattern, {
+
+                onMatch: function(address, size){
+                    if(rangeAddress <= endAddress){
+                        var offset = parseInt(address,16)-baseAddress
+                        console.log('[+] Pattern found at: ' + address.toString() + ' Dec Offset:' + offset.toString(16));
+                        }
+                    }, 
+                onError: function(reason){
+                        console.log('[!] There was an error scanning memory');
+                    }, 
+                onComplete: function(){
+                        processNext();
+                    }
+                });
+            }
+            
+        }
+        processNext();
+"""
+            script = session.create_script(codejs)
+            script.load()
+
+        except Exception as e:
+            print(e)       
+
+
     def display_help(self):
         print("""Availlable commands:
         
-        exit:       exit memops
-        r@offset:   read @ offet (e.g. r@beaf)
-        Return:     read next 296 bytes
-        w@offset:   write @ offset (e.g. w@beaf)
+        (E)xit:     Exit memops
+        r@offset:   Read @ offet (e.g. r@beaf)
+        Return:     Read next 296 bytes
+        w@offset:   Write @ offset (e.g. w@beaf)
+        scan:       Scan a memory region for a pattern
         ?:          Display this message
         """)
 
@@ -191,14 +266,21 @@ class nativeHandler():
                     arithemetic_offset_tmp = hex(int(offset_in,16)+296)
                     arithemetic_offset = hex(int(arithemetic_offset,16) + int(offset_in,16))
 
-                print(arithemetic_offset)
+                print(BLUE+'[+] Offset:' + arithemetic_offset+RESET)
 
                 payload += '\nvar address = p_foo.add('+str(arithemetic_offset)+');'
+                payload += """    
+                var baseAddress = parseInt(p_foo,16);
+                var endAddress = baseAddress + module.size;
+                """
                 payload += '\nvar offset = '+str(arithemetic_offset);
                 payload += """\nvar buf = Memory.readByteArray(ptr(address),296);
-    if(buf) console.log('Base Address:'+p_foo+' Dumping at:'+address+' Offset:'+offset.toString(16));
-    console.log(hexdump(buf, {offset: 0, length:296, header: true, ansi: false
-    }));"""
+                if(buf){
+                
+                    console.log('Address Range:'+p_foo+' --> '+endAddress.toString(16));
+                    console.log('Module Size:' + module.size+' Dumping at:'+address);
+                    console.log(hexdump(buf, {offset: 0, length:296, header: true, ansi: false
+                }))};"""
                 codejs = prolog + payload + epilog
                 script = session.create_script(codejs)
                 script.load()
@@ -212,6 +294,16 @@ class nativeHandler():
             offset_in = cmd
         
         return cmd
+
+    def form_scan_input(self,scan_str):
+        ret = ''
+        for letter in scan_str:
+            bt = str(hex(ord(letter)))[2:]
+            if not scan_str.endswith(letter):
+                ret += bt + ' '
+            else:
+                ret += bt
+        return ret
 
 
     def form_bytes(self,bytes):

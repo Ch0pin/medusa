@@ -25,11 +25,11 @@ request.$init.overloads[0].implementation = function(mMethod1,mUrl1,errorListene
 
     colorLog('[+] Application is initialiazing a volley request:',{c: Color.Green});
     colorLog('[+] Url: '+mUrl1,{c: Color.Blue});
-    if(mMethod1 == 1){
+    if(mMethod1 == 1)
         console.log('[+] Method: POST');
-    }
-    else
-        console.log("[+] Method: "+mMethod1)
+    else if(mMethod1 == 0)
+        console.log("[+] Method: GET");
+    else console.log("[+] Method: "+mMethod1);
     
     return req;
 }
@@ -49,7 +49,5 @@ request.encodeParameters.implementation = function(hashmap, param){
 
     }
     colorLog('[+]===================EOF====================>>',{c: Color.Red});
-    return this.encodeParameters(map,param);
+    return this.encodeParameters(hashmap,param);
 }
-
-

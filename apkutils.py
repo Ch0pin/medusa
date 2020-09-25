@@ -10,7 +10,9 @@ import pty
 from libraries.xmlUtils import *
 from libraries.libapkutils import *
 from xml.dom import minidom
+from xml.etree import ElementTree
 from libraries.APKEnum import performRecon
+import fileinput
 
 RED   = "\033[1;31m"  
 BLUE  = "\033[1;34m"
@@ -25,20 +27,57 @@ INSTALL = False
 
 #enumerate classes
 # js = """Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){send(c);}});});"""
-apktool="./Dependencies/apktool.jar"
+apktool=os.getcwd()+"/dependencies/apktool.jar"
+apksigner = os.getcwd()+"/dependencies/apksigner"
+zipallign = os.getcwd()+ "/dependencies/zipalign"
+debuggable_apk = os.getcwd()+"/debuggable.apk";
+alligned_apk = os.getcwd()+"/debuggable_alligned_signed.apk"
+tmp_folder = os.getcwd()+"/tmp"
+
 
 classes = []
 shell = os.environ.get('SHELL', 'sh')
 
+def patch_debuggable(filename):
+
+    text_to_search = "<application" 
+    replacement_text ='<application android:debuggable="true" '
+
+    with open(filename) as f:
+        if 'android:debuggable="true"' in f.read():
+            print(RED+"[!] Application is debuggable !"+RESET)
+            return False
+
+    with fileinput.FileInput(filename, inplace=True, backup='.bak') as file:
+        for line in file:
+            print(line.replace(text_to_search, replacement_text), end='')
+    return True
+
 
 def print_usage():
     print("\nInput file is missing ! \nUsage: \n\t{} path_to_AndroidManifest.xml OR ".format(sys.argv[0]))
-    print('\t{} path_to_apk \n\n'.format(sys.argv[0]))
+    print('\t{} path_to_apk (--patch to set android:debuggable to true) \n\n'.format(sys.argv[0]))
 
 def extract_manifest(file):
-    print('Unpacking apk....')
+    print(GREEN+'[+] Unpacking apk....'+RESET)
+    subprocess.run('java -jar '+ apktool +' d {} -o {}'.format(file,tmp_folder), shell=True)
 
-    subprocess.run('java -jar '+ apktool +' d {} -o tmp'.format(file), shell=True)
+    if len(sys.argv) > 2 and "--patch" in sys.argv[2]:
+
+        print(GREEN+'[+] Setting debuggable flag....'+RESET)
+        if patch_debuggable(tmp_folder+'/AndroidManifest.xml'):
+            subprocess.run('java -jar '+ apktool +' b tmp -o {}'.format(debuggable_apk), shell=True)
+            print(GREEN+'[+] Running Zipallign.....'+RESET)
+            subprocess.run(zipallign +' -f 4 {} {}'.format(debuggable_apk,alligned_apk),shell=True)
+            print(GREEN+'[+] Signing the apk.....'+RESET)
+            subprocess.run(apksigner +' sign --ks ./dependencies/common.jks -ks-key-alias common --ks-pass pass:password --key-pass pass:password  {}'.format(alligned_apk),shell=True)
+            print(GREEN+'[+] Removing the unsigned apk.....'+RESET)
+            os.remove(debuggable_apk)
+            print(GREEN+'[+] Backing up the original...'+RESET)
+            shutil.move(file,file+'.back')
+            shutil.move(alligned_apk,file)
+
+
     subprocess.run('cp tmp/AndroidManifest.xml ./manifest.xml', shell=True)
     performRecon("./tmp")
     shutil.rmtree('./tmp')

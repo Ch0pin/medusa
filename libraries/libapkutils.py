@@ -343,6 +343,33 @@ class parser(cmd.Cmd):
             print('[!] Usage: screencap -o filename.png')
 
 
+    def do_jdwp(self,line):
+        try:
+            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,line.split(' ')[0])).read()
+            output = os.popen("adb -s {} forward tcp:6667 jdwp:{}".format(self.device.id,pid)).read()
+            print(output)
+            subprocess.run('jdb -attach localhost:6667', shell=True)
+
+        except Exception as e:
+            print(e)
+            print('[!] Usage: jdwp package_name')
+
+
+
+    def complete_jdwp(self, text, line, begidx, endidx):
+
+        self.init_packages()
+        if not text:
+            completions = self.packages[:]
+            self.packages = []
+        else:
+            completions = [ f
+                            for f in self.packages
+                            if f.startswith(text)
+                            ]
+            self.packages = []
+        return completions
+
 
     def do_start(self,line):
         try:         

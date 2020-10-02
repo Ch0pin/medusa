@@ -1,0 +1,127 @@
+#Description: 'Intercept http3 requests/responses'
+#Help: "https://codeshare.frida.re/@owen800q/okhttp3-interceptor/"
+#Code:
+
+console.log('\n\n--------------------okhtt3 interception modified by @ch0pin----------------------');
+        var ByteString = Java.use("okio.ByteString");
+        var Buffer = Java.use("okio.Buffer");
+        var Interceptor = Java.use("okhttp3.Interceptor");
+
+        var MyInterceptor = Java.registerClass({
+            name: "okhttp3.MyInterceptor",
+            implements: [Interceptor],
+            methods: {
+                intercept: function(chain) {
+                    colorLog('\n|------------|okHTTP3 Request intercepted|----------------|',{c: Color.Green});
+                    var request = chain.request();
+                    var requestBody = request.body();
+                    var contentLength = requestBody ? requestBody.contentLength() : 0;
+                 
+                    console.log('\n'+request._method.value + ' '+request._url.value);
+                    console.log('\n');
+
+
+                    if (contentLength > 0) {
+                        
+                            var BufferObj = Buffer.$new();
+                            requestBody.writeTo(BufferObj);  
+                            try{
+                                console.log("\nrequest body String:\n", BufferObj.readString(), "\n");
+                            }
+                            catch(error){
+                                console.log(hexToAscii(ByteString.of(BufferObj.readByteArray()).hex()));
+                            }
+                            
+                    }    
+                    console.log('\n');
+
+    
+                    var response = chain.proceed(request);
+
+
+                    try {
+                            var ContentType = response.headers().get("Content-Type");
+                            var responseBody = response.body();
+                            var contentLength = responseBody ? responseBody.contentLength() : 0;
+                            // console.log(response.headers());
+                            // console.log('ContentType:'+ContentType+', ContentLength:'+contentLength);
+                            colorLog('|------------|Okhttp3 Response intercepted|----------------|', {c: Color.Green});
+                            console.log('SentRequestAtMillis: ' + response._sentRequestAtMillis.value + '\nReceivedResponseAtMillis: '+response._receivedResponseAtMillis.value);
+                            colorLog('|----------------------------------------------------------|', {c: Color.Green});
+                            console.log(response._protocol.value + ' ' + response._code.value + ' ' + response._message.value);
+                            console.log(response.headers());
+                        
+                        
+                        if (contentLength > 0) {
+                            if (ContentType.indexOf("video") == -1) {
+                                if (ContentType.indexOf("application") == 0) {
+                                    var source = responseBody.source();
+                                    if (ContentType.indexOf("application/zip") != 0) {
+                                        try {
+                                            console.log("\n", source.readUtf8(), "\n");
+                                        } catch (error) {
+                                            try {
+                                                console.log("\n", source.readByteString().hex(), "\n");
+                                            } catch (error) {
+                                                console.log("error 4:", error);
+                                            }
+                                        }
+                                }
+                            }
+                        }
+                   
+
+                        }
+
+
+                    colorLog('\n|------------|okHTTP3 Response EOF|------------------------|',{c: Color.Green});
+
+                    } catch (error) {
+                        console.log("ERROR ", error);
+                    }
+
+                    var response = chain.proceed(request);
+
+                    return response;
+                }
+            }
+        });
+
+
+
+        var ArrayList = Java.use("java.util.ArrayList");
+        var OkHttpClient = Java.use("okhttp3.OkHttpClient");
+        //console.log(OkHttpClient);
+        OkHttpClient.$init.overload('okhttp3.OkHttpClient$Builder').implementation = function(Builder) {
+            //console.log("OkHttpClient.$init:", this, Java.cast(Builder.interceptors(), ArrayList));
+            this.$init(Builder);
+        };
+
+        var MyInterceptorObj = MyInterceptor.$new();
+        var Builder = Java.use("okhttp3.OkHttpClient$Builder");
+        console.log(Builder);
+        Builder.build.implementation = function() {
+            this.interceptors().clear();
+            //var MyInterceptorObj = MyInterceptor.$new();
+            this.interceptors().add(MyInterceptorObj);
+            var result = this.build();
+            return result;
+        };
+
+        Builder.addInterceptor.implementation = function(interceptor) {
+            this.interceptors().clear();
+            //var MyInterceptorObj = MyInterceptor.$new();
+            this.interceptors().add(MyInterceptorObj);
+            return this;
+            //return this.addInterceptor(interceptor);
+        };
+
+        var okhttp3HeadersBuilder  = Java.use('okhttp3.Headers$Builder');
+
+        okhttp3HeadersBuilder.checkNameAndValue.implementation = function(key,value){
+            console.log(key+' : '+value);
+            return this.checkNameAndValue(key,value);
+
+        }
+
+

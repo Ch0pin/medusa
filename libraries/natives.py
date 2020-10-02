@@ -78,22 +78,27 @@ class nativeHandler():
             args = line.split(' ')
 
             if len(args)<2:
-                print('Usage: readmem package_name libfoo.so')
+                lib = ''
+            elif len(args) >= 2:
+                lib = args[1]
+            else:
+                print('Usage: memops package_name [lib]')
                 return
 
 
             package = args[0]
-            lib = args[1]
+            
 
             
 
             prolog = 'Java.perform(function () {\n\n'
-            prolog += 'var module = Process.findModuleByName("'+lib+'");\n'
-            prolog += 'var p_foo = Module.findBaseAddress("'+lib+'");'+"""
-            if (!p_foo) {
-                console.log("Could not find module....");
-                return 0;
-            }"""
+            if lib != '':
+                prolog += 'var module = Process.findModuleByName("'+lib+'");\n'
+                prolog += 'var p_foo = Module.findBaseAddress("'+lib+'");'+"""
+                if (!p_foo) {
+                    console.log("Could not find module....");
+                    return 0;
+                }"""
             payload = ''
             epilog = '\n\n});'
 
@@ -146,56 +151,80 @@ class nativeHandler():
 
 
     def scan_memory(self,lib,pattern,session,script):
-        
+     
+        codejs =''
         try:
-            codejs = "var module = Process.findModuleByName('"+lib+"');"
+            if lib != '':
+                codejs += "var module = Process.findModuleByName('"+lib+"');\n"
+
             codejs += "var pattern = '"+pattern+"';"
             codejs += """
-    var ranges = Process.enumerateRangesSync({protection: 'r--', coalesce: true});
-    var range;
-    var baseAddress = parseInt(module.base,16);
-    var endAddress = module.size + baseAddress;
+                    var ranges = Process.enumerateRangesSync({protection: 'r--', coalesce: true});
+                    var range;"""
+            if lib != '':
+                codejs += """ var baseAddress = parseInt(module.base,16);
+                    var endAddress = module.size + baseAddress;
 
-    console.log('Module base address:'+module.base);
-    console.log('Module end Address: 0x'+endAddress.toString(16));
+                    console.log('Module base address:'+module.base);
+                    console.log('Module end Address: 0x'+endAddress.toString(16));"""
     
-
-
-
-    function processNext(){
-        range = ranges.pop();
-
-        
-        if(!range){
-            // we are done
-            return;
-        }
-
-        var rangeAddress = parseInt(range.base,16);
-
-        if (baseAddress <= rangeAddress)
-        {
-            //console.log('IN RANGE');
-            Memory.scan(range.base, range.size, pattern, {
-
-                onMatch: function(address, size){
-                    if(rangeAddress <= endAddress){
-                        var offset = parseInt(address,16)-baseAddress
-                        console.log('[+] Pattern found at: ' + address.toString() + ' Dec Offset:' + offset.toString(16));
-                        }
-                    }, 
-                onError: function(reason){
-                        console.log('[!] There was an error scanning memory');
-                    }, 
-                onComplete: function(){
-                        processNext();
-                    }
-                });
-            }
+            codejs += """
             
-        }
+            function processNext(){
+                        range = ranges.pop();
+
+                        
+                        if(!range){
+                            // we are done
+                            return;
+                        }
+
+                        var rangeAddress = parseInt(range.base,16);"""
+            if lib != '':
+                codejs += """
+                    if (baseAddress <= rangeAddress)
+                    {"""
+            codejs += """
+                    //console.log('IN RANGE');
+                    Memory.scan(range.base, range.size, pattern, {
+
+                        onMatch: function(address, size){"""
+            if lib != '':
+                codejs += """
+                            if(rangeAddress <= endAddress){"""
+            if lib != '':
+                codejs +=   """var offset = parseInt(address,16)-baseAddress;"""
+            else:
+                codejs +=  """var offset = parseInt(address,16)-rangeAddress;"""
+
+            codejs+=            """var buf = Memory.readByteArray(ptr(address),32);
+                                console.log(); 
+                                console.log('[i] Pattern found at: ' + address.toString() + ' | Offset:' + offset.toString(16)+'\t'+hexdump(buf, {offset: 0, length:16, header: false, ansi: false
+                        }));"""
+            if lib == '':
+                codejs += """
+                            var module = Process.findRangeByAddress(range.base);
+                            console.log(JSON.stringify(module));
+                            """
+            if lib != '':
+                codejs += '}'
+            codejs += """
+                            }, 
+                        onError: function(reason){
+                                console.log('[!] There was an error scanning memory');
+                            }, 
+                        onComplete: function(){
+                                processNext();
+                            }
+                        });
+                    }"""
+                    
+            if lib != '':   
+                codejs += '}'
+            codejs += """
         processNext();
 """
+
             script = session.create_script(codejs)
             script.load()
 

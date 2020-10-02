@@ -907,7 +907,7 @@ class parser(cmd.Cmd):
 
                 NATIVE OPERATIONS:
 
-                        - memops package_name library   : READ/WRITE/SEARCH process memory
+                        - memops package_name [library] : READ/WRITE/SEARCH process memory
                         - libs (-a, -s, -j) package_name [--attach]  
 
                             -a                          : List ALL loaded libraries

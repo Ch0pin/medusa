@@ -348,6 +348,7 @@ class parser(cmd.Cmd):
             pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,line.split(' ')[0])).read()
             output = os.popen("adb -s {} forward tcp:6667 jdwp:{}".format(self.device.id,pid)).read()
             print(output)
+            
             subprocess.run('jdb -attach localhost:6667', shell=True)
 
         except Exception as e:
@@ -522,6 +523,9 @@ class parser(cmd.Cmd):
 
                     [+] UTILITIES:
                     ---------------------
+                    - jdwp  package_name        : Open a jdb session with the debugger attached to the package 
+                                                  (Requires the --patch option)
+
                     - adb [cmd]                 : Send an adb command to the connected device
                     - clear                     : Clears the screen
                     - kill [tab]                : Kill an app by the package name

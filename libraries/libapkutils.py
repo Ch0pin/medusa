@@ -136,20 +136,16 @@ class parser(cmd.Cmd):
 
         return script
         
+
+    def do_notify(self,line):
+        try:         
+            output=os.popen("adb -s {} shell am broadcast  -a com.medusa.NOTIFY --es subject {} --es body {}".format(self.device.id,line.split(' ')[0],line.split(' ')[1])).read()
+            print(output)
+        except Exception as e:
+            print(e)
+            return
         
-    # def complete_trace(self, text, line, begidx, endidx):
-    #     # text = line.split(' ')[1].strip('\n')
-    #     # print(text)
-    #     if not text:
-    #         completions = self.classes[:]
-    #         self.packages = []
-    #     else:
-    #         completions = [ f
-    #                         for f in self.classes
-    #                         if f.startswith(text)
-    #                         ]
-    #         self.packages = []
-    #     return completions
+
 
     def init_packages(self):
         for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
@@ -481,6 +477,14 @@ class parser(cmd.Cmd):
         print('Bye !!')
         exit()
 
+
+    def do_installagent(self,line):
+        try:
+            subprocess.run('adb -s {} install {}'.format(self.device.id, os.getcwd()+'/dependencies/agent.apk'),shell=True)
+        except Exception as e:
+            print(e)
+
+
     def do_help(self,line):
         if line != '':
             print('\n'+BLUE+self.display_tag(line,'Help')+RESET)
@@ -523,6 +527,9 @@ class parser(cmd.Cmd):
 
                     [+] UTILITIES:
                     ---------------------
+                    - notify subject body       : Display a notification to the phone's notification bar
+                    e.g. notify test foo          (Requires the medusa agent to be installed and run)
+
                     - jdwp  package_name        : Open a jdb session with the debugger attached to the package 
                                                   (Requires the --patch option)
 

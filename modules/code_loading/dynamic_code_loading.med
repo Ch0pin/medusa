@@ -9,49 +9,69 @@
 console.log('\n--------DCL hook module by @ch0pin--------------');
 
 
-// }
-if(0){
+
+
     var dexclassLoader = Java.use("dalvik.system.DexClassLoader");
-    console.log("dexclassLoader=" + dexclassLoader); 
+    var basedexclassLoader = Java.use("dalvik.system.BaseDexClassLoader");
+    var clazz = Java.use('java.lang.Class');
+
     dexclassLoader.$init.implementation = function(dexPath,  optimizedDirectory,  librarySearchPath,  parent){
+        colorLog('DexClassLoader called:', {c: Color.Green});
+
         console.log("dexPath=" + dexPath );
         console.log("optimizedDirectory=" + optimizedDirectory);
         console.log("librarySearchPath=" + librarySearchPath);
         console.log("parent=" + parent);
-        this.$init(dexPath, optimizedDirectory,  librarySearchPath,  parent);
-    }
-}
 
-if(0){
-   var index = 0;
-   var dexclassLoader = Java.use("dalvik.system.BaseDexClassLoader");
-    console.log("dexclassLoader=" + dexclassLoader); 
-    dexclassLoader.$init.overload("java.lang.String", "java.io.File", "java.lang.String", "java.lang.ClassLoader").implementation = function(dexPath,  optimizedDirectory,  librarySearchPath,  parent){
-       console.log( ++index +"、--------------------------");
-        console.log("dexPath=" + dexPath );
-        console.log("optimizedDirectory=" + optimizedDirectory);
-        console.log("librarySearchPath=" + librarySearchPath);
-        console.log("parent=" + parent);           
-        this.$init(dexPath, optimizedDirectory,  librarySearchPath,  parent);
+        return this.$init(dexPath, optimizedDirectory,  librarySearchPath,  parent);
     }
-    dexclassLoader.$init.overload("[Ljava.nio.ByteBuffer;", "java.lang.ClassLoader").implementation = function(byteBuffer,   parent){
-        console.log(++index +"、--------------------------");
-        console.log("byteBuffer=" + byteBuffer );           
-        console.log("parent=" + parent);            
-        this.$init(byteBuffer, parent);
-    }
-}
 
-if(1){
-     var dexclassLoader = Java.use("dalvik.system.BaseDexClassLoader");
-     var ClassUse = Java.use("java.lang.Class");
+    basedexclassLoader.$init.overloads[0].implementation = function(dexPath,  optimizedDirectory,  librarySearchPath,  parent){
+        colorLog('BaseDexClassLoader called:', {c: Color.Green});
+         console.log("dexPath=" + dexPath );
+         console.log("optimizedDirectory=" + optimizedDirectory);
+         console.log("librarySearchPath=" + librarySearchPath);
+         console.log("parent=" + parent);           
+         return this.$init(dexPath, optimizedDirectory,  librarySearchPath,  parent);
+     }
+
+    //  clazz.getMethod.overloads[0].implementation = function(name,params){
+    //      colorLog('Loading class method:', {c: Color.Red});
+    //      return this.getMethod(name,params);
+    //  }
+    //  clazz.getMethod.overloads[1].implementation = function(name,params,bl){
+    //     colorLog('Loading class method:', {c: Color.Red});
+    //     return this.getMethod(name,params,bl);
+    // }
+    // .overload('[Ljava.nio.ByteBuffer;', 'java.lang.String', 'java.lang.ClassLoader')
+	// .overload('java.lang.String', 'java.lang.String', 'java.lang.ClassLoader', '[Ljava.lang.ClassLoader;')
+	// .overload('java.lang.String', 'java.io.File', 'java.lang.String', 'java.lang.ClassLoader')
+	// .overload('java.lang.String', 'java.io.File', 'java.lang.String', 'java.lang.ClassLoader', 'boolean')
+	// .overload('java.lang.String', 'java.lang.String', 'java.lang.ClassLoader', '[Ljava.lang.ClassLoader;', 'boolean')
+
+
+
+
+
+    // dexclassLoader.$init.overload("[Ljava.nio.ByteBuffer;", "java.lang.ClassLoader").implementation = function(byteBuffer,   parent){
+    //     console.log(++index +"、--------------------------");
+    //     console.log("byteBuffer=" + byteBuffer );           
+    //     console.log("parent=" + parent);            
+    //     this.$init(byteBuffer, parent);
+    // }
+
+
+
+    //  var dexclassLoader = Java.use("dalvik.system.BaseDexClassLoader");
+    var ClassUse = Java.use("java.lang.Class");
      dexclassLoader.loadClass.overload("java.lang.String").implementation = function(className){
-         console.log("[i] DEX Class loader for ClassName=" + className+'\n');
+         colorLog("[i] DEX Class loader for ClassName=" + className+'\n',{c: Color.Green});
          var result = this.loadClass(className);
          var resultCast = Java.cast(result, ClassUse);
-         //console.log("[+] Methods=" + resultCast.getMethods()+'\n');
+         console.log("[+] Methods=" + resultCast.getMethods()+'\n');
          return result;
      }
-}
+     
+// }
 
 

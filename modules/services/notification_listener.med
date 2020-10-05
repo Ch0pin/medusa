@@ -1,0 +1,35 @@
+
+#Description: 'SBN - (status bar notification) listener intercept'
+#Help:The notification listener is commonly used from many malware apps 
+to intercept various notifications events including sent OTPs e.t.c. 
+#Code:
+
+var telephonySms = Java.use('android.provider.Telephony$Sms');
+var statusBarNotification = Java.use('android.service.notification.StatusBarNotification');
+var notification = Java.use('android.app.Notification');
+
+telephonySms.getDefaultSmsPackage.implementation = function(context){
+    ColorLog('[+] Changing default SMS package to com.medusa.agent.', {c: Color.Blue});
+    return "com.medusa.agent";
+
+}
+
+statusBarNotification.getOpPkg.implementation = function(){
+    ColorLog('[+] The application requests the package that posted the notification.', {c: Color.Blue});
+    return this.getOpPkg();
+
+}
+
+statusBarNotification.getPackageName.implementation = function(){
+    ColorLog('[+] The application requests the package that the notification belongs to.', {c: Color.Blue});
+    return this.getPackageName();
+
+}
+statusBarNotification.getNotification.implementation = function(){
+    ColorLog('[+] The application requests the notification text.', {c: Color.Blue});
+    var bundle = this.getNotification();
+    console.log('[+ +] '+bundle._extras.getCharSequence("android.text","").toString());
+    return this.getNotification();
+
+}
+

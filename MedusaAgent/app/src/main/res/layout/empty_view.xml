@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="No files or directories"
+        android:background="@android:drawable/toast_frame"
+        android:textSize="28sp"
+        android:gravity="center_vertical|center_horizontal" />
+
+</LinearLayout>

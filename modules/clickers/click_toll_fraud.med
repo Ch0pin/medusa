@@ -13,6 +13,7 @@ console.log('\n----Loading toll fraud Hooks by @ch0pin-----');
 
 var wifiManager = Java.use("android.net.wifi.WifiManager");
 var telephonyManager = Java.use('android.telephony.TelephonyManager');
+
 		
 telephonyManager.getSimOperator.overload().implementation = function(){
 	console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');

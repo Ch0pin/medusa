@@ -90,68 +90,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //        loadDexButton.setOnClickListener(new View.OnClickListener(){
-//            @Override
-//            //On click function
-//            public void onClick(View view) {
-//                String[] PERMISSIONS = {
-//                        android.Manifest.permission.READ_EXTERNAL_STORAGE,
-//                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-//                };
-//
-//                if(hasPermissions(MainActivity.this, PERMISSIONS)){
-//                    ShowFilepicker();
-//                }else{
-//                    ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS, FILEPICKER_PERMISSIONS);
-//                }
-//            }
-//        });
-
-
-
-
-//        loadDexButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//                Intent intent = new Intent(getApplicationContext(), FolderPicker.class);
-//                startActivityForResult(intent, 1);
-//            }
-//            });
-//
-
 
 
 
     }
-//    /**
-//     * Method that displays the filepicker of the StorageChooser.
-//     */
-//    public void ShowFilepicker(){
-//        // 1. Initialize dialog
-//        final StorageChooser chooser = new StorageChooser.Builder()
-//                .setDialogTitle("Choose a dex or jar file")
-//                .showHidden(true)
-//
-//                .withActivity(MainActivity.this)
-//                .withFragmentManager(getFragmentManager())
-//                .withMemoryBar(true)
-//                .allowCustomPath(true)
-//                .setType(StorageChooser.FILE_PICKER)
-//                .build();
-//
-//        // 2. Retrieve the selected path by the user and show in a toast !
-//        chooser.setOnSelectListener(new StorageChooser.OnSelectListener() {
-//            @Override
-//            public void onSelect(String path) {
-//                filePath.setText(path);
-//                //Toast.makeText(MainActivity.this, "The selected path is : " + path, Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//
-//        // 3. Display File Picker !
-//        chooser.show();
-//    }
+
 
     /**
      * Helper method that verifies whether the permissions of a given array are granted or not.

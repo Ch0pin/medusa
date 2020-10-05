@@ -10,7 +10,7 @@
 
 - Introducing **Medusa Agent**, to load and explore dex or jar files dropped by APKs:
 
-<img src="https://user-images.githubusercontent.com/4659186/95062556-1096bb00-06f5-11eb-9dda-62bfacaa0570.png" alt="medusa_agent" style="zoom:15%;" />
+<img src="https://user-images.githubusercontent.com/4659186/95062556-1096bb00-06f5-11eb-9dda-62bfacaa0570.png" alt="medusa_agent" width="230" height="430" />
 
 - Spoof the Notification Listeners
 

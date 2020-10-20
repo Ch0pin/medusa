@@ -14,6 +14,36 @@ console.log('\n----Loading toll fraud Hooks by @ch0pin-----');
 var wifiManager = Java.use("android.net.wifi.WifiManager");
 var telephonyManager = Java.use('android.telephony.TelephonyManager');
 
+telephonyManager.getNetworkOperator.overload().implementation = function(){
+	console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperator detected');
+	return this.getNetworkOperator();
+}
+telephonyManager.getNetworkOperator.overload('int').implementation = function(a){
+	console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperator detected');
+	return this.getNetworkOperator();
+}
+telephonyManager.getNetworkOperatorName.overload().implementation = function(){
+    console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperatorName detected');
+    return this.getNetworkOperatorName();
+
+}
+telephonyManager.getNetworkOperatorName.overload('int').implementation = function(a){
+    console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperatorName detected');
+    return this.getNetworkOperatorName();
+
+}
+telephonyManager.getDataNetworkType.overload().implementation = function(){
+    console.log('[!] A call to android.telephony.TelephonyManager.getDataNetworkType detected');
+    return this.getDataNetworkType();
+
+}
+telephonyManager.getDataNetworkType.overload('int').implementation = function(a){
+    console.log('[!] A call to android.telephony.TelephonyManager.getDataNetworkType detected');
+    return this.getDataNetworkType();
+
+}
+
+
 		
 telephonyManager.getSimOperator.overload().implementation = function(){
 	console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');

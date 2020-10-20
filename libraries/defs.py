@@ -116,7 +116,7 @@ class parser(cmd.Cmd):
         argread = ''
 
         for i in range(int(number_of_args)):
-            argread += '\n\nvar arg'+str(i)+" = Memory.readUtf8String(arg["+str(i)+"]);\n"+"""console.log(hexdump(buf, {
+            argread += '\n\nvar arg'+str(i)+" = Memory.readUtf8String(arg["+str(i)+"]);\n"+"""console.log(hexdump(arg"""+str(i)+""", {
                 offset: 0, 
                     length:"""+str(24)+""", 
                     header: true,
@@ -166,7 +166,9 @@ class parser(cmd.Cmd):
 """
         with open('modules/scratchpad.med','a') as script:
             script.write(codejs)
-        self.module_list.append('modules/scratchpad.med')
+        module_x = 'modules/scratchpad.med'
+        if module_x not in self.module_list:
+            self.module_list.append('modules/scratchpad.med')
         self.modified = True
         print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" run 'compile' to include it in your final script")
         
@@ -344,7 +346,9 @@ class parser(cmd.Cmd):
             with open('modules/scratchpad.med','a') as script:
                 script.write(codejs)
 
-        self.module_list.append('modules/scratchpad.med')
+        module_x = 'modules/scratchpad.med'
+        if module_x not in self.module_list:
+            self.module_list.append('modules/scratchpad.med')
         self.modified = True
         print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" run 'compile' to include it in your final script")
 
@@ -396,7 +400,11 @@ class parser(cmd.Cmd):
                     with open('modules/scratchpad.med','a') as script:
                         script.write(codejs)
 
-                    self.module_list.append('modules/scratchpad.med')
+
+                    module_x = 'modules/scratchpad.med'
+                    if module_x not in self.module_list:
+                        self.module_list.append('modules/scratchpad.med')
+
                     self.modified = True
                     print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" run 'compile' to include it in your final script")
                     break
@@ -422,8 +430,8 @@ class parser(cmd.Cmd):
         try:
             what = line.split(' ')[0]
             for module in self.all_mods:
-                if what in module:
-                    print(module[:str(module).find(what)]+GREEN+what+RESET+module[str(module).find(what)+len(what):])
+                if what.lower() in module.lower():
+                    print(module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
                     found = True
             if not found:
                 print('No modules found containing: {} !'.format(what))
@@ -549,7 +557,8 @@ class parser(cmd.Cmd):
         return completions
 
     def do_use(self,mod):
-        self.module_list.append(mod)
+        if mod not in self.module_list:
+            self.module_list.append(mod)
         print("\nCurrent Mods:")
         self.show_mods()
         # for module in self.module_list:

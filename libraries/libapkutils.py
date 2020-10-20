@@ -47,24 +47,24 @@ class parser(cmd.Cmd):
             what = line.split(' ')[0]
 
             for module in self.activities:
-                if what in module:
-                    print(module[:str(module).find(what)]+GREEN+what+RESET+module[str(module).find(what)+len(what):])
+                if what.lower() in module.lower():
+                    print(module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
                     found = True
             if not found:
                 print('No Activities found containing: {} !'.format(what))
 
             found = False
             for module in self.services:
-                if what in module:
-                    print(module[:str(module).find(what)]+GREEN+what+RESET+module[str(module).find(what)+len(what):])
+                if what.lower() in module.lower():
+                    print(module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
                     found = True
             if not found:
                 print('No Services found containing: {} !'.format(what))
 
             found = False
             for module in self.receivers:
-                if what in module:
-                    print(module[:str(module).find(what)]+GREEN+what+RESET+module[str(module).find(what)+len(what):])
+                if what.lower() in module.lower():
+                    print(module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
                     found = True
             if not found:
                 print('No Receivers found containing: {} !'.format(what))
@@ -72,8 +72,8 @@ class parser(cmd.Cmd):
 
             found = False
             for module in self.providers:
-                if what in module:
-                    print(module[:str(module).find(what)]+GREEN+what+RESET+module[str(module).find(what)+len(what):])
+                if what.lower() in module.lower():
+                    print(module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
                     found = True
             if not found:
                 print('No Providers found containing: {} !'.format(what))

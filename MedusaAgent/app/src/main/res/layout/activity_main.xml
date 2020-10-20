@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/darker_gray"
     tools:context=".MainActivity">
-
 
 
     <LinearLayout
@@ -44,14 +44,14 @@
             android:textSize="18sp" />
 
         <TextView
-            android:textStyle="bold"
-            android:textColor="#b084E1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Class Name to Load"
             android:layout_marginTop="100dp"
+            android:labelFor="@id/class_to_load"
+            android:text="Class Name to Load"
+            android:textColor="#b084E1"
             android:textSize="18sp"
-            android:labelFor="@id/class_to_load" />
+            android:textStyle="bold" />
 
         <EditText
             android:layout_width="match_parent"
@@ -72,10 +72,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+
         <Button
             android:id="@+id/invoke_Function"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="66dp"
             android:layout_marginLeft="100dp"
             android:layout_marginRight="100dp"
             android:text="Invoke function" />

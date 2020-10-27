@@ -29,7 +29,7 @@ telephonyManager.getNetworkOperatorName.overload().implementation = function(){
 }
 telephonyManager.getNetworkOperatorName.overload('int').implementation = function(a){
     console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperatorName detected');
-    return this.getNetworkOperatorName();
+    return this.getNetworkOperatorName(a);
 
 }
 telephonyManager.getDataNetworkType.overload().implementation = function(){

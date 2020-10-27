@@ -4,9 +4,15 @@
 to intercept various notifications events including sent OTPs e.t.c. 
 #Code:
 
+//var statusBarNotification = Java.use('android.service.notification.StatusBarNotification');
+
+// var service = Java.use('android.service.notification.NotificationListenerService');
+
+
 var telephonySms = Java.use('android.provider.Telephony$Sms');
 var statusBarNotification = Java.use('android.service.notification.StatusBarNotification');
-var notification = Java.use('android.app.Notification');
+var bundle = Java.use('android.os.Bundle');
+
 
 telephonySms.getDefaultSmsPackage.implementation = function(context){
     ColorLog('[+] Changing default SMS package to com.medusa.agent.', {c: Color.Blue});
@@ -14,22 +20,22 @@ telephonySms.getDefaultSmsPackage.implementation = function(context){
 
 }
 
-statusBarNotification.getOpPkg.implementation = function(){
-    ColorLog('[+] The application requests the package that posted the notification.', {c: Color.Blue});
-    return this.getOpPkg();
 
+statusBarNotification.key.overloads[0].implementation = function() {
+
+    var retval = this['key'].apply(this, arguments); 
+    var strArray = retval.split('|');
+
+    colorLog("\n[+] Status bar notification posted:"+ this.toString(),{c: Color.Green});
+    console.log('\tIdentifier: '+strArray[0]+'\n\tPackage: '+strArray[1]+'\n\tID:'+strArray[2]+'\n\ttag:'+strArray[3]+'\n\tUser Id:'+strArray[4]);
+
+    return retval;
 }
 
 statusBarNotification.getPackageName.implementation = function(){
-    ColorLog('[+] The application requests the package that the notification belongs to.', {c: Color.Blue});
-    return this.getPackageName();
+    colorLog("\n[+] GetPackageName called Returning:com.whatsapp" ,{c: Color.Green});
+    return "com.whatsapp";
+
 
 }
-statusBarNotification.getNotification.implementation = function(){
-    ColorLog('[+] The application requests the notification text.', {c: Color.Blue});
-    var bundle = this.getNotification();
-    console.log('[+ +] '+bundle._extras.getCharSequence("android.text","").toString());
-    return this.getNotification();
-
-}
-
+traceClass('android.app.Notification');

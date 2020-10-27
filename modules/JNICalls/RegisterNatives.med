@@ -1,0 +1,61 @@
+#Description: 'jint RegisterNatives(JNIEnv *env, jclass clazz, const JNINativeMethod *methods, jint nMethods)'
+#Help: Registers native methods with the class specified by the clazz argument. 
+The methods parameter specifies an array of JNINativeMethod structures that contain the names, 
+signatures, and function pointers of the native methods. The name and signature fields of the 
+JNINativeMethod structure are pointers to modified UTF-8 strings. The nMethods parameter specifies 
+the number of native methods in the array. The JNINativeMethod structure is defined as follows:
+
+typedef struct { 
+
+    char *name; 
+
+    char *signature; 
+
+    void *fnPtr; 
+
+} JNINativeMethod; 
+
+The function pointers nominally must have the following signature:
+
+ReturnType (*fnPtr)(JNIEnv *env, jobject objectOrClass, ...); 
+
+#Code:
+
+
+
+var RevealNativeMethods = function() {
+    var pSize = Process.pointerSize;
+    var env = Java.vm.getEnv();
+    var RegisterNatives = 215, FindClassIndex = 6; // search "215" @ https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html
+    var jclassAddress2NameMap = {};
+    function getNativeAddress(idx) {
+      return env.handle.readPointer().add(idx * pSize).readPointer();
+    }
+    // intercepting FindClass to populate Map<address, jclass>
+    Interceptor.attach(getNativeAddress(FindClassIndex), {
+      onEnter: function(args) {
+        jclassAddress2NameMap[args[0]] = args[1].readCString();
+      }
+    });
+    // RegisterNative(jClass*, .., JNINativeMethod *methods[nMethods], uint nMethods) // https://android.googlesource.com/platform/libnativehelper/+/master/include_jni/jni.h#977
+    Interceptor.attach(getNativeAddress(RegisterNatives), {
+      onEnter: function(args) {
+          colorLog('[+] Entering RegisterNatives: ',{c:Color.Green});
+        for (var i = 0, nMethods = parseInt(args[3]); i < nMethods; i++) {
+    
+          var structSize = pSize * 3; // = sizeof(JNINativeMethod)
+          var methodsPtr = ptr(args[2]);
+          var signature = methodsPtr.add(i * structSize + pSize).readPointer();
+          var fnPtr = methodsPtr.add(i * structSize + (pSize * 2)).readPointer(); // void* fnPtr
+          var jClass = jclassAddress2NameMap[args[0]].split('/');
+          var methodName = methodsPtr.add(i * structSize).readPointer().readCString();
+
+          console.log('\t[-] Module: '+DebugSymbol.fromAddress(fnPtr)['moduleName']+ ', Address: @'+fnPtr+'--> Package: '+jClass.slice(0, -1).join('.')+'.'+methodName+signature.readCString());
+       
+
+        }
+      }
+    });
+  }
+  
+  Java.perform(RevealNativeMethods);

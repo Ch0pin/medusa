@@ -1,0 +1,38 @@
+#Description: 'Use this module to monitor asset file operations (used usually for Dynamic code loading)'
+#Help: 'Hooks the following calls
+- openNonAssetFd
+- openFd
+- open
+#Code:
+
+
+var assetManager = Java.use('android.content.res.AssetManager');
+
+
+assetManager.open.overloads[0].implementation = function(filename,accessMode){
+    colorLog('[+] Application is acquiring the asset (access_mode): '+filename );
+    return this.open(filename,accessMode);
+}
+
+assetManager.open.overloads[1].implementation = function(filename){
+    colorLog('[+] Application is acquiring the asset: '+filename );
+    return this.open(filename);
+}
+
+assetManager.openFd.implementation = function(filename){
+    colorLog('[+] Application is acquiring the (uncompressed) asset: '+filename );
+    return this.openFd(filename);
+}
+
+
+traceClass('android.content.res.AssetManager');
+
+// assetManager.openNonAssetFd.overloads[0].implementation = function(filename){
+//     colorLog('[+] Application is acquiring the '+filename+' as an asset' );
+//     return this.openNonAssetFd(filename);
+// }
+// assetManager.openNonAssetFd.overloads[1].implementation = function(cookie,filename){
+//     colorLog('[+] Application is acquiring the '+filename+' as an asset' );
+//     return this.openNonAssetFd(cookie,filename);
+// }
+

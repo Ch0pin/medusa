@@ -1,0 +1,21 @@
+#Description: 'jclass DefineClass(JNIEnv *env, const char *name, jobject loader, const jbyte *buf, jsize bufLen);'
+
+#Help: Loads a class from a buffer of raw class data. The buffer containing the raw class 
+data is not referenced by the VM after the DefineClass call returns, and it may be discarded if desired.
+
+#Code:
+
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"DefineClass"),{         
+    onEnter: function(args){
+     
+        try{
+            var name = args[1];
+
+            colorLog('DefineClass:'+name,{c: Color.Red});
+        }
+        catch(err){
+            console.log(err);
+        }
+
+    }
+})

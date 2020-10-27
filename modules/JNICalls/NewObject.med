@@ -1,0 +1,61 @@
+#Description: 'jobject NewObject(JNIEnv *env, jclass clazz,  jmethodID methodID, ...)'
+
+#Help: Loads a class from a buffer of raw class data. The buffer containing the raw class 
+data is not referenced by the VM after the DefineClass call returns, and it may be discarded if desired.
+
+#Code:
+
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"NewObject"),{         
+    onEnter: function(args){
+     
+        try{
+            var Class = Java.use("java.lang.Class")
+            const obj_class = args[1]
+            var castme = Java.cast(obj_class, Class);
+
+        
+            colorLog('[+] new object: obj->'+castme,{c: Color.Gray});
+        }
+        catch(err){
+            console.log(err);
+        }
+
+    }
+})
+
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"NewObjectA"),{         
+    onEnter: function(args){
+     
+        try{
+            var Class = Java.use("java.lang.Class")
+            const obj_class = args[1]
+            var castme = Java.cast(obj_class, Class);
+
+        
+            colorLog('[+] new object (A): obj->'+castme,{c: Color.Gray});
+        }
+        catch(err){
+            console.log(err);
+        }
+
+    }
+})
+
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"NewObjectV"),{         
+    onEnter: function(args){
+     
+        try{
+
+            var Class = Java.use("java.lang.Class")
+            const obj_class = args[1]
+            var castme = Java.cast(obj_class, Class);
+
+        
+            colorLog('[+] new object (V): obj->'+castme,{c: Color.Gray});
+        }
+        catch(err){
+            console.log(err);
+        }
+
+    }
+})

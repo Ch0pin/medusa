@@ -116,12 +116,10 @@ class parser(cmd.Cmd):
         argread = ''
 
         for i in range(int(number_of_args)):
-            argread += '\n\nvar arg'+str(i)+" = Memory.readUtf8String(arg["+str(i)+"]);\n"+"""console.log(hexdump(arg"""+str(i)+""", {
-                offset: 0, 
-                    length:"""+str(24)+""", 
-                    header: true,
-                    ansi: false
-                }));\n""" 
+            argread += '\n\n try { var arg'+str(i)+" = Memory.readUtf8String(ptr(args["+str(i)+"]));\n"+"""console.log('Arg("""+str(i)+"""):'+arg"""+str(i)+""");\n } 
+catch (err) {
+    console.log('Error:'+err);
+}""" 
 
 
         if 'yes' in hexdumpEnable:
@@ -140,27 +138,36 @@ class parser(cmd.Cmd):
 
         if 'yes' in backtraceEnable:
             tracejs = """
-            colorLog("Backtrace: ",{ c: Color.Green });
-            var trace = Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress);
-        for (var j in trace)
-            console.log('\t'+trace[j]);"""
+            try{
+                colorLog("Backtrace: ",{ c: Color.Green });
+                var trace = Thread.backtrace(this.context, Backtracer.ACCURATE);
+                    for (var j in trace)
+                colorLog('\t b_trace->'+DebugSymbol.fromAddress( trace[j]),{c: Color.Blue});
+                }
+            catch(err){
+                console.log('Error:'+err);
+            }"""
         else:
             tracejs = ''
 
 
         codejs = """Interceptor.attach(Module.getExportByName('"""+library+"""', '"""+function+"""'), {
     onEnter: function(args) {
-      
-      colorLog("Entering Native function: " +" """+ function+"""",{ c: Color.Red });"""+argread+tracejs+"""
+      console.log();
+      colorLog("[--->] Entering Native function: " +" """+ function+"""",{ c: Color.Red });"""+argread+tracejs+"""
       
 
     },
     onLeave: function(retval) {
 
-      colorLog("Leaving Native function: " +" """+ function+""" ",{ c: Color.Red });
-      colorLog("Return Value: " + retval , {c: Color.Green});"""+hexdump+"""
-      
-      //retval.replace();
+      try{
+            colorLog("Return Value @" + retval , {c: Color.Green});"""+hexdump+"""
+            colorLog("[<---] Leaving Native function: " +" """+ function+""" ",{ c: Color.Red });
+            //retval.replace();
+            }
+      catch(err){
+          console.log('Error:'+err);
+      }
     }
 });
 """
@@ -685,37 +692,58 @@ class parser(cmd.Cmd):
 
 
     def parse_module(self,mods):
-        hooks = []
-        with open('libraries/utils.js','r') as file:
-            header = file.read();
-        hooks.append(header);
-        hooks.append("\n\nJava.perform(function() {")
-        for file in mods:
-            codeline_found = False
+        try:
 
-            with open(file) as mod:
-                content = mod.readlines()
-                hooks.append(' try { ')
-
-            for i in range(len(content)):
-                if content[i].startswith('#Code:'):
-                    codeline_found = True
-                    i += 1
-                if codeline_found:
-                    hooks.append('\t\t'+content[i].strip('\n'))
+            hooks = []
+            jni_prolog_added=False
+            with open('libraries/utils.js','r') as file:
+                header = file.read();
+            hooks.append(header);
+            hooks.append("\n\nJava.perform(function() {")
+            for file in mods:
+                codeline_found = False
+                if 'JNICalls' in file and not jni_prolog_added:
+                    hooks.append("""
+    var jnienv_addr = 0x0
+                    
+    try{
         
+        Java.perform(function(){jnienv_addr = Java.vm.getEnv().handle.readPointer();});
+        console.log("[+] Hooked successfully, JNIEnv base adress :" + jnienv_addr);
+    }
+    catch(err){
+        console.log('Error:'+err);
+    }
+        
+                    """)
+                    jni_prolog_added = True
 
-            hooks.append("""    } catch (err) {
-                        console.log('Error loading module %s, Error:'+err);
-                }"""%file)
+                with open(file) as mod:
+                    content = mod.readlines()
+                    hooks.append(' try { ')
+
+                for i in range(len(content)):
+                    if content[i].startswith('#Code:'):
+                        codeline_found = True
+                        i += 1
+                    if codeline_found:
+                        hooks.append('\t\t'+content[i].strip('\n'))
             
-        hooks.append('});')
 
-        with open('agent.js','w') as agent:
-            for line in hooks:
-                agent.write('%s\n' % line)
-        print("\nScript is compiled\n")
-        self.modified = False
+                hooks.append("""    } catch (err) {
+                            console.log('Error loading module %s, Error:'+err);
+                    }"""%file)
+                
+            hooks.append('});')
+
+            with open('agent.js','w') as agent:
+                for line in hooks:
+                    agent.write('%s\n' % line)
+            print("\nScript is compiled\n")
+            self.modified = False
+
+        except Exception as e:
+            print(e)
 
 
 

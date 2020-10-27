@@ -1,0 +1,14 @@
+#Description: 'void Set<PrimitiveType>ArrayRegion(JNIEnv *env, ArrayType array,jsize start, jsize len, const NativeType *buf)'
+
+#Help: A family of functions that copies back a region of a primitive array from a buffer.
+
+#Code:
+
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"SetByteArrayRegion"),{         
+    onEnter: function(args){
+     
+        var bytebuffer = Memory.readUtf8String(args[4]);
+        console.log("SetByteArrayRegion :");
+        colorLog(bytebuffer,{c: Color.Green});
+    }
+})

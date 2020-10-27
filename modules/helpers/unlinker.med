@@ -10,8 +10,20 @@ console.log('\n--------Unlink hook module--------------');
 // create a pointer to the function in the module
 
 var unlinkPtr = Module.findExportByName(null, 'unlink');
+Interceptor.attach(unlinkPtr,{         
+    onEnter: function(args){
+     
+        try{
+            var name = Memory.readUtf8String(args[0]);
 
- 
+            colorLog('Delete Requested for file:'+name,{c: Color.Red});
+        }
+        catch(err){
+            console.log(err);
+        }
+
+    }
+})
 
 Interceptor.replace(unlinkPtr, new NativeCallback(function (){  
 
@@ -23,8 +35,8 @@ Interceptor.replace(unlinkPtr, new NativeCallback(function (){
 var f = Java.use("java.io.File") 
 f.delete.implementation = function(a){ 
     s = this.getAbsolutePath() 
-    if(s.includes("jar")){ 
+    //if(s.includes("jar")){ 
        console.log("[+] Delete catched =>" +this.getAbsolutePath()) 
-    } 
+    //} 
     return true 
 } 

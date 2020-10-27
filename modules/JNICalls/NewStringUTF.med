@@ -1,0 +1,11 @@
+#Description: 'jstring NewStringUTF(JNIEnv *env, const char *bytes)'
+#Help: Constructs a new java.lang.String object from an array of characters in modified UTF-8 encoding.
+
+#Code:
+
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"NewStringUTF"),{         
+    onEnter: function(args){
+        var str = Memory.readCString(args[1]);
+        colorLog('[+] NewStringUTF: '+str,{c:Color.Gray});
+    }
+})

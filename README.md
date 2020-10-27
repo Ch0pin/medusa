@@ -355,6 +355,7 @@ Import the recipe by simply typing:
 - https://github.com/hluwa/FRIDA-DEXDump.git
 - https://github.com/shivsahni/APKEnum
 - https://github.com/0xdea/frida-scripts
+- https://github.com/Areizen/JNI-Frida-Hook
 
 
 

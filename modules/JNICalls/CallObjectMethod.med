@@ -1,0 +1,29 @@
+#Description: 'Call<type>Method(JNIEnv *env, jobject obj,jmethodID methodID, ...)'
+
+#Help: Programmers place all arguments that are to be passed to the method immediately following the methodID argument. 
+The Call<type>Method routine accepts these arguments and passes them to the Java method that the programmer wishes to invoke.
+
+
+#Code:
+
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"CallObjectMethodV"),{         
+    onEnter: function(args){
+  
+        try{ 
+
+            var obj = Java.use("java.lang.Object")
+            var obj_class = args[1]
+
+            var castme = Java.cast(obj_class, obj);
+
+            console.log('env->'+'CallObjectMethodV'+'('+jnienv_addr+','+castme.getClass().getName()+', va_args)');
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+    
+})
+
+
+

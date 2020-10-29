@@ -1605,7 +1605,7 @@ if (SQLiteDatabase.delete) {
 
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#deleteDatabase(java.io.File)
 if (SQLiteDatabase.deleteDatabase) {
-  SQLiteDatabase.deleteDatabase.implementation = function(file) {
+  SQLiteDatabase.deleteDatabase.overloads[0].implementation = function(file) {
     if (file) {
       console.log("SQLiteDatabase.deleteDatabase File: " + file.toString());
       /*   --- Payload Header --- */

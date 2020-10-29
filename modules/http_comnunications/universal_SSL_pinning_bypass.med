@@ -1,5 +1,6 @@
-#Description: 'Universal SSL pinning bypass'
-#Help: 'https://gist.github.com/cubehouse/56797147b5cb22768b500f25d3888a22'
+#Description: 'Universal SSL pinning bypass , CRITICAL: Make sure is added on the top of the module list (0 index)'
+#Help: 'https://gist.github.com/cubehouse/56797147b5cb22768b500f25d3888a22
+CRITICAL: Make sure is added on the top of the module list (0 index)'
 #Code:
 
 console.log('\n-------------Universal ssl pinning bypass V2------------------');

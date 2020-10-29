@@ -1,0 +1,18 @@
+#Description: 'void ReleaseStringUTFChars(JNIEnv *env, jstring string, const char *utf)'
+    
+Informs the VM that the native code no longer needs access to utf. The utf argument is a pointer derived from string using GetStringUTFChars().
+
+#Code:
+
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"ReleaseStringUTFChars"),{         
+    onEnter: function(args){
+        try{
+        
+        var str2 = Memory.readUtf8String(args[2]);
+        colorLog('[+] ReleaseStringUTFChars: '+str2,{c:Color.Gray});
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+})

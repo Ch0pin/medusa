@@ -1,7 +1,7 @@
-#Description: 'frida-multiple-unpinning'
+#Description: 'frida-multiple-unpinning CRITICAL: Make sure is added on the top of the module list (0 index)'
 #Help: 
 -   https://codeshare.frida.re/@akabe1/frida-multiple-unpinning
- 
+CRITICAL: Make sure is added on the top of the module list (0 index)
 #Code:
  
  

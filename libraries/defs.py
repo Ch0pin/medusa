@@ -546,12 +546,14 @@ catch (err) {
         return True
 
     def do_rem(self,mod):
-        self.module_list.remove(mod)
-        print("\nRemoved: {}".format(mod) )
-        # for module in self.module_list:
-        #      print(mod)
-        self.modified = True
-        print()  
+        try:
+            self.module_list.remove(mod)
+            print("\nRemoved: {}".format(mod) )
+            self.modified = True
+            print()  
+        except Exception as e:
+            print(e)
+
 
     def complete_rem(self, text, line, begidx, endidx):
         if not text:

@@ -18,7 +18,7 @@ The array type signature of the array class java.lang.Object[] is:
     Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"FindClass"),{         
       onEnter: function(args){
 
-        var clazz_a = Memory.readCString(args[1]);
+        var clazz_a = Memory.readUtf8String(args[1]);
         colorLog('[+] Class: '+clazz_a,{c: Color.Gray});
       }
   })

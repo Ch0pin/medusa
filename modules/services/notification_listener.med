@@ -8,6 +8,7 @@ to intercept various notifications events including sent OTPs e.t.c.
 
 // var service = Java.use('android.service.notification.NotificationListenerService');
 
+console.log('--------------------Notification listener hook by ch0pin------------------------');
 
 var telephonySms = Java.use('android.provider.Telephony$Sms');
 var statusBarNotification = Java.use('android.service.notification.StatusBarNotification');
@@ -20,6 +21,37 @@ telephonySms.getDefaultSmsPackage.implementation = function(context){
 
 }
 
+bundle.getCharSequence.overloads[0].implementation = function(str){
+    try
+    {
+        var ret = this.getCharSequence(str);
+        
+        if (str == "android.text")
+            colorLog("[+] The Application Acquires the Notification's text:"  + ret,{c:Color.Red});
+        
+        return ret;
+
+    }   
+    catch(err){
+        console.log(err);
+    }
+}
+
+bundle.getCharSequence.overloads[1].implementation = function(str){
+    try
+    {
+        var ret = this.getCharSequence(str);
+        
+        if (str == "android.text")
+            colorLog("[+] The Application Acquires the Notification's text:"  + ret,{c:Color.Red});
+        
+        return ret;
+
+    }   
+    catch(err){
+        console.log(err);
+    }
+}
 
 statusBarNotification.key.overloads[0].implementation = function() {
 

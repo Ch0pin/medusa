@@ -3,12 +3,15 @@ function getContext() {
   }
 
 
-Java.perform(function(){
-    var X=Java.use("");
-	Java.scheduleOnMainThread(function(){
-        var k = X.ormn(getContext(),2);
 
-        console.log('Ret:'+k);
+
+Java.perform(function(){
+
+    //var j = Java.use('android.database.sqlite.SQLiteDatabase$CursorFactory');
+  
+    var X=Java.use("com.foo.app");
+	Java.scheduleOnMainThread(function(){
+
 
 	})
 })

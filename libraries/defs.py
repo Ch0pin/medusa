@@ -748,6 +748,8 @@ catch (err) {
             print(e)
 
 
+    def do_pad(self,line):
+        subprocess.run('vi modules/scratchpad.med', shell=True)
 
     
     def do_run(self,line):
@@ -786,6 +788,8 @@ catch (err) {
         if message["type"] == "send":
             data = message["payload"].split(":")[0].strip()
             result = self.translator.translate(data)
+            #print(result.text)
+
             self.script.post({"my_data": result.text}) 
 
     def on_detached(self,reason):
@@ -935,6 +939,7 @@ catch (err) {
                 SCRIPT OPERATIONS:
 
                         - export                    : Save the current module list (and extra hooks) to 'recipe.txt'
+                        - pad                       : Edit the scratchpad using vi
                         - compile                   : Compile the modules to a frida script
                         - hook [option]
                     

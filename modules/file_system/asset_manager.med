@@ -27,12 +27,3 @@ assetManager.openFd.implementation = function(filename){
 
 traceClass('android.content.res.AssetManager');
 
-// assetManager.openNonAssetFd.overloads[0].implementation = function(filename){
-//     colorLog('[+] Application is acquiring the '+filename+' as an asset' );
-//     return this.openNonAssetFd(filename);
-// }
-// assetManager.openNonAssetFd.overloads[1].implementation = function(cookie,filename){
-//     colorLog('[+] Application is acquiring the '+filename+' as an asset' );
-//     return this.openNonAssetFd(cookie,filename);
-// }
-

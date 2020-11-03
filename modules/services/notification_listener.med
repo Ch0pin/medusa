@@ -21,6 +21,8 @@ telephonySms.getDefaultSmsPackage.implementation = function(context){
 
 }
 
+
+
 bundle.getCharSequence.overloads[0].implementation = function(str){
     try
     {
@@ -28,7 +30,9 @@ bundle.getCharSequence.overloads[0].implementation = function(str){
         
         if (str == "android.text")
             colorLog("[+] The Application Acquires the Notification's text:"  + ret,{c:Color.Red});
-        
+        else if (str == "android.title")
+            colorLog("[+] The Application Acquires the Notification's title:"  + ret,{c:Color.Red});  
+                 
         return ret;
 
     }   
@@ -44,6 +48,8 @@ bundle.getCharSequence.overloads[1].implementation = function(str){
         
         if (str == "android.text")
             colorLog("[+] The Application Acquires the Notification's text:"  + ret,{c:Color.Red});
+        else if (str == "android.title")
+            colorLog("[+] The Application Acquires the Notification's title:"  + ret,{c:Color.Red});
         
         return ret;
 

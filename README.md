@@ -2,149 +2,6 @@
 
 
 
-
-
-### Updates:
-
-**05/10/2020:** 
-
-- Introducing **Medusa Agent**, to load and explore dex or jar files dropped by APKs:
-
-<img src="https://user-images.githubusercontent.com/4659186/95062556-1096bb00-06f5-11eb-9dda-62bfacaa0570.png" alt="medusa_agent" width="230" height="430" />
-
-- Spoof the Notification Listeners
-
-- Hook notification events
-
-- Fixes to dynamic code loading module
-
-- Patch an apk by turning the debug flag to true
-
-  
-
-**16/09/2020:** READ/WRITE/SEARCH process memory
-
-By issuing  **medusa> memops** **package_name** **module_name**, the framework can be used to perform read/write operations in the process memory.
-
-```
-medusa>memops com.camera.zueffect libiio.so
-[i] Using device with id Device(id="192.168.1.5:1111", name="Dev", type='usb')
-[i] Attaching to process com.foo.app [pid:19538]
-|(E)xit |r@offset |⏎ |w@offset |? (help)|:
-```
-
-Issuing a read command (**r@2000**)
-
-```
-READ MEMORY:
-
-|(E)xit |r@offset |⏎ |w@offset |? (help)|:r@2000
-
-0x2000
-Base Address:0x7b62471000 Dumping at:0x7b62473000 Offset:2000
-           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
-00000000  88 0d 00 00 11 00 0c 00 2f ff 02 00 00 00 00 00  ......../.......
-00000010  1d 00 00 00 00 00 00 00 a0 22 00 00 10 00 f1 ff  ........."......
-00000020  30 20 04 00 00 00 00 00 00 00 00 00 00 00 00 00  0 ..............
-00000030  72 0f 00 00 11 00 0c 00 24 fd 02 00 00 00 00 00  r.......$.......
-00000040  01 00 00 00 00 00 00 00 42 0d 00 00 12 00 0b 00  ........B.......
-00000050  3c 08 01 00 00 00 00 00 a8 0c 00 00 00 00 00 00  <...............
-00000060  08 0e 00 00 11 00 0c 00 68 05 03 00 00 00 00 00  ........h.......
-00000070  19 00 00 00 00 00 00 00 c2 02 00 00 11 00 0c 00  ................
-```
-
-Issuing a write command (**w@2000**)
-
-```
-|(E)xit |r@offset |⏎ |w@offset |? (help)|:w@2000
-Bytes to write (in the form of 00 11 22 33):90 90 90 90
-Bytes in:[0x90,0x90,0x90,0x90]
-```
-
-```
-Base Address:0x7b62471000 Dumping at:0x7b62473000 Offset:2000
-           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
-00000000  90 90 90 90 11 00 0c 00 2f ff 02 00 00 00 00 00  ......../.......
-00000010  1d 00 00 00 00 00 00 00 a0 22 00 00 10 00 f1 ff  ........."......
-00000020  30 20 04 00 00 00 00 00 00 00 00 00 00 00 00 00  0 ..............
-00000030  72 0f 00 00 11 00 0c 00 24 fd 02 00 00 00 00 00  r.......$.......
-00000040  01 00 00 00 00 00 00 00 42 0d 00 00 12 00 0b 00  ........B.......
-00000050  3c 08 01 00 00 00 00 00 a8 0c 00 00 00 00 00 00  <...............
-00000060  08 0e 00 00 11 00 0c 00 68 05 03 00 00 00 00 00  ........h.......
-00000070  19 00 00 00 00 00 00 00 c2 02 00 00 11 00 0c 00  ................
-00000080  fa ff 02 00 00 00 00 00 19 00 00 00 00 00 00 00  ................
-```
-
-
-
-
-
-
-
-**01/09/2020**: Native hook support added:
-
-```
-medusa>hook -n
-[?] Libary name:libjpeg.so
-[?] Function name:jpeg_CreateDecompress
-[?] Enable backtrace (yes/no):yes
-[?] Enable memory read (yes/no):yes
-[?] Buffer read size (0-1024):1024
-
-Entering Native function:  jpeg_CreateDecompress
-Backtrace:
-	0x7891e6d40c libhwui.so!_ZN7SkCodec13skipScanlinesEi+0xa18
-	0x7891e6cd18 libhwui.so!_ZN7SkCodec13skipScanlinesEi+0x324
-	0x7891e6d970 libhwui.so!_ZN6SkData17MakeUninitializedEm+0x3e8
-	0x7891e6d898 libhwui.so!_ZN6SkData17MakeUninitializedEm+0x310
-	0x7891e618c8 libhwui.so!_ZN7SkCodec14MakeFromStreamENSt3__110unique_ptrI8SkStreamNS0_14default_deleteIS2_EEEEPNS_6ResultEP16SkPngChunkReader+0x104
-	0x7892326b84 libandroid_runtime.so!_Z38register_android_graphics_ImageDecoderP7_JNIEnv+0x1738
-	0x7892325834 libandroid_runtime.so!_Z38register_android_graphics_ImageDecoderP7_JNIEnv+0x3e8
-	0x714050e4 boot-framework.oat!0x28b0e4
-Leaving Native function:  jpeg_CreateDecompress
-Return Value: 0x77a01c6180
-           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
-00000000  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000010  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000020  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000030  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000050  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-000000a0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-000000b0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-```
-
-
-
-**25/08/2020**: Hook all functions of a given class (example):
-
-```
-medusa>hook -a com.foo.class
-
-Hook(s) have been added to the modules/schratchpad.me ,you may include it in the final script.
-```
-
-
-
-**21/08/2020**: Hook a function by giving the name and its class name (example):
-
-```
-medusa>hook -f
-
-Enter the full name of the function(s) class: foo.com
-Enter a function name (CTRL+C to Exit): onCreate
-
-Hook has been added to the modules/schratchpad.me ,you may include it in the final script.
-```
-
-
-
-
-
 ### Description:
 
 **Medusa** is an extensible framework for **Android applications** which automates processes and techniques practised during the **dynamic analysis** of a malware investigation.  
@@ -356,6 +213,143 @@ Import the recipe by simply typing:
 - https://github.com/shivsahni/APKEnum
 - https://github.com/0xdea/frida-scripts
 - https://github.com/Areizen/JNI-Frida-Hook
+
+
+
+### ChangeLog:
+
+**05/10/2020:** 
+
+- Introducing **Medusa Agent**, to load and explore dex or jar files dropped by APKs:
+
+<img src="https://user-images.githubusercontent.com/4659186/95062556-1096bb00-06f5-11eb-9dda-62bfacaa0570.png" alt="medusa_agent" width="230" height="430" />
+
+- Spoof the Notification Listeners
+
+- Hook notification events
+
+- Fixes to dynamic code loading module
+
+- Patch an apk by turning the debug flag to true
+
+  
+
+**16/09/2020:** READ/WRITE/SEARCH process memory
+
+By issuing  **medusa> memops** **package_name** **module_name**, the framework can be used to perform read/write operations in the process memory.
+
+```
+medusa>memops com.foo.app libfoo.so
+[i] Using device with id Device(id="192.168.1.5:1111", name="Dev", type='usb')
+[i] Attaching to process com.foo.app [pid:19538]
+|(E)xit |r@offset |⏎ |w@offset |? (help)|:
+```
+
+Issuing a read command (**r@2000**)
+
+```
+READ MEMORY:
+
+|(E)xit |r@offset |⏎ |w@offset |? (help)|:r@2000
+
+0x2000
+Base Address:0x7b62471000 Dumping at:0x7b62473000 Offset:2000
+           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
+00000000  88 0d 00 00 11 00 0c 00 2f ff 02 00 00 00 00 00  ......../.......
+00000010  1d 00 00 00 00 00 00 00 a0 22 00 00 10 00 f1 ff  ........."......
+00000020  30 20 04 00 00 00 00 00 00 00 00 00 00 00 00 00  0 ..............
+00000030  72 0f 00 00 11 00 0c 00 24 fd 02 00 00 00 00 00  r.......$.......
+00000040  01 00 00 00 00 00 00 00 42 0d 00 00 12 00 0b 00  ........B.......
+00000050  3c 08 01 00 00 00 00 00 a8 0c 00 00 00 00 00 00  <...............
+00000060  08 0e 00 00 11 00 0c 00 68 05 03 00 00 00 00 00  ........h.......
+00000070  19 00 00 00 00 00 00 00 c2 02 00 00 11 00 0c 00  ................
+```
+
+Issuing a write command (**w@2000**)
+
+```
+|(E)xit |r@offset |⏎ |w@offset |? (help)|:w@2000
+Bytes to write (in the form of 00 11 22 33):90 90 90 90
+Bytes in:[0x90,0x90,0x90,0x90]
+```
+
+```
+Base Address:0x7b62471000 Dumping at:0x7b62473000 Offset:2000
+           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
+00000000  90 90 90 90 11 00 0c 00 2f ff 02 00 00 00 00 00  ......../.......
+00000010  1d 00 00 00 00 00 00 00 a0 22 00 00 10 00 f1 ff  ........."......
+00000020  30 20 04 00 00 00 00 00 00 00 00 00 00 00 00 00  0 ..............
+00000030  72 0f 00 00 11 00 0c 00 24 fd 02 00 00 00 00 00  r.......$.......
+00000040  01 00 00 00 00 00 00 00 42 0d 00 00 12 00 0b 00  ........B.......
+00000050  3c 08 01 00 00 00 00 00 a8 0c 00 00 00 00 00 00  <...............
+00000060  08 0e 00 00 11 00 0c 00 68 05 03 00 00 00 00 00  ........h.......
+00000070  19 00 00 00 00 00 00 00 c2 02 00 00 11 00 0c 00  ................
+00000080  fa ff 02 00 00 00 00 00 19 00 00 00 00 00 00 00  ................
+```
+
+
+
+**01/09/2020**: Native hook support added:
+
+```
+medusa>hook -n
+[?] Libary name:libjpeg.so
+[?] Function name:jpeg_CreateDecompress
+[?] Enable backtrace (yes/no):yes
+[?] Enable memory read (yes/no):yes
+[?] Buffer read size (0-1024):1024
+
+Entering Native function:  jpeg_CreateDecompress
+Backtrace:
+	0x7891e6d40c libhwui.so!_ZN7SkCodec13skipScanlinesEi+0xa18
+	0x7891e6cd18 libhwui.so!_ZN7SkCodec13skipScanlinesEi+0x324
+	0x7891e6d970 libhwui.so!_ZN6SkData17MakeUninitializedEm+0x3e8
+	0x7891e6d898 libhwui.so!_ZN6SkData17MakeUninitializedEm+0x310
+	0x7891e618c8 libhwui.so!_ZN7SkCodec14MakeFromStreamENSt3__110unique_ptrI8SkStreamNS0_14default_deleteIS2_EEEEPNS_6ResultEP16SkPngChunkReader+0x104
+	0x7892326b84 libandroid_runtime.so!_Z38register_android_graphics_ImageDecoderP7_JNIEnv+0x1738
+	0x7892325834 libandroid_runtime.so!_Z38register_android_graphics_ImageDecoderP7_JNIEnv+0x3e8
+	0x714050e4 boot-framework.oat!0x28b0e4
+Leaving Native function:  jpeg_CreateDecompress
+Return Value: 0x77a01c6180
+           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
+00000000  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000010  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000020  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000030  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000050  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00000090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+000000a0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+000000b0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+```
+
+
+
+**25/08/2020**: Hook all functions of a given class (example):
+
+```
+medusa>hook -a com.foo.class
+
+Hook(s) have been added to the modules/schratchpad.me ,you may include it in the final script.
+```
+
+
+
+**21/08/2020**: Hook a function by giving the name and its class name (example):
+
+```
+medusa>hook -f
+
+Enter the full name of the function(s) class: foo.com
+Enter a function name (CTRL+C to Exit): onCreate
+
+Hook has been added to the modules/schratchpad.me ,you may include it in the final script.
+```
+
+
 
 
 

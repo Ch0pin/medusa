@@ -5,6 +5,8 @@
  and translates the applied text using google's translation API"
 #Code:
 
+
+
 console.log('\n----------TRANSLATOR SCRIPT -------------');
 console.log('----------twiter:@Ch0pin-------------------');
    

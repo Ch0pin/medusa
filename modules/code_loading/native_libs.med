@@ -27,6 +27,28 @@ systemA.mapLibraryName.implementation = function(libname){
     return ret;
 }
 
+Interceptor.attach(Module.findExportByName(null, 'android_dlopen_ext'),{
+    onEnter: function(args){
+        // first arg is the path to the library loaded
+        var library_path = Memory.readCString(args[0])
+
+
+            console.log("[...] Loading library : " + library_path)
+            library_loaded = 1
+        
+    },
+    onLeave: function(args){
+
+        // if it's the library we want to hook, hooking it
+        if(library_loaded ==  1){
+            console.log("[+] Loaded")
+            library_loaded = 0
+        }
+    }
+})
+
+
+
 
 /*
 static void	load(String filename)

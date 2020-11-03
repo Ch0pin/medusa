@@ -6,7 +6,7 @@
 
 console.log('-----De reflection script by @dzonerzy + mods by @ch0pin-----------------');
 
-    var internalClasses = ["android.", "com.android", "java.lang", "java.io","org.chromium","com.google","android."]; // comment this for no filtering
+    var internalClasses = ["android.", "com.android", "java.lang", "java.io","org.chromium","com.google","android.", "java.util","java.nio","java.sequrity"]; // comment this for no filtering
     var classDef = Java.use('java.lang.Class');
     var classLoaderDef = Java.use('java.lang.ClassLoader');
     var loadClassZ = classLoaderDef.loadClass.overload('java.lang.String', 'boolean');

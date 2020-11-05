@@ -108,11 +108,12 @@ class parser(cmd.Cmd):
 
     def hook_native(self):
         library = input('[?] Libary name:').strip()
-        function = input('[?] Function name:').strip()
+        function = input('[?] Function name or Offset (e.g 0x1234):').strip()
         number_of_args = input('[?] Number of arguments (Insert 0 to disable trace):')
         backtraceEnable = input('[?] Enable backtrace (yes/no):')
         hexdumpEnable = input('[?] Enable memory read (yes/no):')
-        
+        header = ''
+   
         argread = ''
 
         for i in range(int(number_of_args)):
@@ -150,8 +151,15 @@ catch (err) {
         else:
             tracejs = ''
 
+        if function.startswith('0x'):
+            header = "Interceptor.attach(Module.findBaseAddress('"+library+"').add("+function+"), {"
+        else:
+            header = "Interceptor.attach(Module.getExportByName('"+library+"', '"+function+"'), {"
 
-        codejs = """Interceptor.attach(Module.getExportByName('"""+library+"""', '"""+function+"""'), {
+
+        #codejs = """Interceptor.attach(Module.getExportByName('"""+library+"""', '"""+function+"""'), {
+        
+        codejs = header + """
     onEnter: function(args) {
       console.log();
       colorLog("[--->] Entering Native function: " +" """+ function+"""",{ c: Color.Red });"""+argread+tracejs+"""
@@ -316,12 +324,13 @@ catch (err) {
     def scratchreset(self):
         
         scratch_reset = input('Do you want to reset the scratchpad ? (yes/no) ')
-        scratchpad = """#Description: 'Use this module to add your hooks'
+
+        if 'yes' in scratch_reset:
+            scratchpad = """#Description: 'Use this module to add your hooks'
 #Help: "N/A"
 #Code:
 
 """
-        if 'yes' in scratch_reset:
             with open('modules/scratchpad.med','w') as scratch:
                 scratch.write(scratchpad)
 

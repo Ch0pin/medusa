@@ -2,7 +2,7 @@
 import frida
 import time
 import sys
-
+import click
 
 RED   = "\033[1;31m"  
 BLUE  = "\033[1;34m"
@@ -141,13 +141,42 @@ class nativeHandler():
                     print("BYTES IN: {}".format(pattern))
                     
                     self.scan_memory(lib,pattern,session,script)
-              
+                
+                elif cmd.startswith('dump'):
+                    script.unload()
+                    print("dumping....")
+                    self.dump(session,lib)
 
                 cmd = input(self.prompt_) 
 
             script.unload()
         except Exception as e:
             print(e)   
+
+#############################
+
+    def dump(self,session,lib):
+
+        try:
+
+            path = '.'
+            script = session.create_script(open("libraries/memops.js").read())
+            script.load()
+            api = script.exports
+           
+            dump_area = api.moduleaddress(lib)
+            for area in dump_area:
+                bs = api.memorydump(area["addr"],area["size"])
+            
+            with open(lib + ".dat", 'wb') as out:
+                out.write(bs)
+            click.secho('[+] dump saved to {}.dat'.format(lib), fg='green')
+
+        except Exception as e:
+            click.secho("[Except] - {}:".format(e), bg='red')
+
+
+
 
 
     def scan_memory(self,lib,pattern,session,script):

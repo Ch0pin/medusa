@@ -218,6 +218,10 @@ Import the recipe by simply typing:
 
 ### ChangeLog:
 
+**05/11/2020:** 
+
+Added option to dump a specific module from memory
+
 **05/10/2020:** 
 
 - Introducing **Medusa Agent**, to load and explore dex or jar files dropped by APKs:
@@ -225,14 +229,18 @@ Import the recipe by simply typing:
 <img src="https://user-images.githubusercontent.com/4659186/95062556-1096bb00-06f5-11eb-9dda-62bfacaa0570.png" alt="medusa_agent" width="230" height="430" />
 
 - Spoof the Notification Listeners
-
 - Hook notification events
-
 - Fixes to dynamic code loading module
-
 - Patch an apk by turning the debug flag to true
 
-  
+
+
+**04/11/2020:** More native hook options added:
+
+- Hook by offset
+- Hook by pattern
+
+
 
 **16/09/2020:** READ/WRITE/SEARCH process memory
 

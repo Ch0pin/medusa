@@ -5,6 +5,9 @@
 
 Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"NewStringUTF"),{         
     onEnter: function(args){
+        var trace = Thread.backtrace(this.context, Backtracer.ACCURATE);
+        for (var j in trace)
+            colorLog('\t b_trace->'+DebugSymbol.fromAddress( trace[j]),{c: Color.Blue});
         var str = Memory.readCString(args[1]);
         colorLog('[+] NewStringUTF: '+str,{c:Color.Gray});
     }

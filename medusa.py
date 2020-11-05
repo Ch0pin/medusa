@@ -2,7 +2,7 @@
 import readline
 import os
 import cmd
-
+import click
 from libraries.defs import *
 
 p = parser()
@@ -29,7 +29,7 @@ try:
 except Exception as e:
     print(e)
 
-print(BOLD+GREEN+"""
+click.secho("""
 Welcome to:
 
  ███▄ ▄███▓▓█████ ▓█████▄  █    ██   ██████  ▄▄▄      
@@ -40,7 +40,7 @@ Welcome to:
 ░ ▒░   ░  ░░░ ▒░ ░ ▒▒▓  ▒ ░▒▓▒ ▒ ▒ ▒ ▒▓▒ ▒ ░ ▒▒   ▓▒█░
 ░  ░      ░ ░ ░  ░ ░ ▒  ▒ ░░▒░ ░ ░ ░ ░▒  ░ ░  ▒   ▒▒ ░
 ░      ░      ░    ░ ░  ░  ░░░ ░ ░ ░  ░  ░    ░   ▒   
-       ░      ░  ░   ░       ░           ░        ░  ░\n\n\n Type help for options\n\n"""+RESET)
+       ░      ░  ░   ░       ░           ░        ░  ░\n\n\n Type help for options\n\n""",fg='green')
 
 
 

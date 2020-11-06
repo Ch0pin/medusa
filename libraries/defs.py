@@ -796,10 +796,11 @@ catch (err) {
 
         if message["type"] == "send":
             data = message["payload"].split(":")[0].strip()
-            result = self.translator.translate(data)
-            #print(result.text)
-
-            self.script.post({"my_data": result.text}) 
+            if "trscrpt|" in data:
+                result = self.translator.translate(data[data.index("trscrpt|")+len("trscrpt|"):])
+                self.script.post({"my_data": result.text}) 
+            else:
+                print(data)
 
     def on_detached(self,reason):
         print("Session is detached due to:", reason)

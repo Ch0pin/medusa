@@ -10,6 +10,11 @@ https://codeshare.frida.re/@dzonerzy/fridantiroot/
     var antidebug = Java.use('android.os.Debug');
 
 
+
+
+
+    
+
 antidebug.isDebuggerConnected.implementation = function(){
     console.log('[!] overwriting is debugger connected  ');
     return false;

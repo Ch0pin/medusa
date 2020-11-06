@@ -21,7 +21,7 @@ class nativeHandler():
     modules = []
     device = None
     script = None
-    prompt_ = WHITE+'|' +GREEN+'(E)xit '+ WHITE+  '|'+GREEN+ 'r@offset ' + WHITE+'|' +GREEN+ 'w@offset '+ WHITE+'|' +GREEN+'⏎ '+ WHITE+ '|' +GREEN+ 'scan '+ WHITE+'|'+ GREEN + '(h)elp' +WHITE + '|:'
+    prompt_ = WHITE+'|' +GREEN+'(E)xit '+ WHITE+  '|'+GREEN+ 'r@offset ' + WHITE+'|' +GREEN+ 'w@offset '+ WHITE+'|' +GREEN+'⏎ '+ WHITE+ '|' +GREEN+ 'scan '+ WHITE+'|'+ GREEN + '(h)elp' +WHITE +'|'+ GREEN + '(D)ump' +WHITE +'|:'
 
 
     def __init__(self,device):
@@ -265,6 +265,7 @@ class nativeHandler():
         print("""Availlable commands:
         
         (E)xit:     Exit memops
+        (D)ump:     Dump loaded module to a file
         r@offset:   Read @ offet (e.g. r@beaf)
         Return:     Read next 296 bytes
         w@offset:   Write @ offset (e.g. w@beaf)

@@ -226,7 +226,7 @@ class parser(cmd.Cmd):
 
     def do_broadcast(self,line):
         try:         
-            output=os.popen("adb -s {} shell 'am broadcast {}'".format(self.device.id,line.split(' ')[0])).read()
+            output=os.popen("adb -s {} shell 'am broadcast -a {}'".format(self.device.id,line.split(' ')[0])).read()
             print(output)
         except Exception as e:
             print(e)

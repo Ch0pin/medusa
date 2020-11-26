@@ -7,6 +7,7 @@ import logging
 import rlcompleter
 import time
 import frida
+import click
 from libraries.dumper import dump_pkg
 from googletrans import Translator
 from libraries.natives import *
@@ -30,6 +31,7 @@ REVERSE = "\033[;7m"
 
 class parser(cmd.Cmd):
 
+    examples = []
     all_mods = []
     packages = []
     system_libraries = []
@@ -59,8 +61,43 @@ class parser(cmd.Cmd):
                 if filename.endswith('.med'):
                     filepath = os.path.join(root,filename)
                     self.all_mods.append(filepath)
+        
         print('\nTotal modules: ' + str(len(self.all_mods)))
+    
+        for root, directories, filenames in os.walk('examples/'):
+            for filename in sorted(filenames):
+                if filename.endswith('.js'):
+                    filepath = os.path.join(root,filename)
+                    self.examples.append(filepath.split('/')[1].split('.')[0])
 
+
+    def do_example(self,line):
+        try:
+            
+            selected_example = line.split(' ')[0]
+            self.load_example('examples/'+selected_example+'.js')
+        except Exception as e:
+            print(e)
+
+    
+    def load_example(self,example):
+        try:
+            with open(example) as file:
+                data = file.read()
+            click.secho(data,fg = 'blue')
+        except Exception as e:
+            print(e)
+
+
+    def complete_example(self, text, line, begidx, endidx):
+        if not text:
+            completions = self.examples[:]
+        else:
+            completions = [ f
+                            for f in self.examples
+                            if f.startswith(text)
+                            ]
+        return completions
 
 
     def do_memops(self,line):
@@ -337,17 +374,19 @@ catch (err) {
     def do_export(self,line):
         scratchDat = ''
         try:
+            filename = line.split(' ')[0];
 
-            with open('recipe.txt','w') as file:
+            with open(filename,'w') as file:
                 for module in self.module_list:
                     if 'scratchpad' in module:
                         with open('modules/scratchpad.med','r') as file1:
                             scratchDat = file1.read()
                     file.write('%s\n' % module)
                 file.write(scratchDat)
-            print('Recipe exported to dir: {} as recipe.txt'.format(os.getcwd()))
+            print('Recipe exported to dir: {} as {}'.format(os.getcwd(),filename))
         except Exception as e:
             print(e) 
+            print("[i] Usage: export filename")
 
 
     def hookall(self,line):

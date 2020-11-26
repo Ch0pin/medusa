@@ -14,11 +14,11 @@ var systemA = Java.use('java.lang.System');
 
 systemA.load.implementation = function(filename){
     colorLog('[+] Application is loading the following library: '+filename, {c: Color.Red});
-    this.load(filename);
+    return this.load(filename);
 }
 systemA.loadLibrary.implementation = function(libname){
     colorLog('[+] Application is loading the following library:'+libname,{c: Color.Red});
-    this.loadLibrary(libname);
+    return this.loadLibrary(libname);
 }
 
 systemA.mapLibraryName.implementation = function(libname){

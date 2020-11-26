@@ -86,7 +86,8 @@ appInstrumentation.sendPointerSync.implementation = function(motionEvent){
 }
 
 viewClassHook.dispatchTouchEvent.implementation = function(motionEvent){
-    colorLog('[+] Dispatch touch event called ',{c:Color.Green} );
+    //printBacktrace();
+    colorLog('[+] Dispatch touch event called on '+this.toString(),{c:Color.Green} );
     return this.dispatchTouchEvent(motionEvent);
 }
 
@@ -277,8 +278,14 @@ function(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o){
 }
 
 
+viewClassHook.setAlpha.implementation = function(num){
+    if(num == 0) colorLog('[+] Attempt to set view to invisible',{c:Color.Red});
+    this.setAlpha(1);
+
+}
 
 viewClassHook.performClick.implementation = function(){
-    console.log('[+] Perform Click detected');
+    //printBacktrace();
+    colorLog('[+] Perform Click detected on:'+this.$className, {c:Color.Red});
     return this.performClick();
 }

@@ -975,6 +975,7 @@ catch (err) {
 
                         - search [keyword]          : Search for a module containing a specific keyword 
                         - help [module name]        : Display help for a module
+                        - example [tab]             : Show / display availlable frida script snippets
                         - use [module name]         : Select a module to add to the final script
                         - show mods                 : Show selected modules
                         - show categories           : Display the availlable module categories (start here)

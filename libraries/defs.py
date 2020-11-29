@@ -31,12 +31,12 @@ REVERSE = "\033[;7m"
 
 class parser(cmd.Cmd):
 
-    examples = []
+    snippets_list = []
     all_mods = []
     packages = []
     system_libraries = []
     app_libraries = []
-    show_commands=['mods','categories','all']
+    show_commands=['mods','categories','all','snippets']
     module_list=[]
     prompt = BLUE+'medusa>'+RESET
     device = None
@@ -64,37 +64,68 @@ class parser(cmd.Cmd):
         
         print('\nTotal modules: ' + str(len(self.all_mods)))
     
-        for root, directories, filenames in os.walk('examples/'):
+        for root, directories, filenames in os.walk('snippets/'):
             for filename in sorted(filenames):
                 if filename.endswith('.js'):
                     filepath = os.path.join(root,filename)
-                    self.examples.append(filepath.split('/')[1].split('.')[0])
+                    self.snippets_list.append(filepath.split('/')[1].split('.')[0])
 
 
-    def do_example(self,line):
+    def do_snippet(self,line):
         try:
             
-            selected_example = line.split(' ')[0]
-            self.load_example('examples/'+selected_example+'.js')
+            selected_snippet = line.split(' ')[0]
+            self.load_snippet('snippets/'+selected_snippet+'.js')
         except Exception as e:
             print(e)
-
     
-    def load_example(self,example):
+    def show_snippets(self):
+        print("[i] Availlable snippets:")
+        print('------------------------\n')
         try:
-            with open(example) as file:
-                data = file.read()
-            click.secho(data,fg = 'blue')
+            for snippet in self.snippets_list:
+                print('> ' + snippet)
         except Exception as e:
             print(e)
 
+    def do_import(self, line):
+        try:
+            with open('snippets/'+line.split(' ')[0]+'.js','r') as file:
+                data = file.read()
+            with open('modules/scratchpad.med','a') as file:
+                file.write(data) 
 
-    def complete_example(self, text, line, begidx, endidx):
+            print("\nSnippet has been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" run 'compile' to include it in your final script or 'pad' to edit it")
+        except Exception as e:
+            print(e)
+    
+    def complete_import(self, text, line, begidx, endidx):
         if not text:
-            completions = self.examples[:]
+            completions = self.snippets_list[:]
         else:
             completions = [ f
-                            for f in self.examples
+                            for f in self.snippets_list
+                            if f.startswith(text)
+                            ]
+        return completions
+
+
+    
+    def load_snippet(self,snippet):
+        try:
+            with open(snippet) as file:
+                data = file.read()
+            click.secho(data,fg = 'green')
+        except Exception as e:
+            print(e)
+
+
+    def complete_snippet(self, text, line, begidx, endidx):
+        if not text:
+            completions = self.snippets_list[:]
+        else:
+            completions = [ f
+                            for f in self.snippets_list
                             if f.startswith(text)
                             ]
         return completions
@@ -414,6 +445,8 @@ catch (err) {
 
         option = line.split(' ')[0]
 
+        codejs = '\n'
+
         if '-f' in option:
             className = input("Enter the full name of the function(s) class: ")
 
@@ -554,7 +587,7 @@ catch (err) {
 
     def complete_show(self, text, line, begidx, endidx):
         if not text:
-            completions = self.all_mods[:]
+            completions = self.show_commands[:]
         else:
             completions = [ f
                             for f in self.show_commands
@@ -631,6 +664,8 @@ catch (err) {
                 self.show_all()
             elif what == 'mods':
                 self.show_mods()
+            elif what == 'snippets':
+                self.show_snippets()
             elif what.split(' ')[0] == 'modules':
                 self.show_modules(what.split(' ')[1])
             else:
@@ -975,11 +1010,12 @@ catch (err) {
 
                         - search [keyword]          : Search for a module containing a specific keyword 
                         - help [module name]        : Display help for a module
-                        - example [tab]             : Show / display availlable frida script snippets
+                        - snippet [tab]             : Show / display availlable frida script snippets
                         - use [module name]         : Select a module to add to the final script
                         - show mods                 : Show selected modules
                         - show categories           : Display the availlable module categories (start here)
                         - show modules [category]   : Display the availlable modules for the selected category
+                        - show snippets             : Display availlable snippets of frida scripts
                         - show all                  : Show all availlable modules
                         - rem [module name]         : Remove a module from the list that will be loaded
                         - swap old_index new_index  : Change the order of modules in the compiled script
@@ -988,7 +1024,8 @@ catch (err) {
 
                 SCRIPT OPERATIONS:
 
-                        - export                    : Save the current module list (and extra hooks) to 'recipe.txt'
+                        - export  'filename'        : Save session modules and scripts to 'filename'
+                        - import [tab]              : Import frida script from availlable snippet
                         - pad                       : Edit the scratchpad using vi
                         - compile                   : Compile the modules to a frida script
                         - hook [option]

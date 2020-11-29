@@ -218,6 +218,16 @@ Import the recipe by simply typing:
 
 ### ChangeLog:
 
+**27/11/2020:** 
+
+Feature added according to which the user can search for code snippets that may later imported to the current session. 
+
+The code snippets are saved in the 'examples' directory and may be imported using the 'import' command, e.g.:
+
+**medusa> import RegisterClass**
+
+The code will be appended to the scratchpad and later get compiled to the final agent script.
+
 **05/11/2020:** 
 
 Added option to dump a specific module from memory

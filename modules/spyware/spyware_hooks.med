@@ -12,7 +12,6 @@ Hooks API calls related to spyware software, including
 console.log('\n---------------Spyware Hooks by @ch0pin------------------');
 
 
-var telephonyManager = Java.use('android.telephony.TelephonyManager');
 var mediaRecorder = Java.use('android.media.MediaRecorder')
 var audioRecord = Java.use('android.media.AudioRecord');
 var abstractCursor = Java.use('android.database.AbstractCursor');
@@ -179,9 +178,9 @@ Location.getLatitude.implementation = function() {
 
         return lt;
 }
-Location.getLongitude.implementation = function() {
+Location.getLongtitude.implementation = function() {
         var lgt = this.getLongitude();
-        console.log('[i] Application is getting longtitude:'+lgt);
+        console.log('[i] Application is getting longitude:'+lgt);
         return lgt;
 }
 
@@ -213,7 +212,7 @@ mediaRecorder.setAudioSource.implementation = function(audioSource){
         this.setAudioSource(audioSource);
 }
 mediaRecorder.stop.implementation = function(){
-        console.log('[i] Media recording stoped');
+        console.log('[i] Media recording stopped');
         this.stop();
 }
 

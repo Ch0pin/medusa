@@ -327,6 +327,23 @@ var byteArrayToString = function(input){
   return result;
 }
 
+var byteArrayToStringE = function(input){
+  var buffer = Java.array('byte', input);
+  var result = "";
+  var unprintable = false;
+  for(var i = 0; i < buffer.length; ++i){
+      if(buffer[i] > 31 && buffer[i]<127)
+        result+= (String.fromCharCode(buffer[i]));
+      else {
+        unprintable = true;
+        result = "Input cant be transformed to ascii string";
+        break;
+      }
+  
+    }
+  return result;
+}
+
 
   function readStreamToHex (stream) {
     var data = [];

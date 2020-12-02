@@ -9,7 +9,7 @@ import time
 import frida
 import click
 from libraries.dumper import dump_pkg
-from googletrans import Translator
+from google_trans_new import google_translator  
 from libraries.natives import *
 
 
@@ -42,7 +42,7 @@ class parser(cmd.Cmd):
     device = None
     modified = False
     device_index =0
-    translator = Translator()
+    translator = google_translator()  
     script = None
     detached = True
     pid = None
@@ -872,7 +872,7 @@ catch (err) {
             data = message["payload"].split(":")[0].strip()
             if "trscrpt|" in data:
                 result = self.translator.translate(data[data.index("trscrpt|")+len("trscrpt|"):])
-                self.script.post({"my_data": result.text}) 
+                self.script.post({"my_data": result}) 
             else:
                 print(data)
 

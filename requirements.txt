@@ -1,4 +1,4 @@
-requests==2.24.0
 click==7.1.2
+requests==2.24.0
 frida==14.0.5
-googletrans==3.0.0
+google_trans_new==1.1.3

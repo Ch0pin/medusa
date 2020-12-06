@@ -1,7 +1,5 @@
 <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.png" width="150" height="150">
 
-
-
 ### Description:
 
 **Medusa** is an extensible framework for **Android applications** which automates processes and techniques practised during the **dynamic analysis** of a malware investigation.  
@@ -9,18 +7,13 @@
 Some of the framework's features are the following:
 
 - Tracing and instrumentation of API calls used by common malware categories
-
 - Tracing and instrumentation of Java and Native functions 
-
 - Unpacking (effective for most of the weel known packers, including Qihoo, Secshell e.t.c.)
-
 - Patching (e.g. autoset the debugable flag)
-
 - Triggering of various system events in order to initiate a malicious behaviour
-
 - Triggering of application's components (Activities, Services e.t.c.)
 
-  
+**Ref: MEDUSA-Usage-workflows.pdf**
 
 
 ### Usage:
@@ -78,9 +71,7 @@ Medusa's functionality is based the following scripts:
   >   - Change device proxy settings
   >   - Capture screenshots of the device
   >   - Install/Uninstall/kill an application
->   - Patch (set the debug flag to true) / Sign / Install 
-
-  
+  > - Patch (set the debug flag to true) / Sign / Install 
 
   **apkutils.py:**
 

@@ -28,7 +28,7 @@ function enumerateModules(){
 }
 
 
-function getContext() {
+function getApplicationContext() {
 	return Java.use('android.app.ActivityThread').currentApplication().getApplicationContext();
   }
 

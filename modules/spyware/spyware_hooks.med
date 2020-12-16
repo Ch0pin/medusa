@@ -178,7 +178,7 @@ Location.getLatitude.implementation = function() {
 
         return lt;
 }
-Location.getLongtitude.implementation = function() {
+Location.getLongitude.implementation = function() {
         var lgt = this.getLongitude();
         console.log('[i] Application is getting longitude:'+lgt);
         return lgt;

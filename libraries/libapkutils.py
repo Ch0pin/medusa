@@ -108,7 +108,7 @@ class parser(cmd.Cmd):
 
         if '-j' in switch:
             param1 = line.split(' ')[1]+ '*!*'
-            param = """frida-trace -D {} {} --runtime=v8 -j '{}' """.format(self.device.id,self.package,param1)
+            param = """frida-trace -D {} {} -j '{}' """.format(self.device.id,self.package,param1)
         elif '-n' in switch:
             param1 = line.split(' ')[1]+ '*'
             param = """frida-trace -D {} -i '{}' {}""".format(self.device.id,param1,self.package)

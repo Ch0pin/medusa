@@ -28,6 +28,25 @@ var systemProperties = Java.use('android.os.SystemProperties');
 var screenCapture = Java.use('android.media.projection.MediaProjectionManager');
 var uri = Java.use('android.net.Uri');
 var contentResolver = Java.use('android.content.ContentResolver');
+var camera = Java.use('android.hardware.Camera');
+
+
+camera.open.overload.implementation = function(){
+
+        colorLog('[+]Call to Camera.Open',{c: Color.Red});
+        return this.open();
+
+}
+camera.open.overload('int').implementation = function(cmNUm){
+
+        colorLog('[+]Call to Camera'+cmNUm+'.Open',{c: Color.Red});
+        return this.open(cmNUm);
+
+}
+camera.startPreview.implementation = function(){
+        colorLog('[+]Call to Camera.startPreview',{c: Color.Red});
+        return this.startPreview();  
+}
 
 
 

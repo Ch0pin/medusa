@@ -8,7 +8,12 @@ console.log("-----------Hooking SYSTEM EXIT----------------------");
 
   var sysexit = Java.use("java.lang.System");
   var activity = Java.use('android.app.Activity');
+  var process = Java.use('android.os.Process');
 
+  process.killProcess.implementation = function(pid){
+    colorLog("[i] Canceling process kill with pid:"+pid, {c: Color.Green});
+
+  }
   sysexit.exit.overload("int").implementation = function(var_0) {
     colorLog("[i] Canceling system exit", {c: Color.Green});
   };

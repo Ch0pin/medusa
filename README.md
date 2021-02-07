@@ -209,6 +209,12 @@ Import the recipe by simply typing:
 
 ### ChangeLog:
 
+**07/02/2021:**
+
+- **Medusa agent** was modified to include certificate set up functionality as well as a floating mod
+- Burp Certificate installation
+- Transparent proxy set up
+
 **27/11/2020:** 
 
 Feature added according to which the user can search for code snippets that may later imported to the current session. 

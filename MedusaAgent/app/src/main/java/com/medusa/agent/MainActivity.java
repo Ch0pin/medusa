@@ -16,12 +16,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.PixelFormat;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -36,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView filePath;
     private Button loadFileButton;
     private Button loadDexButton;
+    private Button stayOnTop;
     private File selectedFile;
     private String dexFile="";
     private String className="";
@@ -52,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         loadFileButton = (Button)findViewById(R.id.load_file_JarDex);
         loadDexButton = (Button) findViewById(R.id.invoke_Function);
+        stayOnTop = (Button) findViewById(R.id.stayOnTop);
         filePath = (TextView)findViewById(R.id.file_path);
         jardexLoader = new JarDex(getApplicationContext());
 
@@ -59,6 +64,14 @@ public class MainActivity extends AppCompatActivity {
         createNotificationChannel();
         //register the notification receiver
         this.registerReceiver(rec,new IntentFilter("com.medusa.NOTIFY"));
+
+
+        stayOnTop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stayOnTop();
+            }
+        });
 
 
         loadFileButton.setOnClickListener(new View.OnClickListener() {
@@ -93,11 +106,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
 
+    public void stayOnTop(){
+        final WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams(300,200, WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSPARENT);
+        lp.gravity = Gravity.TOP|Gravity.LEFT;
+
+        final Button floatingbtn = new Button(getApplicationContext());
+        floatingbtn.setText("Full Mode");
+        wm.addView(floatingbtn,lp);
+        onBackPressed();
+
+        floatingbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                startActivity(intent);
+                wm.removeView(floatingbtn);
+            }
+        });
 
 
     }
-
 
     /**
      * Helper method that verifies whether the permissions of a given array are granted or not.
@@ -178,8 +210,8 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         unregisterReceiver(rec);
     }
-    private void createNotificationChannel() {
 
+    private void createNotificationChannel() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "name";

@@ -8,79 +8,121 @@
     tools:context=".MainActivity">
 
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/LinearLayout1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:orientation="vertical" >
+        tools:layout_editor_absoluteX="-38dp"
+        tools:layout_editor_absoluteY="0dp">
 
         <Button
             android:id="@+id/load_file_JarDex"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="100dp"
-            android:layout_marginRight="100dp"
-            android:text="Open Dex Or Jar file" />
+            android:layout_marginTop="28dp"
+            android:layout_marginEnd="168dp"
+            android:text="Open Dex Or Jar file"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/browse"
-            android:layout_marginTop="20dp"
             android:id="@+id/selected"
-            android:textStyle="bold"
-            android:textColor="#4189E1"
-            android:textSize="20sp"
-            android:text="Selected file" />
-
-        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/selected"
-            android:layout_marginTop="20dp"
-            android:id="@+id/file_path"
-            android:text="No file has been selected"
-            android:textSize="18sp" />
+            android:text="Selected file: "
+            android:textColor="#050505"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@+id/load_file_JarDex"
+            tools:layout_editor_absoluteX="0dp" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:id="@+id/file_path"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="100dp"
+            android:layout_marginTop="76dp"
+            android:text="No file has been selected"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.271"
+            app:layout_constraintStart_toEndOf="@+id/selected"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="411dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:labelFor="@id/class_to_load"
-            android:text="Class Name to Load"
-            android:textColor="#b084E1"
+            android:text="Class Name to Load:"
+            android:textColor="#000000"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@+id/selected"
+            tools:layout_editor_absoluteX="0dp" />
 
         <EditText
-            android:layout_width="match_parent"
             android:id="@+id/class_to_load"
-            android:layout_height="wrap_content" />
+            android:layout_width="376dp"
+            android:layout_height="42dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintBottom_toTopOf="@+id/textView2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/textView"
+            app:layout_constraintVertical_bias="0.0" />
+
 
         <TextView
-            android:textStyle="bold"
-            android:textColor="#b084E1"
-            android:layout_width="match_parent"
+            android:id="@+id/textView2"
+            android:layout_width="411dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Function to invoke"
+            android:layout_marginTop="40dp"
+            android:labelFor="@id/function_to_invoke"
+            android:text="Function to invoke:"
+            android:textColor="#000000"
             android:textSize="18sp"
-            android:labelFor="@id/function_to_invoke" />
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@+id/textView"
+            tools:layout_editor_absoluteX="0dp" />
+
         <EditText
             android:id="@+id/function_to_invoke"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
+            android:layout_width="375dp"
+            android:layout_height="45dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
         <Button
             android:id="@+id/invoke_Function"
+            android:layout_width="253dp"
+            android:layout_height="48dp"
+            android:text="Invoke function"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/function_to_invoke"
+            app:layout_constraintVertical_bias="0.0" />
+
+        <Button
+            android:id="@+id/stayOnTop"
             android:layout_width="wrap_content"
-            android:layout_height="66dp"
-            android:layout_marginLeft="100dp"
-            android:layout_marginRight="100dp"
-            android:text="Invoke function" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="48dp"
+            android:text="Stay on top"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.866"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

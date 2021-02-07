@@ -296,19 +296,51 @@ class parser(cmd.Cmd):
                 self.print_proxy()
             elif 'reset' in command:
                 os.popen("adb -s {} shell settings put global http_proxy :0".format(self.device.id))  
+                os.popen("adb -s {} shell iptables -t nat -F".format(self.device.id))
                 time.sleep(2) 
                 self.print_proxy()
             elif 'set' in command:
-                ip = line.split(' ')[1].split(':')[0]
-                port = line.split(' ')[1].split(':')[1]
-                os.popen("adb -s {} shell settings put global http_proxy {}:{}".format(self.device.id,ip,port)) 
-                time.sleep(2) 
-
-                self.print_proxy()
+                switch = ip = line.split(' ')[1].split(':')[0]
+                if '-t' in switch:
+                    ip = line.split(' ')[2].split(':')[0]
+                    port = line.split(' ')[2].split(':')[1]
+                    self.transproxy(ip,port)
+                else:
+                    ip = line.split(' ')[1].split(':')[0]
+                    port = line.split(' ')[1].split(':')[1]
+                    os.popen("adb -s {} shell settings put global http_proxy {}:{}".format(self.device.id,ip,port)) 
+                    time.sleep(2) 
+                    self.print_proxy()
             else:
-                print('[!] Usage: proxy [set,get,reset] [<ip>:<port>]')
+                print('[!] Usage: proxy [set,get,reset] [<ip>:<port>] [-t]')
         except Exception as e:
             print(e)
+
+
+    def transproxy(self,ip,port):
+        try:
+            print('[i] Pushing transproxy script !')
+            os.popen("adb -s {} push utils/transproxy.sh /data/local/tmp/transproxy.sh".format(self.device.id)) 
+            print('[i] Executing script')
+            os.popen("adb -s {} shell 'chmod +x /data/local/tmp/transproxy.sh; /data/local/tmp/transproxy.sh {} {}; rm /data/local/tmp/transproxy.sh'".format(self.device.id,ip,port))
+            self.print_proxy()
+        except Exception as e:
+            print(e)
+
+    def do_installBurpCert(self,line):
+        try:
+            a = ''
+            while a != 'y' and a !='x':
+                a = input("""[!] Make sure that burp is running on 127.0.0.1:8080\n\nType 'y' to continue or 'x' to cancel:""")
+
+            if a == 'y':
+                os.popen("chmod +x utils/installBurpCert.sh; utils/installBurpCert.sh {}".format(self.device.id)) 
+                os.popen("adb -s {} shell am broadcast -a com.medusa.INSTALL_CERTIFICATE -n com.medusa.agent/.Receiver".format(self.device.id))
+                time.sleep(1)
+                print()
+        except Exception as e:
+            print('')
+        
 
     def complete_proxy(self, text, line, begidx, endidx):
         proxy_cmd = ['set','get','reset']
@@ -324,8 +356,14 @@ class parser(cmd.Cmd):
 
 
     def print_proxy(self):
+        
         settings = os.popen("adb -s {} shell settings get global http_proxy".format(self.device.id)).read()
+        print (WHITE+"--------------Global proxy settings-----------------:"+RESET)
         print ('Current proxy: {}'.format(settings))
+        print (WHITE+"--------------IP tables settings--------------------:"+RESET)
+        output = subprocess.run("adb -s {} shell iptables -t nat -L".format(self.device.id), shell=True)
+        print(output)
+ 
 
     def do_screencap(self, line):
         try:
@@ -480,7 +518,7 @@ class parser(cmd.Cmd):
 
     def do_installagent(self,line):
         try:
-            subprocess.run('adb -s {} install {}'.format(self.device.id, os.getcwd()+'/dependencies/agent.apk'),shell=True)
+            subprocess.run('adb -s {} install -g {}'.format(self.device.id, os.getcwd()+'/dependencies/agent.apk'),shell=True)
         except Exception as e:
             print(e)
 
@@ -521,28 +559,31 @@ class parser(cmd.Cmd):
                     - startsrv   [tab]          : Start a service
                     - stopsrv    [tab]          : Stop a service
                     - broadcast  [tab]          : Broadcast an intent 
-                    - spawn [tab]               : Spawn an application
+                    - spawn      [tab]          : Spawn an application
 
                     ===========================================================================================
 
                     [+] UTILITIES:
                     ---------------------
-                    - notify subject body       : Display a notification to the phone's notification bar
-                    e.g. notify test foo          (Requires the medusa agent to be installed and run)
+                    - installagent                  : Install the Medusa apk
+                    - installBurpCert               : Install Burp Certificate
+                    - notify subject body           : Display a notification to the phone's notification bar
+                    e.g. notify test foo            (Requires the medusa agent to be installed and run)
 
-                    - jdwp  package_name        : Open a jdb session with the debugger attached to the package 
-                                                  (Requires the --patch option)
+                    - jdwp  package_name            : Open a jdb session with the debugger attached to the package 
+                                                    (Requires the --patch option)
 
-                    - adb [cmd]                 : Send an adb command to the connected device
-                    - clear                     : Clears the screen
-                    - kill [tab]                : Kill an app by the package name
-                    - type                      : Type text to send to the device
-                    - screencap -o filename     : Takes a device screenshot and saves it as 'filaname'
-                    - shell                     : Opens an interactive shell
-                    - proxy set <ip>:<port>     : Sets a global proxy at a given ip and port
-                    - proxy get                 : Displays proxy settings of the device
-                    - proxy reset               : Resets proxy settings
-                    - uninstall [tab]           : Uninstals a packages from the device
+                    - adb [cmd]                     : Send an adb command to the connected device
+                    - clear                         : Clears the screen
+                    - kill [tab]                    : Kill an app by the package name
+                    - type                          : Type text to send to the device
+                    - screencap -o filename         : Takes a device screenshot and saves it as 'filaname'
+                    - shell                         : Opens an interactive shell
+                    - proxy set [-t] <ip>:<port>    : Sets a global proxy at a given ip and port 
+                                                    ('-t' for transparent)
+                    - proxy get                     : Displays proxy settings of the device
+                    - proxy reset                   : Resets proxy settings
+                    - uninstall [tab]               : Uninstals a packages from the device
 
                             """)
     

@@ -44,5 +44,38 @@ def get_element_list(xmlDoc,node,attrib):
     
     return elements
 
+
+def get_deeplinks(xmlDoc,activity,node,attrib):
+    
+    deeplinksTree = {}
+    deeplinks = []
+    for act in xmlDoc.getElementsByTagName(activity):
+        deeplinks = get_deeplinks_s(act,'data','android:scheme')
+        if deeplinks:
+            deeplinksTree[act.getAttribute('android:name')] = deeplinks
+    
+    return deeplinksTree
+
+
+
+def get_deeplinks_s(xmlDoc,node,attrib):
+    deeplinks = []
+    nod = xmlDoc.getElementsByTagName(node)
+    attribfinal = ''
+
+    for atr in nod:
+  
+        attribfinal = atr.getAttribute(attrib)+'://'
+        host= atr.getAttribute("android:host")
+        pathPrefix = atr.getAttribute("android:pathPrefix")
+
+        if host != '':
+            attribfinal = attribfinal  + host
+        if pathPrefix != '':
+            attribfinal = attribfinal  + pathPrefix
+
+        deeplinks.append(attribfinal)
+    return deeplinks
+
     
 

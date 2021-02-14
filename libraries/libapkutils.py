@@ -35,6 +35,8 @@ class parser(cmd.Cmd):
     services = None
     receivers = None
     providers = None
+    deeplinks = None
+    deeplinks_= []
     filters = []
 
     # classes = []
@@ -83,7 +85,38 @@ class parser(cmd.Cmd):
         except Exception as e:
             print(e)
 
-    
+
+    def do_deeplink(self,line):
+
+        output=os.popen("adb -s {} shell am start -W -a android.intent.action.VIEW -d {}".format(self.device.id,line.split(' ')[0])).read()
+        print(output)
+
+
+
+    def complete_deeplink(self, text, line, begidx, endidx):
+
+        if not text:
+            completions = self.deeplinks_[:]
+        else:
+            completions = [ f
+                            for f in self.deeplinks_
+                            if f.startswith(text)
+                            ]
+        return completions
+
+    def printDeepLinksMap(self):
+        a = 0
+        print(GREEN+'\n------------DeepLinks Map--------------:'+RESET)
+        try:
+            for key in self.deeplinks:
+                print(BLUE+key+RESET)
+                for value in self.deeplinks[key]:
+                    self.deeplinks_.append(value)
+                    print('\t|-> '+RED+value+RESET)
+                    a = a+1
+            print(GREEN+'----------Total Deeplinks:{}-------------'.format(a))
+        except Exception as e:
+            print(e)
 
 
     def do_trace(self,line):
@@ -99,6 +132,29 @@ class parser(cmd.Cmd):
                 subprocess.run("""x-terminal-emulator -e {}""".format(script)) 
             elif 'Windows' in opsys:
                 subprocess.call('start /wait {}'.format(script), shell=True)
+
+    def do_pull(self, line):
+        try:
+            base_apk = os.popen("adb -s {} shell pm path {} | grep apk".format(self.device.id,line.split(' ')[0])).read()
+            base_apk = base_apk[ base_apk.find(':')+1:]
+            print("Extracting: "+base_apk)
+            output = os.popen("adb -s {} pull {}".format(self.device.id,base_apk)).read()
+            print(output)
+        except Exception as e:
+            print(e)
+
+    def complete_pull(self, text, line, begidx, endidx):
+        self.init_packages()
+        if not text:
+            completions = self.packages[:]
+            self.packages = []
+        else:
+            completions = [ f
+                            for f in self.packages
+                            if f.startswith(text)
+                            ]
+            self.packages = []
+        return completions
 
 
     def create_script(self,opsys,line):
@@ -556,6 +612,7 @@ class parser(cmd.Cmd):
                     ---------------------
 
                     - start      [tab]          : Start and activity 
+                    - deeplink   [tab]          : Trigger a deeplink
                     - startsrv   [tab]          : Start a service
                     - stopsrv    [tab]          : Stop a service
                     - broadcast  [tab]          : Broadcast an intent 
@@ -565,6 +622,7 @@ class parser(cmd.Cmd):
 
                     [+] UTILITIES:
                     ---------------------
+                    - pull       [tab]              : extract apk from the device
                     - installagent                  : Install the Medusa apk
                     - installBurpCert               : Install Burp Certificate
                     - notify subject body           : Display a notification to the phone's notification bar

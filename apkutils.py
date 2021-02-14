@@ -137,17 +137,33 @@ Exported Components:
             ,get_elements(xmlDoc,'application','android:name')
             ,get_elements(xmlDoc,'application','android:allowBackup')
             ,get_elements(xmlDoc,'application','android:debuggable')))
+
+
+
+
 package = get_elements(xmlDoc,'manifest','package')
 permissions = get_element_list(xmlDoc,'uses-permission','android:name')
 activities = get_element_list(xmlDoc,'activity','android:name')
 services = get_element_list(xmlDoc, 'service','android:name')
 receivers = get_element_list(xmlDoc,'receiver','android:name')
 providers = get_element_list(xmlDoc,'provider','android:name')
+deeplinks = get_deeplinks(xmlDoc,'activity','data','android:scheme')
 
 
+p = parser()
+p.deeplinks = deeplinks
+p.package = package
+p.permissions = permissions
+p.activities = activities
+p.services = services
+p.receivers = receivers
+p.providers = providers
+p.INSTALL = INSTALL
+p.filters = filters
 
+p.printDeepLinksMap()
 
-
+# print(deeplinks)
 
 
 print(RESET)
@@ -175,37 +191,8 @@ try:
 except Exception as e:
     print(e)
 
-
-
-
-# try:
-#     if INSTALL==True:
-#         pid = device.spawn(package)
-#         print("[i] Starting process {} [pid:{}] to dump classes ".format(package,pid))
-#         session = device.attach(pid)
-#         device.resume(pid)
-#         script = session.create_script(js)
-#         script.on('message', on_message)
-#         script.load()
-# except Exception as e:
-#     print(e)
-
-
-
-
-p = parser()
-p.package = package
-p.permissions = permissions
-p.activities = activities
-p.services = services
-p.receivers = receivers
-p.providers = providers
 p.device = device
-p.INSTALL = INSTALL
-p.filters = filters
 # p.classes = classes
 p.cmdloop()
-
-
 
 print('\nBye !!')

@@ -158,7 +158,6 @@ p.activities = activities
 p.services = services
 p.receivers = receivers
 p.providers = providers
-p.INSTALL = INSTALL
 p.filters = filters
 
 p.printDeepLinksMap()
@@ -191,6 +190,7 @@ try:
 except Exception as e:
     print(e)
 
+p.INSTALL = INSTALL
 p.device = device
 # p.classes = classes
 p.cmdloop()

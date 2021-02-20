@@ -19,7 +19,6 @@ var cursor = Java.use('android.database.Cursor');
 var clipboardManager = Java.use('android.content.ClipboardManager');
 var Location = Java.use('android.location.Location');
 var telephonyManager = Java.use('android.telephony.TelephonyManager');
-var systemProperties = Java.use('android.os.SystemProperties');
 var contextWrapper = Java.use("android.content.ContextWrapper");
 var locationListener = Java.use("android.location.LocationListener");
 var locationManager = Java.use('android.location.LocationManager');

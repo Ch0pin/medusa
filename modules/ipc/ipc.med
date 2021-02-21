@@ -36,7 +36,7 @@ var ContextWrapper = Java.use('android.content.Context');
        console.log("Intent getFlags: " + intent.getFlags());
        colorLog('[-] ----------------------------------------',{c:Color.Red});     
 
-       return this.startActivity(intent,requestCode);
+       return this.startActivityForResult(intent,requestCode);
 
    }
  

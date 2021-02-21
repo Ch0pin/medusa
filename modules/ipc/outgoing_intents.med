@@ -1,11 +1,12 @@
-#Description: 'Use this module to hook intent creation calls'
+#Description: 'Use this module to monitor outgoing intents'
 #Help: "Displays a message with the intent acction or extra data when it is feasible"
 #Code:
 
- console.log('\n----------Intent monitor------------');
+ console.log('\n----------Outgoing Intent monitor------------');
 
  
  var intent = Java.use('android.content.Intent');
+
  
 	intent.$init.overload().implementation = function(){
         colorLog('\n[+] Empty intent created===================', { c: Color.Green });
@@ -35,14 +36,15 @@
 
         console.log(''+
         '\nAction: '+ action+
-        '\nURI: '+uri.toString());
+        '\nURI: '+uri.toString()+
+        '\nClass: '+cls);
+        
         return this.$init(action,uri,context,cls);
     }
 	intent.$init.overload('android.content.Context', 'java.lang.Class').implementation = function(context, classA){
         colorLog('\n[+] Intent created===================', { c: Color.Green });
-
-        console.log(''+
-        '\nClass: '+classA.$className);
+        colorLog('\n'+classA,{c:Color.Blue});
+      
         console.log('[+] Action: '+this.getAction());
         console.log('[+] Data string: '+this.getDataString());
         return this.$init(context,classA);
@@ -73,6 +75,13 @@
         return this.$init(intentA, integerA);
     }
 
+    intent.addCategory.implementation = function(category){
+        console.log('[+] Category: '+category);
+        return this.addCategory(category);
+    }
+
+
+
     intent.setClassName.overload('java.lang.String', 'java.lang.String').implementation = function( packageName,  className){
         colorLog('\n[+] Intent created===================', { c: Color.Green });
 
@@ -88,87 +97,116 @@
 
     
 	intent.putExtra.overload('java.lang.String', '[I').implementation = function( name,  intB){
-        console.log('[!] Intent Extra name: '+ name)
+     
+        console.log('[i] Intent Extra name: '+ name);
+        console.log('[i] Intent Extra type: Intenger Array');
         return this.putExtra(name,intB);
     }
 	intent.putExtra.overload('java.lang.String', '[D').implementation = function( name,  doubleD){
-        console.log('[!] Intent Extra name: '+ name)
+        console.log('[i] Intent Extra name: '+ name);
+        console.log('[i] Intent Extra type: Double Array');
         return this.putExtra(name,doubleD);
     }
 	intent.putExtra.overload('java.lang.String', '[F').implementation = function( name,  floatF){
-        console.log('[!] Intent Extra name: '+ name)
+        console.log('[i] Intent Extra name: '+ name);
+        console.log('[i] Intent Extra type: Float Array');
         return this.putExtra(name,floatF);
     }
 	intent.putExtra.overload('java.lang.String', '[B').implementation = function( name,  byteB){
-        console.log('[!] Intent Extra name: '+ name)
+        console.log('[i] Intent Extra name: '+ name)
+        console.log('[i] Intent Extra type: Byte Array');
         return this.putExtra(name,byteB);
     }
 	intent.putExtra.overload('java.lang.String', '[C').implementation = function( name,  charC){
-        console.log('[!] Intent Extra name: '+ name)
+        console.log('[i] Intent Extra name: '+ name)
+        console.log('[i] Intent Extra type: Char Array');
         return this.putExtra(name,charC);
     }
 	intent.putExtra.overload('java.lang.String', '[Z').implementation = function( name,  z){
-        console.log('[!] Intent Extra name: '+ name)
+        console.log('[i] Intent Extra name: '+ name)
+        console.log('[i] Intent Extra type: Boolean Array');
         return this.putExtra(name,z);
     }
+
+
+
+
 	intent.putExtra.overload('java.lang.String', 'boolean').implementation = function( name,  bool){
-        console.log('[!] Intent Extra name: '+ name)
+        console.log('\n[i] Intent Extra Type: Boolean');
+        console.log('[i] Intent Extra name: '+ name );
+        console.log('[i] Intent Extra value: '+ bool );
         return this.putExtra(name,bool);
     }
     intent.putExtra.overload('java.lang.String', '[S').implementation = function( name,  stringS){
-        console.log('[!] Intent Extra name: '+ name)
-        return this.putExtra(name,parcel);
+        console.log('\n[i] Intent Extra Type: String');
+        console.log('[i] Intent Extra name: '+ name)
+        console.log('[i] Intent Extra value: '+ stringS)
+        return this.putExtra(name,stringS);
     }
     
 	intent.putExtra.overload('java.lang.String', '[Landroid.os.Parcelable;').implementation = function( name,  parcel){
-        console.log('[!] Intent Extra name: '+ name)
-        return this.putExtra(name,stringS);
+        console.log('\n[i] Intent Extra Type: Parcel');
+        console.log('[i] Intent Extra name: '+ name)
+        console.log('[!] Intent Extra value: '+ parcel.toString());
+        return this.putExtra(name,parcel);
     }
 	intent.putExtra.overload('java.lang.String', 'byte').implementation = function( name,  bt){
-        console.log('[!] Intent Extra name: '+ name)
+        console.log('\n[i] Intent Extra Type: byte');
+        console.log('[i] Intent Extra name: '+ name)
+        console.log('[i] Intent Extra value: '+ bt)
         return this.putExtra(name,bt);
     }
     intent.putExtra.overload('java.lang.String', '[Ljava.lang.CharSequence;').implementation = function( name,  chars){
-        
-        console.log('[!] Intent Extra: '+ name)
+        console.log('\n[i] Intent Extra Type: CharSequence');
+        console.log('[i] Intent Extra: '+ name)
+        console.log('[i] Intent Extra value: '+ chars);
         return this.putExtra(name,chars);
     }
     
 	intent.putExtra.overload('java.lang.String', '[Ljava.lang.String;').implementation = function( name,  data){
+        console.log('\n[i] Intent Extra Type: String Array');
         console.log('[!] Intent Extra: '+ name);
         return this.putExtra(name,data);
     }
 	intent.putExtra.overload('java.lang.String', 'android.os.Bundle').implementation = function( name,  bundle){
+        console.log('\n[i] Intent Extra Type: Bundle');
         console.log('[!] Intent Extra name: '+ name);
         return this.putExtra(name,bundle);
     }
 	intent.putExtra.overload('java.lang.String', 'int').implementation = function( name,  intA){
+        console.log('\n[i] Intent Extra Type: int');
         console.log('[!] Intent Extra name: '+ name + ', value:'+intA)
         return this.putExtra(name,intA);
     }
 	intent.putExtra.overload('java.lang.String', 'long').implementation = function( name,  longA){
+        console.log('\n[i] Intent Extra Type: long');
         console.log('[!] Intent Extra name: '+ name + ', value:'+longA);
         return this.putExtra(name,longA);
     }
     intent.putExtra.overload('java.lang.String', 'float').implementation = function( name,  floatA){
+        console.log('\n[i] Intent Extra Type: flot');
         console.log('[!] Intent Extra name: '+ name + ', value:'+floatA);
         return this.putExtra(name,floatA);
     }
     
 	intent.putExtra.overload('java.lang.String', 'short').implementation = function( name,  shortA){
+        console.log('\n[i] Intent Extra Type: short');
         console.log('[!] Intent Extra name: '+ name + ', value:'+shortA);
         return this.putExtra(name,shortA);
     }
 	intent.putExtra.overload('java.lang.String', 'char').implementation = function( name,  charA){
+        console.log('\n[i] Intent Extra Type: char');
         console.log('[!] Intent Extra name: '+ name + ', value:'+charA);
         return this.putExtra(name,charA);
 
     }
 	intent.putExtra.overload('java.lang.String', 'double').implementation = function( name,  doubleA){
+        console.log('\n[i] Intent Extra Type: double');
         console.log('[!] Intent Extra name: '+ name + ', value:'+doubleA);
         return this.putExtra(name,doubleA);
     }
     intent.putExtra.overload('java.lang.String', 'java.lang.String').implementation = function( name,  stringA){
+        console.log('\n[i] Intent Extra Type: String');
         console.log('[!] Intent Extra name: '+ name + ', value:'+stringA);
         return this.putExtra(name,stringA);
     }
@@ -176,19 +214,23 @@
     intent.putExtra.overload('java.lang.String', 'java.lang.CharSequence').implementation = function( name,  CharSequence)
     {
         charsJoin = CharSequence.join("");
+        console.log('\n[i] Intent Extra Type: charsequence');
         console.log('[!] Intent Extra: '+ name, ' : ' + charsJoin)
         return this.putExtra(name,CharSequence);
     }
 	intent.putExtra.overload('java.lang.String', 'java.io.Serializable').implementation = function( name,  serializable){
+        console.log('\n[i] Intent Extra Type: Serializable');
         console.log('[!] Intent Extra name: '+ name );
         return this.putExtra(name,serializable);
     }
     intent.putExtra.overload('java.lang.String', 'android.os.Parcelable').implementation = function( name,  parcelable)
     {
+        console.log('\n[i] Intent Extra Type: parcelable');
         console.log('[!] Intent Extra name: '+ name );
         return this.putExtra(name,parcelable);
     }
 	intent.putExtra.overload('java.lang.String', 'android.os.IBinder').implementation = function( name,  binder){
+        console.log('\n[i] Intent Extra Type: IBinder');
         console.log('[!] Intent Extra name: '+ name );
         return this.putExtra(name,binder);
     }

@@ -30,6 +30,22 @@ def get_elements_sub(xmlDoc):
   
     return broadcasts
 
+def parse_strings_xml(xmlDoc):
+    try:
+        stringsXML = tree.parse(xmlDoc)
+        root = stringsXML.getroot()
+        strings = []
+        for child in root.iter():        
+            if child.tag=='string':
+                attrib = child.attrib['name']
+                text = child.text
+                if attrib is not None and text is not None:
+                    strings.append(attrib+"="+text)
+    except Exception as e:
+        print(e) 
+    return strings
+
+
 def get_element_list(xmlDoc,node,attrib):
     elements = []
     nod = xmlDoc.getElementsByTagName(node)

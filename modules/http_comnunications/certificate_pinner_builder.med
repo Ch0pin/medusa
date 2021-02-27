@@ -1,0 +1,11 @@
+#Description: 'Certificate pinner builder intercept'
+#Help: "https://square.github.io/okhttp/3.x/okhttp/okhttp3/CertificatePinner.Builder.html"
+#Code:
+
+
+var certificatebuilder = Java.use('okhttp3.CertificatePinner$Builder');
+
+certificatebuilder.add.implementation = function(realUrl,b){
+    console.log("Certificate Pinner Builder: Replacing "+ realUrl + " with "+ "justDontGoHere.comeon");
+    return("justDontGoHere.comeon",b);
+}

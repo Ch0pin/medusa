@@ -34,7 +34,7 @@ debuggable_apk = os.getcwd()+"/debuggable.apk";
 alligned_apk = os.getcwd()+"/debuggable_alligned_signed.apk"
 tmp_folder = os.getcwd()+"/tmp"
 
-
+strings = []
 classes = []
 shell = os.environ.get('SHELL', 'sh')
 
@@ -79,17 +79,9 @@ def extract_manifest(file):
 
 
     subprocess.run('cp tmp/AndroidManifest.xml ./manifest.xml', shell=True)
+    subprocess.run('cp tmp/res/values/strings.xml ./strings.xml', shell=True)
     performRecon("./tmp")
     shutil.rmtree('./tmp')
-
-
-# def on_message(message, data):
-#     try:
-#         if message["type"] == "send":
-#             classes.append( message["payload"].split(":")[0].strip())
-#     except Exception as e:
-#         print('exception: ' + e) 
-
 
 
 try:
@@ -102,12 +94,14 @@ try:
     if extension == 'xml':
         xmlDoc = minidom.parse(sys.argv[1])
         filters = get_elements_sub(sys.argv[1])
+
     elif extension == 'apk':
         APK = True
         print('APK file given as an input')
         extract_manifest(sys.argv[1])
         xmlDoc = minidom.parse('manifest.xml')
         filters = get_elements_sub('manifest.xml')
+        strings = parse_strings_xml('strings.xml')
     else:
         print_usage()
         exit()
@@ -140,7 +134,6 @@ Exported Components:
 
 
 
-
 package = get_elements(xmlDoc,'manifest','package')
 permissions = get_element_list(xmlDoc,'uses-permission','android:name')
 activities = get_element_list(xmlDoc,'activity','android:name')
@@ -159,11 +152,9 @@ p.services = services
 p.receivers = receivers
 p.providers = providers
 p.filters = filters
+p.strings = strings
 
 p.printDeepLinksMap()
-
-# print(deeplinks)
-
 
 print(RESET)
 

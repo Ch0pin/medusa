@@ -314,25 +314,27 @@ audioRecord.stop.implementation = function(){
 }
 
 clipboardManager.getText.implementation = function(){
-        console.log('[i] Application is trying to retrieve text from clipboard:');
+        colorLog('[i] Application is trying to retrieve text from clipboard:',{c:Color.Red});
         console.log('Text: '+this.getText());
         return this.getText();
 
 }
 
 clipboardManager.getPrimaryClip.implementation = function(){
-        console.log('[i] Application is trying to retrieve text from clipboard !');
+
+        colorLog('[i] Application is trying to retrieve text from clipboard !',{c:Color.Red});
         return this.getPrimaryClip();
 
 }
 
 clipboardManager.hasPrimaryClip.implementation = function(){
-        console.log('[i] Application is checking if the clipbard has data!');
+        colorLog('[i] Application is checking if the clipoard contains data!',{c:Color.Red});
         return this.hasPrimaryClip();   
 }
 clipboardManager.hasText.implementation = function(){
-        console.log('[i] Application is checking if the clipbard has data!');
-        return this.hasText();   
+
+        colorLog('[i] Application is checking if the clipoard contains data!',{c:Color.Red});
+        return this.hasText();
 }
 
 

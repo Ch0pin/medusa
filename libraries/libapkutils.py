@@ -37,6 +37,7 @@ class parser(cmd.Cmd):
     providers = None
     deeplinks = None
     deeplinks_= []
+    strings = []
     filters = []
 
     # classes = []
@@ -47,51 +48,66 @@ class parser(cmd.Cmd):
         found = False
         try:
             what = line.split(' ')[0]
-
+            print(RED+'Searching Activities:'+RESET)
             for module in self.activities:
                 if what.lower() in module.lower():
-                    print(module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
+                    print('[+] '+module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
+                    print("[Original String: {}]\n".format(module))
                     found = True
             if not found:
                 print('No Activities found containing: {} !'.format(what))
-
             found = False
+            
+            print(RED+'Searching Services:'+RESET)
             for module in self.services:
                 if what.lower() in module.lower():
-                    print(module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
+                    print('[+] '+module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
+                    print("[Original String: {}]\n".format(module))
                     found = True
             if not found:
                 print('No Services found containing: {} !'.format(what))
-
             found = False
+
+            print(RED+'Searching Receivers:'+RESET)
             for module in self.receivers:
                 if what.lower() in module.lower():
-                    print(module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
+                    print('[+] '+module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
+                    print("[Original String: {}]\n".format(module))
                     found = True
             if not found:
                 print('No Receivers found containing: {} !'.format(what))
-
-
             found = False
+
+            print(RED+'Searching Providers:'+RESET)
             for module in self.providers:
                 if what.lower() in module.lower():
-                    print(module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
+                    print('[+] '+module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
+                    print("[Original String: {}]\n".format(module))
                     found = True
             if not found:
                 print('No Providers found containing: {} !'.format(what))
-                
+            found = False  
 
+            print(RED+'Searching Strings.xml:'+RESET)
+            for module in self.strings:
+                if what.lower() in module.lower():
+                    print('[+] '+module[:str(module.lower()).find(what.lower())]+GREEN+what+RESET+module[str(module.lower()).find(what.lower())+len(what.lower()):])
+                    print("[Original String: {}]\n".format(module))
+                    found = True
+            if not found:
+                print('No Strings found containing: {} !'.format(what))
+            found = False  
 
         except Exception as e:
             print(e)
+
+
 
 
     def do_deeplink(self,line):
 
         output=os.popen("adb -s {} shell am start -W -a android.intent.action.VIEW -d {}".format(self.device.id,line.split(' ')[0])).read()
         print(output)
-
-
 
     def complete_deeplink(self, text, line, begidx, endidx):
 
@@ -306,6 +322,12 @@ class parser(cmd.Cmd):
                 print('\t\t'+item)
         print(RESET)
     
+    def print_strings(self,lst):
+       
+        for item in lst:
+            print(GREEN+'KEY:' +RESET+'{}'.format(item.split('=')[0],) + GREEN+'\t,VAL:'+RESET+' {}'.format(item.split('=')[1] ))
+    
+    
     def do_show(self,line):
         what = line.split(' ')[0]
         if 'permissions' in what:
@@ -320,12 +342,14 @@ class parser(cmd.Cmd):
             self.print_list(self.filters)
         elif 'providers' in what:
             self.print_list(self.providers)
+        elif 'strings' in what:
+            self.print_strings(self.strings)
         else:
-            print('[i] Usage: show [permissions, activities, services, receivers, filters, providers]')
+            print('[i] Usage: show [permissions, activities, services, receivers, filters, providers, strings]')
 
 
     def complete_show(self, text, line, begidx, endidx):
-        components = ['permissions', 'activities', 'services', 'receivers', 'filters','providers']
+        components = ['permissions', 'activities', 'services', 'receivers', 'filters','providers', 'strings']
         if not text:
             completions = components[:]
         else:
@@ -545,6 +569,11 @@ class parser(cmd.Cmd):
                 if 'yes' in ask:
                     os.remove('./manifest.xml')
 
+            if os.path.isfile('./strings.xml'):
+                ask = input('\n[!] do you want to delete the strings.xml file ? (yes/no) ')
+                if 'yes' in ask:
+                    os.remove('./strings.xml')
+
             if os.path.isfile('./script.sh'):
                 ask = input('\n[!] do you want to delete the trace script file ? (yes/no) ')
                 if 'yes' in ask:
@@ -605,6 +634,7 @@ class parser(cmd.Cmd):
                     - show receivers            : Print a list with the application's receivers
                     - show providers            : Print a list with the application's content providers
                     - show filters              : Print broadcast filters
+                    - show strings              : print application's strings
                     - search [keyword]          : Search components containing the given keyword
                     ===========================================================================================
 

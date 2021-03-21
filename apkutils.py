@@ -28,6 +28,7 @@ INSTALL = False
 #enumerate classes
 # js = """Java.perform(function(){Java.enumerateLoadedClasses({"onMatch":function(c){send(c);}});});"""
 apktool=os.getcwd()+"/dependencies/apktool.jar"
+dummyxml=os.getcwd()+"/dependencies/manifest.xml"
 apksigner = os.getcwd()+"/dependencies/apksigner"
 zipallign = os.getcwd()+ "/dependencies/zipalign"
 debuggable_apk = os.getcwd()+"/debuggable.apk";
@@ -55,8 +56,17 @@ def patch_debuggable(filename):
 
 
 def print_usage():
-    print("\nInput file is missing ! \nUsage: \n\t{} path_to_AndroidManifest.xml OR ".format(sys.argv[0]))
-    print('\t{} path_to_apk (--patch to set android:debuggable to true) \n\n'.format(sys.argv[0]))
+    print(GREEN+"""[i] ---------------------------USAGE--------------------------------:
+        apkutils is a parser/helper script which may be used either 
+        no file / manifest.xml file/ application.apk file:
+
+        ./apkutils.py 
+        ./apkutils.py path_to_AndroidManifest.xml
+        ./apkutils.py path_to_apk.apk 
+        ./apkutils.py --help    #display this message
+                    
+        Using an apk as input you may also use the --patch flag to
+        set the "debuggable" flag to true."""+RESET)
 
 def extract_manifest(file):
     print(GREEN+'[+] Unpacking apk....'+RESET)
@@ -86,25 +96,29 @@ def extract_manifest(file):
 
 try:
     if len(sys.argv[1:]) < 1:
-        print_usage()
-        exit()
-
-    extension = sys.argv[1].split('.')[-1]
-
-    if extension == 'xml':
-        xmlDoc = minidom.parse(sys.argv[1])
-        filters = get_elements_sub(sys.argv[1])
-
-    elif extension == 'apk':
-        APK = True
-        print('APK file given as an input')
-        extract_manifest(sys.argv[1])
-        xmlDoc = minidom.parse('manifest.xml')
-        filters = get_elements_sub('manifest.xml')
-        strings = parse_strings_xml('strings.xml')
+        xmlDoc = minidom.parse(dummyxml)
+        filters = get_elements_sub(dummyxml)
     else:
-        print_usage()
-        exit()
+        if "--help" == sys.argv[1]:
+            print_usage()
+            exit()
+        else:
+            extension = sys.argv[1].split('.')[-1]
+
+            if extension == 'xml':
+                xmlDoc = minidom.parse(sys.argv[1])
+                filters = get_elements_sub(sys.argv[1])
+
+            elif extension == 'apk':
+                APK = True
+                print('APK file given as an input')
+                extract_manifest(sys.argv[1])
+                xmlDoc = minidom.parse('manifest.xml')
+                filters = get_elements_sub('manifest.xml')
+                strings = parse_strings_xml('strings.xml')
+            else:
+                print_usage()
+                exit()
 
 except Exception as e:
     print(e)

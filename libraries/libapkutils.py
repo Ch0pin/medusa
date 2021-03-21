@@ -106,8 +106,7 @@ class parser(cmd.Cmd):
 
     def do_deeplink(self,line):
         try:
-
-            if not line.split()[1] is None and '--poc' in line.split()[1]:
+            if len(line.split()) > 1 and '--poc' in line.split()[1]:
                 print("[+] Creating POC")
                 poc = '<head></head>'+'<body>'+'<a href="'+line.split()[0]+'">DEEPLINK POC</a></body></html>'
                 f = open("poc.html",'w')

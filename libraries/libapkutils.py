@@ -105,9 +105,21 @@ class parser(cmd.Cmd):
 
 
     def do_deeplink(self,line):
+        try:
 
-        output=os.popen("adb -s {} shell am start -W -a android.intent.action.VIEW -d {}".format(self.device.id,line.split(' ')[0])).read()
-        print(output)
+            if not line.split()[1] is None and '--poc' in line.split()[1]:
+                print("[+] Creating POC")
+                poc = '<head></head>'+'<body>'+'<a href="'+line.split()[0]+'">DEEPLINK POC</a></body></html>'
+                f = open("poc.html",'w')
+                f.write(poc)
+                f.close()
+                print("[+] POC created")
+
+            else:
+                output=os.popen("adb -s {} shell am start -W -a android.intent.action.VIEW -d {}".format(self.device.id,line.split(' ')[0])).read()
+                print(output)
+        except Exception as e:
+            print(e)
 
     def complete_deeplink(self, text, line, begidx, endidx):
 
@@ -122,15 +134,15 @@ class parser(cmd.Cmd):
 
     def printDeepLinksMap(self):
         a = 0
-        print(GREEN+'\n------------DeepLinks Map--------------:'+RESET)
+        print(GREEN+'\n'+'-'*40+'DeepLinks Map'+'-'*40+':'+RESET)
         try:
             for key in self.deeplinks:
-                print(BLUE+key+RESET)
+                print(BLUE+'Deeplinks that trigger: '+GREEN+key+RESET)
                 for value in self.deeplinks[key]:
                     self.deeplinks_.append(value)
                     print('\t|-> '+RED+value+RESET)
                     a = a+1
-            print(GREEN+'----------Total Deeplinks:{}-------------'.format(a))
+            print(GREEN+'-'*40+'Total Deeplinks:{}'.format(a)+'-'*40+'|')
         except Exception as e:
             print(e)
 
@@ -643,6 +655,7 @@ class parser(cmd.Cmd):
 
                     - start      [tab]          : Start and activity 
                     - deeplink   [tab]          : Trigger a deeplink
+                                                  Add the --poc to create an html poc file
                     - startsrv   [tab]          : Start a service
                     - stopsrv    [tab]          : Stop a service
                     - broadcast  [tab]          : Broadcast an intent 

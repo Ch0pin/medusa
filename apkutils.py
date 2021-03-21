@@ -154,7 +154,7 @@ activities = get_element_list(xmlDoc,'activity','android:name')
 services = get_element_list(xmlDoc, 'service','android:name')
 receivers = get_element_list(xmlDoc,'receiver','android:name')
 providers = get_element_list(xmlDoc,'provider','android:name')
-deeplinks = get_deeplinks(xmlDoc,'activity','data','android:scheme')
+deeplinks = get_deeplinks(xmlDoc)
 
 
 p = parser()

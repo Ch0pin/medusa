@@ -55,5 +55,6 @@ function enumerateModules(){
   }
 
 Java.perform(function() {
-enumerateModules(); 
+enumerateExportsJs('libldjed.so');
+ 
 });

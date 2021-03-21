@@ -39,6 +39,34 @@ class nativeHandler():
           
         except Exception as e:
             print(e) 
+    
+
+
+    def loadLibrary(self,package,libname):
+        try:
+            scriptContent = "Java.perform(function() {"
+            scriptContent += """
+            var system = Java.use('java.lang.System');
+                Java.scheduleOnMainThread(function(){"""
+            scriptContent += "var mod = Module.load('"+libname+"');"
+            scriptContent += "console.log(JSON.stringify(mod));})});"
+
+            pid = self.device.spawn(package)
+            session = self.device.attach(pid)
+            script = session.create_script(scriptContent)
+            print("loading script...")
+            script.on('message', self.on_message)
+            self.device.resume(pid)
+            script.load()
+            time.sleep(1)
+            script.unload()
+        except Exception as e:
+            print(e)
+
+
+        
+     
+
 
     def getModules(self,package,force):
 

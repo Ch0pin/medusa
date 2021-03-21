@@ -137,6 +137,28 @@ class parser(cmd.Cmd):
         self.native_handler.memops(line)
 
 
+#------------------------cut here
+    def do_load(self,line):
+        self.native_handler = nativeHandler(self.device)
+        self.native_handler.loadLibrary(line.split()[0],line.split()[1])
+        
+#----------------------------
+
+    def complete_load(self, text, line, begidx, endidx):
+        self.packages = []
+
+        for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
+            self.packages.append(line1.split(':')[1].strip('\n'))
+        #----------------- 
+        if not text:
+            completions = self.packages[:]
+        else:
+            completions = [ f
+                            for f in self.packages
+                            if f.startswith(text)
+                            ]
+        return completions
+
 
     def complete_memops(self, text, line, begidx, endidx):
         self.packages = []
@@ -972,19 +994,39 @@ catch (err) {
 
 
     def do_list(self,line):
-        self.packages = []
-        j=0
-        if 'packages' in line:
-            for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
-                self.packages.append(line1.split(':')[1].strip('\n'))
-            print('Installed packages:\n')
-            for pkg in self.packages:
-                print('[{}] {}'.format(j,pkg))
-                j +=1
-        else:
-            print('Invalid flag !')
+        try:
+            package = line.split()[0]
+            option = line.split()[1]
+            dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
+            if option == "path":
+                print('-'*20+package+' '+"paths"+'-'*20)
+                for ln in dumpsys:
+                    for keyword in ["resourcePath","codePath","legacyNativeLibraryDir","primaryCpuAbi"]:
+                        if keyword in ln:
+                            print(ln,end='')
 
-        
+            print("-"*31+'EOF'+'-'*len(package)+'-'*12)
+        except Exception as e:
+            print(e)
+
+
+
+
+    
+    def complete_list(self, text, line, begidx, endidx):
+        self.packages = []
+
+        for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
+            self.packages.append(line1.split(':')[1].strip('\n'))
+        #----------------- 
+        if not text:
+            completions = self.packages[:]
+        else:
+            completions = [ f
+                            for f in self.packages
+                            if f.startswith(text)
+                            ]
+        return completions
 
 
     def do_type(self,text):
@@ -1017,6 +1059,7 @@ catch (err) {
                         - show modules [category]   : Display the availlable modules for the selected category
                         - show snippets             : Display availlable snippets of frida scripts
                         - show all                  : Show all availlable modules
+                        - import [snippet]          : Import a snippet to the scratchpad
                         - rem [module name]         : Remove a module from the list that will be loaded
                         - swap old_index new_index  : Change the order of modules in the compiled script
                         - reset                     : Remove all modules from the list that will be loaded
@@ -1038,7 +1081,13 @@ catch (err) {
 
                 NATIVE OPERATIONS:
 
-                        - memops package_name [library] : READ/WRITE/SEARCH process memory
+                        - memops package_name lib.so    : READ/WRITE/SEARCH process memory
+
+                        - load package_name full_library_path
+                                                        : Manually load a library in order to explore using memops
+                                                          Tip: run "list package_name path" to get the application's
+                                                          directories
+
                         - libs (-a, -s, -j) package_name [--attach]  
 
                             -a                          : List ALL loaded libraries
@@ -1060,7 +1109,7 @@ catch (err) {
                 HELPERS:
 
                         - type 'text'               : Send a text to the device
-                        - list packages             : List 3rd party packages in the mobile device 
+                        - list 'package_name' path  : List data/app paths of 3rd party packages 
                         - status                    : Print Current Package/Libs/Native-Functions
                         - shell                     : Open an interactive shell
                         - clear                     : Clear the screen

@@ -27,13 +27,13 @@ console.log('-------file IO operations monitor by @chopin--------------');
         
         return this.$init(name);
       }
-      fileInputStream.$init.overloads[0].implementation = function(file){
+      fileInputStream.$init.overloads[1].implementation = function(file){
         var fname = name.getAbsolutePath();
         colorLog('[+] App is opening: '+fname + ' for READ',{c: Color.Green} );
         
         return this.$init(file);
       }
-      fileInputStream.$init.overloads[0].implementation = function(filedescriptor){
+      fileInputStream.$init.overloads[2].implementation = function(filedescriptor){
         var fname = filedescriptor.toString();
         colorLog('[+] App is using a filedescriptor: '+fname + ' for READ',{c: Color.Green} );
         

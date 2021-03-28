@@ -41,7 +41,7 @@ class nativeHandler():
             print(e) 
     
 
-
+#todo add force or attach
     def loadLibrary(self,package,libname):
         try:
             scriptContent = "Java.perform(function() {"
@@ -51,12 +51,14 @@ class nativeHandler():
             scriptContent += "var mod = Module.load('"+libname+"');"
             scriptContent += "console.log(JSON.stringify(mod));})});"
 
-            pid = self.device.spawn(package)
+            #pid = self.device.spawn(package)
+            pid = self.device.get_process(package).pid
+            print(pid)
             session = self.device.attach(pid)
             script = session.create_script(scriptContent)
             print("loading script...")
             script.on('message', self.on_message)
-            self.device.resume(pid)
+            #self.device.resume(pid)
             script.load()
             time.sleep(1)
             script.unload()

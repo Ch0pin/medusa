@@ -33,12 +33,6 @@ console.log('-------file IO operations monitor by @chopin--------------');
         
         return this.$init(file);
       }
-      fileInputStream.$init.overloads[2].implementation = function(filedescriptor){
-        var fname = filedescriptor.toString();
-        colorLog('[+] App is using a filedescriptor: '+fname + ' for READ',{c: Color.Green} );
-        
-        return this.$init(filedescriptor);
-      }
 
       fileOutputStream.$init.overloads[0].implementation = function(name){
         var fname = name;
@@ -70,14 +64,6 @@ console.log('-------file IO operations monitor by @chopin--------------');
         
         return this.$init(file,append);
       }
-      fileOutputStream.$init.overloads[4].implementation = function(filedescriptor){
-        var fname = filedescriptor.toString();
-
-        colorLog('[+] App is using a file descriptor: '+fname + ' for WRITE',{c: Color.Red} );
-        
-        return this.$init(filedescriptor);
-      }
-
 
       if (ContextWrapper.openFileInput) {
         // Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#openFileInput(java.lang.String)

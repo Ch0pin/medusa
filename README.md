@@ -209,6 +209,11 @@ Import the recipe by simply typing:
 
 ### ChangeLog:
 
+**08/05/2021:**
+
+- Added busybox support
+- Ability to force native library loading
+
 **07/02/2021:**
 
 - **Medusa agent** was modified to include certificate set up functionality as well as a floating mod

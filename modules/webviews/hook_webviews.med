@@ -10,14 +10,14 @@ var webView = Java.use('android.webkit.WebView');
 webView.setVisibility.implementation = function(a){
     if(a == 2){
         console.log('Webview visibility set to Gone');
-        console.log('Cancelling ...' );
+        //console.log('Cancelling ...' );
     }
     else if (a == 1){
         console.log('Webview visibility set to Hidden');
-        console.log('Cancelling....');
+        //console.log('Cancelling....');
     }
         
-    return this.setVisibility(0);
+    return this.setVisibility(a);
     
 }
 webView.addJavascriptInterface.implementation = function(object, name){

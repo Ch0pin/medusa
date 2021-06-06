@@ -196,14 +196,21 @@ class parser(cmd.Cmd):
 
 #==================START OF NATIVE OPERATIONS=============================
 
+    
     def hook_native(self):
         library = input('[?] Libary name:').strip()
+
+        type = input('[?] Imported or Exported Function (i/e):')
+        if type != 'e' and type != 'i':
+            print('[!] Command not understood. Exiting function')
+            return
+
         function = input('[?] Function name or Offset (e.g 0x1234):').strip()
         number_of_args = input('[?] Number of arguments (Insert 0 to disable trace):')
         backtraceEnable = input('[?] Enable backtrace (yes/no):')
         hexdumpEnable = input('[?] Enable memory read (yes/no):')
+
         header = ''
-   
         argread = ''
 
         for i in range(int(number_of_args)):
@@ -240,11 +247,25 @@ catch (err) {
             }"""
         else:
             tracejs = ''
+        
 
-        if function.startswith('0x'):
-            header = "Interceptor.attach(Module.findBaseAddress('"+library+"').add("+function+"), {"
+        if type == 'e':
+            if function.startswith('0x'):
+                header = "Interceptor.attach(Module.findBaseAddress('"+library+"').add("+function+"), {"
+            else:
+                header = "Interceptor.attach(Module.getExportByName('"+library+"', '"+function+"'), {"
+        elif type == 'i':
+            if function.startswith('0x'):
+                header = "Interceptor.attach(Module.findBaseAddress('"+library+"').add("+function+"), {"
+            else:
+                header = "var func = undefined;\n" + 'var imports = Module.enumerateImportsSync("'+library+'");\n'
+                header += 'for(var i = 0; i < imports.length; i++){\nif (imports[i].name=="'+function+'") \n{ func = imports[i].address; break; } }'
+                header += "Interceptor.attach(func, {\n"
         else:
-            header = "Interceptor.attach(Module.getExportByName('"+library+"', '"+function+"'), {"
+            print("[!] Command was not understood, exiting function.")
+            return
+
+
 
 
         #codejs = """Interceptor.attach(Module.getExportByName('"""+library+"""', '"""+function+"""'), {

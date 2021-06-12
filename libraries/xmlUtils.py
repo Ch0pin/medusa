@@ -54,7 +54,7 @@ def get_element_list(xmlDoc,node,attrib):
 
         elements.append(atr.getAttribute(attrib))
         if 'true' in atr.getAttribute("android:exported"):
-            print(RED + '{:10}'.format(node)+'{:80}'.format(atr.getAttribute(attrib)) + CYAN+' is exported')
+            print(RED + '{:18}'.format(node)+'{:80}'.format(atr.getAttribute(attrib)) + CYAN+' is exported')
 
        
     

@@ -151,6 +151,7 @@ Exported Components:
 package = get_elements(xmlDoc,'manifest','package')
 permissions = get_element_list(xmlDoc,'uses-permission','android:name')
 activities = get_element_list(xmlDoc,'activity','android:name')
+activities += get_element_list(xmlDoc,'activity-alias','android:name')
 services = get_element_list(xmlDoc, 'service','android:name')
 receivers = get_element_list(xmlDoc,'receiver','android:name')
 providers = get_element_list(xmlDoc,'provider','android:name')

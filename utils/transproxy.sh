@@ -1,5 +1,6 @@
 #!/bin/sh
 
+sysctl -w net.ipv4.ip_forward=1
 
 iptables -t nat -F
 iptables -t nat -A OUTPUT -p tcp --dport 80 -j DNAT --to-destination $1:$2

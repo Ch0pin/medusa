@@ -877,7 +877,19 @@ echo 'Aliases have been set, type help to see available commands'
             if a == 'y':
                 os.popen("chmod +x utils/installBurpCert.sh; utils/installBurpCert.sh {}".format(self.device.id)) 
                 os.popen("adb -s {} shell am broadcast -a com.medusa.INSTALL_CERTIFICATE -n com.medusa.agent/.Receiver".format(self.device.id))
+
                 time.sleep(1)
+                print(GREEN+"""
+-------------------------------------------------------------------
+Note: Burp certificate has been copied to sdcard, use the following 
+commands to install it as a system certificate:
+-------------------------------------------------------------------
+$adb remount
+$cd /system/etc/security/cacerts
+$mkdir tmp
+$mv * tmp/
+$mv /sdcard/*.der /system/etc/security/cacerts/*.0
+                """+RESET)
                 print()
         except Exception as e:
             print('')

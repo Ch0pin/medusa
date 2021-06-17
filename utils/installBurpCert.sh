@@ -6,13 +6,13 @@ then
   exit 1
 fi
 
-curl --proxy http://127.0.0.1:8080 -o cacert.der http://burp/cert  \
-&& openssl x509 -inform DER -in cacert.der -out cacert.pem \
-&& cp cacert.der $(openssl x509 -inform PEM -subject_hash_old -in cacert.pem |head -1).0 \
+curl --proxy http://127.0.0.1:8080 -o burp.der http://burp/cert  \
+&& openssl x509 -inform DER -outform PEM -text -in burp.der -out burp.pem \
+&& cp burp.der $(openssl x509 -inform PEM -subject_hash_old -in burp.pem | head -1).0 \
 && adb -s $1 root \
-&& adb -s $1 push $(openssl x509 -inform PEM -subject_hash_old -in cacert.pem |head -1).0 /sdcard/burp.cer \
-&& rm $(openssl x509 -inform PEM -subject_hash_old -in cacert.pem |head -1).0 \
-&& rm cacert.pem \
-&& rm cacert.der \
+&& adb -s $1 push $(openssl x509 -inform PEM -subject_hash_old -in burp.pem | head -1).0 /sdcard/$(openssl x509 -inform PEM -subject_hash_old -in burp.pem | head -1).cer \
+&& rm $(openssl x509 -inform PEM -subject_hash_old -in burp.pem | head -1).0 \
+&& rm burp.pem \
+&& rm burp.der \
 
 echo "Certificate is saved as /sdcard/burp.cer"

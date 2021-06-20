@@ -6,6 +6,7 @@
 colorLog('\n-----------------Loading Module: original by nviso ----------------------\n',{c: Color.Green})
 colorLog('\n-----------------Modified and ported by Ch0p1n (@Ch0pin)-----------------\n',{c: Color.Green})
 
+
 var m = Process.findModuleByName("libflutter.so"); 
 
 var pattern = "2d e9 f0 4f a3 b0 81 46 50 20 10 70 d9 f8 98 70 00 2f 4d d0 38 68 00 28 4a d0 78 68 0d 46 0d f1 08 0a 90 46 06 68 d1 e9 00 01";
@@ -36,6 +37,16 @@ Memory.scan(m.base, m.size, pattern, {
       }
     });
 
+    try {
+      colorLog("[+] Finding libflutter.so",{c: Color.Green});
+      Module.ensureInitialized("libssl.so");
+      hook();
+   
+  
+  } catch(err) {
+      console.log("libflutter.so module not loaded. Trying to manually load it.")
+      Module.load("libflutter.so");
+  }
 
 
 

@@ -41,9 +41,18 @@ function hook(){
         });
 
     }
-setTimeout(hook,0);
 
 
+    try {
+            colorLog("[+] Finding libflutter.so",{c: Color.Green});
+            Module.ensureInitialized("libssl.so");
+            hook();
+         
+        
+        } catch(err) {
+            console.log("libflutter.so module not loaded. Trying to manually load it.")
+            Module.load("libflutter.so");
+        }
 
 
 

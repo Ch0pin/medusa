@@ -1,0 +1,55 @@
+#Description: 'libssl.so SSL_set_custom_verify for Android'
+#Help: "https://codeshare.frida.re/@federicodotta/ios13-pinning-bypass/ modified for Android"
+#Code:
+
+colorLog('\n-----------------Original Module: ios13-pinning-bypass-------------------\n',{c: Color.Green})
+colorLog('\n-----------------Modified and ported by Ch0p1n (@Ch0pin)-----------------\n',{c: Color.Green})
+
+
+
+try {
+	Module.ensureInitialized("libssl.so");
+} catch(err) {
+	console.log("libssl.so module not loaded. Trying to manually load it.")
+	Module.load("libssl.so");	
+}
+
+var SSL_VERIFY_NONE = 0;
+var ssl_set_custom_verify;
+var ssl_get_psk_identity;	
+
+ssl_set_custom_verify = new NativeFunction(
+	Module.findExportByName("libssl.so", "SSL_set_custom_verify"),
+	'void', ['pointer', 'int', 'pointer']
+);
+
+/* Create SSL_get_psk_identity NativeFunction 
+* Function signature https://commondatastorage.googleapis.com/chromium-boringssl-docs/ssl.h.html#SSL_get_psk_identity
+*/
+ssl_get_psk_identity = new NativeFunction(
+	Module.findExportByName("libssl.so", "SSL_get_psk_identity"),
+	'pointer', ['pointer']
+);
+
+/** Custom callback passed to SSL_CTX_set_custom_verify */
+function custom_verify_callback_that_does_not_validate(ssl, out_alert){
+	colorLog('[+] A call to our custome callback was made: custom_verify_callback_that_does_not_validate');
+	return SSL_VERIFY_NONE;
+}
+
+/** Wrap callback in NativeCallback for frida */
+var ssl_verify_result_t = new NativeCallback(function (ssl, out_alert){
+	custom_verify_callback_that_does_not_validate(ssl, out_alert);
+},'int',['pointer','pointer']);
+
+Interceptor.replace(ssl_set_custom_verify, new NativeCallback(function(ssl, mode, callback) {
+	colorLog('Replacing ssl_set_custom_verify with a custom callback', {c: Color.Green});
+	ssl_set_custom_verify(ssl, mode, ssl_verify_result_t);
+}, 'void', ['pointer', 'int', 'pointer']));
+
+Interceptor.replace(ssl_get_psk_identity, new NativeCallback(function(ssl) {
+	colorLog('Replacing ssl_get_psk_identity ', {c: Color.Green});
+	return "notarealPSKidentity";
+}, 'pointer', ['pointer']));
+	
+console.log("[+] Bypass successfully loaded ");	

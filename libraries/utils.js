@@ -624,3 +624,16 @@ function hook_all(jnienv_addr){
   })
 }
 
+const Class_X = Java.use("java.lang.Class");
+function inspectObject(obj) {
+    const obj_class = Java.cast(obj.getClass(), Class_X);
+    const fields = obj_class.getDeclaredFields();
+    const methods = obj_class.getMethods();
+    console.log("Inspecting " + obj.getClass().toString());
+    console.log("[+]------------------------------Fields------------------------------:");
+    for (var i in fields)
+        console.log("\t\t" + fields[i].toString());
+    console.log("[+]------------------------------Methods-----------------------------:");
+    for (var i in methods)
+        console.log("\t\t" + methods[i].toString());
+}

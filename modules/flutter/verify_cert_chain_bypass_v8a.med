@@ -41,7 +41,7 @@ function hook(){
         });
 
     }
-setTimeout(hook,1000);
+setTimeout(hook,0);
 
 
 

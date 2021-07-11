@@ -2,8 +2,8 @@
 #Help: "https://codeshare.frida.re/@federicodotta/ios13-pinning-bypass/ modified for Android"
 #Code:
 
-colorLog('\n-----------------Original Module: ios13-pinning-bypass-------------------\n',{c: Color.Green})
-colorLog('\n-----------------Modified and ported by Ch0p1n (@Ch0pin)-----------------\n',{c: Color.Green})
+colorLog('\n-----------------Original Module: ios13-pinning-bypass-------------------',{c: Color.Green})
+colorLog('-----------------Modified and ported by Ch0p1n (@Ch0pin)-----------------\n',{c: Color.Green})
 
 
 
@@ -33,14 +33,37 @@ ssl_get_psk_identity = new NativeFunction(
 
 /** Custom callback passed to SSL_CTX_set_custom_verify */
 function custom_verify_callback_that_does_not_validate(ssl, out_alert){
-	colorLog('[+] A call to our custome callback was made: custom_verify_callback_that_does_not_validate');
+	colorLog('\t[+] A call to our custom callback was made: custom_verify_callback_that_does_not_validate',{c: Color.Blue});
 	return SSL_VERIFY_NONE;
 }
 
 /** Wrap callback in NativeCallback for frida */
+var SSL_CTX_set_custom_verify_handle =
+    Module.findExportByName('libssl.so', 'SSL_CTX_set_custom_verify');
+
+
 var ssl_verify_result_t = new NativeCallback(function (ssl, out_alert){
 	custom_verify_callback_that_does_not_validate(ssl, out_alert);
 },'int',['pointer','pointer']);
+
+if (SSL_CTX_set_custom_verify_handle) {
+	var SSL_CTX_set_custom_verify = new NativeFunction(
+		SSL_CTX_set_custom_verify_handle, 'void', ['pointer', 'int', 'pointer']);
+  
+	var replaced_callback = new NativeCallback(function(ssl, out) {
+	  console.log('[*] Called custom SSL verifier')
+	  return 0;
+	}, 'int', ['pointer', 'pointer']);
+  
+	Interceptor.replace(
+		SSL_CTX_set_custom_verify_handle,
+		new NativeCallback(function(ctx, mode, callback) {
+		  console.log('[*] Called SSL_CTX_set_custom_verify()');
+		  SSL_CTX_set_custom_verify(ctx, 0, replaced_callback);
+		}, 'int', ['pointer', 'int', 'pointer']));
+	console.log('[+] SSL_CTX_set_custom_verify() hook installed.')
+  }
+
 
 Interceptor.replace(ssl_set_custom_verify, new NativeCallback(function(ssl, mode, callback) {
 	colorLog('Replacing ssl_set_custom_verify with a custom callback', {c: Color.Green});

@@ -213,11 +213,18 @@ class parser(cmd.Cmd):
         header = ''
         argread = ''
 
+#         for i in range(int(number_of_args)):
+#             argread += '\n\n try { var arg'+str(i)+" = Memory.readUtf8String(ptr(args["+str(i)+"]));\n"+"""console.log('Arg("""+str(i)+"""):'+arg"""+str(i)+""");\n } 
+# catch (err) {
+#     console.log('Error:'+err);
+# }""" 
+
         for i in range(int(number_of_args)):
-            argread += '\n\n try { var arg'+str(i)+" = Memory.readUtf8String(ptr(args["+str(i)+"]));\n"+"""console.log('Arg("""+str(i)+"""):'+arg"""+str(i)+""");\n } 
+            argread += '\n\n try { var arg'+str(i)+" = Memory.readByteArray(ptr(args["+str(i)+"]),128);\n"+"""console.log('------ Arg("""+str(i)+""") memory dump: ------');"""+"""\nconsole.log(hexdump(arg"""+str(i)+""",{ offset: 0, length: 128, header: false, ansi: false}));\n } 
 catch (err) {
     console.log('Error:'+err);
 }""" 
+
 
 
         if 'yes' in hexdumpEnable:

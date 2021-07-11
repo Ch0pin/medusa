@@ -40,60 +40,70 @@ var ContextWrapper = Java.use('android.content.Context');
 
    }
  
-
-   if (ContextWrapper.sendBroadcast) {
     // Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#sendBroadcast(android.content.Intent)
     ContextWrapper.sendBroadcast.overload("android.content.Intent").implementation = function(intent) {
+      colorLog('[+] Calling SendBroadcast:',{c:Color.Green});
       console.log("Intent toString: " + intent.toString());
       console.log("Intent getExtras: " + intent.getExtras());
       console.log("Intent getFlags: " + intent.getFlags());
+      colorLog('[-] ----------------------------------------',{c:Color.Red});     
+
       return this.sendBroadcast.overload("android.content.Intent").apply(this, arguments);
     };
 
     // Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#sendBroadcast(android.content.Intent, java.lang.String)
     ContextWrapper.sendBroadcast.overload("android.content.Intent", "java.lang.String").implementation = function(intent, receiverPermission) {
+      colorLog('[+] Calling SendBroadcast:',{c:Color.Green});
       console.log("Intent toString: " + intent.toString());
       console.log("Intent getExtras: " + intent.getExtras());
       console.log("Intent getFlags: " + intent.getFlags());
       console.log("Intent receiverPermission: " + receiverPermission);
+      colorLog('[-] ----------------------------------------',{c:Color.Red});     
+
       return this.sendBroadcast.overload("android.content.Intent", "java.lang.String").apply(this, arguments);
     };
-  }
+  
 
-  if (ContextWrapper.sendStickyBroadcast) {
+
     ContextWrapper.sendStickyBroadcast.overload("android.content.Intent").implementation = function(intent) {
+      colorLog('[+] Calling sendStickyBroadcast:',{c:Color.Green});
       console.log("Intent toString: " + intent.toString());
       console.log("Intent getExtras: " + intent.getExtras());
       console.log("Intent getFlags: " + intent.getFlags());
+      colorLog('[-] ----------------------------------------',{c:Color.Red});     
+
       return this.sendStickyBroadcast.overload("android.content.Intent").apply(this, arguments);
     };
-  }
+  
 
 
-  if (ContextWrapper.startService) {
+
     //Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#startService(android.content.Intent)
     ContextWrapper.startService.implementation = function(service) {
-      console.log("startService: " + service);
+      console.log("[+] Calling startService: " + service);
       return this.startService.apply(this, arguments);
     };
-  }
+  
 
-  if (ContextWrapper.stopService) {
+
     //Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#stopService(android.content.Intent)
     ContextWrapper.stopService.implementation = function(name) {
-      console.log("stopService: " + name);
+      console.log("[+] Calling stopService: " + name);
       return this.stopService.apply(this, arguments);
     };
-  }
+  
 
-  if (ContextWrapper.registerReceiver) {
+
     //Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter)
     ContextWrapper.registerReceiver.overload("android.content.BroadcastReceiver", "android.content.IntentFilter").implementation = function(receiver, filter) {
+      colorLog('[+] Calling registerReceiver',{c:Color.Green});
       return this.registerReceiver.apply(this, arguments);
     };
 
     //Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler)
     ContextWrapper.registerReceiver.overload("android.content.BroadcastReceiver", "android.content.IntentFilter", "java.lang.String", "android.os.Handler").implementation = function(receiver, filter, broadcastPermission, scheduler) {
+      colorLog('[+] Calling registerReceiver',{c:Color.Green});
+
       return this.registerReceiver.apply(this, arguments);
     };
-  }
+  

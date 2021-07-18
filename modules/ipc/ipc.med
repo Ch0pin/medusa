@@ -6,31 +6,31 @@ console.log('\n----------IPC monitor by @ch0p1n------------------------');
 
 var activity = Java.use('android.app.Activity');
 var ContextWrapper = Java.use('android.content.Context');
-var localBroadcastManager = Java.use('androidx.localbroadcastmanager.content.LocalBroadcastManager');
+// var localBroadcastManager = Java.use('androidx.localbroadcastmanager.content.LocalBroadcastManager');
 
-if(localBroadcastManager.sendBroadcast){
-  localBroadcastManager.sendBroadcast.overload("android.content.Intent").implementation = function(intent) {
-    colorLog('[+] Calling LocalBroadcastManager SendBroadcast:',{c:Color.Green});
-    console.log("Intent toString: " + intent.toString());
-    console.log("Intent getExtras: " + intent.getExtras());
-    console.log("Intent getFlags: " + intent.getFlags());
-    colorLog('[-] ----------------------------------------',{c:Color.Red});     
+// if(localBroadcastManager.sendBroadcast){
+//   localBroadcastManager.sendBroadcast.overload("android.content.Intent").implementation = function(intent) {
+//     colorLog('[+] Calling LocalBroadcastManager SendBroadcast:',{c:Color.Green});
+//     console.log("Intent toString: " + intent.toString());
+//     console.log("Intent getExtras: " + intent.getExtras());
+//     console.log("Intent getFlags: " + intent.getFlags());
+//     colorLog('[-] ----------------------------------------',{c:Color.Red});     
 
-    return this.sendBroadcast.overload("android.content.Intent").apply(this, arguments);
-  };
-}
-if(localBroadcastManager.sendBroadcast){
-  
-  localBroadcastManager.sendBroadcastSync.overload("android.content.Intent").implementation = function(intent) {
-    colorLog('[+] Calling LocalBroadcastManager SendBroadcastSync:',{c:Color.Green});
-    console.log("Intent toString: " + intent.toString());
-    console.log("Intent getExtras: " + intent.getExtras());
-    console.log("Intent getFlags: " + intent.getFlags());
-    colorLog('[-] ----------------------------------------',{c:Color.Red});     
+//     return this.sendBroadcast.overload("android.content.Intent").apply(this, arguments);
+//   };
+// }
+// if(localBroadcastManager.sendBroadcast){
 
-    return this.sendBroadcast.overload("android.content.Intent").apply(this, arguments);
-  };
-}
+//   localBroadcastManager.sendBroadcastSync.overload("android.content.Intent").implementation = function(intent) {
+//     colorLog('[+] Calling LocalBroadcastManager SendBroadcastSync:',{c:Color.Green});
+//     console.log("Intent toString: " + intent.toString());
+//     console.log("Intent getExtras: " + intent.getExtras());
+//     console.log("Intent getFlags: " + intent.getFlags());
+//     colorLog('[-] ----------------------------------------',{c:Color.Red});     
+
+//     return this.sendBroadcast.overload("android.content.Intent").apply(this, arguments);
+//   };
+// }
 
 
 //=----------------------------

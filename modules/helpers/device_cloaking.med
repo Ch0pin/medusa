@@ -1,0 +1,170 @@
+#Description: 'Cloak your device '
+#Help: 'Hooks a series of device recon API calls, returning dummy values for each one of tem'
+#Code:
+
+
+console.log('\n-----Device Cloaking module by Ch0pin-----------------');
+
+
+var networkInterface = Java.use('java.net.NetworkInterface');
+var secureSettings = Java.use('android.provider.Settings$Secure');
+var contentResolver = Java.use('android.content.ContentResolver');
+var wifiInfo = Java.use('android.net.wifi.WifiInfo');
+var bluetoothAdapter = Java.use('android.bluetooth.BluetoothAdapter');
+var mediaDrm = Java.use('android.media.MediaDrm');
+var telephonyManager = Java.use('android.telephony.TelephonyManager');
+var build = Java.use('android.os.Build');
+
+
+build.getSerial.implementation = function(){
+    colorLog('[+] Application is fetching the OS serial, returning a dummy one',{c: Color.Green});
+    return "1234567890";
+}
+
+telephonyManager.getLine1Number.overloads[0].implementation = function() {
+    colorLog('[+] Application is fetching the phone number, returning a dummy one',{c: Color.Green});
+    return "1234567890";
+}
+
+telephonyManager.getSubscriberId.overload().implementation = function(){
+    console.log('[i] Application asks for device IMSI, returning a dummy one')
+    return "1234567890";
+}
+telephonyManager.getSubscriberId.overload('int').implementation = function(){
+    console.log('[i] Application asks for device IMSI, returning a dummy one')
+    return "1234567890";
+}
+
+telephonyManager.getDeviceId.overloads[0].implementation = function(){
+    console.log('[i] Application asks for device IMEI, returning a dummy one')
+    return "1234567890";
+}
+telephonyManager.getDeviceId.overloads[1].implementation = function(slot){
+    console.log('[i] Application asks for device IMEI, returning a dummy one')
+    return "1234567890";
+}
+
+telephonyManager.getImei.overloads[0].implementation = function(){
+    console.log('[i] Application asks for device IMEI, returning a dummy one')
+    return "1234567890";
+}
+telephonyManager.getImei.overloads[1].implementation = function(slot){
+    console.log('[i] Application asks for device IMEI, returning a dummy one')
+    return  "1234567890";
+}
+
+telephonyManager.getSimOperator.overload().implementation = function(){
+    console.log('[+] getSimOperator call detected, returning a dummy one');
+    return "0000";
+}
+telephonyManager.getSimOperator.overload('int').implementation = function(sm){
+    console.log('[+] getSimOperator call detected, returning a dummy one');
+    return "0100";
+}
+
+
+
+
+
+mediaDrm.getPropertyByteArray.implementation = function(property){
+    if(property == "deviceUniqueId"){
+        var min1 = Math.ceil(0);
+        var max1 = Math.floor(255);
+        let random = [];
+            
+        for(var i =0; i < 32; i++){
+            random[i]=Math.floor(Math.random() * (max1 - min1) + min1);;
+        
+        }
+        var res = Java.array('byte',random);
+    
+        console.log("[+] Cloaking Widevine ID, returning dummy value:"+res);
+        return res;
+
+    }
+    else return this.getPropertyByteArray(property);
+         
+}
+
+bluetoothAdapter.getAddress.implementation = function(){
+    console.log("[+] Cloaking BT Mac Address, returning dummy value: B2:F3:00:00:01:04");
+    return "B2:F3:00:00:01:04";
+}
+
+
+wifiInfo.getMacAddress.implementation = function(){
+    console.log("[+] Cloaking wifi Mac Address, returning dummy value: F2:F3:00:00:01:04");
+    return "F2:F3:00:00:01:04";
+
+}
+wifiInfo.getSSID.implementation = function(){
+    console.log("[+] Cloaking SSID, returning dummy value: Lorem Ipsum");
+    return "Lorem Ipsum";
+
+}
+wifiInfo.getBSSID.implementation = function(){
+    console.log("[+] Cloaking Router Mac Address, returning dummy value: F2:F3:00:00:01:05");
+    return "F2:F3:00:00:01:05";
+
+}
+
+
+contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'android.os.Bundle', 'android.os.CancellationSignal').implementation = function(uri,str,bundle,sig){
+    if(uri == 'content://com.google.android.gsf.gservicesa')
+    {
+        console.log('[+] Cloaking Google Services Framework Identifier Query, returning null');
+        return null;
+    }
+    else 
+        return getApplicationContext.getContentResolver.query(uri,str,bundle,sig);
+
+
+}
+
+contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'java.lang.String', '[Ljava.lang.String;', 'java.lang.String').implementation = function(uri,astr,bstr,cstr,dstr){
+    if(uri == 'content://com.google.android.gsf.gservicesa')
+    {
+        console.log('[+] Cloaking Google Services Framework Identifier Query, returning null');
+        return null;
+    }
+    else
+        return getApplicationContext.getContentResolver.query(uri,astr,bstr,cstr,dstr);
+
+}
+
+contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'java.lang.String', '[Ljava.lang.String;', 'java.lang.String', 'android.os.CancellationSignal').implementation = function(uri,astr,bstr,cstr,sig){
+    if(uri == 'content://com.google.android.gsf.gservicesa')
+    {
+        console.log('[+] Cloaking Google Services Framework Identifier Query, returning null');
+        return null;
+    }
+    else 
+        return getApplicationContext.getContentResolver.query(uri,astr,bstr,cstr,sig);
+
+}
+
+secureSettings.getString.implementation = function(contentresolver, query){
+    console.log('[+] Cloaking Android ID, returning dummy value: 13192298a2a5aed7');
+    if (query == 'android_id')
+        return '13192298a2a5aed7';
+    else
+        return this.getString(contentresolver,query);
+}
+
+
+networkInterface.getHardwareAddress.implementation = function(){
+  
+    var min1 = Math.ceil(0);
+    var max1 = Math.floor(255);
+    let randomMac = [];
+        
+    for(var i =0; i < 6; i++){
+        randomMac[i]=Math.floor(Math.random() * (max1 - min1) + min1);;
+    
+    }
+    var res = Java.array('byte',randomMac);
+
+    console.log("[+] Cloaking Hardware Address, returning dummy value:"+res);
+    
+    return res;
+}

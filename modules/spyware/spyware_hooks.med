@@ -110,7 +110,7 @@ systemProperties.get.overload('java.lang.String').implementation = function(key)
 
 telephonyManager.getLine1Number.overloads[0].implementation = function() {
         colorLog('[+] Application is fetching the phone number',{c: Color.Green});
-        return this.getMediaProjection(resultCode,resultData);
+        return this.getLine1Number();
 }
 
 

@@ -14,7 +14,13 @@ var bluetoothAdapter = Java.use('android.bluetooth.BluetoothAdapter');
 var mediaDrm = Java.use('android.media.MediaDrm');
 var telephonyManager = Java.use('android.telephony.TelephonyManager');
 var build = Java.use('android.os.Build');
+var systemProperties = Java.use('android.os.SystemProperties');
 
+systemProperties.get.overload('java.lang.String').implementation = function(key){
+    console.log('[+] Get system properties called using key: ' + key + ', returning "Lorem ipsum"');
+    return "Lorem ipsum";
+    
+}
 
 build.getSerial.implementation = function(){
     colorLog('[+] Application is fetching the OS serial, returning a dummy one',{c: Color.Green});

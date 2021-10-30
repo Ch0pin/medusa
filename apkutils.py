@@ -78,7 +78,7 @@ def extract_manifest(file):
         if patch_debuggable(tmp_folder+'/AndroidManifest.xml'):
             subprocess.run('java -jar '+ apktool +' b tmp -o {}'.format(debuggable_apk), shell=True)
             print(GREEN+'[+] Running Zipallign.....'+RESET)
-            subprocess.run(zipallign +' -f 4 {} {}'.format(debuggable_apk,alligned_apk),shell=True)
+            subprocess.run(zipallign +' -p 4 {} {}'.format(debuggable_apk,alligned_apk),shell=True)
             print(GREEN+'[+] Signing the apk.....'+RESET)
             subprocess.run(apksigner +' sign --ks ./dependencies/common.jks -ks-key-alias common --ks-pass pass:password --key-pass pass:password  {}'.format(alligned_apk),shell=True)
             print(GREEN+'[+] Removing the unsigned apk.....'+RESET)

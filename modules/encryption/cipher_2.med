@@ -29,7 +29,7 @@ cipher.init.overload('int', 'java.security.Key').implementation = function(mode,
         colorLog('\t[-] Key (Ascii): '+ byteArrayToStringE(key.getEncoded()), {c:Color.Red});
     }
 
-    return this.init(mode,sks);
+    return this.init(mode,key);
 }
 
 
@@ -49,7 +49,7 @@ cipher.init.overload('int', 'java.security.Key', 'java.security.spec.AlgorithmPa
         colorLog('\t\t[-] Key (Ascii): '+ byteArrayToStringE(key.getEncoded()), {c:Color.Red});
     }
     colorLog('\t[-] IV (hex): '+ byteArraytoHexString(castedToIv.getIV()), {c:Color.Gray});
-    return this.init(mode,sks,paramsec); 
+    return this.init(mode,key,paramsec); 
 }
 
 
@@ -70,7 +70,7 @@ cipher.init.overload('int', 'java.security.Key', 'java.security.AlgorithmParamet
         colorLog('\t\t[-] Key (Ascii): '+ byteArrayToStringE(key.getEncoded()), {c:Color.Red});
     }
     colorLog('\t[-] IV (hex): '+ byteArraytoHexString(castedToIv.getIV()), {c:Color.Gray});
-    return this.init(mode,sks,paramsec); 
+    return this.init(mode,key,paramsec); 
 }
 
 

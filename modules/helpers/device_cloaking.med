@@ -15,6 +15,28 @@ var mediaDrm = Java.use('android.media.MediaDrm');
 var telephonyManager = Java.use('android.telephony.TelephonyManager');
 var build = Java.use('android.os.Build');
 var systemProperties = Java.use('android.os.SystemProperties');
+var buildProperties = Java.use('android.os.Build');
+
+//-----------------------------------------------
+buildProperties.MODEL.value="Secret SC-1234";
+buildProperties.DEVICE.value="Device Value";
+buildProperties.BOARD.value="Device Board";
+buildProperties.PRODUCT.value="Device Product";
+buildProperties.HARDWARE.value="Device Hardware";
+buildProperties.FINGERPRINT.value="foo/bar/Device:10/10/1900:user/sig-keys"
+buildProperties.MANUFACTURER.value="Company Co";
+buildProperties.BOOTLOADER.value="Boot-JJ129-ac";
+buildProperties.BRAND.value="Brand Co";
+buildProperties.HOST.value="HOST Co";
+buildProperties.ID.value="id-lorem-ipsum";
+buildProperties.DISPLAY.value="Foo procuctions and bar 1-0-111";
+buildProperties.TAGS.value="Production Build";
+buildProperties.SERIAL.value="Seriously ?";
+buildProperties.TYPE.value="Production build";
+buildProperties.USER.value="LINUX General";
+buildProperties.UNKNOWN.value="KGTT General";
+
+//-----------------------------------------------
 
 systemProperties.get.overload('java.lang.String').implementation = function(key){
     console.log('[+] Get system properties called using key: ' + key + ', returning "Lorem ipsum"');

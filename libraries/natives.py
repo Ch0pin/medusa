@@ -51,10 +51,12 @@ class nativeHandler():
             scriptContent += "var mod = Module.load('"+libname+"');"
             scriptContent += "console.log(JSON.stringify(mod));})});"
 
+        
             #pid = self.device.spawn(package)
-            pid = self.device.get_process(package).pid
+            pid = pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
+            
             print(pid)
-            session = self.device.attach(pid)
+            session = self.device.attach(int(pid))
             script = session.create_script(scriptContent)
             print("loading script...")
             script.on('message', self.on_message)
@@ -87,9 +89,10 @@ class nativeHandler():
                 time.sleep(5)
                 script.unload()
             else:
-                pid = self.device.get_process(package).pid
+                
+                pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
                 print("[i] Attaching to process {} [pid:{}]".format(package,pid))
-                session = self.device.attach(pid)
+                session = self.device.attach(int(pid))
                 script = session.create_script(open("libraries/native.js").read())
                 script.on('message', self.on_message)
                 script.load()
@@ -136,14 +139,14 @@ class nativeHandler():
 
             print('[i] Using device with id {}'.format(self.device))
             try:
-                pid = self.device.get_process(package).pid
+                pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
  
             except Exception as e:
                     x = input("Please run the application and press enter....")
-                    pid = self.device.get_process(package).pid
+                    pid = self.device.get_frontmost_application().pid
 
             print("[i] Attaching to process {} [pid:{}]".format(package,pid))
-            session = self.device.attach(pid)
+            session = self.device.attach(int(pid))
             script = session.create_script(codejs)
             script.load()
             

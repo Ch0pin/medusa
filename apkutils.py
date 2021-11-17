@@ -64,9 +64,10 @@ def print_usage():
         ./apkutils.py path_to_AndroidManifest.xml
         ./apkutils.py path_to_apk.apk 
         ./apkutils.py --help    #display this message
-                    
-        Using an apk as input you may also use the --patch flag to
-        set the "debuggable" flag to true."""+RESET)
+        - Using an apk as input you may keep the apktool decompiled resources with --keep flag
+        - Using an apk as input you may also use the --patch flag to set the "debuggable" flag to true.
+        
+        """+RESET)
 
 def extract_manifest(file):
     print(GREEN+'[+] Unpacking apk....'+RESET)
@@ -91,7 +92,10 @@ def extract_manifest(file):
     subprocess.run('cp tmp/AndroidManifest.xml ./manifest.xml', shell=True)
     subprocess.run('cp tmp/res/values/strings.xml ./strings.xml', shell=True)
     performRecon("./tmp")
-    shutil.rmtree('./tmp')
+    if len(sys.argv) > 2 and "--keep" in sys.argv[2]:
+        pass
+    else:
+        shutil.rmtree('./tmp')
 
 
 try:

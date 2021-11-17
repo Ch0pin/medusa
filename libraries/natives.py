@@ -53,17 +53,19 @@ class nativeHandler():
 
         
             #pid = self.device.spawn(package)
-            pid = pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
-            
-            print(pid)
-            session = self.device.attach(int(pid))
-            script = session.create_script(scriptContent)
-            print("loading script...")
-            script.on('message', self.on_message)
-            #self.device.resume(pid)
-            script.load()
-            time.sleep(1)
-            script.unload()
+            pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()    
+
+            if self.pid == '':
+                print("[+] Could not find process with this name.")
+            else:
+                session = self.device.attach(int(pid))
+                script = session.create_script(scriptContent)
+                print("loading script...")
+                script.on('message', self.on_message)
+                #self.device.resume(pid)
+                script.load()
+                time.sleep(1)
+                script.unload()
         except Exception as e:
             print(e)
 
@@ -91,6 +93,9 @@ class nativeHandler():
             else:
                 
                 pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
+                if self.pid == '':
+                    print("[+] Could not find process with this name.")
+                    return None
                 print("[i] Attaching to process {} [pid:{}]".format(package,pid))
                 session = self.device.attach(int(pid))
                 script = session.create_script(open("libraries/native.js").read())
@@ -120,9 +125,6 @@ class nativeHandler():
 
 
             package = args[0]
-            
-
-            
 
             prolog = 'Java.perform(function () {\n\n'
             if lib != '':
@@ -140,17 +142,18 @@ class nativeHandler():
             print('[i] Using device with id {}'.format(self.device))
             try:
                 pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
- 
+                if self.pid == '':
+                    print("[+] Could not find process with this name.")
+                    return None
             except Exception as e:
                     x = input("Please run the application and press enter....")
                     pid = self.device.get_frontmost_application().pid
 
             print("[i] Attaching to process {} [pid:{}]".format(package,pid))
             session = self.device.attach(int(pid))
+            
             script = session.create_script(codejs)
             script.load()
-            
-
             cmd = input(self.prompt_) 
             prev_cmd = 'e'
 
@@ -327,6 +330,7 @@ class nativeHandler():
             payload += "\nconsole.log('Write op finished');"
             codejs = prolog + payload + epilog
             script = session.create_script(codejs)
+            print(codejs)
             script.load()
             payload = ''     
         except Exception as e:

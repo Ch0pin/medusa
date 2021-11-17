@@ -41,7 +41,7 @@ function hook(){
 
     try {
         colorLog("[+] Finding libflutter.so",{c: Color.Green});
-        Module.ensureInitialized("libssl.so");
+        Module.ensureInitialized("libflutter.so");
         hook();
      
     

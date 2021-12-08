@@ -1002,8 +1002,8 @@ catch (err) {
             if self.pid == '':
                 print("[+] Could not find process with this name.")
                 return None
-                
-            frida_session = con_device.attach(int(self.pid))
+            frida_session = con_device.attach(pkg)   
+            #frida_session = con_device.attach(int(self.pid))
             if frida_session:
                 print(WHITE+"Attaching frida session to PID - {0}".format(frida_session._impl.pid))
                 

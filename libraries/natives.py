@@ -3,6 +3,7 @@ import frida
 import time
 import sys
 import click
+import os 
 
 RED   = "\033[1;31m"  
 BLUE  = "\033[1;34m"
@@ -48,17 +49,17 @@ class nativeHandler():
             scriptContent += """
             var system = Java.use('java.lang.System');
                 Java.scheduleOnMainThread(function(){"""
-            scriptContent += "var mod = Module.load('"+libname+"');"
+            scriptContent += "var mod = Module.load('"+libname.replace("'","")+"');"
             scriptContent += "console.log(JSON.stringify(mod));})});"
 
         
             #pid = self.device.spawn(package)
-            pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()    
-
-            if self.pid == '':
+            pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,package)).read().strip()    
+           
+            if pid == '':
                 print("[+] Could not find process with this name.")
             else:
-                session = self.device.attach(int(pid))
+                session = self.device.attach(package)
                 script = session.create_script(scriptContent)
                 print("loading script...")
                 script.on('message', self.on_message)
@@ -68,10 +69,6 @@ class nativeHandler():
                 script.unload()
         except Exception as e:
             print(e)
-
-
-        
-     
 
 
     def getModules(self,package,force):
@@ -91,13 +88,16 @@ class nativeHandler():
                 time.sleep(5)
                 script.unload()
             else:
+            
+                pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,package)).read().strip()
                 
-                pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
-                if self.pid == '':
+                #pid = self.device.get_process(package).pid //not valid
+
+                if pid == '':
                     print("[+] Could not find process with this name.")
                     return None
                 print("[i] Attaching to process {} [pid:{}]".format(package,pid))
-                session = self.device.attach(int(pid))
+                session = self.device.attach(package)
                 script = session.create_script(open("libraries/native.js").read())
                 script.on('message', self.on_message)
                 script.load()
@@ -119,6 +119,7 @@ class nativeHandler():
                 lib = ''
             elif len(args) >= 2:
                 lib = args[1]
+                pkg = args[0]
             else:
                 print('Usage: memops package_name [lib]')
                 return
@@ -141,16 +142,18 @@ class nativeHandler():
 
             print('[i] Using device with id {}'.format(self.device))
             try:
+                
+                
                 pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
-                if self.pid == '':
+                if pid == '':
                     print("[+] Could not find process with this name.")
                     return None
             except Exception as e:
+                    print(e)
                     x = input("Please run the application and press enter....")
                     pid = self.device.get_frontmost_application().pid
-
             print("[i] Attaching to process {} [pid:{}]".format(package,pid))
-            session = self.device.attach(int(pid))
+            session = self.device.attach(package)
             
             script = session.create_script(codejs)
             script.load()

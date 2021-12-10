@@ -895,7 +895,7 @@ catch (err) {
                 else:
                     pass
  
-            flags = line.split(' ');
+            flags = line.split(' ')
             length = len(flags)
             if length == 1:
                 self.run_frida(False,False,line,self.device)
@@ -998,11 +998,13 @@ catch (err) {
     def frida_session_handler(self,con_device,force,pkg):
         time.sleep(1)
         if force == False:
-            self.pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
+
+            self.pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+            #pid = con_device.attach(self.pid) 
             if self.pid == '':
                 print("[+] Could not find process with this name.")
                 return None
-            frida_session = con_device.attach(pkg)   
+            frida_session = con_device.attach(int(self.pid))   
             #frida_session = con_device.attach(int(self.pid))
             if frida_session:
                 print(WHITE+"Attaching frida session to PID - {0}".format(frida_session._impl.pid))

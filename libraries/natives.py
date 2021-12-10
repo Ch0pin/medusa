@@ -54,8 +54,8 @@ class nativeHandler():
 
         
             #pid = self.device.spawn(package)
-            pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,package)).read().strip()    
-           
+            #pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,package)).read().strip()    
+            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip()
             if pid == '':
                 print("[+] Could not find process with this name.")
             else:
@@ -89,8 +89,8 @@ class nativeHandler():
                 script.unload()
             else:
             
-                pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,package)).read().strip()
-                
+                #pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,package)).read().strip()
+                pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip()
                 #pid = self.device.get_process(package).pid //not valid
 
                 if pid == '':
@@ -144,7 +144,8 @@ class nativeHandler():
             try:
                 
                 
-                pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
+                #pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
+                pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip()
                 if pid == '':
                     print("[+] Could not find process with this name.")
                     return None

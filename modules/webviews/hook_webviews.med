@@ -6,6 +6,38 @@
 				console.log('----------twiter:@Ch0pin-------------------');
 
 var webView = Java.use('android.webkit.WebView');
+var webSettings = Java.use('android.webkit.WebSettings');
+
+
+webSettings.setAllowContentAccess.implementation = function(allow){
+    console.log('[+] Content Access set to:' + allow);
+    return this.setAllowContentAccess(allow);
+
+}
+webSettings.setAllowFileAccess.implementation = function(allow){
+    console.log('[+] File Access within the webview set to:' + allow);
+    return this.setAllowFileAccess(allow);
+
+}
+webSettings.setAllowFileAccessFromFileURLs.implementation = function(allow){
+    console.log('[!] Allow File Access from file URLs set to:' + allow);
+    return this.setAllowFileAccessFromFileURLs(allow);
+
+}
+
+webSettings.setAllowUniversalAccessFromFileURLs.implementation = function(allow){
+    console.log('[!] Allow Universal  Access from file URLs set to:' + allow);
+    return this.setAllowUniversalAccessFromFileURLs(allow);
+
+}
+webSettings.setJavaScriptEnabled.implementation = function(allow){
+    console.log('[!] Java Scripte Enabled:' + allow);
+    return this.setJavaScriptEnabled(allow);
+
+}
+
+
+
 
 webView.setVisibility.implementation = function(a){
     if(a == 2){

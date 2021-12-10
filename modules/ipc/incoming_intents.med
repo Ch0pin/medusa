@@ -66,69 +66,92 @@ bundle1.getShort.overloads[1].implementation = function(key,def){
 
 
 intent1.getBooleanExtra.implementation = function(name,value){
-    colorLog('[+] Incomming Boolean Extra, name: '+ name + ', value:'+value,{c:Color.Green});
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    console.log('[+]\tBoolean Extra, name: '+ name + ', value:'+value);
     return this.getBooleanExtra(name,value);
 }
 
 intent1.getBundleExtra.implementation = function(bundlename){
-    colorLog('[+] Incomming Bundle Extra, name: '+ bundlename,{c:Color.Green});
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+
+    console.log('[+]\tBundle Extra, name: '+ bundlename);
     return this.getBundleExtra(bundlename);
 }
 
 intent1.getByteArrayExtra.implementation = function(name){
-    colorLog('[+] Incomming Byte Array Extra, name: '+ name,{c:Color.Green});
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+
+    console.log('[+]\tByte Array Extra, name: '+ name);
     return this.getByteArrayExtra(name);
 }
 
 intent1.getByteExtra.implementation = function(name,value){
-    colorLog('[+] Incomming Byte Extra, name: '+ name + ', value:'+value,{c:Color.Green});
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+
+    console.log('[+]\tByte Extra, name: '+ name + ', value:'+value);
     return this.getByteExtra(name,value);
 }
 
 intent1.getCharArrayExtra.implementation = function(name){
-    colorLog('[+] Incomming Char Array Extra, name: '+ name,{c:Color.Green});
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+
+    console.log('[+]\tChar Array Extra, name: '+ name);
     return this.getCharArrayExtra(name);
 }
 
 intent1.getCharExtra.implementation = function(name,value){
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+
     var ret =  this.getCharExtra(name,value);
-    colorLog('[+] Incomming Char Extra, name: '+ name, ', '+ret,{c:Color.Green});
+    console.log('[+]\tChar Extra, name: '+ name, ', '+ret);
     return ret;
 }
 
 intent1.getData.implementation = function(){
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+
     var ret = this.getData();
-    colorLog('[+] Incomming data URI:'+ret,{c:Color.Green});
+    console.log('[+]\t Data URI:'+ret);
     return ret;
 
 }
 
 intent1.getDataString.implementation = function(){
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+
     var ret = this.getDataString();
-    colorLog('[+] Incomming data URI:'+ret,{c:Color.Green});
+    console.log('[+]\t data URI:'+ret);
     return ret;
 
 }
 
 intent1.getDoubleArrayExtra.implementation = function(name){
-    colorLog('[+] Incomming Double Array Extra, name: '+ name,{c:Color.Green});
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+
+    console.log('[+]\t Double Array Extra, name: '+ name);
     return this.getDoubleArrayExtra(name);
 }
 intent1.getDoubleExtra.implementation = function(name,value){
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+
     var ret =  this.getDoubleExtra(name,value);
-    colorLog('[+] Incomming Double Extra, name: '+ name, ', '+ret,{c:Color.Green});
+    console.log('[+]\t Double Extra, name: '+ name, ', '+ret);
     return ret;
 }
 
 intent1.getStringExtra.implementation = function(name){
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+
     var ret =  this.getStringExtra(name);
-    colorLog('[+] Incomming String Extra, name: '+ name, ', '+ret,{c:Color.Green});
+    console.log('[+]\t String Extra, name: '+ name, ', '+ret);
     return ret;
 }
 
 intent1.getPackage.implementation = function(){
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+
     var ret =  this.getPackage();
-    colorLog('[+] Incomming intent package origin:'+ret,{c:Color.Green});
+    console.log('[+]\t intent package origin:'+ret);
     return ret;
 }
 

@@ -4,9 +4,23 @@
 
 console.log('\n----------Incoming Intent monitor by @ch0p1n------------');
 
- 
+var uri = Java.use('android.net.Uri'); 
 var intent1 = Java.use('android.content.Intent');
 var bundle1 = Java.use('android.os.Bundle');
+
+
+uri.getQueryParameter.implementation = function(key){
+    var ret = this.getQueryParameter(key);
+    colorLog("[+] Query parameters fetched, key:"+key+", value:"+ret,{c: Color.Red});
+    return ret;
+}
+
+uri.getQueryParameters.implementation = function(key){
+    var ret = this.getQueryParameters(key);
+    colorLog("[+] Query parameters fetched, key:"+key+", value:"+ret,{c:Color.Red});
+    return ret;
+}
+
 
 bundle1.getByte.overloads[0].implementation = function(key){
     var ret = this.getByte(key);

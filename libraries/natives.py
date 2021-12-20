@@ -154,7 +154,7 @@ class nativeHandler():
                     x = input("Please run the application and press enter....")
                     pid = self.device.get_frontmost_application().pid
             print("[i] Attaching to process {} [pid:{}]".format(package,pid))
-            session = self.device.attach(package)
+            session = self.device.attach(int(pid))
             
             script = session.create_script(codejs)
             script.load()

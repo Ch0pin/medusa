@@ -31,7 +31,7 @@ webSettings.setAllowUniversalAccessFromFileURLs.implementation = function(allow)
 
 }
 webSettings.setJavaScriptEnabled.implementation = function(allow){
-    console.log('[!] Java Scripte Enabled:' + allow);
+    console.log('[!] Java Script Enabled:' + allow);
     return this.setJavaScriptEnabled(allow);
 
 }
@@ -53,7 +53,7 @@ webView.setVisibility.implementation = function(a){
     
 }
 webView.addJavascriptInterface.implementation = function(object, name){
-    console.log('[i] Javascript interface detected:' + object.$className + ' instatiated as' + name);
+    console.log('[i] Javascript interface detected:' + object.$className + ' instatiated as: ' + name);
     this.addJavascriptInterface(object,name);
 }
 

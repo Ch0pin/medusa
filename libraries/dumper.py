@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO,
 
 
 def get_all_process(device, pkgname):
-    return [process for process in device.enumerate_processes() if process.name == pkgname]
+    return [process for process in device.enumerate_processes() if pkgname in process.name]
 
 
 def search(api, args=None):
@@ -81,25 +81,25 @@ def dump_pkg(pkg):
     target = device.get_frontmost_application()
     
     pkg_name = pkg#target.identifier
-    print('---------'+pkg)
-    processes = get_all_process(device, pkg_name)
-    if len(processes) == 1:
-        target = processes[0]
-    else:
-        s_processes = ""
-        for index in range(len(processes)):
-            s_processes += "\t[{}] {}\n".format(index, str(processes[index]))
-        input_id = int(input("[{}] has multiprocess: \n{}\nplease choose target process: "
-                             .format(pkg_name, s_processes)))
-        target = processes[input_id]
-        try:
-            for index in range(len(processes)):
-                if index == input_id:
-                    os.system("adb shell \"su -c 'kill -18 {}'\"".format(processes[index].pid))
-                else:
-                    os.system("adb shell \"su -c 'kill -19 {}'\"".format(processes[index].pid))
-        except:
-            pass
+    print('[+] Dumping: '+pkg)
+    # processes = get_all_process(device, pkg_name)
+    # if len(processes) == 1:
+    #     target = processes[0]
+    # else:
+    #     s_processes = ""
+    #     for index in range(len(processes)):
+    #         s_processes += "\t[{}] {}\n".format(index, str(processes[index]))
+    #     input_id = int(input("[{}] has multiprocess: \n{}\nplease choose target process: "
+    #                          .format(pkg_name, s_processes)))
+    #     target = processes[input_id]
+    #     try:
+    #         for index in range(len(processes)):
+    #             if index == input_id:
+    #                 os.system("adb shell \"su -c 'kill -18 {}'\"".format(processes[index].pid))
+    #             else:
+    #                 os.system("adb shell \"su -c 'kill -19 {}'\"".format(processes[index].pid))
+    #     except:
+    #         pass
 
     logging.info("[DEXDump]: found target [{}] {}".format(target.pid, pkg_name))
     session = device.attach(target.pid)

@@ -10,9 +10,11 @@ console.log('\n--------DCL hook module by @ch0pin--------------');
 
 
 
+    var pathClassLoader = Java.use("dalvik.system.PathClassLoader")
 
     var dexclassLoader = Java.use("dalvik.system.DexClassLoader");
     var basedexclassLoader = Java.use("dalvik.system.BaseDexClassLoader");
+    var delegateLastClassLoader = Java.use("dalvik.system.DelegateLastClassLoader");
     var clazz = Java.use('java.lang.Class');
 
     dexclassLoader.$init.implementation = function(dexPath,  optimizedDirectory,  librarySearchPath,  parent){
@@ -34,6 +36,54 @@ console.log('\n--------DCL hook module by @ch0pin--------------');
          console.log("parent=" + parent);           
          return this.$init(dexPath, optimizedDirectory,  librarySearchPath,  parent);
      }
+
+
+
+     delegateLastClassLoader.$init.overloads[0].implementation = function ( dexPath,  parent){
+        colorLog('DelegateLastClassLoader called:', {c: Color.Green});
+        console.log("dexPath=" + dexPath );
+        console.log("parent=" + parent);           
+        return this.$init(dexPath, parent);
+
+     }
+
+     delegateLastClassLoader.$init.overloads[1].implementation = function ( dexPath, librarySearchPath, parent){
+        colorLog('DelegateLastClassLoader called:', {c: Color.Green});
+        console.log("dexPath=" + dexPath );
+        console.log("librarySearchPath=" + librarySearchPath);
+        console.log("parent=" + parent);         
+        return this.$init(dexPath,librarySearchPath, parent);
+
+     }
+
+//A ClassLoader implementation that loads classes from a buffer containing a DEX file. This can be used to execute code that has not been written to the local file system.
+
+traceClass('dalvik.system.InMemoryDexClassLoader');
+
+//Creates a PathClassLoader that operates on a given list of files and directories.
+
+pathClassLoader.$init.overloads[0].implementation= function( dexPath,  parent){
+    colorLog('PathClassLoader called:', {c: Color.Green});
+    console.log("dexPath=" + dexPath );
+    console.log("parent=" + parent);         
+    return this.$init(dexPath, parent);
+
+}
+
+
+
+
+pathClassLoader.$init.overloads[1].implementation=function( dexPath,  librarySearchPath,  parent){
+    colorLog('PathClassLoader called:', {c: Color.Green});
+    console.log("dexPath=" + dexPath );
+    console.log("librarySearchPath=" + librarySearchPath);
+    console.log("parent=" + parent);         
+    return this.$init(dexPath,librarySearchPath, parent);
+
+}
+
+
+
 
     //  clazz.getMethod.overloads[0].implementation = function(name,params){
     //      colorLog('Loading class method:', {c: Color.Red});
@@ -63,14 +113,14 @@ console.log('\n--------DCL hook module by @ch0pin--------------');
 
 
     //  var dexclassLoader = Java.use("dalvik.system.BaseDexClassLoader");
-    var ClassUse = Java.use("java.lang.Class");
-     dexclassLoader.loadClass.overload("java.lang.String").implementation = function(className){
-         colorLog("[i] DEX Class loader for ClassName=" + className+'\n',{c: Color.Green});
-         var result = this.loadClass(className);
-         var resultCast = Java.cast(result, ClassUse);
-         console.log("[+] Methods=" + resultCast.getMethods()+'\n');
-         return result;
-     }
+    // var ClassUse = Java.use("java.lang.Class");
+    //  dexclassLoader.loadClass.overload("java.lang.String").implementation = function(className){
+    //      colorLog("[i] DEX Class loader for ClassName=" + className+'\n',{c: Color.Green});
+    //      var result = this.loadClass(className);
+    //      var resultCast = Java.cast(result, ClassUse);
+    //      console.log("[+] Methods=" + resultCast.getMethods()+'\n');
+    //      return result;
+    //  }
      
 // }
 

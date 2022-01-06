@@ -110,6 +110,7 @@ class parser(cmd.Cmd):
         return completions
 
 
+
     
     def load_snippet(self,snippet):
         try:
@@ -594,6 +595,12 @@ catch (err) {
     
     def do_clear(self,line):
         subprocess.run('clear', shell=True)
+    
+    def do_c(self,line):
+        subprocess.run(line, shell=True)
+
+    def do_cc(self,line):
+        subprocess.run('adb  -s {} shell {}'.format(self.device.id,line), shell=True)
     
     def init_packages(self):
         j=0
@@ -1147,6 +1154,8 @@ catch (err) {
                         - status                    : Print Current Package/Libs/Native-Functions
                         - shell                     : Open an interactive shell
                         - clear                     : Clear the screen
+                        - c [command]               : Run a shell command
+                        - cc [command]              : Run a shell command on the mobile device
                 ==============================================================================================
 
                         Tip: Use the /modules/scratchpad.med to insert your own hooks and include them to the agent.js 

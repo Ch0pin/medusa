@@ -1,5 +1,7 @@
 #Description: 'jint RegisterNatives(JNIEnv *env, jclass clazz, const JNINativeMethod *methods, jint nMethods)'
-#Help: Registers native methods with the class specified by the clazz argument. 
+#Help: Original script https://github.com/CreditTone/hooker/blob/master/js/hook_RN.js
+
+Registers native methods with the class specified by the clazz argument. 
 The methods parameter specifies an array of JNINativeMethod structures that contain the names, 
 signatures, and function pointers of the native methods. The name and signature fields of the 
 JNINativeMethod structure are pointers to modified UTF-8 strings. The nMethods parameter specifies 
@@ -23,39 +25,54 @@ ReturnType (*fnPtr)(JNIEnv *env, jobject objectOrClass, ...);
 
 
 
-var RevealNativeMethods = function() {
-    var pSize = Process.pointerSize;
-    var env = Java.vm.getEnv();
-    var RegisterNatives = 215, FindClassIndex = 6; // search "215" @ https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html
-    var jclassAddress2NameMap = {};
-    function getNativeAddress(idx) {
-      return env.handle.readPointer().add(idx * pSize).readPointer();
-    }
-    // intercepting FindClass to populate Map<address, jclass>
-    Interceptor.attach(getNativeAddress(FindClassIndex), {
-      onEnter: function(args) {
-        jclassAddress2NameMap[args[0]] = args[1].readCString();
-      }
-    });
-    // RegisterNative(jClass*, .., JNINativeMethod *methods[nMethods], uint nMethods) // https://android.googlesource.com/platform/libnativehelper/+/master/include_jni/jni.h#977
-    Interceptor.attach(getNativeAddress(RegisterNatives), {
-      onEnter: function(args) {
-          colorLog('[+] Entering RegisterNatives: ',{c:Color.Green});
-        for (var i = 0, nMethods = parseInt(args[3]); i < nMethods; i++) {
-    
-          var structSize = pSize * 3; // = sizeof(JNINativeMethod)
-          var methodsPtr = ptr(args[2]);
-          var signature = methodsPtr.add(i * structSize + pSize).readPointer();
-          var fnPtr = methodsPtr.add(i * structSize + (pSize * 2)).readPointer(); // void* fnPtr
-          var jClass = jclassAddress2NameMap[args[0]].split('/');
-          var methodName = methodsPtr.add(i * structSize).readPointer().readCString();
+console.log('========== Original script https://github.com/CreditTone/hooker/blob/master/js/hook_RN.js==============\n');
 
-          console.log('\t[-] Module: '+DebugSymbol.fromAddress(fnPtr)['moduleName']+ ', Address: @'+fnPtr+'--> Package: '+jClass.slice(0, -1).join('.')+'.'+methodName+signature.readCString());
-       
 
-        }
+function hook_RegisterNatives() {
+  var symbols = Module.enumerateSymbolsSync("libart.so");
+  var addrRegisterNatives = null;
+  for (var i = 0; i < symbols.length; i++) {
+      var symbol = symbols[i];
+      
+      //_ZN3art3JNI15RegisterNativesEP7_JNIEnvP7_jclassPK15JNINativeMethodi
+      if (symbol.name.indexOf("art") >= 0 &&
+              symbol.name.indexOf("JNI") >= 0 && 
+              symbol.name.indexOf("RegisterNatives") >= 0 && 
+              symbol.name.indexOf("CheckJNI") < 0) {
+          addrRegisterNatives = symbol.address;
+          colorLog("RegisterNatives is at " + symbol.address + '  '+ symbol.name,{c: Color.Purple});
       }
-    });
   }
-  
-  Java.perform(RevealNativeMethods);
+
+  if (addrRegisterNatives != null) {
+      Interceptor.attach(addrRegisterNatives, {
+          onEnter: function (args) {
+            colorLog("[RegisterNatives] method_count:"+ args[3]+" ==========", {c:Color.Blue});
+              var env = args[0];
+              var java_class = args[1];
+              var class_name = Java.vm.tryGetEnv().getClassName(java_class);
+              //console.log(class_name);
+
+              var methods_ptr = ptr(args[2]);
+
+              var method_count = parseInt(args[3]);
+              for (var i = 0; i < method_count; i++) {
+                  var name_ptr = Memory.readPointer(methods_ptr.add(i * Process.pointerSize * 3));
+                  var sig_ptr = Memory.readPointer(methods_ptr.add(i * Process.pointerSize * 3 + Process.pointerSize));
+                  var fnPtr_ptr = Memory.readPointer(methods_ptr.add(i * Process.pointerSize * 3 + Process.pointerSize * 2));
+
+                  var name = Memory.readCString(name_ptr);
+                  var sig = Memory.readCString(sig_ptr);
+                  var find_module = Process.findModuleByAddress(fnPtr_ptr);
+                  console.log("[RegisterNatives] java_class:", class_name, "name:", name, "sig:", sig, "fnPtr:", fnPtr_ptr, "module_name:", find_module.name, "module_base:", find_module.base, "offset:", ptr(fnPtr_ptr).sub(find_module.base));
+
+              }
+          colorLog("=============================================\n",{c: Color.Blue});
+
+          }
+      });
+  }
+
+}
+
+setImmediate(hook_RegisterNatives);

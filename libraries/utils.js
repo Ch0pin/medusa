@@ -638,3 +638,91 @@ function inspectObject(obj) {
     for (var i in methods)
         console.log("\t\t" + methods[i].toString());
 }
+
+
+//------------------------https://github.com/CreditTone/hooker----------------------------
+
+function classExists(className) {
+  var exists = false;
+  try {
+      var clz = Java.use(className);
+      exists = true;
+  } catch(err) {
+      //console.log(err);
+  }
+  return exists;
+};
+
+function methodInBeat(invokeId, timestamp, methodName, executor) {
+var startTime = timestamp;
+  var androidLogClz = Java.use("android.util.Log");
+  var exceptionClz = Java.use("java.lang.Exception");
+  var threadClz = Java.use("java.lang.Thread");
+  var currentThread = threadClz.currentThread();
+  var stackInfo = androidLogClz.getStackTraceString(exceptionClz.$new());
+  var str = ("------------startFlag:" + invokeId + ",objectHash:"+executor+",thread(id:" + currentThread.getId() +",name:" + currentThread.getName() + "),timestamp:" + startTime+"---------------\n");
+  str += methodName + "\n";
+  str += stackInfo.substring(20);
+  str += ("------------endFlag:" + invokeId + ",usedtime:" + (new Date().getTime() - startTime) +"---------------\n");
+console.log(str);
+};
+
+function log(str) {
+  console.log(str);
+};
+
+
+
+
+
+
+function tryGetClass(className) {
+  var clz = undefined;
+  try {
+      clz = Java.use(className);
+  } catch(e) {}
+  return clz;
+}
+
+function newMethodBeat(text, executor) {
+  var threadClz = Java.use("java.lang.Thread");
+  // var androidLogClz = Java.use("android.util.Log");
+  // var exceptionClz = Java.use("java.lang.Exception");
+  var currentThread = threadClz.currentThread();
+  var beat = new Object();
+  beat.invokeId = Math.random().toString(36).slice( - 8);
+  beat.executor = executor;
+  beat.threadId = currentThread.getId();
+  beat.threadName = currentThread.getName();
+  beat.text = text;
+  beat.startTime = new Date().getTime();
+  //beat.stackInfo = androidLogClz.getStackTraceString(exceptionClz.$new()).substring(20);
+  return beat;
+};
+
+function printBeat(beat) {
+  colorLog(beat.text,{c:Color.Gray});
+};
+
+var containRegExps = new Array()
+
+var notContainRegExps = new Array(RegExp(/\.jpg/), RegExp(/\.png/))
+
+function check(str) {
+  str = str.toString();
+  if (! (str && str.match)) {
+      return false;
+  }
+  for (var i = 0; i < containRegExps.length; i++) {
+      if (!str.match(containRegExps[i])) {
+          return false;
+      }
+  }
+  for (var i = 0; i < notContainRegExps.length; i++) {
+      if (str.match(notContainRegExps[i])) {
+          return false;
+      }
+  }
+  return true;
+}
+//------------------------https://github.com/CreditTone/hooker EOF----------------------------

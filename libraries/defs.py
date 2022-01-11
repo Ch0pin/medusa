@@ -80,7 +80,7 @@ class parser(cmd.Cmd):
             print(e)
     
     def show_snippets(self):
-        print("[i] Availlable snippets:")
+        print("[i] Available snippets:")
         print('------------------------\n')
         try:
             for snippet in self.snippets_list:
@@ -741,7 +741,7 @@ catch (err) {
 
     def show_categories(self):
         folders = list(os.walk('modules/'))
-        print('\nAvaillable module categories:\n')
+        print('\nAvailable module categories:\n')
         for f in folders[1:]:
             module=f[0].split('/')
             print(module[1])
@@ -1093,13 +1093,13 @@ catch (err) {
 
                         - search [keyword]          : Search for a module containing a specific keyword 
                         - help [module name]        : Display help for a module
-                        - snippet [tab]             : Show / display availlable frida script snippets
+                        - snippet [tab]             : Show / display available frida script snippets
                         - use [module name]         : Select a module to add to the final script
                         - show mods                 : Show selected modules
-                        - show categories           : Display the availlable module categories (start here)
-                        - show modules [category]   : Display the availlable modules for the selected category
-                        - show snippets             : Display availlable snippets of frida scripts
-                        - show all                  : Show all availlable modules
+                        - show categories           : Display the available module categories (start here)
+                        - show modules [category]   : Display the available modules for the selected category
+                        - show snippets             : Display available snippets of frida scripts
+                        - show all                  : Show all available modules
                         - import [snippet]          : Import a snippet to the scratchpad
                         - rem [module name]         : Remove a module from the list that will be loaded
                         - swap old_index new_index  : Change the order of modules in the compiled script
@@ -1109,7 +1109,7 @@ catch (err) {
                 SCRIPT OPERATIONS:
 
                         - export  'filename'        : Save session modules and scripts to 'filename'
-                        - import [tab]              : Import frida script from availlable snippet
+                        - import [tab]              : Import frida script from available snippet
                         - pad                       : Edit the scratchpad using vi
                         - compile                   : Compile the modules to a frida script
                         - hook [option]
@@ -1142,8 +1142,8 @@ catch (err) {
 
                 FRIDA SESSION:
 
-                        - run        [package name] : Initiate a Frida session and attache to the sellected package
-                        - run -f     [package name] : Initiate a Frida session and spawn the sellected package
+                        - run        [package name] : Initiate a Frida session and attach to the selected package
+                        - run -f     [package name] : Initiate a Frida session and spawn the selected package
                         - dump       [package_name] : Dump the requested package name (works for most unpackers)
                 ====================================================================================================
                     

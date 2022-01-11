@@ -248,7 +248,7 @@ def performRecon(line):
 			except Exception as e:
 				myPrint("E: Error while spawning threads", "ERROR")
 	if exceptions_occured:
-		print('[E] Some exceptions occured and ommited !')
+		print('[E] Some exceptions occured and were ommited !')
 	displayResults()
 
 def displayResults():

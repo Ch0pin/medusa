@@ -45,14 +45,14 @@ Welcome to:
 
 
 try:
-    print('Availlable devices:\n')
+    print('Available devices:\n')
     devices = frida.enumerate_devices()
     i = 0
 
     for dv in devices:
         print('{}) {}'.format(i,dv))
         i += 1
-    j = input('\nEnter the index of device to use:')
+    j = input('\nEnter the index of the device to use:')
     device = devices[int(j)] 
 except:
     device = frida.get_remote_device()

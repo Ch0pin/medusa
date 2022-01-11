@@ -1,5 +1,5 @@
 #Description: 'Monitor calls to socket operations'
-#Help: Hooks availlable
+#Help: Hooks available
 -webSocketClient constructor
 -send 
 

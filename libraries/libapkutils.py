@@ -1107,14 +1107,14 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
                     - show receivers            : Print a list with the application's receivers
                     - show providers            : Print a list with the application's content providers
                     - show filters              : Print broadcast filters
-                    - show strings              : print application's strings
+                    - show strings              : Print the application's strings
                     - search [keyword]          : Search components containing the given keyword
                     ===========================================================================================
 
                     [+] TRIGERS:
                     ---------------------
 
-                    - start      [tab]          : Start and activity 
+                    - start      [tab]          : Start an activity 
                     - deeplink   [tab]          : Trigger a deeplink
                                                   Add the --poc to create an html poc file
                     - startsrv   [tab]          : Start a service
@@ -1131,14 +1131,14 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
                     - installagent                  : Install the Medusa apk
                     - installBurpCert               : Install Burp Certificate
                     - notify subject body           : Display a notification to the phone's notification bar
-                    e.g. notify test foo            (Requires the medusa agent to be installed and run)
+                    e.g. notify test foo            (Requires the medusa agent to be installed and running)
 
                     - jdwp  package_name            : Open a jdb session with the debugger attached to the package 
                                                     (Requires the --patch option)
 
                     - adb [cmd]                     : Send an adb command to the connected device
-                    - clear                         : Clears the screen
-                    - kill [tab]                    : Kill an app by the package name
+                    - clear                         : Clear the screen
+                    - kill [tab]                    : Kill an app by package name
                     - type                          : Type text to send to the device
                     - screencap -o filename         : Takes a device screenshot and saves it as 'filaname'
                     - shell                         : Opens an interactive shell
@@ -1146,7 +1146,7 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
                                                     ('-t' for transparent)
                     - proxy get                     : Displays proxy settings of the device
                     - proxy reset                   : Resets proxy settings
-                    - uninstall [tab]               : Uninstals a packages from the device
+                    - uninstall [tab]               : Uninstalls a packages from the device
 
                             """)
     

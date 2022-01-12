@@ -195,7 +195,7 @@ try:
     if APK == True:
         install = input("Do you want to install the apk ? (yes/no)")
         if 'yes' in install:
-            subprocess.run('adb -s {} install {}'.format(device.id,sys.argv[1]),shell=True)
+            subprocess.run('adb -s {} install {}'.format(device.id,sys.argv[1]), shell=True)
             INSTALL = True
 except Exception as e:
     print(e)

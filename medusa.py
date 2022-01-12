@@ -12,7 +12,7 @@ import click
 from libraries.dumper import dump_pkg
 from google_trans_new import google_translator  
 from libraries.natives import *
-from libraries.defs import *
+from Questions import *
 
 RED     = "\033[1;31m"  
 BLUE    = "\033[1;34m"
@@ -241,17 +241,12 @@ class Parser(cmd.Cmd):
 
     
     def hook_native(self):
-        library = input('[?] Libary name:').strip()
-
-        type = input('[?] Imported or Exported Function (i/e):')
-        if type != 'e' and type != 'i':
-            print('[!] Command not understood. Exiting function')
-            return
-
-        function = input('[?] Function name or Offset (e.g 0x1234):').strip()
-        number_of_args = input('[?] Number of arguments (Insert 0 to disable trace):')
-        backtraceEnable = input('[?] Enable backtrace (yes/no):')
-        hexdumpEnable = input('[?] Enable memory read (yes/no):')
+        library = Open('Libary name (e.g.: libnative.so):').ask()
+        type_ = Alternative('Hook an imported or exported function?', 'i', 'e').ask()
+        function = Open('Function name or offset (e.g.: 0x1234):').ask()
+        number_of_args = Numeric('Number of function arguments (0 to disable trace):', lbound=0).ask()
+        backtraceEnable = Polar('Enable backtrace?', False).ask()
+        hexdumpEnable = Polar('Enable memory read?', False).ask()
 
         header = ''
         argread = ''
@@ -262,21 +257,19 @@ class Parser(cmd.Cmd):
 #     console.log('Error:'+err);
 # }""" 
 
-        for i in range(int(number_of_args)):
+        for i in range(number_of_args):
             argread += '\n\n try { var arg'+str(i)+" = Memory.readByteArray(ptr(args["+str(i)+"]),128);\n"+"""console.log('------ Arg("""+str(i)+""") memory dump: ------');"""+"""\nconsole.log(hexdump(arg"""+str(i)+""",{ offset: 0, length: 128, header: false, ansi: false}));\n } 
 catch (err) {
     console.log('Error:'+err);
 }""" 
 
-
-
-        if 'yes' in hexdumpEnable:
-            buffersize = input('[?] Read Buffer size (0-1024):')
-            hexdump = """ 
-            var buf = Memory.readByteArray(ptr(retval),"""+buffersize+""");
+        if hexdumpEnable:
+            buffersize = Numeric('Read Buffer size (0-1024):').ask()
+            hexdump = """
+            var buf = Memory.readByteArray(ptr(retval),""" + str(buffersize) + """);
             console.log(hexdump(buf, {
                 offset: 0, 
-                    length:"""+buffersize+""", 
+                    length: """ + str(buffersize) + """, 
                     header: true,
                     ansi: false
                 }));""" 
@@ -284,10 +277,10 @@ catch (err) {
             hexdump = ''
 
 
-        if 'yes' in backtraceEnable:
+        if backtraceEnable:
             tracejs = """
-            try{
-                colorLog("Backtrace: ",{ c: Color.Green });
+            try {
+                colorLog("Backtrace: ", { c: Color.Green });
                 var trace = Thread.backtrace(this.context, Backtracer.ACCURATE);
                     for (var j in trace)
                 colorLog('\t b_trace->'+DebugSymbol.fromAddress( trace[j]),{c: Color.Blue});
@@ -297,41 +290,28 @@ catch (err) {
             }"""
         else:
             tracejs = ''
-        
 
-        if type == 'e':
-            if function.startswith('0x'):
-                header = "Interceptor.attach(Module.findBaseAddress('"+library+"').add("+function+"), {"
-            else:
-                header = "Interceptor.attach(Module.getExportByName('"+library+"', '"+function+"'), {"
-        elif type == 'i':
-            if function.startswith('0x'):
-                header = "Interceptor.attach(Module.findBaseAddress('"+library+"').add("+function+"), {"
-            else:
-                header = "var func = undefined;\n" + 'var imports = Module.enumerateImportsSync("'+library+'");\n'
-                header += 'for(var i = 0; i < imports.length; i++){\nif (imports[i].name=="'+function+'") \n{ func = imports[i].address; break; } }'
-                header += "Interceptor.attach(func, {\n"
+        if function.startswith('0x'):
+            header = "\nInterceptor.attach(Module.findBaseAddress('" + library + "').add(" + function + "), {"
+        elif type_ == 'e':
+            header = "\nInterceptor.attach(Module.getExportByName('" + library + "', '" + function + "'), {"
         else:
-            print("[!] Command was not understood, exiting function.")
-            return
-
-
-
-
-        #codejs = """Interceptor.attach(Module.getExportByName('"""+library+"""', '"""+function+"""'), {
+            header = "\nvar func = undefined;\n" + 'var imports = Module.enumerateImportsSync("' + library + '");\n'
+            header += 'for(var i = 0; i < imports.length; i++){\nif (imports[i].name=="' + function + '") \n{ func = imports[i].address; break; } }'
+            header += "Interceptor.attach(func, {\n"
         
         codejs = header + """
     onEnter: function(args) {
       console.log();
-      colorLog("[--->] Entering Native function: " +" """+ function+"""",{ c: Color.Red });"""+argread+tracejs+"""
+      colorLog("[--->] Entering Native function: " +" """ + function + '",{ c: Color.Red });' + argread + tracejs + """
       
 
     },
     onLeave: function(retval) {
 
       try{
-            colorLog("Return Value @" + retval , {c: Color.Green});"""+hexdump+"""
-            colorLog("[<---] Leaving Native function: " +" """+ function+""" ",{ c: Color.Red });
+            colorLog("Return Value @" + retval , {c: Color.Green});""" + hexdump + """
+            colorLog("[<---] Leaving Native function: " +" """ + function + """ ",{ c: Color.Red });
             //retval.replace();
             }
       catch(err){
@@ -340,17 +320,15 @@ catch (err) {
     }
 });
 """
+
         with open('modules/scratchpad.med','a') as script:
             script.write(codejs)
         module_x = 'modules/scratchpad.med'
         if module_x not in self.module_list:
             self.module_list.append('modules/scratchpad.med')
         self.modified = True
-        print("\nHooks have been added to the"+GREEN+ " modules/schratchpad.me"+ RESET+" run 'compile' to include it in your final script")
+        print("\nHooks have been added to the" + GREEN + " modules/schratchpad.me" + RESET + " run 'compile' to include it in your final script")
         
-
-
-
     def do_enumerate(self, line):
         try:
 
@@ -400,7 +378,6 @@ catch (err) {
                             ]
         return completions
 
-
     def prepare_native(self,operation):
 
         with open('libraries/native.med','r') as file:
@@ -409,9 +386,6 @@ catch (err) {
 
         with open('libraries/native.js','w') as file:
             file.write(script)
-
-
-
 
     def do_libs(self, line):
 
@@ -483,17 +457,10 @@ catch (err) {
 
 
     def scratchreset(self):
-        
-        scratch_reset = input('Do you want to reset the scratchpad ? (yes/no) ')
-
-        if 'yes' in scratch_reset:
-            scratchpad = """#Description: 'Use this module to add your hooks'
-#Help: "N/A"
-#Code:
-
-"""
-            with open('modules/scratchpad.med','w') as scratch:
-                scratch.write(scratchpad)
+        if Polar('Do you want to reset the scratchpad?').ask():
+            with open('modules/scratchpad.med', 'w') as scratchpad:
+                scratchpad.write("#Description: 'Use this module to add your hooks'\n#Help: 'N/A'\n#Code:")
+                scratchpad.close()
 
     def do_export(self,line):
         scratchDat = ''
@@ -801,26 +768,11 @@ catch (err) {
     def do_exit(self,line):
         with open('agent.js') as agent:
             agent.seek(0)
-            if not agent.read(1):
-                pass
-            else:
-                agent_del = input('Do you want to reset the agent script ? (yes/no) ')
-                if 'yes' in agent_del:
-                    with open('agent.js','w'):
-                        pass
+            if agent.read(1):
+                if Polar('Do you want to reset the agent script?').ask():
+                    open('agent.js', 'w').close()
     
-        scratch_reset = input('Do you want to reset the scratchpad ? (yes/no) ')
-
-        scratchpad = """#Description: 'Use this module to add your hooks'
-#Help: "N/A"
-#Code:
-
-"""
-
-        if 'yes' in scratch_reset:
-            with open('modules/scratchpad.med','w') as scratch:
-                scratch.write(scratchpad)
-                        
+        self.scratchreset()
 
         print('Bye !!')
         exit()
@@ -849,7 +801,6 @@ catch (err) {
             print(e)
             print('Usage: show modules [category]')
 
-
     def display_tag(self,file, what_tag):
         tag_content = ''
         with open(file) as fl:
@@ -865,19 +816,13 @@ catch (err) {
             
         return tag_content
 
-
-
     def do_compile(self,line):
         self.parse_module(self.module_list)
         self.modified = False
         return
 
-
-
-
     def parse_module(self,mods):
         try:
-
             hooks = []
             jni_prolog_added=False
             with open('libraries/utils.js','r') as file:
@@ -909,7 +854,7 @@ catch (err) {
                 for i in range(len(content)):
                     if content[i].startswith('#Code:'):
                         codeline_found = True
-                        i += 1
+                        continue
                     if codeline_found:
                         hooks.append('\t\t'+content[i].strip('\n'))
             
@@ -929,20 +874,15 @@ catch (err) {
         except Exception as e:
             print(e)
 
-
     def do_pad(self,line):
         subprocess.run('vi modules/scratchpad.med', shell=True)
 
-    
     def do_run(self,line):
    
         try:
-            if self.modified == True:
-                comp = input('Module list has been modified, do you want to recompile ? (yes/no)')
-                if 'yes' in comp:
+            if self.modified:
+                if Polar('Module list has been modified, do you want to recompile?').ask():
                     self.parse_module(self.module_list)
-                else:
-                    pass
  
             flags = line.split(' ')
             length = len(flags)

@@ -8,6 +8,7 @@ import logging
 import rlcompleter
 import time
 import frida
+from Questions import Polar
 
 if 'libedit' in readline.__doc__:
     readline.parse_and_bind("bind -e")
@@ -1038,41 +1039,34 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
         print('[i] Cleaning working directory: ')
         try:
             if os.path.isfile('./manifest.xml'):
-                ask = input('\n[!] do you want to delete the manifest file ? (yes/no) ')
-                if 'yes' in ask:
-                    os.remove('./manifest.xml')
+                Polar('\tDo you want to delete the manifest file?',
+                    lambda: os.remove('./manifest.xml')).ask()
 
             if os.path.isfile('./strings.xml'):
-                ask = input('\n[!] do you want to delete the strings.xml file ? (yes/no) ')
-                if 'yes' in ask:
-                    os.remove('./strings.xml')
+                Polar('\tDo you want to delete the strings.xml file?',
+                    lambda: os.remove('./strings.xml')).ask()
 
             if os.path.isfile('./script.sh'):
-                ask = input('\n[!] do you want to delete the trace script file ? (yes/no) ')
-                if 'yes' in ask:
-                    os.remove('./script.sh')
+                Polar('\tDo you want to delete the trace script file?',
+                    lambda: os.remove('./script.sh')).ask()
             
             if os.path.isfile('./script.bat'):
-                ask = input('\n[!] do you want to delete the trace script file ? (yes/no) ')
-                if 'yes' in ask:
-                    os.remove('./script.bat')
+                Polar('\tDo you want to delete the trace script file?',
+                    lambda: os.remove('./script.bat')).ask()
 
             if self.INSTALL == True:
-                uninstall = input("[!] Do you want to uninstall the apk ? (yes/no)")
-                if 'yes' in uninstall:
-                    subprocess.run('adb -s {} uninstall {}'.format(self.device.id,self.package),shell=True)
+                Polar('\tDo you want to uninstall the app?',
+                    lambda: subprocess.run('adb -s {} uninstall {}'.format(self.device.id, self.package), shell=True)).ask()
             
             if os.path.exists("__handlers__/"):
-                uninstall = input("[!] Do you want to delete the __handlers__ folder? (yes/no)")
-                if 'yes' in uninstall:    
-                    os.system("rm -r __handlers__/")
+                Polar('\tDo you want to delete the __handlers__ folder?',
+                    lambda: os.system("rm -r __handlers__/")).ask()
 
         except Exception as e:
             print(e) 
 
         print('Bye !!')
         exit()
-
 
     def do_installagent(self,line):
         try:
@@ -1107,14 +1101,14 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
                     - show receivers            : Print a list with the application's receivers
                     - show providers            : Print a list with the application's content providers
                     - show filters              : Print broadcast filters
-                    - show strings              : print application's strings
+                    - show strings              : Print the application's strings
                     - search [keyword]          : Search components containing the given keyword
                     ===========================================================================================
 
                     [+] TRIGERS:
                     ---------------------
 
-                    - start      [tab]          : Start and activity 
+                    - start      [tab]          : Start an activity 
                     - deeplink   [tab]          : Trigger a deeplink
                                                   Add the --poc to create an html poc file
                     - startsrv   [tab]          : Start a service
@@ -1131,14 +1125,14 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
                     - installagent                  : Install the Medusa apk
                     - installBurpCert               : Install Burp Certificate
                     - notify subject body           : Display a notification to the phone's notification bar
-                    e.g. notify test foo            (Requires the medusa agent to be installed and run)
+                    e.g. notify test foo            (Requires the medusa agent to be installed and running)
 
                     - jdwp  package_name            : Open a jdb session with the debugger attached to the package 
                                                     (Requires the --patch option)
 
                     - adb [cmd]                     : Send an adb command to the connected device
-                    - clear                         : Clears the screen
-                    - kill [tab]                    : Kill an app by the package name
+                    - clear                         : Clear the screen
+                    - kill [tab]                    : Kill an app by package name
                     - type                          : Type text to send to the device
                     - screencap -o filename         : Takes a device screenshot and saves it as 'filaname'
                     - shell                         : Opens an interactive shell
@@ -1146,7 +1140,7 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
                                                     ('-t' for transparent)
                     - proxy get                     : Displays proxy settings of the device
                     - proxy reset                   : Resets proxy settings
-                    - uninstall [tab]               : Uninstals a packages from the device
+                    - uninstall [tab]               : Uninstalls a packages from the device
 
                             """)
     

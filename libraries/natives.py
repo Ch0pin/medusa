@@ -173,7 +173,7 @@ class nativeHandler():
                 elif cmd.startswith('h'):
                     self.display_help()
                 elif cmd.startswith('scan'):
-                    in_bytes = input("Enter a text or byte array in form of bytes(DE 00 11 ?? ?? BE AF):")
+                    in_bytes = input("Enter a text or byte array in form of bytes (DE 00 11 ?? ?? BE AF):")
                     if in_bytes.startswith('bytes('):
                         pattern = in_bytes[6:].strip(')')
                     else:
@@ -302,7 +302,7 @@ class nativeHandler():
 
 
     def display_help(self):
-        print("""Availlable commands:
+        print("""Available commands:
         
         (e)xit:     Exit memops
         dump:     Dump loaded module to a file

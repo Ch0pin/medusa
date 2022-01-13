@@ -30,7 +30,7 @@ INSTALL = False
 apktool=os.getcwd()+"/dependencies/apktool.jar"
 dummyxml=os.getcwd()+"/dependencies/manifest.xml"
 apksigner = os.getcwd()+"/dependencies/apksigner"
-zipallign = os.getcwd()+ "/dependencies/zipalign"
+zipalign = os.getcwd()+ "/dependencies/zipalign"
 debuggable_apk = os.getcwd()+"/debuggable.apk";
 alligned_apk = os.getcwd()+"/debuggable_alligned_signed.apk"
 tmp_folder = os.getcwd()+"/tmp"
@@ -57,7 +57,7 @@ def patch_debuggable(filename):
 
 def print_usage():
     print(GREEN+"""[i] ---------------------------USAGE--------------------------------:
-        apkutils is a parser/helper script which may be used either 
+        apkutils is a parser/helper script which may be used either with
         no file / manifest.xml file/ application.apk file:
 
         ./apkutils.py 
@@ -78,8 +78,8 @@ def extract_manifest(file):
         print(GREEN+'[+] Setting debuggable flag....'+RESET)
         if patch_debuggable(tmp_folder+'/AndroidManifest.xml'):
             subprocess.run('java -jar '+ apktool +' b tmp -o {}'.format(debuggable_apk), shell=True)
-            print(GREEN+'[+] Running Zipallign.....'+RESET)
-            subprocess.run(zipallign +' -p 4 {} {}'.format(debuggable_apk,alligned_apk),shell=True)
+            print(GREEN+'[+] Running Zipalign.....'+RESET)
+            subprocess.run(zipalign +' -p 4 {} {}'.format(debuggable_apk,alligned_apk),shell=True)
             print(GREEN+'[+] Signing the apk.....'+RESET)
             subprocess.run(apksigner +' sign --ks ./dependencies/common.jks -ks-key-alias common --ks-pass pass:password --key-pass pass:password  {}'.format(alligned_apk),shell=True)
             print(GREEN+'[+] Removing the unsigned apk.....'+RESET)
@@ -180,14 +180,14 @@ print(RESET)
 pty.openpty()
 
 try:
-    print('Availlable devices:\n')
+    print('Available devices:\n')
     devices = frida.enumerate_devices()
     i = 0
 
     for dv in devices:
         print('{}) {}'.format(i,dv))
         i += 1
-    j = input('\nEnter the index of device to use:')
+    j = input('\nEnter the index of the device to use:')
     device = devices[int(j)] 
     print('[+] Starting adb as root\n\n')
     os.popen("""adb -s {} root""".format(device.id))
@@ -195,7 +195,7 @@ try:
     if APK == True:
         install = input("Do you want to install the apk ? (yes/no)")
         if 'yes' in install:
-            subprocess.run('adb -s {} install {}'.format(device.id,sys.argv[1]),shell=True)
+            subprocess.run('adb -s {} install {}'.format(device.id,sys.argv[1]), shell=True)
             INSTALL = True
 except Exception as e:
     print(e)

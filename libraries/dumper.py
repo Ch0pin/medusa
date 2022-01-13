@@ -64,14 +64,14 @@ def dump(pkg_name, api,mds=None):
 
 def dump_pkg(pkg):
     try:
-        print('Availlable devices:')
+        print('Available devices:')
         devices = frida.enumerate_devices()
         i = 0
 
         for dv in devices:
             print('{}) {}'.format(i,dv))
             i += 1
-        j = input('Enter the index of device to use:')
+        j = input('Enter the index of the device to use:')
         device = devices[int(j)] 
     except:
         device = frida.get_remote_device()

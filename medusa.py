@@ -69,7 +69,7 @@ class Parser(cmd.Cmd):
                                 self.module_list.append(module)
                             else:
                                 data += line
-                    p.modified = True
+                    self.modified = True
                 if data != '':
                     print("[+] Writing to scratchpad...")
                     with open('modules/scratchpad.med','w') as file:

@@ -66,7 +66,7 @@ class Parser(cmd.Cmd):
                             if "modules/" in line:
                                 module = line[:-1]
                                 print('- Loading {}'.format(module))
-                                p.module_list.append(module)
+                                self.module_list.append(module)
                             else:
                                 data += line
                     p.modified = True

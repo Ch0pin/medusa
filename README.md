@@ -2,7 +2,7 @@
 
 ### Description:
 
-**Medusa** is an extensible framework for **Android applications** that automate processes and techniques practiced during the **dynamic analysis** of a malware investigation.  
+**Medusa** is an extensible Reverse Engineering framework for **Android applications** that automate processes and techniques practiced during the **dynamic analysis** of a malware investigation.  
 
 Some of the framework's features are the following:
 

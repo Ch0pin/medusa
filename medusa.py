@@ -842,7 +842,7 @@ catch (err) {
             with open('libraries/utils.js','r') as file:
                 header = file.read();
             hooks.append(header);
-            hooks.append("\n\nJava.perform(function() {")
+            hooks.append("\n\nJava.perform(function() {\ndisplayAppInfo();\n")
             for file in mods:
                 codeline_found = False
                 if 'JNICalls' in file and not jni_prolog_added:
@@ -936,6 +936,7 @@ catch (err) {
     
     def run_frida(self,force, detached, package_name, device):
         creation_time = modified_time = None
+        insession_menu = WHITE+'in-session-commands |' +GREEN+'e:'+ WHITE+ 'exit |'+GREEN+ 'r:'+ WHITE+'reload | ' + GREEN + '?:' + WHITE + 'help'+WHITE+'|:'
         self.detached = False
         session = self.frida_session_handler(device,force,package_name)
         try:
@@ -948,10 +949,10 @@ catch (err) {
             self.script.load()  
             if force:
                 device.resume(self.pid)
-            s = input(WHITE+'in-session-commands |' +GREEN+'e:'+ WHITE+ 'exit |'+GREEN+ 'r:'+ WHITE+'reload | ' + GREEN + '?:' + WHITE + 'help'+WHITE+'|:')
+            s = input(insession_menu)
             
             while ('e' not in s) and (not self.detached):
-                s = input(WHITE+'[in-session] |' +GREEN+'e:'+ WHITE+ 'exit |'+GREEN+ 'r:'+ WHITE+'reload | ' + GREEN + '?:' + WHITE + 'help'+WHITE+'|:')
+                s = input(insession_menu)
                 if 'r' in s:
                     #handle changes during runtime
                  
@@ -969,7 +970,7 @@ catch (err) {
                     else:
                          print(GREEN+"Script unchanged, nothing to reload ...."+RESET)
                 if '?' in s:
-                    print(WHITE+'|' +GREEN+'e:'+ WHITE+ 'exit |'+GREEN+ 'r:'+ WHITE+'reload | ' + GREEN + '?:' + WHITE + 'help'+WHITE+'|')                
+                    print(BLUE+"e: Exit Session, r: Reload Session, ?: Display this message"+RESET)                
             
             if self.script:
                 self.script.unload()

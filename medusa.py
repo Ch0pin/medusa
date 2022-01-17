@@ -569,6 +569,20 @@ catch (err) {
             self.hook_native()
         
 
+    def do_dexload(self,line):
+        try:
+        
+            with open(os.getcwd()+"/modules/scratchpad.med",'a') as script:
+                script.write('\n\nJava.openClassFile("'+line.split(' ')[0]+'").load();')
+                module_x = 'modules/scratchpad.med'
+                if module_x not in self.module_list:
+                    self.module_list.append('modules/scratchpad.med')
+                    self.modified = True
+                print("[+] Script has been set successfully ")
+        except Exception as e:
+            print(e)
+
+
 
 
 #---------------------------------------------------------------------------------------------------------------

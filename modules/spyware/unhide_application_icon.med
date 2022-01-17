@@ -1,0 +1,28 @@
+#Description: 'Cancels application attempts to hide its icon (for version lower than 29)'
+#Help: 
+original code:
+PackageManager p = getPackageManager();
+ activity which is first time open in manifiest file which is declare as <category android:name="android.intent.category.LAUNCHER" /> 
+
+ComponentName componentName = new ComponentName(this, com.apps.MainActivity.class); 
+p.setComponentEnabledSetting(componentName,PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+
+
+#Code: 
+
+
+console.log("\n-----------------Unhide application's icon by @ch0pin------------------\n");
+
+
+var packageManager = Java.use('android.content.pm.PackageManager');
+
+
+
+packageManager.setComponentEnabledSetting.implementation = function(componentName, newState,flags){
+
+    if(newState == 2)
+        colorLog("[+] Application is hiding the launcher icon, Canceling.....");
+    
+
+}
+

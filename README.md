@@ -2,7 +2,7 @@
 
 ### Description:
 
-**Medusa** is an extensible framework for **Android applications** that automate processes and techniques practiced during the **dynamic analysis** of a malware investigation.  
+**Medusa** is an extensible framework for **Android applications** that automate processes and techniques practiced during the **dynamic analysis** of a malware investigations and penetration testings.  
 
 Some of the framework's features are the following:
 
@@ -15,6 +15,63 @@ Some of the framework's features are the following:
 
 **Ref: [MEDUSA-Usage-workflows.pdf](https://github.com/Ch0pin/medusa/blob/master/MEDUSA-Usage-workflows.pdf)**
 
+### How To Create a Medusa Module:
+
+A Medusa module is essentially a Frida script on steroids combined with multiple ready-made javascript functions that may enhance the final output. Assume that you found a super cool frida script online or you have many of them that you want to save in a classified manner:
+
+1. **Remove Frida script's prologue / epilogue by changing it**
+
+   **FROM:**
+
+   ```javascript
+   	Java.perform(function() {
+   
+   		var hook = Java.use("com.foo.bar");
+       
+   		hook.function.implementation = function() {
+   			console.log("Info: entered target method");		
+       }
+   
+   	});  
+   ```
+
+   **TO:**
+
+   ```javascript
+   		var hook = Java.use("com.foo.bar");
+       
+   		hook.function.implementation = function() {
+   			console.log("Info: entered target method");		
+       }
+   ```
+
+2. **Add the following in the beginning of the module**
+
+   ```
+   #Description: 'Use this module to add your hooks'
+   #Help: 'N/A'
+   #Code:%
+   ```
+
+3. **Save the result to the /medusa/modules directory**
+
+​	if you think that your module can be classified in one's of Medusa's categories (e.g. http_communications), save your module as .med under the corresponding folder:
+
+```
+/medusa/modules/http_comnunications/new_script.med
+```
+
+​	Or create a new folder (e.g. /medusa/modules/foo) and save it there
+
+That's all ... this module is now accessible via the medusa cli:
+
+> medusa> show all
+>
+> medusa> use modules/http_comnunications/new_script.med
+
+4. **Contribute with a PR**
+
+   if you think that your module can be helpfull to other users, do a pull request 
 
 ### Usage:
 

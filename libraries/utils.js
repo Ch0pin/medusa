@@ -768,3 +768,12 @@ function displayAppInfo(){
 
 
 //------------------------https://github.com/CreditTone/hooker EOF----------------------------
+
+function notifyNewSharedPreference(key, value) {
+  var k = key;
+  var v = value;
+  Java.use('android.app.SharedPreferencesImpl$EditorImpl').putString.overload('java.lang.String', 'java.lang.String').implementation = function(k, v) {
+    console.log('[SharedPreferencesImpl]', k, '=', v);
+    return this.putString(k, v);
+  }
+}

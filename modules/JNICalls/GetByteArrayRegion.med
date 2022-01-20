@@ -1,16 +1,17 @@
-#Description: 'void Get<PrimitiveType>ArrayRegion(JNIEnv *env, ArrayType array,jsize start, jsize len, const NativeType *buf)'
-
-#Help: A family of functions that copies back a region of a primitive array from a buffer.
-
-#Code:
-
-Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"GetByteArrayRegion"),{         
+{
+    "Name": "JNICalls/GetByteArrayRegion",
+    "Description": "void Get<PrimitiveType>ArrayRegion(JNIEnv *env, ArrayType array,jsize start, jsize len, const NativeType *buf)",
+    "Help": "A family of functions that copies back a region of a primitive array from a buffer.",
+    "Code": "
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,\"GetByteArrayRegion\"),{         
     onEnter: function(args){
      
         var bytebuffer = Memory.readUtf8String(args[4]);
 
     
-        console.log("GetByteArrayRegion :");
+        console.log(\"GetByteArrayRegion :\");
         colorLog(bytebuffer,{c: Color.Green});
     }
 })
+"
+}

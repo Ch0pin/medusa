@@ -1,12 +1,8 @@
-#Description: 'Hooks to DatabaseReference class'
-#Help: This class is the starting point for all Database operations. 
-After you've initialized it with a URL, you can use it to read data, 
-write data, and to create new DatabaseReferences.
-
-#Code:
-
-
-
+{
+    "Name": "firebase/database_reference",
+    "Description": "Hooks to DatabaseReference class",
+    "Help": "This class is the starting point for all Database operations. After you've initialized it with a URL, you can use it to read data, write data, and to create new DatabaseReferences.",
+    "Code": "
 var databaseReference = Java.use('com.google.firebase.database.DatabaseReference');
 
 var dataSnapshot = Java.use('com.google.firebase.database.DataSnapshot');
@@ -235,4 +231,5 @@ databaseReference.updateChildren.overloads[1].implementation = function(map,dbre
     console.log('[+] Value: '+map.getValue());
     this.updateChildren(map,dbreference);
 }
-
+"
+}

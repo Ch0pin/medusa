@@ -1,23 +1,22 @@
- 
-#Description: 'Monitors clipboard operations'
-#Help: "https://developer.android.com/reference/android/content/ClipboardManager"
-#Code:
- 
-
-console.log('\n\n--------Clipboard monitor by Nishant Das Patnaik----------');
+{
+    "Name": "clipboard/clipboard",
+    "Description": "Monitors clipboard operations",
+    "Help": "https://developer.android.com/reference/android/content/ClipboardManager",
+    "Code": "
+console.log('\\n\\n--------Clipboard monitor by Nishant Das Patnaik----------');
 
 
 /**
  * Copyright (c) 2016 Nishant Das Patnaik.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the \"License\");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an \"AS IS\" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -26,8 +25,8 @@ console.log('\n\n--------Clipboard monitor by Nishant Das Patnaik----------');
 
 
 
-var Context = Java.use("android.content.Context");
-  var ClipboardManager = Java.use("android.content.ClipboardManager");
+var Context = Java.use(\"android.content.Context\");
+  var ClipboardManager = Java.use(\"android.content.ClipboardManager\");
   ClipboardManager.setPrimaryClip.implementation = function(clip) {
     //console.log('Count: ' + clip.getItemCount());
     for (var i = 0; i < clip.getItemCount(); i++) {
@@ -42,7 +41,7 @@ var Context = Java.use("android.content.Context");
         send_data.artifact = [];
         /*   --- Payload Body --- */
         var data = {};
-        data.name = "Intent";
+        data.name = \"Intent\";
         data.value = clip.getItemAt(i).getIntent().toString();
         data.argSeq = 0;
         send_data.artifact.push(data);
@@ -58,7 +57,7 @@ var Context = Java.use("android.content.Context");
         send_data.artifact = [];
         /*   --- Payload Body --- */
         var data = {};
-        data.name = "HTML Text";
+        data.name = \"HTML Text\";
         data.value = clip.getItemAt(i).getHtmlText().toString();
         data.argSeq = 0;
         send_data.artifact.push(data);
@@ -74,7 +73,7 @@ var Context = Java.use("android.content.Context");
         send_data.artifact = [];
         /*   --- Payload Body --- */
         var data = {};
-        data.name = "URI";
+        data.name = \"URI\";
         data.value = clip.getItemAt(i).getUri().toString();
         data.argSeq = 0;
         send_data.artifact.push(data);
@@ -90,7 +89,7 @@ var Context = Java.use("android.content.Context");
         send_data.artifact = [];
         /*   --- Payload Body --- */
         var data = {};
-        data.name = "Text";
+        data.name = \"Text\";
         data.value = clip.getItemAt(i).getText().toString();
         data.argSeq = 0;
         send_data.artifact.push(data);
@@ -106,7 +105,7 @@ var Context = Java.use("android.content.Context");
         send_data.artifact = [];
         /*   --- Payload Body --- */
         var data = {};
-        data.name = "String";
+        data.name = \"String\";
         data.value = clip.getItemAt(i).toString();
         data.argSeq = 0;
         send_data.artifact.push(data);
@@ -115,3 +114,5 @@ var Context = Java.use("android.content.Context");
     }
     return this.setPrimaryClip.apply(this, arguments);
   }
+"
+}

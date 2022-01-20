@@ -1,12 +1,8 @@
-#Description: 'Tracks keylogging attempts from the under trace application'
-#Help: 
-'Keylogging in the Android OS is implemented by abusing the accesiblity Service'
-'The specific module hooks api calls related with the specific service and it is'
-'similar to the a11y abuse, with some focus on key logging'
-
-#Code:
-
-
+{
+    "Name": "spyware/keylogger",
+    "Description": "Tracks keylogging attempts from the under trace application",
+    "Help": "Keylogging in the Android OS is implemented by abusing the accesiblity Service. The specific module hooks api calls related with the specific service and it is similar to the a11y abuse, with some focus on key logging",
+    "Code": "
 console.log('------------Keylogger detection module by @Ch0pin--------------')
 
 
@@ -38,4 +34,5 @@ accessibilityNodeInfoW.getText.implementation = function(){
     colorLog('AaccessibilityNodeInfo getText called: ' +ret.toString(), {c:Color.Green});
     return ret;  
 }
-
+"
+}

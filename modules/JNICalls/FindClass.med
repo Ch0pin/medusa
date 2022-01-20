@@ -1,5 +1,7 @@
-#Description: 'jclass FindClass(JNIEnv *env, const char *name);'
-#Help: In JDK release 1.1, this function loads a locally-defined class. It searches the directories and zip files specified by the CLASSPATH environment variable for the class with the specified name.
+{
+    "Name": "JNICalls/FindClass",
+    "Description": "jclass FindClass(JNIEnv *env, const char *name);",
+    "Help": "In JDK release 1.1, this function loads a locally-defined class. It searches the directories and zip files specified by the CLASSPATH environment variable for the class with the specified name.
 
 Since Java 2 SDK release 1.2, the Java security model allows non-system classes to load and call native methods. FindClass locates the class loader associated with the current native method; that is, the class loader of the class that declared the native method. If the native method belongs to a system class, no class loader will be involved. Otherwise, the proper class loader will be invoked to load and link the named class.
 
@@ -7,22 +9,18 @@ Since Java 2 SDK release 1.2, when FindClass is called through the Invocation In
 
 The name argument is a fully-qualified class name or an array type signature . For example, the fully-qualified class name for the java.lang.String class is:
 
-                   "java/lang/String"
+                   \"java/lang/String\"
 
 The array type signature of the array class java.lang.Object[] is:
 
-                   "[Ljava/lang/Object;"
-
-#Code:
-
-
-
-    Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"FindClass"),{         
+                   \"[Ljava/lang/Object;\"",
+    "Code": "
+    Interceptor.attach(getJNIFunctionAdress(jnienv_addr,\"FindClass\"),{         
       onEnter: function(args){
 
         var clazz_a = Memory.readUtf8String(args[1]);
         colorLog('[+] Class: '+clazz_a,{c: Color.Gray});
       }
   })
-
- 
+"
+}

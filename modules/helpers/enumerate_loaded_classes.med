@@ -1,8 +1,9 @@
-#Description: 'Use this module to enumerate the loaded classes'
-#Help: "https://codeshare.frida.re/@BenGardiner/android-list-loaded-classes/"
-#Code:
-
-console.log('\n----------Enumerate Classes------------');
+{
+    "Name": "helpers/enumerate_loaded_classes",
+    "Description": "Use this module to enumerate the loaded classes",
+    "Help": "https://codeshare.frida.re/@BenGardiner/android-list-loaded-classes/",
+    "Code": "
+console.log('\\n----------Enumerate Classes------------');
 
 
     Java.enumerateLoadedClasses({
@@ -11,3 +12,5 @@ console.log('\n----------Enumerate Classes------------');
         },
         onComplete: function() {}
     });
+"
+}

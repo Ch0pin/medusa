@@ -1,11 +1,8 @@
-#Description: 'Monitor calls to socket operations'
-#Help: Hooks available
--webSocketClient constructor
--send 
-
-#Code:
-
-
+{
+    "Name": "sockets/socket_monitor",
+    "Description": "Monitor calls to socket operations",
+    "Help": "Hooks available\n-webSocketClient constructor\n-send",
+    "Code": "
 var socket = Java.use('java.net.Socket');
 var WebSocketClient = Java.use('org.java_websocket.client.WebSocketClient');
 
@@ -149,3 +146,5 @@ WebSocketClient.send.overloads[0].implementation = function(str){
 }
 
 console.log('---------------------SOCKET MONITOR by @ch0pin ----------------------');
+"
+}

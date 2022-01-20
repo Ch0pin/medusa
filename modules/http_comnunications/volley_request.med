@@ -1,7 +1,8 @@
-#Description: 'Hooks API calls of the Volley HTTP Library '
-#Help: "https://developer.android.com/training/volley"
-#Code:
-
+{
+    "Name": "http_communications/volley_request",
+    "Description": "Hooks API calls of the Volley HTTP Library",
+    "Help": "https://developer.android.com/training/volley",
+    "Code": "
 console.log('-----------------Volley Request Monitor by @ch0pin-----------------------');
 
 var request = Java.use('com.android.volley.Request');
@@ -28,8 +29,8 @@ request.$init.overloads[0].implementation = function(mMethod1,mUrl1,errorListene
     if(mMethod1 == 1)
         console.log('[+] Method: POST');
     else if(mMethod1 == 0)
-        console.log("[+] Method: GET");
-    else console.log("[+] Method: "+mMethod1);
+        console.log(\"[+] Method: GET\");
+    else console.log(\"[+] Method: \"+mMethod1);
     
     return req;
 }
@@ -50,4 +51,6 @@ request.encodeParameters.implementation = function(hashmap, param){
     }
     colorLog('[+]===================EOF====================>>',{c: Color.Red});
     return this.encodeParameters(hashmap,param);
+}
+"
 }

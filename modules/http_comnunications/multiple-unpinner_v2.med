@@ -1,15 +1,8 @@
-#Description: 'frida-multiple-unpinning CRITICAL: Make sure is added on the top of the module list (0 index)'
-#Help: 
- Android ssl certificate pinning bypass script for various methods
-	by Maurizio Siddu
-    https://codeshare.frida.re/@akabe1/frida-multiple-unpinning
-
-CRITICAL: Make sure is added on the top of the module list (0 index)
-#Code:
- 
-
-
-
+{
+    "Name": "http_communications/multiple-unpinner_v2",
+    "Description": "frida-multiple-unpinning CRITICAL: Make sure is added on the top of the module list (0 index)",
+	"Help": "Android ssl certificate pinning bypass script for various methods by Maurizio Siddu (https://codeshare.frida.re/@akabe1/frida-multiple-unpinning)\nCRITICAL: Make sure is added on the top of the module list (0 index)",
+	"Code": "
 		console.log('');
 		console.log('======');
 		console.log('[#] Android Bypass for various Certificate Pinning methods [#]');
@@ -145,7 +138,7 @@ CRITICAL: Make sure is added on the top of the module list (0 index)
 		////////////////////////////////////
 		try {
 			// Bypass TrustManagerImpl (Android > 7) {1}
-			var array_list = Java.use("java.util.ArrayList");
+			var array_list = Java.use(\"java.util.ArrayList\");
 			var TrustManagerImpl_Activity_1 = Java.use('com.android.org.conscrypt.TrustManagerImpl');
 			TrustManagerImpl_Activity_1.checkTrustedRecursive.implementation = function(certs, ocspData, tlsSctData, host, clientAuth, untrustedChain, trustAnchorChain, used) {
 				console.log('[+] Bypassing TrustManagerImpl (Android > 7) checkTrustedRecursive check: '+ host);
@@ -585,16 +578,16 @@ CRITICAL: Make sure is added on the top of the module list (0 index)
 		// Chromium Cronet //
 		/////////////////////    
 		try {
-			var CronetEngineBuilderImpl_Activity = Java.use("org.chromium.net.impl.CronetEngineBuilderImpl");
+			var CronetEngineBuilderImpl_Activity = Java.use(\"org.chromium.net.impl.CronetEngineBuilderImpl\");
 			// Setting argument to TRUE (default is TRUE) to disable Public Key pinning for local trust anchors
 			CronetEngine_Activity.enablePublicKeyPinningBypassForLocalTrustAnchors.overload('boolean').implementation = function(a) {
-				console.log("[+] Disabling Public Key pinning for local trust anchors in Chromium Cronet");
+				console.log(\"[+] Disabling Public Key pinning for local trust anchors in Chromium Cronet\");
 				var cronet_obj_1 = CronetEngine_Activity.enablePublicKeyPinningBypassForLocalTrustAnchors.call(this, true);
 				return cronet_obj_1;
 			};
 			// Bypassing Chromium Cronet pinner
 			CronetEngine_Activity.addPublicKeyPins.overload('java.lang.String', 'java.util.Set', 'boolean', 'java.util.Date').implementation = function(hostName, pinsSha256, includeSubdomains, expirationDate) {
-				console.log("[+] Bypassing Chromium Cronet pinner: " + hostName);
+				console.log(\"[+] Bypassing Chromium Cronet pinner: \" + hostName);
 				var cronet_obj_2 = CronetEngine_Activity.addPublicKeyPins.call(this, hostName, pinsSha256, includeSubdomains, expirationDate);
 				return cronet_obj_2;
 			};
@@ -610,7 +603,7 @@ CRITICAL: Make sure is added on the top of the module list (0 index)
 		try {
 			// Bypass HttpCertificatePinning.check {1}
 			var HttpCertificatePinning_Activity = Java.use('diefferson.http_certificate_pinning.HttpCertificatePinning');
-			HttpCertificatePinning_Activity.checkConnexion.overload("java.lang.String", "java.util.List", "java.util.Map", "int", "java.lang.String").implementation = function (a, b, c ,d, e) {
+			HttpCertificatePinning_Activity.checkConnexion.overload(\"java.lang.String\", \"java.util.List\", \"java.util.Map\", \"int\", \"java.lang.String\").implementation = function (a, b, c ,d, e) {
 				console.log('[+] Bypassing Flutter HttpCertificatePinning : ' + a);
 				return true;
 			};
@@ -621,7 +614,7 @@ CRITICAL: Make sure is added on the top of the module list (0 index)
 		try {
 			// Bypass SslPinningPlugin.check {2}
 			var SslPinningPlugin_Activity = Java.use('com.macif.plugin.sslpinningplugin.SslPinningPlugin');
-			SslPinningPlugin_Activity.checkConnexion.overload("java.lang.String", "java.util.List", "java.util.Map", "int", "java.lang.String").implementation = function (a, b, c ,d, e) {
+			SslPinningPlugin_Activity.checkConnexion.overload(\"java.lang.String\", \"java.util.List\", \"java.util.Map\", \"int\", \"java.lang.String\").implementation = function (a, b, c ,d, e) {
 				console.log('[+] Bypassing Flutter SslPinningPlugin: ' + a);
 				return true;
 			};
@@ -651,11 +644,11 @@ CRITICAL: Make sure is added on the top of the module list (0 index)
 		try {
 			var UnverifiedCertError = Java.use('javax.net.ssl.SSLPeerUnverifiedException');
 			UnverifiedCertError.$init.implementation = function (str) {
-				console.log('\x1b[36m[!] Unexpected SSLPeerUnverifiedException occurred, trying to patch it dynamically...\x1b[0m');
+				console.log('\\x1b[36m[!] Unexpected SSLPeerUnverifiedException occurred, trying to patch it dynamically...\\x1b[0m');
 				try {
 					var stackTrace = Java.use('java.lang.Thread').currentThread().getStackTrace();
 					var exceptionStackIndex = stackTrace.findIndex(stack =>
-						stack.getClassName() === "javax.net.ssl.SSLPeerUnverifiedException"
+						stack.getClassName() === \"javax.net.ssl.SSLPeerUnverifiedException\"
 					);
 					// Retrieve the method raising the SSLPeerUnverifiedException
 					var callingFunctionStack = stackTrace[exceptionStackIndex + 1];
@@ -663,7 +656,7 @@ CRITICAL: Make sure is added on the top of the module list (0 index)
 					var methodName = callingFunctionStack.getMethodName();
 					var callingClass = Java.use(className);
 					var callingMethod = callingClass[methodName];
-					console.log('\x1b[36m[!] Attempting to bypass uncommon SSL Pinning method on: '+className+'.'+methodName+'\x1b[0m');					
+					console.log('\\x1b[36m[!] Attempting to bypass uncommon SSL Pinning method on: '+className+'.'+methodName+'\\x1b[0m');					
 					// Skip it when already patched by Frida
 					if (callingMethod.implementation) {
 						return; 
@@ -676,15 +669,15 @@ CRITICAL: Make sure is added on the top of the module list (0 index)
 				} catch (e) {
 					// Dynamic patching via implementation does not works, then trying via function overloading
 					//console.log('[!] The uncommon SSL Pinning method has more than one overload); 
-					if (String(e).includes(".overload")) {
-						var splittedList = String(e).split(".overload");
+					if (String(e).includes(\".overload\")) {
+						var splittedList = String(e).split(\".overload\");
 						for (let i=2; i<splittedList.length; i++) {
-							var extractedOverload = splittedList[i].trim().split("(")[1].slice(0,-1).replaceAll("'","");
+							var extractedOverload = splittedList[i].trim().split(\"(\")[1].slice(0,-1).replaceAll(\"'\",\"\");
 							// Check if extractedOverload has multiple arguments
-							if (extractedOverload.includes(",")) {
+							if (extractedOverload.includes(\",\")) {
 								// Go here if overloaded method has multiple arguments (NOTE: max 6 args are covered here)
-								var argList = extractedOverload.split(", ");
-								console.log('\x1b[36m[!] Attempting overload of '+className+'.'+methodName+' with arguments: '+extractedOverload+'\x1b[0m');
+								var argList = extractedOverload.split(\", \");
+								console.log('\\x1b[36m[!] Attempting overload of '+className+'.'+methodName+' with arguments: '+extractedOverload+'\\x1b[0m');
 								if (argList.length == 2) {
 									callingMethod.overload(argList[0], argList[1]).implementation = function(a,b) {
 										rudimentaryFix(returnTypeName);
@@ -714,18 +707,15 @@ CRITICAL: Make sure is added on the top of the module list (0 index)
 							}
 						}
 					} else {
-						console.log('\x1b[36m[-] Failed to dynamically patch SSLPeerUnverifiedException '+e+'\x1b[0m');
+						console.log('\\x1b[36m[-] Failed to dynamically patch SSLPeerUnverifiedException '+e+'\\x1b[0m');
 					}
 				}
-				//console.log('\x1b[36m[+] SSLPeerUnverifiedException hooked\x1b[0m');
+				//console.log('\\x1b[36m[+] SSLPeerUnverifiedException hooked\\x1b[0m');
 				return this.$init(str);
 			};
 		} catch (err) {
-			//console.log('\x1b[36m[-] SSLPeerUnverifiedException not found\x1b[0m');
-			//console.log('\x1b[36m'+err+'\x1b[0m');
+			//console.log('\\x1b[36m[-] SSLPeerUnverifiedException not found\\x1b[0m');
+			//console.log('\\x1b[36m'+err+'\\x1b[0m');
 		}
-		
-
-
-	 
-
+"
+}

@@ -1,17 +1,14 @@
-#Description: 'Call<type>Method(JNIEnv *env, jobject obj,jmethodID methodID, ...)'
-
-#Help: Programmers place all arguments that are to be passed to the method immediately following the methodID argument. 
-The Call<type>Method routine accepts these arguments and passes them to the Java method that the programmer wishes to invoke.
-
-
-#Code:
-
-Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"CallObjectMethodV"),{         
+{
+    "Name": "JNICalls/CallObjectMethod",
+    "Description": "Call<type>Method(JNIEnv *env, jobject obj,jmethodID methodID, ...)",
+    "Help": "Programmers place all arguments that are to be passed to the method immediately following the methodID argument.\nThe Call<type>Method routine accepts these arguments and passes them to the Java method that the programmer wishes to invoke.",
+    "Code": "
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,\"CallObjectMethodV\"),{         
     onEnter: function(args){
   
         try{ 
 
-            var obj = Java.use("java.lang.Object")
+            var obj = Java.use(\"java.lang.Object\")
             var obj_class = args[1]
 
             var castme = Java.cast(obj_class, obj);
@@ -24,6 +21,5 @@ Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"CallObjectMethodV"),{
     }
     
 })
-
-
-
+"
+}

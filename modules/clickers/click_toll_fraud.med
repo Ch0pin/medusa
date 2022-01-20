@@ -1,17 +1,12 @@
-#Description: 'Detects auto click API calls'
-#Help: The specific module hooks a series of API calls used to mimic 
-click events, including:
--Motion events
--Perform click
--Webview javascript injection
--dispatchEvent
-#Code:
+{
+    "Name": "clickers/click_toll_fraud",
+    "Description": "Detects auto click API calls",
+    "Help": "The specific module hooks a series of API calls used to mimic click events, including:\n-Motion events\n-Perform click\n-Webview javascript injection\n-dispatchEvent",
+    "Code": "
+console.log('\\n----Loading toll fraud Hooks by @ch0pin-----');
 
 
-console.log('\n----Loading toll fraud Hooks by @ch0pin-----');
-
-
-var wifiManager = Java.use("android.net.wifi.WifiManager");
+var wifiManager = Java.use(\"android.net.wifi.WifiManager\");
 var telephonyManager = Java.use('android.telephony.TelephonyManager');
 
 telephonyManager.getNetworkOperator.overload().implementation = function(){
@@ -71,7 +66,7 @@ wifiManager.setWifiEnabled.implementation = function(enabled){
 }
     
 
-console.log('\n----Loading click_fraud Hooks by @ch0pin-----');
+console.log('\\n----Loading click_fraud Hooks by @ch0pin-----');
 
 
 var viewClassHook = Java.use('android.view.View');
@@ -108,16 +103,16 @@ webView.getUrl.implementation = function(){
 }
 
 webView.loadData.implementation = function(data,mimeType, encoding){
-    console.log('[i] Load data called with the following parameters:\n' + 'Data:' + data + '\nMime type: '+mimeType+'\nEncoding: '+ encoding);
+    console.log('[i] Load data called with the following parameters:\\n' + 'Data:' + data + '\\nMime type: '+mimeType+'\\nEncoding: '+ encoding);
     this.loadData(data,mimeType,encoding);
 }
 
 webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,  encoding,  historyUrl){
     console.log('[i] loadDataWithBaseURL call detected, having the following parameters:'+
-    '\nBaseUrl: ' + baseUrl +
-    '\nData: ' + data+
-    '\nmimeType: ' + mimeType+
-    '\nhistory URL' + historyUrl);
+    '\\nBaseUrl: ' + baseUrl +
+    '\\nData: ' + data+
+    '\\nmimeType: ' + mimeType+
+    '\\nhistory URL' + historyUrl);
 
     this.loadDataWithBaseURL(baseUrl,data,mimeType,encoding,historyUrl);
 }
@@ -146,7 +141,7 @@ webView.setWebViewClient.implementation = function(client){
 //--------------------------------------------------------
 
 motionEvent.obtain.overload().implementation = function(){
-    console.log("MotionEvent called without paremeters");
+    console.log(\"MotionEvent called without paremeters\");
     return this.obtain();
 }
 
@@ -172,12 +167,12 @@ motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'int').impl
     }
     else actionType = action.toString();
     console.log('Motion event detected using the following parameters:'
-    + '\ndownTime: '+downTime
-    + '\neventTime: '+eventTime
-    + '\naction: '+actionType
-    + '\nx: '+x
-    + '\ny: '+y
-    + '\nmetastate: '+metastate);
+    + '\\ndownTime: '+downTime
+    + '\\neventTime: '+eventTime
+    + '\\naction: '+actionType
+    + '\\nx: '+x
+    + '\\ny: '+y
+    + '\\nmetastate: '+metastate);
     return this.obtain(downTime, eventTime, action,x,y,metastate);
 }
 
@@ -192,18 +187,18 @@ motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'float', 'f
    }
    else actionType = action.toString();
     console.log('Motion event detected using the following parameters:'
-    + '\ndownTime: '+downTime
-    + '\neventTime: '+eventTime
-    + '\naction: '+actionType
-    + '\nx: '+x
-    + '\ny: '+y
-    + '\npressure: '+pressure
-    + '\nsize: '+size
-    + '\nmetastate: '+metastate
-    + '\nxPrecission: '+xPrecission
-    + '\nyPrecission: '+yPrecission
-    + '\ndeviceId: '+deviceId
-    + '\nedgeFlags: ' + edgeFlags);
+    + '\\ndownTime: '+downTime
+    + '\\neventTime: '+eventTime
+    + '\\naction: '+actionType
+    + '\\nx: '+x
+    + '\\ny: '+y
+    + '\\npressure: '+pressure
+    + '\\nsize: '+size
+    + '\\nmetastate: '+metastate
+    + '\\nxPrecission: '+xPrecission
+    + '\\nyPrecission: '+yPrecission
+    + '\\ndeviceId: '+deviceId
+    + '\\nedgeFlags: ' + edgeFlags);
     return this.obtain(downTime, eventTime, action,x,y,pressure,size,metastate,xPrecission,yPrecission,deviceId,edgeFlags);
 }
 
@@ -224,19 +219,19 @@ function(downTime,eventTime,action,pointerCount,x,y,pressure,size,metastate,xPre
     }
     else actionType = action.toString();
     console.log('Motion event detected using the following parameters:'
-    + '\ndownTime: '+downTime
-    + '\neventTime: '+eventTime
-    + '\naction: '+actionType
-    + '\nPointercount: ' + pointerCount
-    + '\nx: '+x
-    + '\ny: '+y
-    + '\npressure: '+pressure
-    + '\nsize: '+size
-    + '\nmetastate: '+metastate
-    + '\nxPrecission: '+xPrecission
-    + '\nyPrecission: '+yPrecission
-    + '\ndeviceId: '+deviceId
-    + '\nedgeFlags: ' + edgeFlags);
+    + '\\ndownTime: '+downTime
+    + '\\neventTime: '+eventTime
+    + '\\naction: '+actionType
+    + '\\nPointercount: ' + pointerCount
+    + '\\nx: '+x
+    + '\\ny: '+y
+    + '\\npressure: '+pressure
+    + '\\nsize: '+size
+    + '\\nmetastate: '+metastate
+    + '\\nxPrecission: '+xPrecission
+    + '\\nyPrecission: '+yPrecission
+    + '\\ndeviceId: '+deviceId
+    + '\\nedgeFlags: ' + edgeFlags);
     return this.obtain(downTime,eventTime,action,pointerCount,x,y,pressure,size,metastate,xPrecission,deviceId,edgeFlags);           
 }
 motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'float', 'float', 'int', 'float', 'float', 'int', 'int', 'int', 'int').implementation = function(a,b,c,d,e,f,g,h,i,j,k,l,m,n){
@@ -255,20 +250,20 @@ function(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,
     }
     else actionType = action.toString();
     console.log('Motion event detected using the following parameters:'
-    + '\ndownTime: '+downTime
-    + '\neventTime: '+eventTime
-    + '\naction: '+actionType
-    + '\npointerCount: ' + pointerCount
-    + '\npointerProperties: ' + pointerProperties
-    + '\npointerCoords: ' + pointerCoords
-    + '\nmetastate: '+metastate
-    + '\nbuttonState: '+buttonState
-    + '\nxPrecission: '+xPrecission
-    + '\nyPrecission: '+yPrecission
-    + '\ndeviceId: '+deviceId
-    + '\nedgeFlags: ' + edgeFlags
-    + '\nsource: ' + source
-    + '\nflags: '+flags);
+    + '\\ndownTime: '+downTime
+    + '\\neventTime: '+eventTime
+    + '\\naction: '+actionType
+    + '\\npointerCount: ' + pointerCount
+    + '\\npointerProperties: ' + pointerProperties
+    + '\\npointerCoords: ' + pointerCoords
+    + '\\nmetastate: '+metastate
+    + '\\nbuttonState: '+buttonState
+    + '\\nxPrecission: '+xPrecission
+    + '\\nyPrecission: '+yPrecission
+    + '\\ndeviceId: '+deviceId
+    + '\\nedgeFlags: ' + edgeFlags
+    + '\\nsource: ' + source
+    + '\\nflags: '+flags);
     return this.obtain(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,metastate,buttonState,xPrecission,yPrecission,deviceId,edgeFlags,source,flags);
 }
 motionEvent.obtain.overload('long', 'long', 'int', 'int', '[Landroid.view.MotionEvent$PointerProperties;', '[Landroid.view.MotionEvent$PointerCoords;', 'int', 'int', 'float', 'float', 'int', 'int', 'int', 'int', 'int').implementation = 
@@ -288,4 +283,6 @@ viewClassHook.performClick.implementation = function(){
     //printBacktrace();
     colorLog('[+] Perform Click detected on:'+this.$className, {c:Color.Red});
     return this.performClick();
+}
+"
 }

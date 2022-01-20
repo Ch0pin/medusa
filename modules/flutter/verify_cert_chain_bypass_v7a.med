@@ -1,15 +1,15 @@
-#Description: 'Flutter Certificate Pinning Bypass for armeabi-v7a'
-#Help: "Based on nviso's article https://blog.nviso.eu/2020/05/20/intercepting-flutter-traffic-on-android-x64/"
-#Code:
+{
+    "Name": "flutter/verify_cert_chain_bypass_v7a",
+    "Description": "Flutter Certificate Pinning Bypass for armeabi-v7a",
+    "Help": "Based on nviso's article https://blog.nviso.eu/2020/05/20/intercepting-flutter-traffic-on-android-x64/",
+    "Code": "
+colorLog('\\n-----------------Loading Module: original by nviso ----------------------\\n',{c: Color.Green})
+colorLog('\\n-----------------Modified and ported by Ch0p1n (@Ch0pin)-----------------\\n',{c: Color.Green})
 
 
-colorLog('\n-----------------Loading Module: original by nviso ----------------------\n',{c: Color.Green})
-colorLog('\n-----------------Modified and ported by Ch0p1n (@Ch0pin)-----------------\n',{c: Color.Green})
+var m = Process.findModuleByName(\"libflutter.so\"); 
 
-
-var m = Process.findModuleByName("libflutter.so"); 
-
-var pattern = "2d e9 f0 4f a3 b0 81 46 50 20 10 70 d9 f8 98 70 00 2f 4d d0 38 68 00 28 4a d0 78 68 0d 46 0d f1 08 0a 90 46 06 68 d1 e9 00 01";
+var pattern = \"2d e9 f0 4f a3 b0 81 46 50 20 10 70 d9 f8 98 70 00 2f 4d d0 38 68 00 28 4a d0 78 68 0d 46 0d f1 08 0a 90 46 06 68 d1 e9 00 01\";
 Memory.scan(m.base, m.size, pattern, {
     onMatch: function(address, size){
         colorLog('[+] ssl_crypto_x509_session_verify_cert_chain found at: ' + address.toString(),{c: Color.Green});
@@ -38,14 +38,14 @@ Memory.scan(m.base, m.size, pattern, {
     });
 
     try {
-      colorLog("[+] Finding libflutter.so",{c: Color.Green});
-      Module.ensureInitialized("libflutter.so");
+      colorLog(\"[+] Finding libflutter.so\",{c: Color.Green});
+      Module.ensureInitialized(\"libflutter.so\");
       hook();
    
   
   } catch(err) {
-      console.log("libflutter.so module not loaded. Trying to manually load it.")
-      Module.load("libflutter.so");
+      console.log(\"libflutter.so module not loaded. Trying to manually load it.\")
+      Module.load(\"libflutter.so\");
   }
 
 
@@ -62,7 +62,7 @@ Memory.scan(m.base, m.size, pattern, {
 //0x003ecc00
 //0x003d38f4
 
-// colorLog('\n-----------------Loading Module: verify_cert_chain by @Ch0pin -------------\n',{c: Color.Green})
+// colorLog('\\n-----------------Loading Module: verify_cert_chain by @Ch0pin -------------\\n',{c: Color.Green})
 
 // var possibleOffsets = [0x3d38f4,0x3c91e4,0x3ecbf0,0x3ecc00]
 
@@ -89,3 +89,5 @@ Memory.scan(m.base, m.size, pattern, {
 //         console.log(err);
 //     }
 // }
+"
+}

@@ -1,11 +1,9 @@
-
-#Description: 'Hooks delete funtions in Java or System level and cancels them'
-#Help: "Ref: https://pentest.blog/n-ways-to-unpack-mobile-malware/, https://www.fortinet.com/blog/threat-research/defeating-an-android-packer-with-frida"
-#Code:
-
-
-
-console.log('\n--------Unlink hook module--------------');
+{
+    "Name": "helpers/unlinker",
+    "Description": "Hooks delete funtions in Java or System level and cancels them",
+    "Help": "Ref: https://pentest.blog/n-ways-to-unpack-mobile-malware/, https://www.fortinet.com/blog/threat-research/defeating-an-android-packer-with-frida",
+    "Code": "
+console.log('\\n--------Unlink hook module--------------');
 
 // create a pointer to the function in the module
 
@@ -27,16 +25,18 @@ Interceptor.attach(unlinkPtr,{
 
 Interceptor.replace(unlinkPtr, new NativeCallback(function (){  
 
-    console.log("[*] unlink() encountered, skipping it.");
+    console.log(\"[*] unlink() encountered, skipping it.\");
 
 }, 'int', [])); 
 
 
-var f = Java.use("java.io.File") 
+var f = Java.use(\"java.io.File\") 
 f.delete.implementation = function(a){ 
     s = this.getAbsolutePath() 
-    //if(s.includes("jar")){ 
-       console.log("[+] Delete catched =>" +this.getAbsolutePath()) 
+    //if(s.includes(\"jar\")){ 
+       console.log(\"[+] Delete catched =>\" +this.getAbsolutePath()) 
     //} 
     return true 
-} 
+}
+"
+}

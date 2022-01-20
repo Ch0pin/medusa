@@ -1,17 +1,8 @@
-	
-#Description: 'Hook the android log output'
-#Help: 'Hooks the following log types:
-
-- ASSERT
-- DEBUG
-- ERROR 
-- INFO 
-- VERBOSE 
-- WARN 
-
-#Code:
-
-
+{
+    "Name": "helpers/android_debug_log",
+    "Description": "Hook the android log output",
+    "Help": "Hooks the following log types:\n- ASSERT\n- DEBUG\n- ERROR \n- INFO \n- VERBOSE \n- WARN",
+    "Code": "
 console.log('-------Debug log monitor by @chopin--------------');
 
 var androidLog = Java.use('android.util.Log');
@@ -83,7 +74,5 @@ androidLog.wtf.overloads[2].imlementation = function(tag,msg,throwable){
     colorLog('WARN tag:'+tag + ' msg:'+throwable.toString(), {c:Color.Red});
     return this.wtf(tag,msg,throwable);
 }
-
-
-
-
+"
+}

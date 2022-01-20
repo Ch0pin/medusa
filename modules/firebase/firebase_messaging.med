@@ -1,8 +1,9 @@
-#Description: 'Hooks various firebase messaging functions and displays the processed data'
-#Help: "https://firebase.google.com/docs/reference/android/com/google/firebase/messaging/FirebaseMessagingService"
-#Code:
-
-console.log('\n--------FirebaseMessagingService interceptor module--------------------');
+{
+    "Name": "firebase/firebase_messaging",
+    "Description": "Hooks various firebase messaging functions and displays the processed data",
+    "Help": "https://firebase.google.com/docs/reference/android/com/google/firebase/messaging/FirebaseMessagingService",
+    "Code": "
+console.log('\\n--------FirebaseMessagingService interceptor module--------------------');
 
 var hashMapNode = Java.use('java.util.HashMap$Node');
 var firebaseMessagingService = Java.use('com.google.firebase.messaging.FirebaseMessagingService');
@@ -19,4 +20,6 @@ firebaseMessagingService.onMessageReceived.implementation = function(msg){
         console.log('key: '+ entry.getKey() + ' ' + 'value: ' + entry.getValue());
     }
     this.onMessageReceived(msg);
+}
+"
 }

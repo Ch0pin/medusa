@@ -1,17 +1,18 @@
-#Description: 'libssl.so SSL_set_custom_verify for Android'
-#Help: "https://codeshare.frida.re/@federicodotta/ios13-pinning-bypass/ modified for Android"
-#Code:
-
-colorLog('\n-----------------Original Module: ios13-pinning-bypass-------------------',{c: Color.Green})
-colorLog('-----------------Modified and ported by Ch0p1n (@Ch0pin)-----------------\n',{c: Color.Green})
+{
+    "Name": "http_communications/libssl_ssl_set_custom_verify",
+    "Description": "libssl.so SSL_set_custom_verify for Android",
+	"Help": "https://codeshare.frida.re/@federicodotta/ios13-pinning-bypass/ modified for Android",
+	"Code":	"
+colorLog('\\n-----------------Original Module: ios13-pinning-bypass-------------------',{c: Color.Green})
+colorLog('-----------------Modified and ported by Ch0p1n (@Ch0pin)-----------------\\n',{c: Color.Green})
 
 
 
 try {
-	Module.ensureInitialized("libssl.so");
+	Module.ensureInitialized(\"libssl.so\");
 } catch(err) {
-	console.log("libssl.so module not loaded. Trying to manually load it.")
-	Module.load("libssl.so");	
+	console.log(\"libssl.so module not loaded. Trying to manually load it.\")
+	Module.load(\"libssl.so\");	
 }
 
 var SSL_VERIFY_NONE = 0;
@@ -19,7 +20,7 @@ var ssl_set_custom_verify;
 var ssl_get_psk_identity;	
 
 ssl_set_custom_verify = new NativeFunction(
-	Module.findExportByName("libssl.so", "SSL_set_custom_verify"),
+	Module.findExportByName(\"libssl.so\", \"SSL_set_custom_verify\"),
 	'void', ['pointer', 'int', 'pointer']
 );
 
@@ -27,7 +28,7 @@ ssl_set_custom_verify = new NativeFunction(
 * Function signature https://commondatastorage.googleapis.com/chromium-boringssl-docs/ssl.h.html#SSL_get_psk_identity
 */
 ssl_get_psk_identity = new NativeFunction(
-	Module.findExportByName("libssl.so", "SSL_get_psk_identity"),
+	Module.findExportByName(\"libssl.so\", \"SSL_get_psk_identity\"),
 	'pointer', ['pointer']
 );
 
@@ -72,7 +73,9 @@ Interceptor.replace(ssl_set_custom_verify, new NativeCallback(function(ssl, mode
 
 Interceptor.replace(ssl_get_psk_identity, new NativeCallback(function(ssl) {
 	colorLog('Replacing ssl_get_psk_identity ', {c: Color.Green});
-	return "notarealPSKidentity";
+	return \"notarealPSKidentity\";
 }, 'pointer', ['pointer']));
 	
-console.log("[+] Bypass successfully loaded ");	
+console.log(\"[+] Bypass successfully loaded \");
+"
+}

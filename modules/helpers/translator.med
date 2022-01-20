@@ -1,30 +1,26 @@
-
-#Description: 'Use this module to translate UI text to english'
-#Help: 
-"Hooks the setText, setMessage, setTitle functions of basic android UI components 
- and translates the applied text using google's translation API"
-#Code:
-
-
-
-console.log('\n----------TRANSLATOR SCRIPT -------------');
+{
+    "Name": "helpers/translator",
+    "Description": "Use this module to translate UI text to english",
+    "Help": "Hooks the setText, setMessage, setTitle functions of basic android UI components and translates the applied text using google's translation API",
+    "Code": "
+console.log('\\n----------TRANSLATOR SCRIPT -------------');
 console.log('----------twiter:@Ch0pin-------------------');
    
-    var textViewClass = Java.use("android.widget.TextView");
-    var alertDialog = Java.use("android.app.AlertDialog");
-    var String = Java.use("java.lang.String");
+    var textViewClass = Java.use(\"android.widget.TextView\");
+    var alertDialog = Java.use(\"android.app.AlertDialog\");
+    var String = Java.use(\"java.lang.String\");
    
 
     alertDialog.setMessage.implementation = function(originalTxt){
                 //in case of error use the following:
         //var string_to_send = Utf8.decode(originalTxt.toString())
         var string_to_send = originalTxt.toString();
-        var string_to_recv = "";
-        send("trscrpt|"+string_to_send); // send data to python code
+        var string_to_recv = \"\";
+        send(\"trscrpt|\"+string_to_send); // send data to python code
         recv(function (received_json_object) {
             string_to_recv = received_json_object.my_data;
         }).wait(); 
-        colorLog('Translating: ' + string_to_send +" ---> "+ string_to_recv, {c: Color.Green})
+        colorLog('Translating: ' + string_to_send +\" ---> \"+ string_to_recv, {c: Color.Green})
   
         var castTostring = String.$new(string_to_recv);
 
@@ -35,12 +31,12 @@ console.log('----------twiter:@Ch0pin-------------------');
         //in case of error use the following:
         //var string_to_send = Utf8.decode(originalTxt.toString())
         var string_to_send = originalTxt.toString();
-        var string_to_recv = "";
-        send("trscrpt|"+string_to_send); // send data to python code
+        var string_to_recv = \"\";
+        send(\"trscrpt|\"+string_to_send); // send data to python code
         recv(function (received_json_object) {
             string_to_recv = received_json_object.my_data;
         }).wait(); 
-        colorLog('Translating: ' + string_to_send +" ---> "+ string_to_recv, {c: Color.Green})
+        colorLog('Translating: ' + string_to_send +\" ---> \"+ string_to_recv, {c: Color.Green})
   
         var castTostring = String.$new(string_to_recv);
 
@@ -51,17 +47,17 @@ console.log('----------twiter:@Ch0pin-------------------');
                 //in case of error use the following:
         //var string_to_send = Utf8.decode(originalTxt.toString())
         var string_to_send = originalTxt.toString();
-        var string_to_recv = "";
-        send("trscrpt|"+string_to_send); // send data to python code
+        var string_to_recv = \"\";
+        send(\"trscrpt|\"+string_to_send); // send data to python code
         recv(function (received_json_object) {
             string_to_recv = received_json_object.my_data;
         }).wait(); 
-        colorLog('Translating: ' + string_to_send +" ---> "+ string_to_recv, {c: Color.Green})
+        colorLog('Translating: ' + string_to_send +\" ---> \"+ string_to_recv, {c: Color.Green})
   
         var castTostring = String.$new(string_to_recv);
 
         return this.setText(castTostring);
  
     }
-
-  
+"
+}

@@ -1,10 +1,9 @@
-
-#Description: 'Detects compression/decompression operations'
-#Help: "Abusal may arrise when it is used to 'hide' data during http communication"
-#Code:
-
-
-console.log('\n----------Gzip interceptor-module--------');
+{
+    "Name": "compression/gzip_input_stream",
+    "Description": "Detects compression/decompression operations",
+    "Help": "Abuse may arise when it is used in network communications, effectively hiding data by compressing it.",
+    "Code": "
+console.log('\\n----------Gzip interceptor-module--------');
 console.log('----------twiter:@Ch0pin-------------------');
 
 
@@ -15,7 +14,7 @@ console.log('----------twiter:@Ch0pin-------------------');
     gzipOutputStream.write.implementation = function(buff, off, len_n){
 
         var buffer = Java.array('byte', buff);
-        var result = "";
+        var result = \"\";
         for(var i = 0; i < buffer.length; ++i){
             if(buffer[i] >= 32 && buffer[i]<127)
                 result+= (String.fromCharCode(buffer[i]));
@@ -28,7 +27,7 @@ console.log('----------twiter:@Ch0pin-------------------');
     gzipInputStream.read.implementation = function(buf,off,len_n){
 
         var buffer = Java.array('byte', buff);
-        var result = "";
+        var result = \"\";
         for(var i = 0; i < buffer.length; ++i){
             if(buffer[i] >= 32 && buffer[i]<127)
                 result+= (String.fromCharCode(buffer[i]));
@@ -37,4 +36,5 @@ console.log('----------twiter:@Ch0pin-------------------');
         console.log('[+] Zipped INPUT stream: ' + result);
         return this.write(buff,off,len_n);
     }
-    
+"
+}

@@ -1,8 +1,9 @@
-#Description: 'Use this module to monitor created intents'
-#Help: "Displays a message with the intent acction or extra data when it is feasible"
-#Code:
-
-console.log('\n----------INTENT $INIT MONITOR BY @Ch0pin------------');
+{
+    "Name": "ipc/intent_creation_monitor",
+    "Description": "Use this module to monitor created intents",
+    "Help": "Displays a message with the intent acction or extra data when it is feasible",
+    "Code": "
+console.log('\\n----------INTENT $INIT MONITOR BY @Ch0pin------------');
 
 
 var intent = Java.use('android.content.Intent');
@@ -13,10 +14,10 @@ if (intent.$init) {
     // intent.$init.overloads[0].implementation = function () {
     //     var retval = this['$init'].apply(this, arguments); 
     //     colorLog('[+] Intent Created('+this.getAction()+')',{c:Color.Red});
-    //     colorLog("\n------" + this,{c: Color.Blue});
+    //     colorLog(\"\\n------\" + this,{c: Color.Blue});
 
-    //     console.log("\t\t[+] Extras: " + this.getExtras());
-    //     console.log("\t\t[+] Flags: " + this.getFlags());
+    //     console.log(\"\t\t[+] Extras: \" + this.getExtras());
+    //     console.log(\"\t\t[+] Flags: \" + this.getFlags());
     //     colorLog('---------------------------------------',{c:Color.Red});
     //     return retval;
     // }
@@ -24,20 +25,20 @@ if (intent.$init) {
     // intent.$init.overloads[1].implementation = function (intent) {
     //     var retval = this['$init'].apply(this, arguments); 
     //     colorLog('[+] Intent Created('+this.getAction()+')',{c:Color.Red});
-    //     colorLog("\n------" + this,{c: Color.Blue});
+    //     colorLog(\"\\n------\" + this,{c: Color.Blue});
 
-    //     console.log("\t\t[+] Extras: " + this.getExtras());
-    //     console.log("\t\t[+] Flags: " + this.getFlags());
+    //     console.log(\"\t\t[+] Extras: \" + this.getExtras());
+    //     console.log(\"\t\t[+] Flags: \" + this.getFlags());
     //     colorLog('---------------------------------------',{c:Color.Red});
     //     return retval;
     // }
     // intent.$init.overloads[2].implementation = function (action) {
     //     var retval = this['$init'].apply(this, arguments); 
     //     colorLog('[+] Intent Created('+this.getAction()+')',{c:Color.Red});
-    //     colorLog("\n------" + this,{c: Color.Blue});
+    //     colorLog(\"\\n------\" + this,{c: Color.Blue});
 
-    //     console.log("\t\t[+] Extras: " + this.getExtras());
-    //     console.log("\t\t[+] Flags: " + this.getFlags());
+    //     console.log(\"\t\t[+] Extras: \" + this.getExtras());
+    //     console.log(\"\t\t[+] Flags: \" + this.getFlags());
     //     colorLog('---------------------------------------',{c:Color.Red});
     //     return retval;
     // }
@@ -45,30 +46,30 @@ if (intent.$init) {
     // intent.$init.overloads[3].implementation = function (action,uri) {
     //     var retval = this['$init'].apply(this, arguments); 
     //     colorLog('[+] Intent Created('+this.getAction()+')',{c:Color.Red});
-    //     colorLog("\n------" + this,{c: Color.Blue});
+    //     colorLog(\"\\n------\" + this,{c: Color.Blue});
 
-    //     console.log("\t\t[+] Extras: " + this.getExtras());
-    //     console.log("\t\t[+] Flags: " + this.getFlags());
+    //     console.log(\"\t\t[+] Extras: \" + this.getExtras());
+    //     console.log(\"\t\t[+] Flags: \" + this.getFlags());
     //     colorLog('---------------------------------------',{c:Color.Red});
     //     return retval;
     // }
     // intent.$init.overloads[4].implementation = function (context, clazz) {
     //     var retval = this['$init'].apply(this, arguments); 
     //     colorLog('[+] Intent Created('+this.getAction()+')',{c:Color.Red});
-    //     colorLog("\n------" + this,{c: Color.Blue});
+    //     colorLog(\"\\n------\" + this,{c: Color.Blue});
 
-    //     console.log("\t\t[+] Extras: " + this.getExtras());
-    //     console.log("\t\t[+] Flags: " + this.getFlags());
+    //     console.log(\"\t\t[+] Extras: \" + this.getExtras());
+    //     console.log(\"\t\t[+] Flags: \" + this.getFlags());
     //     colorLog('---------------------------------------',{c:Color.Red});
     //     return retval;
     // }
     // intent.$init.overloads[5].implementation = function (actioin, uri, context, clazz) {
     //     var retval = this['$init'].apply(this, arguments); 
     //     colorLog('[+] Intent Created('+this.getAction()+')',{c:Color.Red});
-    //     colorLog("\n------" + this,{c: Color.Blue});
+    //     colorLog(\"\\n------\" + this,{c: Color.Blue});
 
-    //     console.log("\t\t[+] Extras: " + this.getExtras());
-    //     console.log("\t\t[+] Flags: " + this.getFlags());
+    //     console.log(\"\t\t[+] Extras: \" + this.getExtras());
+    //     console.log(\"\t\t[+] Flags: \" + this.getFlags());
     //     colorLog('---------------------------------------',{c:Color.Red});
     //     return retval;
     // }
@@ -78,7 +79,7 @@ if (intent.$init) {
 
 
     intent.setClassName.overload('java.lang.String', 'java.lang.String').implementation = function( packageName,  className){
-        colorLog('\n[+] Intent created:', { c: Color.Green });
+        colorLog('\\n[+] Intent created:', { c: Color.Green });
 
         console.log('Package Name:'+packageName);
         console.log('Class Name: ' + className);
@@ -92,7 +93,7 @@ if (intent.$init) {
 
     
 	intent.putExtra.overload('java.lang.String', '[I').implementation = function( name,  intB){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extra name: '+ name);
         console.log('\t[i] Type: Intenger Array');
         console.log('\t[i] Value: '+intB);
@@ -101,14 +102,14 @@ if (intent.$init) {
 
 
 	intent.putExtra.overload('java.lang.String', '[D').implementation = function( name,  doubleD){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extra name: '+ name);
         console.log('\t[i] Type: Double Array');
         console.log('\t[i] Value: '+doubleD);
         return this.putExtra(name,doubleD);
     }
 	intent.putExtra.overload('java.lang.String', '[F').implementation = function( name,  floatF){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
 
         console.log('[i] Intent Extra name: '+ name);
         console.log('\t[i] Type: Float Array');
@@ -116,7 +117,7 @@ if (intent.$init) {
         return this.putExtra(name,floatF);
     }
 	intent.putExtra.overload('java.lang.String', '[B').implementation = function( name,  byteB){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
 
         console.log('[i] Intent Extra name: '+ name)
         console.log('\t[i] Type: Byte Array');
@@ -124,7 +125,7 @@ if (intent.$init) {
         return this.putExtra(name,byteB);
     }
 	intent.putExtra.overload('java.lang.String', '[C').implementation = function( name,  charC){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
 
         console.log('[i] Intent Extra name: '+ name)
         console.log('\t[i] Type: Char Array');
@@ -132,7 +133,7 @@ if (intent.$init) {
         return this.putExtra(name,charC);
     }
 	intent.putExtra.overload('java.lang.String', '[Z').implementation = function( name,  z){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
 
         console.log('[i] Intent Extra name: '+ name)
         console.log('\t[i] Type: Boolean Array');
@@ -144,7 +145,7 @@ if (intent.$init) {
 
 
 	intent.putExtra.overload('java.lang.String', 'boolean').implementation = function( name,  bool){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:Boolean, ' + 'Value:'+bool);
         return this.putExtra(name,bool);
     }
@@ -152,81 +153,81 @@ if (intent.$init) {
 
 
     intent.putExtra.overload('java.lang.String', '[S').implementation = function( name,  stringS){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:String, ' + 'Value:'+stringS);
         return this.putExtra(name,stringS);
     }
     
 	intent.putExtra.overload('java.lang.String', '[Landroid.os.Parcelable;').implementation = function( name,  parcel){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:Parcel, ' + 'Value:'+parcel);
         return this.putExtra(name,parcel);
     }
 
 	intent.putExtra.overload('java.lang.String', 'byte').implementation = function( name,  bt){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:byte, ' + 'Value:'+bt);
         return this.putExtra(name,bt);
     }
     intent.putExtra.overload('java.lang.String', '[Ljava.lang.CharSequence;').implementation = function( name,  chars){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:CharSequence, ' + 'Value:'+chars);
 
         return this.putExtra(name,chars);
     }
     
 	intent.putExtra.overload('java.lang.String', '[Ljava.lang.String;').implementation = function( name,  data){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:String Array, ' + 'Value:'+data);
         return this.putExtra(name,data);
     }
 	intent.putExtra.overload('java.lang.String', 'android.os.Bundle').implementation = function( name,  bundle){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:Bundle, ' + 'Value:'+bundle);
 
         return this.putExtra(name,bundle);
     }
 	intent.putExtra.overload('java.lang.String', 'int').implementation = function( name,  intA){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:int, ' + 'Value:'+intA);
 
         return this.putExtra(name,intA);
     }
 	intent.putExtra.overload('java.lang.String', 'long').implementation = function( name,  longA){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:Long, ' + 'Value:'+longA);
 
         return this.putExtra(name,longA);
     }
     intent.putExtra.overload('java.lang.String', 'float').implementation = function( name,  floatA){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:Float, ' + 'Value:'+floatA);
 
         return this.putExtra(name,floatA);
     }
     
 	intent.putExtra.overload('java.lang.String', 'short').implementation = function( name,  shortA){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:Short, ' + 'Value:'+shortA);
 
         return this.putExtra(name,shortA);
     }
 	intent.putExtra.overload('java.lang.String', 'char').implementation = function( name,  charA){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:Char, ' + 'Value:'+charA);
 
         return this.putExtra(name,charA);
 
     }
 	intent.putExtra.overload('java.lang.String', 'double').implementation = function( name,  doubleA){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:Double, ' + 'Value:'+doubleA);
 
 
         return this.putExtra(name,doubleA);
     }
     intent.putExtra.overload('java.lang.String', 'java.lang.String').implementation = function( name,  stringA){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:String, ' + 'Value:'+stringA);
 
 
@@ -235,28 +236,28 @@ if (intent.$init) {
     
     intent.putExtra.overload('java.lang.String', 'java.lang.CharSequence').implementation = function( name,  CharSequence)
     {
-        colorLog("\n------" + this,{c: Color.Blue});
-        charsJoin = CharSequence.join("");
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
+        charsJoin = CharSequence.join(\"\");
         console.log('[i] Intent Extras -> name:'+ name + ', type:CharSequence, ' + 'Value:'+charsJoin);
 
         return this.putExtra(name,CharSequence);
     }
 	intent.putExtra.overload('java.lang.String', 'java.io.Serializable').implementation = function( name,  serializable){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:Serializable, ' + 'Value:'+serializable);
 
         return this.putExtra(name,serializable);
     }
     intent.putExtra.overload('java.lang.String', 'android.os.Parcelable').implementation = function( name,  parcelable)
     {
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:parcelable, ' + 'Value:'+parcelable);
 
 
         return this.putExtra(name,parcelable);
     }
 	intent.putExtra.overload('java.lang.String', 'android.os.IBinder').implementation = function( name,  binder){
-        colorLog("\n------" + this,{c: Color.Blue});
+        colorLog(\"\\n------\" + this,{c: Color.Blue});
         console.log('[i] Intent Extras -> name:'+ name + ', type:IBinder, ' + 'Value:'+binder);
 
 
@@ -270,4 +271,6 @@ if (intent.$init) {
 
     
 
+}
+"
 }

@@ -1,25 +1,25 @@
+{
+    "Name": "helpers/cancel_system_exit",
+    "Description": "Cancels application exit",
+    "Help": "Hooks system.exit, activity.finish to cancel application's exit",
+    "Code": "  
+console.log(\"-----------Hooking SYSTEM EXIT----------------------\");
 
-#Description: 'Cancels application exit'
-#Help: "Hooks system.exit, activity.finish to cancel application's exit"
-#Code:
-
-  
-console.log("-----------Hooking SYSTEM EXIT----------------------");
-
-  var sysexit = Java.use("java.lang.System");
+  var sysexit = Java.use(\"java.lang.System\");
   var activity = Java.use('android.app.Activity');
   var process = Java.use('android.os.Process');
 
   process.killProcess.implementation = function(pid){
-    colorLog("[i] Canceling process kill with pid:"+pid, {c: Color.Green});
+    colorLog(\"[i] Canceling process kill with pid:\"+pid, {c: Color.Green});
 
   }
-  sysexit.exit.overload("int").implementation = function(var_0) {
-    colorLog("[i] Canceling system exit", {c: Color.Green});
+  sysexit.exit.overload(\"int\").implementation = function(var_0) {
+    colorLog(\"[i] Canceling system exit\", {c: Color.Green});
   };
 
   activity.finish.overloads[0].implementation = function(){
-    colorLog("[+] Canceling activity's finish" ,{c: Color.Green});
+    colorLog(\"[+] Canceling activity's finish\" ,{c: Color.Green});
     
   }
-
+"
+}

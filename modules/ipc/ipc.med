@@ -1,34 +1,35 @@
-#Description: 'Use this module to intercept activity/service/broadcasts'
-#Help: "Displays a message with the intent acction or extra data when it is feasible"
-#Code:
-
-console.log('\n----------IPC monitor by @ch0p1n------------------------');
+{
+    "Name": "ipc/ipc",
+    "Description": "Use this module to intercept activity/service/broadcasts",
+    "Help": "Displays a message with the intent acction or extra data when it is feasible",
+    "Code": "
+console.log('\\n----------IPC monitor by @ch0p1n------------------------');
 
 var activity = Java.use('android.app.Activity');
 var ContextWrapper = Java.use('android.content.Context');
 // var localBroadcastManager = Java.use('androidx.localbroadcastmanager.content.LocalBroadcastManager');
 
 // if(localBroadcastManager.sendBroadcast){
-//   localBroadcastManager.sendBroadcast.overload("android.content.Intent").implementation = function(intent) {
+//   localBroadcastManager.sendBroadcast.overload(\"android.content.Intent\").implementation = function(intent) {
 //     colorLog('[+] Calling LocalBroadcastManager SendBroadcast:',{c:Color.Green});
-//     console.log("Intent toString: " + intent.toString());
-//     console.log("Intent getExtras: " + intent.getExtras());
-//     console.log("Intent getFlags: " + intent.getFlags());
+//     console.log(\"Intent toString: \" + intent.toString());
+//     console.log(\"Intent getExtras: \" + intent.getExtras());
+//     console.log(\"Intent getFlags: \" + intent.getFlags());
 //     colorLog('[-] ----------------------------------------',{c:Color.Red});     
 
-//     return this.sendBroadcast.overload("android.content.Intent").apply(this, arguments);
+//     return this.sendBroadcast.overload(\"android.content.Intent\").apply(this, arguments);
 //   };
 // }
 // if(localBroadcastManager.sendBroadcast){
 
-//   localBroadcastManager.sendBroadcastSync.overload("android.content.Intent").implementation = function(intent) {
+//   localBroadcastManager.sendBroadcastSync.overload(\"android.content.Intent\").implementation = function(intent) {
 //     colorLog('[+] Calling LocalBroadcastManager SendBroadcastSync:',{c:Color.Green});
-//     console.log("Intent toString: " + intent.toString());
-//     console.log("Intent getExtras: " + intent.getExtras());
-//     console.log("Intent getFlags: " + intent.getFlags());
+//     console.log(\"Intent toString: \" + intent.toString());
+//     console.log(\"Intent getExtras: \" + intent.getExtras());
+//     console.log(\"Intent getFlags: \" + intent.getFlags());
 //     colorLog('[-] ----------------------------------------',{c:Color.Red});     
 
-//     return this.sendBroadcast.overload("android.content.Intent").apply(this, arguments);
+//     return this.sendBroadcast.overload(\"android.content.Intent\").apply(this, arguments);
 //   };
 // }
 
@@ -37,9 +38,9 @@ var ContextWrapper = Java.use('android.content.Context');
   
    activity.startActivity.overload('android.content.Intent').implementation = function(intent){
        colorLog('[+] calling startActivity('+intent.getAction()+')',{c:Color.Red});     
-       console.log("Intent toString: " + intent.toString());
-       console.log("Intent getExtras: " + intent.getExtras());
-       console.log("Intent getFlags: " + intent.getFlags());
+       console.log(\"Intent toString: \" + intent.toString());
+       console.log(\"Intent getExtras: \" + intent.getExtras());
+       console.log(\"Intent getFlags: \" + intent.getFlags());
        colorLog('[-] ----------------------------------------',{c:Color.Red});     
 
        return this.startActivity(intent);
@@ -47,9 +48,9 @@ var ContextWrapper = Java.use('android.content.Context');
    }
    activity.startActivity.overload('android.content.Intent','android.os.Bundle').implementation = function(intent,bundle){
        colorLog('[+] calling startActivity('+intent.getAction()+','+bundle+')',{c:Color.Red});
-       console.log("Intent toString: " + intent.toString());
-       console.log("Intent getExtras: " + intent.getExtras());
-       console.log("Intent getFlags: " + intent.getFlags());
+       console.log(\"Intent toString: \" + intent.toString());
+       console.log(\"Intent getExtras: \" + intent.getExtras());
+       console.log(\"Intent getFlags: \" + intent.getFlags());
        colorLog('[-] ----------------------------------------',{c:Color.Red});     
 
        return this.startActivity(intent,bundle);
@@ -57,9 +58,9 @@ var ContextWrapper = Java.use('android.content.Context');
    }
    activity.startActivityForResult.overload('android.content.Intent','int').implementation = function(intent,requestCode){
        colorLog('[+] calling startActivityForResult(action:'+intent.getAction()+', request code:'+requestCode+')',{c:Color.Red});
-       console.log("Intent toString: " + intent.toString());
-       console.log("Intent getExtras: " + intent.getExtras());
-       console.log("Intent getFlags: " + intent.getFlags());
+       console.log(\"Intent toString: \" + intent.toString());
+       console.log(\"Intent getExtras: \" + intent.getExtras());
+       console.log(\"Intent getFlags: \" + intent.getFlags());
        colorLog('[-] ----------------------------------------',{c:Color.Red});     
 
        return this.startActivityForResult(intent,requestCode);
@@ -67,38 +68,38 @@ var ContextWrapper = Java.use('android.content.Context');
    }
  
     // Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#sendBroadcast(android.content.Intent)
-    ContextWrapper.sendBroadcast.overload("android.content.Intent").implementation = function(intent) {
+    ContextWrapper.sendBroadcast.overload(\"android.content.Intent\").implementation = function(intent) {
       colorLog('[+] Calling SendBroadcast:',{c:Color.Green});
-      console.log("Intent toString: " + intent.toString());
-      console.log("Intent getExtras: " + intent.getExtras());
-      console.log("Intent getFlags: " + intent.getFlags());
+      console.log(\"Intent toString: \" + intent.toString());
+      console.log(\"Intent getExtras: \" + intent.getExtras());
+      console.log(\"Intent getFlags: \" + intent.getFlags());
       colorLog('[-] ----------------------------------------',{c:Color.Red});     
 
-      return this.sendBroadcast.overload("android.content.Intent").apply(this, arguments);
+      return this.sendBroadcast.overload(\"android.content.Intent\").apply(this, arguments);
     };
 
     // Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#sendBroadcast(android.content.Intent, java.lang.String)
-    ContextWrapper.sendBroadcast.overload("android.content.Intent", "java.lang.String").implementation = function(intent, receiverPermission) {
+    ContextWrapper.sendBroadcast.overload(\"android.content.Intent\", \"java.lang.String\").implementation = function(intent, receiverPermission) {
       colorLog('[+] Calling SendBroadcast:',{c:Color.Green});
-      console.log("Intent toString: " + intent.toString());
-      console.log("Intent getExtras: " + intent.getExtras());
-      console.log("Intent getFlags: " + intent.getFlags());
-      console.log("Intent receiverPermission: " + receiverPermission);
+      console.log(\"Intent toString: \" + intent.toString());
+      console.log(\"Intent getExtras: \" + intent.getExtras());
+      console.log(\"Intent getFlags: \" + intent.getFlags());
+      console.log(\"Intent receiverPermission: \" + receiverPermission);
       colorLog('[-] ----------------------------------------',{c:Color.Red});     
 
-      return this.sendBroadcast.overload("android.content.Intent", "java.lang.String").apply(this, arguments);
+      return this.sendBroadcast.overload(\"android.content.Intent\", \"java.lang.String\").apply(this, arguments);
     };
   
 
 
-    ContextWrapper.sendStickyBroadcast.overload("android.content.Intent").implementation = function(intent) {
+    ContextWrapper.sendStickyBroadcast.overload(\"android.content.Intent\").implementation = function(intent) {
       colorLog('[+] Calling sendStickyBroadcast:',{c:Color.Green});
-      console.log("Intent toString: " + intent.toString());
-      console.log("Intent getExtras: " + intent.getExtras());
-      console.log("Intent getFlags: " + intent.getFlags());
+      console.log(\"Intent toString: \" + intent.toString());
+      console.log(\"Intent getExtras: \" + intent.getExtras());
+      console.log(\"Intent getFlags: \" + intent.getFlags());
       colorLog('[-] ----------------------------------------',{c:Color.Red});     
 
-      return this.sendStickyBroadcast.overload("android.content.Intent").apply(this, arguments);
+      return this.sendStickyBroadcast.overload(\"android.content.Intent\").apply(this, arguments);
     };
   
 
@@ -106,7 +107,7 @@ var ContextWrapper = Java.use('android.content.Context');
 
     //Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#startService(android.content.Intent)
     ContextWrapper.startService.implementation = function(service) {
-      console.log("[+] Calling startService: " + service);
+      console.log(\"[+] Calling startService: \" + service);
       return this.startService.apply(this, arguments);
     };
   
@@ -114,22 +115,23 @@ var ContextWrapper = Java.use('android.content.Context');
 
     //Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#stopService(android.content.Intent)
     ContextWrapper.stopService.implementation = function(name) {
-      console.log("[+] Calling stopService: " + name);
+      console.log(\"[+] Calling stopService: \" + name);
       return this.stopService.apply(this, arguments);
     };
   
 
 
     //Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter)
-    ContextWrapper.registerReceiver.overload("android.content.BroadcastReceiver", "android.content.IntentFilter").implementation = function(receiver, filter) {
+    ContextWrapper.registerReceiver.overload(\"android.content.BroadcastReceiver\", \"android.content.IntentFilter\").implementation = function(receiver, filter) {
       colorLog('[+] Calling registerReceiver',{c:Color.Green});
       return this.registerReceiver.apply(this, arguments);
     };
 
     //Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler)
-    ContextWrapper.registerReceiver.overload("android.content.BroadcastReceiver", "android.content.IntentFilter", "java.lang.String", "android.os.Handler").implementation = function(receiver, filter, broadcastPermission, scheduler) {
+    ContextWrapper.registerReceiver.overload(\"android.content.BroadcastReceiver\", \"android.content.IntentFilter\", \"java.lang.String\", \"android.os.Handler\").implementation = function(receiver, filter, broadcastPermission, scheduler) {
       colorLog('[+] Calling registerReceiver',{c:Color.Green});
 
       return this.registerReceiver.apply(this, arguments);
     };
-  
+"
+}

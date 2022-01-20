@@ -1,16 +1,16 @@
-#Description: 'Print URIs created by the application'
-#Help: original script https://github.com/CreditTone/hooker/blob/master/js/url.js
-#Code:
- 
- 
-console.log("\n-----------------------https://github.com/CreditTone/hooker/blob/master/js/url.js-------------------------\n");
+{
+    "Name": "http_communications/uri_logger",
+    "Description": "Print URIs created by the application",
+    "Help": "original script https://github.com/CreditTone/hooker/blob/master/js/url.js",
+    "Code": " 
+console.log(\"\\n-----------------------https://github.com/CreditTone/hooker/blob/master/js/url.js-------------------------\\n\");
 
 var uriParseClz = Java.use('java.net.URI');
-var uriParseClzConstruct = uriParseClz.$init.overload("java.lang.String");
+var uriParseClzConstruct = uriParseClz.$init.overload(\"java.lang.String\");
 uriParseClzConstruct.implementation = function(url) {
     var result = uriParseClzConstruct.call(this, url);
     var executor = this.hashCode();
-    var beatText = "[+] URL:" + url;
+    var beatText = \"[+] URL:\" + url;
     var beat = newMethodBeat(beatText, executor);
     if (check(url)) {
         printBeat(beat);
@@ -20,13 +20,13 @@ uriParseClzConstruct.implementation = function(url) {
 
 // URL
 var URLClz = Java.use('java.net.URL');
-var androidLogClz = Java.use("android.util.Log");
-var exceptionClz = Java.use("java.lang.Exception");
-var urlConstruct = URLClz.$init.overload("java.lang.String");
+var androidLogClz = Java.use(\"android.util.Log\");
+var exceptionClz = Java.use(\"java.lang.Exception\");
+var urlConstruct = URLClz.$init.overload(\"java.lang.String\");
 urlConstruct.implementation = function(url) {
     var result = urlConstruct.call(this, url);
     var executor = this.hashCode();
-    var beatText = "[+] URL:" + url;
+    var beatText = \"[+] URL:\" + url;
     var beat = newMethodBeat(beatText, executor);
     if (check(url)) {
         printBeat(beat);
@@ -42,7 +42,7 @@ if (sysBuilderClz) {
         var httpUrl = okRequestResult.url();
         var url = httpUrl.toString();
         var executor = this.hashCode();
-        var beatText = "[+] URL:" + url;
+        var beatText = \"[+] URL:\" + url;
         var beat = newMethodBeat(beatText, executor);
         if (check(url)) {
             printBeat(beat);
@@ -60,7 +60,7 @@ if (builderClz) {
         var httpUrl = okRequestResult.url();
         var url = httpUrl.toString();
         var executor = this.hashCode();
-        var beatText = "[+] URL:" + url;
+        var beatText = \"[+] URL:\" + url;
         var beat = newMethodBeat(beatText, executor);
         if (check(url)) {
             printBeat(beat);
@@ -73,7 +73,7 @@ var android_net_Uri_clz = Java.use('android.net.Uri');
 var android_net_Uri_clz_method_parse_u5rj = android_net_Uri_clz.parse.overload('java.lang.String');
 android_net_Uri_clz_method_parse_u5rj.implementation = function(url) {
     var executor = 'Class';
-    var beatText = "[+] URL:" + url;
+    var beatText = \"[+] URL:\" + url;
     var beat = newMethodBeat(beatText, executor);
     var ret = android_net_Uri_clz_method_parse_u5rj.call(android_net_Uri_clz, url);
     if (check(url)) {
@@ -81,3 +81,5 @@ android_net_Uri_clz_method_parse_u5rj.implementation = function(url) {
     }
     return ret;
 };
+"
+}

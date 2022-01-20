@@ -1,11 +1,9 @@
-#Description: 'Bypass root, debug detection'
-#Help: 
-https://codeshare.frida.re/@dzonerzy/fridantiroot/
-- Overwrite: isDebuggerConnected
-
-#Code:
-    
-    console.log('\n---------LOADING ANTI ROOT DETECTION SCRIPT-------------------');
+{
+    "Name": "helpers/anti_debug",
+    "Description": "Bypass root, debug detection",
+    "Help": "https://codeshare.frida.re/@dzonerzy/fridantiroot/\n- Overwrite: isDebuggerConnected",
+    "Code": "    
+    console.log('\\n---------LOADING ANTI ROOT DETECTION SCRIPT-------------------');
     
     var antidebug = Java.use('android.os.Debug');
 
@@ -23,29 +21,29 @@ antidebug.isDebuggerConnected.implementation = function(){
 
 
 
-    var RootPackages = ["com.noshufou.android.su", "com.noshufou.android.su.elite", "eu.chainfire.supersu",
-        "com.koushikdutta.superuser", "com.thirdparty.superuser", "com.yellowes.su", "com.koushikdutta.rommanager",
-        "com.koushikdutta.rommanager.license", "com.dimonvideo.luckypatcher", "com.chelpus.lackypatch",
-        "com.ramdroid.appquarantine", "com.ramdroid.appquarantinepro", "com.devadvance.rootcloak", "com.devadvance.rootcloakplus",
-        "de.robv.android.xposed.installer", "com.saurik.substrate", "com.zachspong.temprootremovejb", "com.amphoras.hidemyroot",
-        "com.amphoras.hidemyrootadfree", "com.formyhm.hiderootPremium", "com.formyhm.hideroot", "me.phh.superuser",
-        "eu.chainfire.supersu.pro", "com.kingouser.com"
+    var RootPackages = [\"com.noshufou.android.su\", \"com.noshufou.android.su.elite\", \"eu.chainfire.supersu\",
+        \"com.koushikdutta.superuser\", \"com.thirdparty.superuser\", \"com.yellowes.su\", \"com.koushikdutta.rommanager\",
+        \"com.koushikdutta.rommanager.license\", \"com.dimonvideo.luckypatcher\", \"com.chelpus.lackypatch\",
+        \"com.ramdroid.appquarantine\", \"com.ramdroid.appquarantinepro\", \"com.devadvance.rootcloak\", \"com.devadvance.rootcloakplus\",
+        \"de.robv.android.xposed.installer\", \"com.saurik.substrate\", \"com.zachspong.temprootremovejb\", \"com.amphoras.hidemyroot\",
+        \"com.amphoras.hidemyrootadfree\", \"com.formyhm.hiderootPremium\", \"com.formyhm.hideroot\", \"me.phh.superuser\",
+        \"eu.chainfire.supersu.pro\", \"com.kingouser.com\"
     ];
 
-    var RootBinaries = ["su", "busybox", "supersu", "Superuser.apk", "KingoUser.apk", "SuperSu.apk"];
+    var RootBinaries = [\"su\", \"busybox\", \"supersu\", \"Superuser.apk\", \"KingoUser.apk\", \"SuperSu.apk\"];
 
     var RootProperties = {
-        "ro.build.selinux": "1",
-        "ro.debuggable": "0",
-        "service.adb.root": "0",
-        "ro.secure": "1"
+        \"ro.build.selinux\": \"1\",
+        \"ro.debuggable\": \"0\",
+        \"service.adb.root\": \"0\",
+        \"ro.secure\": \"1\"
     };
 
     var RootPropertiesKeys = [];
 
     for (var k in RootProperties) RootPropertiesKeys.push(k);
 
-    var PackageManager = Java.use("android.app.ApplicationPackageManager");
+    var PackageManager = Java.use(\"android.app.ApplicationPackageManager\");
 
     var Runtime = Java.use('java.lang.Runtime');
 
@@ -63,23 +61,23 @@ antidebug.isDebuggerConnected.implementation = function(){
 
     var loaded_classes = Java.enumerateLoadedClassesSync();
 
-    send("Loaded " + loaded_classes.length + " classes!");
+    send(\"Loaded \" + loaded_classes.length + \" classes!\");
 
     var useKeyInfo = false;
 
     var useProcessManager = false;
 
-    send("loaded: " + loaded_classes.indexOf('java.lang.ProcessManager'));
+    send(\"loaded: \" + loaded_classes.indexOf('java.lang.ProcessManager'));
 
     if (loaded_classes.indexOf('java.lang.ProcessManager') != -1) {
         try {
             //useProcessManager = true;
             //var ProcessManager = Java.use('java.lang.ProcessManager');
         } catch (err) {
-            send("ProcessManager Hook failed: " + err);
+            send(\"ProcessManager Hook failed: \" + err);
         }
     } else {
-        send("ProcessManager hook not loaded");
+        send(\"ProcessManager hook not loaded\");
     }
 
     var KeyInfo = null;
@@ -89,18 +87,18 @@ antidebug.isDebuggerConnected.implementation = function(){
             //useKeyInfo = true;
             //var KeyInfo = Java.use('android.security.keystore.KeyInfo');
         } catch (err) {
-            send("KeyInfo Hook failed: " + err);
+            send(\"KeyInfo Hook failed: \" + err);
         }
     } else {
-        send("KeyInfo hook not loaded");
+        send(\"KeyInfo hook not loaded\");
     }
 
 
     PackageManager.getPackageInfo.overloads[0].implementation = function(pname, flags) {
         var shouldFakePackage = (RootPackages.indexOf(pname) > -1);
         if (shouldFakePackage) {
-            send("Bypass root check for package: " + pname);
-            pname = "set.package.name.to.a.fake.one.so.we.can.bypass.it";
+            send(\"Bypass root check for package: \" + pname);
+            pname = \"set.package.name.to.a.fake.one.so.we.can.bypass.it\";
         }
         return this.getPackageInfo.call(this, pname, flags);
     };
@@ -110,8 +108,8 @@ antidebug.isDebuggerConnected.implementation = function(){
     PackageManager.getPackageInfo.overloads[1].implementation = function(sname, flags) {
         var shouldFakePackage = (RootPackages.indexOf(sname) > -1);
         if (shouldFakePackage) {
-            send("Bypass root check for package: " + sname);
-            pname = "set.package.name.to.a.fake.one.so.we.can.bypass.it";
+            send(\"Bypass root check for package: \" + sname);
+            pname = \"set.package.name.to.a.fake.one.so.we.can.bypass.it\";
         }
         return this.getPackageInfo.call(this, sname, flags);
     };
@@ -120,7 +118,7 @@ antidebug.isDebuggerConnected.implementation = function(){
         var name = NativeFile.getName.call(this);
         var shouldFakeReturn = (RootBinaries.indexOf(name) > -1);
         if (shouldFakeReturn) {
-            send("Bypass return value for binary: " + name);
+            send(\"Bypass return value for binary: \" + name);
             return false;
         } else {
             return this.exists.call(this);
@@ -135,14 +133,14 @@ antidebug.isDebuggerConnected.implementation = function(){
     var exec5 = Runtime.exec.overload('java.lang.String', '[Ljava.lang.String;', 'java.io.File');
 
     exec5.implementation = function(cmd, env, dir) {
-        if (cmd.indexOf("getprop") != -1 || cmd == "mount" || cmd.indexOf("build.prop") != -1 || cmd == "id" || cmd == "sh") {
-            var fakeCmd = "grep";
-            send("Bypass " + cmd + " command");
+        if (cmd.indexOf(\"getprop\") != -1 || cmd == \"mount\" || cmd.indexOf(\"build.prop\") != -1 || cmd == \"id\" || cmd == \"sh\") {
+            var fakeCmd = \"grep\";
+            send(\"Bypass \" + cmd + \" command\");
             return exec1.call(this, fakeCmd);
         }
-        if (cmd == "su") {
-            var fakeCmd = "justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled";
-            send("Bypass " + cmd + " command");
+        if (cmd == \"su\") {
+            var fakeCmd = \"justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled\";
+            send(\"Bypass \" + cmd + \" command\");
             return exec1.call(this, fakeCmd);
         }
         return exec5.call(this, cmd, env, dir);
@@ -151,15 +149,15 @@ antidebug.isDebuggerConnected.implementation = function(){
     exec4.implementation = function(cmdarr, env, file) {
         for (var i = 0; i < cmdarr.length; i = i + 1) {
             var tmp_cmd = cmdarr[i];
-            if (tmp_cmd.indexOf("getprop") != -1 || tmp_cmd == "mount" || tmp_cmd.indexOf("build.prop") != -1 || tmp_cmd == "id" || tmp_cmd == "sh") {
-                var fakeCmd = "grep";
-                send("Bypass " + cmdarr + " command");
+            if (tmp_cmd.indexOf(\"getprop\") != -1 || tmp_cmd == \"mount\" || tmp_cmd.indexOf(\"build.prop\") != -1 || tmp_cmd == \"id\" || tmp_cmd == \"sh\") {
+                var fakeCmd = \"grep\";
+                send(\"Bypass \" + cmdarr + \" command\");
                 return exec1.call(this, fakeCmd);
             }
 
-            if (tmp_cmd == "su") {
-                var fakeCmd = "justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled";
-                send("Bypass " + cmdarr + " command");
+            if (tmp_cmd == \"su\") {
+                var fakeCmd = \"justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled\";
+                send(\"Bypass \" + cmdarr + \" command\");
                 return exec1.call(this, fakeCmd);
             }
         }
@@ -169,15 +167,15 @@ antidebug.isDebuggerConnected.implementation = function(){
     exec3.implementation = function(cmdarr, envp) {
         for (var i = 0; i < cmdarr.length; i = i + 1) {
             var tmp_cmd = cmdarr[i];
-            if (tmp_cmd.indexOf("getprop") != -1 || tmp_cmd == "mount" || tmp_cmd.indexOf("build.prop") != -1 || tmp_cmd == "id" || tmp_cmd == "sh") {
-                var fakeCmd = "grep";
-                send("Bypass " + cmdarr + " command");
+            if (tmp_cmd.indexOf(\"getprop\") != -1 || tmp_cmd == \"mount\" || tmp_cmd.indexOf(\"build.prop\") != -1 || tmp_cmd == \"id\" || tmp_cmd == \"sh\") {
+                var fakeCmd = \"grep\";
+                send(\"Bypass \" + cmdarr + \" command\");
                 return exec1.call(this, fakeCmd);
             }
 
-            if (tmp_cmd == "su") {
-                var fakeCmd = "justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled";
-                send("Bypass " + cmdarr + " command");
+            if (tmp_cmd == \"su\") {
+                var fakeCmd = \"justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled\";
+                send(\"Bypass \" + cmdarr + \" command\");
                 return exec1.call(this, fakeCmd);
             }
         }
@@ -185,14 +183,14 @@ antidebug.isDebuggerConnected.implementation = function(){
     };
 
     exec2.implementation = function(cmd, env) {
-        if (cmd.indexOf("getprop") != -1 || cmd == "mount" || cmd.indexOf("build.prop") != -1 || cmd == "id" || cmd == "sh") {
-            var fakeCmd = "grep";
-            send("Bypass " + cmd + " command");
+        if (cmd.indexOf(\"getprop\") != -1 || cmd == \"mount\" || cmd.indexOf(\"build.prop\") != -1 || cmd == \"id\" || cmd == \"sh\") {
+            var fakeCmd = \"grep\";
+            send(\"Bypass \" + cmd + \" command\");
             return exec1.call(this, fakeCmd);
         }
-        if (cmd == "su") {
-            var fakeCmd = "justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled";
-            send("Bypass " + cmd + " command");
+        if (cmd == \"su\") {
+            var fakeCmd = \"justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled\";
+            send(\"Bypass \" + cmd + \" command\");
             return exec1.call(this, fakeCmd);
         }
         return exec2.call(this, cmd, env);
@@ -201,15 +199,15 @@ antidebug.isDebuggerConnected.implementation = function(){
     exec.implementation = function(cmd) {
         for (var i = 0; i < cmd.length; i = i + 1) {
             var tmp_cmd = cmd[i];
-            if (tmp_cmd.indexOf("getprop") != -1 || tmp_cmd == "mount" || tmp_cmd.indexOf("build.prop") != -1 || tmp_cmd == "id" || tmp_cmd == "sh") {
-                var fakeCmd = "grep";
-                send("Bypass " + cmd + " command");
+            if (tmp_cmd.indexOf(\"getprop\") != -1 || tmp_cmd == \"mount\" || tmp_cmd.indexOf(\"build.prop\") != -1 || tmp_cmd == \"id\" || tmp_cmd == \"sh\") {
+                var fakeCmd = \"grep\";
+                send(\"Bypass \" + cmd + \" command\");
                 return exec1.call(this, fakeCmd);
             }
 
-            if (tmp_cmd == "su") {
-                var fakeCmd = "justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled";
-                send("Bypass " + cmd + " command");
+            if (tmp_cmd == \"su\") {
+                var fakeCmd = \"justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled\";
+                send(\"Bypass \" + cmd + \" command\");
                 return exec1.call(this, fakeCmd);
             }
         }
@@ -218,22 +216,22 @@ antidebug.isDebuggerConnected.implementation = function(){
     };
 
     exec1.implementation = function(cmd) {
-        if (cmd.indexOf("getprop") != -1 || cmd == "mount" || cmd.indexOf("build.prop") != -1 || cmd == "id" || cmd == "sh") {
-            var fakeCmd = "grep";
-            send("Bypass " + cmd + " command");
+        if (cmd.indexOf(\"getprop\") != -1 || cmd == \"mount\" || cmd.indexOf(\"build.prop\") != -1 || cmd == \"id\" || cmd == \"sh\") {
+            var fakeCmd = \"grep\";
+            send(\"Bypass \" + cmd + \" command\");
             return exec1.call(this, fakeCmd);
         }
-        if (cmd == "su") {
-            var fakeCmd = "justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled";
-            send("Bypass " + cmd + " command");
+        if (cmd == \"su\") {
+            var fakeCmd = \"justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled\";
+            send(\"Bypass \" + cmd + \" command\");
             return exec1.call(this, fakeCmd);
         }
         return exec1.call(this, cmd);
     };
 
     String.contains.implementation = function(name) {
-        if (name == "test-keys") {
-            send("Bypass test-keys check");
+        if (name == \"test-keys\") {
+            send(\"Bypass test-keys check\");
             return false;
         }
         return this.contains.call(this, name);
@@ -243,21 +241,21 @@ antidebug.isDebuggerConnected.implementation = function(){
 
     get.implementation = function(name) {
         if (RootPropertiesKeys.indexOf(name) != -1) {
-            send("Bypass " + name);
+            send(\"Bypass \" + name);
             return RootProperties[name];
         }
         return this.get.call(this, name);
     };
 
-    Interceptor.attach(Module.findExportByName("libc.so", "fopen"), {
+    Interceptor.attach(Module.findExportByName(\"libc.so\", \"fopen\"), {
         onEnter: function(args) {
             var path = Memory.readCString(args[0]);
-            path = path.split("/");
+            path = path.split(\"/\");
             var executable = path[path.length - 1];
             var shouldFakeReturn = (RootBinaries.indexOf(executable) > -1)
             if (shouldFakeReturn) {
-                Memory.writeUtf8String(args[0], "/notexists");
-                send("Bypass native fopen");
+                Memory.writeUtf8String(args[0], \"/notexists\");
+                send(\"Bypass native fopen\");
             }
         },
         onLeave: function(retval) {
@@ -265,17 +263,17 @@ antidebug.isDebuggerConnected.implementation = function(){
         }
     });
 
-    Interceptor.attach(Module.findExportByName("libc.so", "system"), {
+    Interceptor.attach(Module.findExportByName(\"libc.so\", \"system\"), {
         onEnter: function(args) {
             var cmd = Memory.readCString(args[0]);
-            send("SYSTEM CMD: " + cmd);
-            if (cmd.indexOf("getprop") != -1 || cmd == "mount" || cmd.indexOf("build.prop") != -1 || cmd == "id") {
-                send("Bypass native system: " + cmd);
-                Memory.writeUtf8String(args[0], "grep");
+            send(\"SYSTEM CMD: \" + cmd);
+            if (cmd.indexOf(\"getprop\") != -1 || cmd == \"mount\" || cmd.indexOf(\"build.prop\") != -1 || cmd == \"id\") {
+                send(\"Bypass native system: \" + cmd);
+                Memory.writeUtf8String(args[0], \"grep\");
             }
-            if (cmd == "su") {
-                send("Bypass native system: " + cmd);
-                Memory.writeUtf8String(args[0], "justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled");
+            if (cmd == \"su\") {
+                send(\"Bypass native system: \" + cmd);
+                Memory.writeUtf8String(args[0], \"justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled\");
             }
         },
         onLeave: function(retval) {
@@ -306,10 +304,10 @@ antidebug.isDebuggerConnected.implementation = function(){
         if (text === null) {
             // just pass , i know it's ugly as hell but test != null won't work :(
         } else {
-            var shouldFakeRead = (text.indexOf("ro.build.tags=test-keys") > -1);
+            var shouldFakeRead = (text.indexOf(\"ro.build.tags=test-keys\") > -1);
             if (shouldFakeRead) {
-                send("Bypass build.prop file read");
-                text = text.replace("ro.build.tags=test-keys", "ro.build.tags=release-keys");
+                send(\"Bypass build.prop file read\");
+                text = text.replace(\"ro.build.tags=test-keys\", \"ro.build.tags=release-keys\");
             }
         }
         return text;
@@ -321,10 +319,10 @@ antidebug.isDebuggerConnected.implementation = function(){
         if (text === null) {
             // just pass , i know it's ugly as hell but test != null won't work :(
         } else {
-            var shouldFakeRead = (text.indexOf("ro.build.tags=test-keys") > -1);
+            var shouldFakeRead = (text.indexOf(\"ro.build.tags=test-keys\") > -1);
             if (shouldFakeRead) {
-                send("Bypass build.prop file read");
-                text = text.replace("ro.build.tags=test-keys", "ro.build.tags=release-keys");
+                send(\"Bypass build.prop file read\");
+                text = text.replace(\"ro.build.tags=test-keys\", \"ro.build.tags=release-keys\");
             }
         }
         return text;
@@ -337,18 +335,18 @@ antidebug.isDebuggerConnected.implementation = function(){
         var shouldModifyCommand = false;
         for (var i = 0; i < cmd.size(); i = i + 1) {
             var tmp_cmd = cmd.get(i).toString();
-            if (tmp_cmd.indexOf("getprop") != -1 || tmp_cmd.indexOf("mount") != -1 || tmp_cmd.indexOf("build.prop") != -1 || tmp_cmd.indexOf("id") != -1) {
+            if (tmp_cmd.indexOf(\"getprop\") != -1 || tmp_cmd.indexOf(\"mount\") != -1 || tmp_cmd.indexOf(\"build.prop\") != -1 || tmp_cmd.indexOf(\"id\") != -1) {
                 shouldModifyCommand = true;
             }
         }
         if (shouldModifyCommand) {
-            send("Bypass ProcessBuilder " + cmd);
-            this.command.call(this, ["grep"]);
+            send(\"Bypass ProcessBuilder \" + cmd);
+            this.command.call(this, [\"grep\"]);
             return this.start.call(this);
         }
-        if (cmd.indexOf("su") != -1) {
-            send("Bypass ProcessBuilder " + cmd);
-            this.command.call(this, ["justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled"]);
+        if (cmd.indexOf(\"su\") != -1) {
+            send(\"Bypass ProcessBuilder \" + cmd);
+            this.command.call(this, [\"justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled\"]);
             return this.start.call(this);
         }
 
@@ -363,14 +361,14 @@ antidebug.isDebuggerConnected.implementation = function(){
             var fake_cmd = cmd;
             for (var i = 0; i < cmd.length; i = i + 1) {
                 var tmp_cmd = cmd[i];
-                if (tmp_cmd.indexOf("getprop") != -1 || tmp_cmd == "mount" || tmp_cmd.indexOf("build.prop") != -1 || tmp_cmd == "id") {
-                    var fake_cmd = ["grep"];
-                    send("Bypass " + cmdarr + " command");
+                if (tmp_cmd.indexOf(\"getprop\") != -1 || tmp_cmd == \"mount\" || tmp_cmd.indexOf(\"build.prop\") != -1 || tmp_cmd == \"id\") {
+                    var fake_cmd = [\"grep\"];
+                    send(\"Bypass \" + cmdarr + \" command\");
                 }
 
-                if (tmp_cmd == "su") {
-                    var fake_cmd = ["justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled"];
-                    send("Bypass " + cmdarr + " command");
+                if (tmp_cmd == \"su\") {
+                    var fake_cmd = [\"justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled\"];
+                    send(\"Bypass \" + cmdarr + \" command\");
                 }
             }
             return ProcManExec.call(this, fake_cmd, env, workdir, redirectstderr);
@@ -380,14 +378,14 @@ antidebug.isDebuggerConnected.implementation = function(){
             var fake_cmd = cmd;
             for (var i = 0; i < cmd.length; i = i + 1) {
                 var tmp_cmd = cmd[i];
-                if (tmp_cmd.indexOf("getprop") != -1 || tmp_cmd == "mount" || tmp_cmd.indexOf("build.prop") != -1 || tmp_cmd == "id") {
-                    var fake_cmd = ["grep"];
-                    send("Bypass " + cmdarr + " command");
+                if (tmp_cmd.indexOf(\"getprop\") != -1 || tmp_cmd == \"mount\" || tmp_cmd.indexOf(\"build.prop\") != -1 || tmp_cmd == \"id\") {
+                    var fake_cmd = [\"grep\"];
+                    send(\"Bypass \" + cmdarr + \" command\");
                 }
 
-                if (tmp_cmd == "su") {
-                    var fake_cmd = ["justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled"];
-                    send("Bypass " + cmdarr + " command");
+                if (tmp_cmd == \"su\") {
+                    var fake_cmd = [\"justafakecommandthatcannotexistsusingthisshouldthowanexceptionwheneversuiscalled\"];
+                    send(\"Bypass \" + cmdarr + \" command\");
                 }
             }
             return ProcManExecVariant.call(this, fake_cmd, env, directory, stdin, stdout, stderr, redirect);
@@ -396,7 +394,9 @@ antidebug.isDebuggerConnected.implementation = function(){
 
     if (useKeyInfo) {
         KeyInfo.isInsideSecureHardware.implementation = function() {
-            send("Bypass isInsideSecureHardware");
+            send(\"Bypass isInsideSecureHardware\");
             return true;
         }
     }
+"
+}

@@ -1,17 +1,18 @@
-#Description: 'Monitor File access for arbitrary code execution on Android'
-#Help: "This Frida script helps dynamically identify accessed zip files on external media (possible file traversal vulnerability) and existence of .so (native libraries) files on internal media that might be overwritten and executed. Such combination could lead to arbitrary code execution"
-#Code:
+{
+    "Name": "file_system/file_exists",
+    "Description": "Monitor File access for arbitrary code execution on Android",
+    "Help": "This Frida script helps dynamically identify accessed zip files on external media (possible file traversal vulnerability) and existence of .so (native libraries) files on internal media that might be overwritten and executed. Such combination could lead to arbitrary code execution",
+    "Code": "
+console.log('\\n-----------File Exists Monitor by @androidmalware ---------\\n');
 
-console.log('\n-----------File Exists Monitor by @androidmalware ---------\n');
 
-
-    var file = Java.use("java.io.File")
-    var fileInput = Java.use("java.io.FileInputStream")
+    var file = Java.use(\"java.io.File\")
+    var fileInput = Java.use(\"java.io.FileInputStream\")
 
     
     file.exists.implementation = function(){
-       	if ( (this.getAbsolutePath().startsWith("/data/data/")) && (this.getAbsolutePath().endsWith(".so")) ){
-                colorLog("[+ Native Library - exists() - internal storage] " +this.getAbsolutePath(),{c: Color.Red});
+       	if ( (this.getAbsolutePath().startsWith(\"/data/data/\")) && (this.getAbsolutePath().endsWith(\".so\")) ){
+                colorLog(\"[+ Native Library - exists() - internal storage] \" +this.getAbsolutePath(),{c: Color.Red});
 	        return this.exists()
 	}else{
 	        return this.exists()
@@ -19,17 +20,17 @@ console.log('\n-----------File Exists Monitor by @androidmalware ---------\n');
         
     }
 
-    file.$init.overload("java.lang.String").implementation = function (s) {
-        if ( (s.startsWith("/storage/emulated/0/") || s.startsWith("/sdcard")) && (s.endsWith(".7z") || s.endsWith(".zip")) ) {
-            colorLog("[*] ZIP File opened: " + s.toString(),{c: Color.Red});
+    file.$init.overload(\"java.lang.String\").implementation = function (s) {
+        if ( (s.startsWith(\"/storage/emulated/0/\") || s.startsWith(\"/sdcard\")) && (s.endsWith(\".7z\") || s.endsWith(\".zip\")) ) {
+            colorLog(\"[*] ZIP File opened: \" + s.toString(),{c: Color.Red});
 
 	}
 	return file.$init.apply(this, arguments);
     }
 
-    file.$init.overload("java.lang.String").implementation = function (s) {
-        if ( (s.startsWith("/storage/emulated/0/") || s.startsWith("/sdcard"))) {
-            colorLog("[*] External Dir opened: " + s.toString(),{c: Color.Red});
+    file.$init.overload(\"java.lang.String\").implementation = function (s) {
+        if ( (s.startsWith(\"/storage/emulated/0/\") || s.startsWith(\"/sdcard\"))) {
+            colorLog(\"[*] External Dir opened: \" + s.toString(),{c: Color.Red});
 
 	}
 	return file.$init.apply(this, arguments);
@@ -37,8 +38,10 @@ console.log('\n-----------File Exists Monitor by @androidmalware ---------\n');
 
 
     fileInput.$init.overload('java.lang.String').implementation = function(a){
-        if ( (a.startsWith("/storage/emulated/0/") || a.startsWith("/sdcard")) && (a.endsWith(".7z") || a.endsWith(".zip")) ) {
-        	colorLog("[+] ZIP FileInputStream: " + a,{c: Color.Red})
+        if ( (a.startsWith(\"/storage/emulated/0/\") || a.startsWith(\"/sdcard\")) && (a.endsWith(\".7z\") || a.endsWith(\".zip\")) ) {
+        	colorLog(\"[+] ZIP FileInputStream: \" + a,{c: Color.Red})
         }
         return this.$init(a)
     }
+"
+}

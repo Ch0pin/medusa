@@ -1,16 +1,17 @@
-#Description: 'void Set<PrimitiveType>ArrayRegion(JNIEnv *env, ArrayType array,jsize start, jsize len, const NativeType *buf)'
-
-#Help: A family of functions that copies back a region of a primitive array from a buffer.
-
-#Code:
-
-Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"SetShortArrayRegion"),{         
+{
+    "Name": "JNICalls/SetShortArrayRegion",
+    "Description": "void Set<PrimitiveType>ArrayRegion(JNIEnv *env, ArrayType array,jsize start, jsize len, const NativeType *buf)",
+    "Help": "A family of functions that copies back a region of a primitive array from a buffer.",
+    "Code": "
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,\"SetShortArrayRegion\"),{         
     onEnter: function(args){
      
         var j = parseInt(args[3]);
 
         var bytebuffer = Memory.readByteArray(args[4],j)
-        console.log("SetShortArrayRegion size:"+j);
+        console.log(\"SetShortArrayRegion size:\"+j);
         colorLog(hexdump(bytebuffer,j),{c: Color.Blue});
     }
 })
+"
+}

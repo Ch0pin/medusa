@@ -1,10 +1,8 @@
-
-#Description: 'Hook the node of the window content'
-#Help: 'help available online:
-https://developer.android.com/reference/android/view/accessibility/AccessibilityNodeInfo'
-#Code:
-
-
+{
+    "Name": "services/accessibility_nod",
+    "Description": "Hook the node of the window content",
+    "Help": "help available online: https://developer.android.com/reference/android/view/accessibility/AccessibilityNodeInfo",
+    "Code": "
 console.log('---------------A11Y monitor by @chopin--------------');
 
 var accessibilityNodeInfo = Java.use('android.view.accessibility.AccessibilityNodeInfo');
@@ -91,6 +89,5 @@ accessibilityNodeInfo.getViewIdResourceName.implementation = function(){
     colorLog('App Gets the id resource name of the node: ' +ret, {c:Color.Green});
     return ret;  
 }
-
-
-
+"
+}

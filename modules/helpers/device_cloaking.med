@@ -1,9 +1,9 @@
-#Description: 'Cloak your device '
-#Help: 'Hooks a series of device recon API calls, returning dummy values for each one of tem'
-#Code:
-
-
-console.log('\n-----Device Cloaking module by Ch0pin-----------------');
+{
+    "Name": "helpers/device_cloaking",
+    "Description": "Cloak your device",
+    "Help": "Hooks a series of device recon API calls, returning dummy values for each one of them",
+    "Code": "
+console.log('\\n-----Device Cloaking module by Ch0pin-----------------');
 
 
 var networkInterface = Java.use('java.net.NetworkInterface');
@@ -18,76 +18,76 @@ var systemProperties = Java.use('android.os.SystemProperties');
 var buildProperties = Java.use('android.os.Build');
 
 //-----------------------------------------------
-buildProperties.MODEL.value="Secret SC-1234";
-buildProperties.DEVICE.value="Device Value";
-buildProperties.BOARD.value="Device Board";
-buildProperties.PRODUCT.value="Device Product";
-buildProperties.HARDWARE.value="Device Hardware";
-buildProperties.FINGERPRINT.value="foo/bar/Device:10/10/1900:user/sig-keys"
-buildProperties.MANUFACTURER.value="Company Co";
-buildProperties.BOOTLOADER.value="Boot-JJ129-ac";
-buildProperties.BRAND.value="Brand Co";
-buildProperties.HOST.value="HOST Co";
-buildProperties.ID.value="id-lorem-ipsum";
-buildProperties.DISPLAY.value="Foo procuctions and bar 1-0-111";
-buildProperties.TAGS.value="Production Build";
-buildProperties.SERIAL.value="Seriously ?";
-buildProperties.TYPE.value="Production build";
-buildProperties.USER.value="LINUX General";
-buildProperties.UNKNOWN.value="KGTT General";
+buildProperties.MODEL.value=\"Secret SC-1234\";
+buildProperties.DEVICE.value=\"Device Value\";
+buildProperties.BOARD.value=\"Device Board\";
+buildProperties.PRODUCT.value=\"Device Product\";
+buildProperties.HARDWARE.value=\"Device Hardware\";
+buildProperties.FINGERPRINT.value=\"foo/bar/Device:10/10/1900:user/sig-keys\"
+buildProperties.MANUFACTURER.value=\"Company Co\";
+buildProperties.BOOTLOADER.value=\"Boot-JJ129-ac\";
+buildProperties.BRAND.value=\"Brand Co\";
+buildProperties.HOST.value=\"HOST Co\";
+buildProperties.ID.value=\"id-lorem-ipsum\";
+buildProperties.DISPLAY.value=\"Foo procuctions and bar 1-0-111\";
+buildProperties.TAGS.value=\"Production Build\";
+buildProperties.SERIAL.value=\"Seriously ?\";
+buildProperties.TYPE.value=\"Production build\";
+buildProperties.USER.value=\"LINUX General\";
+buildProperties.UNKNOWN.value=\"KGTT General\";
 
 //-----------------------------------------------
 
 systemProperties.get.overload('java.lang.String').implementation = function(key){
-    console.log('[+] Get system properties called using key: ' + key + ', returning "Lorem ipsum"');
-    return "Lorem ipsum";
+    console.log('[+] Get system properties called using key: ' + key + ', returning \"Lorem ipsum\"');
+    return \"Lorem ipsum\";
     
 }
 
 build.getSerial.implementation = function(){
     colorLog('[+] Application is fetching the OS serial, returning a dummy one',{c: Color.Green});
-    return "1234567890";
+    return \"1234567890\";
 }
 
 telephonyManager.getLine1Number.overloads[0].implementation = function() {
     colorLog('[+] Application is fetching the phone number, returning a dummy one',{c: Color.Green});
-    return "1234567890";
+    return \"1234567890\";
 }
 
 telephonyManager.getSubscriberId.overload().implementation = function(){
     console.log('[i] Application asks for device IMSI, returning a dummy one')
-    return "1234567890";
+    return \"1234567890\";
 }
 telephonyManager.getSubscriberId.overload('int').implementation = function(){
     console.log('[i] Application asks for device IMSI, returning a dummy one')
-    return "1234567890";
+    return \"1234567890\";
 }
 
 telephonyManager.getDeviceId.overloads[0].implementation = function(){
     console.log('[i] Application asks for device IMEI, returning a dummy one')
-    return "1234567890";
+    return \"1234567890\";
 }
 telephonyManager.getDeviceId.overloads[1].implementation = function(slot){
     console.log('[i] Application asks for device IMEI, returning a dummy one')
-    return "1234567890";
+    return \"1234567890\";
 }
 
 telephonyManager.getImei.overloads[0].implementation = function(){
     console.log('[i] Application asks for device IMEI, returning a dummy one')
-    return "1234567890";
+    return \"1234567890\";
 }
 telephonyManager.getImei.overloads[1].implementation = function(slot){
     console.log('[i] Application asks for device IMEI, returning a dummy one')
-    return  "1234567890";
+    return  \"1234567890\";
 }
 
 telephonyManager.getSimOperator.overload().implementation = function(){
     console.log('[+] getSimOperator call detected, returning a dummy one');
-    return "0000";
+    return \"0000\";
 }
 telephonyManager.getSimOperator.overload('int').implementation = function(sm){
     console.log('[+] getSimOperator call detected, returning a dummy one');
-    return "0100";
+    return \"0100\";
 }
 
 
@@ -95,7 +95,7 @@ telephonyManager.getSimOperator.overload('int').implementation = function(sm){
 
 
 mediaDrm.getPropertyByteArray.implementation = function(property){
-    if(property == "deviceUniqueId"){
+    if(property == \"deviceUniqueId\"){
         var min1 = Math.ceil(0);
         var max1 = Math.floor(255);
         let random = [];
@@ -106,7 +106,7 @@ mediaDrm.getPropertyByteArray.implementation = function(property){
         }
         var res = Java.array('byte',random);
     
-        console.log("[+] Cloaking Widevine ID, returning dummy value:"+res);
+        console.log(\"[+] Cloaking Widevine ID, returning dummy value:\"+res);
         return res;
 
     }
@@ -115,24 +115,24 @@ mediaDrm.getPropertyByteArray.implementation = function(property){
 }
 
 bluetoothAdapter.getAddress.implementation = function(){
-    console.log("[+] Cloaking BT Mac Address, returning dummy value: B2:F3:00:00:01:04");
-    return "B2:F3:00:00:01:04";
+    console.log(\"[+] Cloaking BT Mac Address, returning dummy value: B2:F3:00:00:01:04\");
+    return \"B2:F3:00:00:01:04\";
 }
 
 
 wifiInfo.getMacAddress.implementation = function(){
-    console.log("[+] Cloaking wifi Mac Address, returning dummy value: F2:F3:00:00:01:04");
-    return "F2:F3:00:00:01:04";
+    console.log(\"[+] Cloaking wifi Mac Address, returning dummy value: F2:F3:00:00:01:04\");
+    return \"F2:F3:00:00:01:04\";
 
 }
 wifiInfo.getSSID.implementation = function(){
-    console.log("[+] Cloaking SSID, returning dummy value: Lorem Ipsum");
-    return "Lorem Ipsum";
+    console.log(\"[+] Cloaking SSID, returning dummy value: Lorem Ipsum\");
+    return \"Lorem Ipsum\";
 
 }
 wifiInfo.getBSSID.implementation = function(){
-    console.log("[+] Cloaking Router Mac Address, returning dummy value: F2:F3:00:00:01:05");
-    return "F2:F3:00:00:01:05";
+    console.log(\"[+] Cloaking Router Mac Address, returning dummy value: F2:F3:00:00:01:05\");
+    return \"F2:F3:00:00:01:05\";
 
 }
 
@@ -192,7 +192,9 @@ networkInterface.getHardwareAddress.implementation = function(){
     }
     var res = Java.array('byte',randomMac);
 
-    console.log("[+] Cloaking Hardware Address, returning dummy value:"+res);
+    console.log(\"[+] Cloaking Hardware Address, returning dummy value:\"+res);
     
     return res;
+}
+"
 }

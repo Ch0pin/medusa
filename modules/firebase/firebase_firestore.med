@@ -1,36 +1,34 @@
-#Description: 'Intercept firebase data synchronization'
-#Help: Hooks Cloud Firestore database operations. 
-
-#Code:
-
-
-
+{
+    "Name": "firebase/firebase_firestore",
+    "Description": "Intercept firebase data synchronization",
+    "Help": "Hooks Cloud Firestore database operations",
+    "Code": "
 var instance = Java.use('com.google.firebase.firestore.FirebaseFirestore');
 var collectionReference = Java.use('com.google.firebase.firestore.CollectionReference');
 
 var overloadCount = instance['getInstance'].overloads.length;
-colorLog("Tracing " +'getInstance' + " [" + overloadCount + " overload(s)]",{ c: Color.Green });
+colorLog(\"Tracing \" +'getInstance' + \" [\" + overloadCount + \" overload(s)]\",{ c: Color.Green });
 
 var overloadCount_0 = collectionReference['document'].overloads.length;
-colorLog("Tracing " +'CollectionReference.document' + " [" + overloadCount_0 + " overload(s)]",{ c: Color.Green });
+colorLog(\"Tracing \" +'CollectionReference.document' + \" [\" + overloadCount_0 + \" overload(s)]\",{ c: Color.Green });
 
 
 instance.collection.implementation = function(key){
-    colorLog("[+] Creating reference to Collection:"+key,{ c: Color.Blue });
+    colorLog(\"[+] Creating reference to Collection:\"+key,{ c: Color.Blue });
     
     return this.collection(key);
 }
 collectionReference.add.implementation = function(doc){
-    colorLog("[+] collection reference add function called with data:"+JSON.stringify(doc),{ c: Color.Red });
+    colorLog(\"[+] collection reference add function called with data:\"+JSON.stringify(doc),{ c: Color.Red });
     return this.add(doc);
 
 }
 for (var i = 0; i < overloadCount; i++) {
     instance['getInstance'].overloads[i].implementation = function() {
-        colorLog("[+] The application is fetching an instance of the firebase database",{ c: Color.Green });
+        colorLog(\"[+] The application is fetching an instance of the firebase database\",{ c: Color.Green });
       
         for (var j = 0; j < arguments.length; j++) {
-            console.log("arg[" + j + "]: " + arguments[j]);
+            console.log(\"arg[\" + j + \"]: \" + arguments[j]);
         }
         var retval = this['getInstance'].apply(this, arguments); 
         return retval;
@@ -42,12 +40,12 @@ for (var i = 0; i < overloadCount_0; i++) {
     collectionReference['document'].overloads[i].implementation = function() {
         
         for (var j = 0; j < arguments.length; j++) {
-            colorLog("[+] Creating reference to Document:"+arguments[j],{ c: Color.Green });
+            colorLog(\"[+] Creating reference to Document:\"+arguments[j],{ c: Color.Green });
            
         }
         var retval = this['document'].apply(this, arguments); 
         return retval;
     }
 }
-
-
+"
+}

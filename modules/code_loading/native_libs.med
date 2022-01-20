@@ -1,13 +1,9 @@
-
-#Description: 'Detect loading of native libraries'
-#Help: Hooks the following functions: 
-- System.loadLibrary
-- System.load
-- System.mapLibraryName
-
-#Code:
-
-console.log('\n--------Native load hook module by @ch0pin--------------\n');
+{
+    "Name": "code_loading/native_libs",
+    "Description": "Detect loading of native libraries",
+    "Help": "Hooks the following functions:\n- System.loadLibrary\n- System.load\n- System.mapLibraryName",
+    "Code": "
+console.log('\\n--------Native load hook module by @ch0pin--------------\\n');
 
 var systemA = Java.use('java.lang.System');
 
@@ -33,7 +29,7 @@ Interceptor.attach(Module.findExportByName(null, 'android_dlopen_ext'),{
         var library_path = Memory.readCString(args[0])
 
 
-            console.log("[...] Loading library : " + library_path)
+            console.log(\"[...] Loading library : \" + library_path)
             library_loaded = 1
         
     },
@@ -41,12 +37,11 @@ Interceptor.attach(Module.findExportByName(null, 'android_dlopen_ext'),{
 
         // if it's the library we want to hook, hooking it
         if(library_loaded ==  1){
-            console.log("[+] Loaded")
+            console.log(\"[+] Loaded\")
             library_loaded = 0
         }
     }
 })
-
 
 
 
@@ -61,3 +56,5 @@ static String	mapLibraryName(String libname)
 Maps a library name into a platform-specific string representing a native library.
 
 */
+"
+}

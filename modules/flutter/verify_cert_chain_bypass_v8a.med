@@ -1,18 +1,16 @@
-#Description: 'Flutter Certificate Pinning Bypass for arm64-v8a'
-#Help: "Based on nviso's article https://blog.nviso.eu/2020/05/20/intercepting-flutter-traffic-on-android-x64/"
-#Code:
-
-
-
-
-colorLog('\n-----------------Loading Module: original by nviso ----------------------\n',{c: Color.Green})
-colorLog('\n-----------------Modified and ported by Ch0p1n (@Ch0pin)-----------------\n',{c: Color.Green})
+{
+    "Name": "flutter/verify_cert_chain_bypass_v8a",
+    "Description": "Flutter Certificate Pinning Bypass for arm64-v8a",
+    "Help": "Based on nviso's article https://blog.nviso.eu/2020/05/20/intercepting-flutter-traffic-on-android-x64/",
+    "Code": "
+colorLog('\\n-----------------Loading Module: original by nviso ----------------------\\n',{c: Color.Green})
+colorLog('\\n-----------------Modified and ported by Ch0p1n (@Ch0pin)-----------------\\n',{c: Color.Green})
 
 
 function hook(){
-    var m = Process.findModuleByName("libflutter.so"); 
+    var m = Process.findModuleByName(\"libflutter.so\"); 
 
-    var pattern = "ff 03 05 d1 fd 7b 0f a9 fa 67 10 a9 f8 5f 11 a9 f6 57 12 a9 f4 4f 13 a9 08 0a 80 52 48 00 00 39 16 54 40 f9";
+    var pattern = \"ff 03 05 d1 fd 7b 0f a9 fa 67 10 a9 f8 5f 11 a9 f6 57 12 a9 f4 4f 13 a9 08 0a 80 52 48 00 00 39 16 54 40 f9\";
     Memory.scan(m.base, m.size, pattern, {
         onMatch: function(address, size){
             colorLog('[+] ssl_crypto_x509_session_verify_cert_chain found at: ' + address.toString(),{c: Color.Green});
@@ -44,14 +42,14 @@ function hook(){
 
 
     try {
-            colorLog("[+] Finding libflutter.so",{c: Color.Green});
-            Module.ensureInitialized("libflutter.so");
+            colorLog(\"[+] Finding libflutter.so\",{c: Color.Green});
+            Module.ensureInitialized(\"libflutter.so\");
             hook();
          
         
         } catch(err) {
-            console.log("libflutter.so module not loaded. Trying to manually load it.")
-            Module.load("libflutter.so");
+            console.log(\"libflutter.so module not loaded. Trying to manually load it.\")
+            Module.load(\"libflutter.so\");
         }
 
 
@@ -82,3 +80,5 @@ function hook(){
 //         console.log(err);
 //     }
 // }
+"
+}

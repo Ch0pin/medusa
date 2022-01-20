@@ -1,8 +1,9 @@
-#Description: 'Intercept Base64 encoding deconding calls'
-#Help: https://developer.android.com/reference/android/util/Base64
-#Code:
-
-console.log('\n-----------base64 encode / decode monitor by @chopin----------');
+{
+    "Name": "base64/base64_interceptor",
+    "Description": "Intercept Base64 encoding deconding calls",
+    "Help": "https://developer.android.com/reference/android/util/Base64",
+    "Code":"
+console.log('\\n-----------base64 encode / decode monitor by @chopin----------');
 
 var base64 = Java.use('android.util.Base64');
 
@@ -64,4 +65,5 @@ base64.encodeToString.overloads[1].implementation = function(byteString,flags){
     colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue});
     colorLog('      [-] OUTPUT:'+this.encodeToString(byteString,flags),{c: Color.Green});
     return this.encodeToString(byteString,flags);
+}"
 }

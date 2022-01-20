@@ -1,11 +1,12 @@
-#Description: 'Use this module to monitor file IO operations'
-#Help: "https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase"
-#Code:
-
+{
+    "Name": "db_queries/SQLiteDatabase",
+    "Description": "Use this module to monitor file IO operations",
+    "Help": "https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase",
+    "Code": "
 console.log('-------DB SQL operations monitor by  Nishant Das Patnaik--------------');
 
 
-var SQLiteDatabase = Java.use("android.database.sqlite.SQLiteDatabase");
+var SQLiteDatabase = Java.use(\"android.database.sqlite.SQLiteDatabase\");
 
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#execSQL(java.lang.String)
 if (SQLiteDatabase.execSQL) {
@@ -20,7 +21,7 @@ if (SQLiteDatabase.execSQL) {
     send_data.artifact = [];
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "SQL Statement";
+    data.name = \"SQL Statement\";
     data.value = sql ? sql.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -47,7 +48,7 @@ if (SQLiteDatabase.execSQL) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "SQL Statement";
+    data.name = \"SQL Statement\";
     data.value = sql ? sql.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -56,7 +57,7 @@ if (SQLiteDatabase.execSQL) {
       console.log('SQLiteDatabase.execSQL bindArgs: ' + bindArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "SQL BindArgs";
+      data.name = \"SQL BindArgs\";
       data.value = bindArgs ? bindArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
@@ -72,7 +73,7 @@ if (SQLiteDatabase.execSQL) {
 if (SQLiteDatabase.getPath) {
   SQLiteDatabase.getPath.implementation = function() {
     var dbPath = this.getPath.call(this);
-    console.log("SQLiteDatabase.getPath DB: " + dbPath);
+    console.log(\"SQLiteDatabase.getPath DB: \" + dbPath);
 
     /*   --- Payload Header --- */
     var send_data = {};
@@ -84,7 +85,7 @@ if (SQLiteDatabase.getPath) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "DB Path";
+    data.name = \"DB Path\";
     data.value = dbPath ? dbPath.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -98,8 +99,8 @@ if (SQLiteDatabase.getPath) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#insert(java.lang.String, java.lang.String, android.content.ContentValues)
 if (SQLiteDatabase.insert) {
   SQLiteDatabase.insert.implementation = function(table, nullColumnHack, values) {
-    console.log("SQLiteDatabase.insert table: " + table);
-    console.log("SQLiteDatabase.insert nullColumnHack: " + nullColumnHack);
+    console.log(\"SQLiteDatabase.insert table: \" + table);
+    console.log(\"SQLiteDatabase.insert nullColumnHack: \" + nullColumnHack);
     /*   --- Payload Header --- */
     var send_data = {};
     send_data.time = new Date();
@@ -110,23 +111,23 @@ if (SQLiteDatabase.insert) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Table Name";
+    data.name = \"Table Name\";
     data.value = table ? table.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "NullColumnHack";
+    data.name = \"NullColumnHack\";
     data.value = nullColumnHack ? nullColumnHack.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (values) {
-      console.log("SQLiteDatabase.insert values: " + values.toString());
+      console.log(\"SQLiteDatabase.insert values: \" + values.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Values";
+      data.name = \"Values\";
       data.value = values ? values.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
@@ -141,8 +142,8 @@ if (SQLiteDatabase.insert) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#insertOrThrow(java.lang.String, java.lang.String, android.content.ContentValues)
 if (SQLiteDatabase.insertOrThrow) {
   SQLiteDatabase.insertOrThrow.implementation = function(table, nullColumnHack, values) {
-    console.log("SQLiteDatabase.insertOrThrow table: " + table);
-    console.log("SQLiteDatabase.insertOrThrow nullColumnHack: " + nullColumnHack);
+    console.log(\"SQLiteDatabase.insertOrThrow table: \" + table);
+    console.log(\"SQLiteDatabase.insertOrThrow nullColumnHack: \" + nullColumnHack);
     /*   --- Payload Header --- */
     var send_data = {};
     send_data.time = new Date();
@@ -153,22 +154,22 @@ if (SQLiteDatabase.insertOrThrow) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Table Name";
+    data.name = \"Table Name\";
     data.value = table ? table.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "NullColumnHack";
+    data.name = \"NullColumnHack\";
     data.value = nullColumnHack ? nullColumnHack.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
     if (values) {
-      console.log("SQLiteDatabase.insertOrThrow values: " + values.toString());
+      console.log(\"SQLiteDatabase.insertOrThrow values: \" + values.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Values";
+      data.name = \"Values\";
       data.value = values ? values.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
@@ -183,8 +184,8 @@ if (SQLiteDatabase.insertOrThrow) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#insertWithOnConflict(java.lang.String, java.lang.String, android.content.ContentValues, int)
 if (SQLiteDatabase.insertWithOnConflict) {
   SQLiteDatabase.insertWithOnConflict.implementation = function(table, nullColumnHack, values, conflictAlgorithm) {
-    console.log("SQLiteDatabase.insertWithOnConflict table: " + table);
-    console.log("SQLiteDatabase.insertWithOnConflict nullColumnHack: " + nullColumnHack);
+    console.log(\"SQLiteDatabase.insertWithOnConflict table: \" + table);
+    console.log(\"SQLiteDatabase.insertWithOnConflict nullColumnHack: \" + nullColumnHack);
     /*   --- Payload Header --- */
     var send_data = {};
     send_data.time = new Date();
@@ -195,30 +196,30 @@ if (SQLiteDatabase.insertWithOnConflict) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Table Name";
+    data.name = \"Table Name\";
     data.value = table ? table.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "NullColumnHack";
+    data.name = \"NullColumnHack\";
     data.value = nullColumnHack ? nullColumnHack.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
     if (values) {
-      console.log("SQLiteDatabase.insertWithOnConflict values: " + values.toString());
+      console.log(\"SQLiteDatabase.insertWithOnConflict values: \" + values.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Values";
+      data.name = \"Values\";
       data.value = values ? values.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.insertWithOnConflict conflictAlgorithm: " + conflictAlgorithm);
+    console.log(\"SQLiteDatabase.insertWithOnConflict conflictAlgorithm: \" + conflictAlgorithm);
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "conflictAlgorithm";
+    data.name = \"conflictAlgorithm\";
     data.value = conflictAlgorithm ? conflictAlgorithm.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -232,16 +233,16 @@ if (SQLiteDatabase.insertWithOnConflict) {
 if (SQLiteDatabase.openDatabase) {
   SQLiteDatabase.openDatabase.overloads[0].implementation = function(path, factory, flags) {
     if (flags === SQLiteDatabase.OPEN_READWRITE) {
-      flags = "OPEN_READWRITE";
+      flags = \"OPEN_READWRITE\";
     } else if (flags === SQLiteDatabase.OPEN_READONLY) {
-      flags = "OPEN_READONLY";
+      flags = \"OPEN_READONLY\";
     } else if (flags === SQLiteDatabase.CREATE_IF_NECESSARY) {
-      flags = "CREATE_IF_NECESSARY";
+      flags = \"CREATE_IF_NECESSARY\";
     } else if (flags === SQLiteDatabase.NO_LOCALIZED_COLLATORS) {
-      flags = "NO_LOCALIZED_COLLATORS";
+      flags = \"NO_LOCALIZED_COLLATORS\";
     }
-    console.log("SQLiteDatabase.openDatabase path: " + path);
-    console.log("SQLiteDatabase.openDatabase flags: " + flags);
+    console.log(\"SQLiteDatabase.openDatabase path: \" + path);
+    console.log(\"SQLiteDatabase.openDatabase flags: \" + flags);
     /*   --- Payload Header --- */
     var send_data = {};
     send_data.time = new Date();
@@ -252,14 +253,14 @@ if (SQLiteDatabase.openDatabase) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "DB Path";
+    data.name = \"DB Path\";
     data.value = path ? path.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Flags";
+    data.name = \"Flags\";
     data.value = flags;
     data.argSeq = 0;
 
@@ -277,16 +278,16 @@ if (SQLiteDatabase.openDatabase) {
 
   SQLiteDatabase.openDatabase.overloads[1].implementation = function(path, factory, flags, errorHandler) {
     if (flags === SQLiteDatabase.OPEN_READWRITE) {
-      flags = "OPEN_READWRITE";
+      flags = \"OPEN_READWRITE\";
     } else if (flags === SQLiteDatabase.OPEN_READONLY) {
-      flags = "OPEN_READONLY";
+      flags = \"OPEN_READONLY\";
     } else if (flags === SQLiteDatabase.CREATE_IF_NECESSARY) {
-      flags = "CREATE_IF_NECESSARY";
+      flags = \"CREATE_IF_NECESSARY\";
     } else if (flags === SQLiteDatabase.NO_LOCALIZED_COLLATORS) {
-      flags = "NO_LOCALIZED_COLLATORS";
+      flags = \"NO_LOCALIZED_COLLATORS\";
     }
-    console.log("SQLiteDatabase.openDatabase path: " + path);
-    console.log("SQLiteDatabase.openDatabase flags: " + flags);
+    console.log(\"SQLiteDatabase.openDatabase path: \" + path);
+    console.log(\"SQLiteDatabase.openDatabase flags: \" + flags);
     /*   --- Payload Header --- */
     var send_data = {};
     send_data.time = new Date();
@@ -297,14 +298,14 @@ if (SQLiteDatabase.openDatabase) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "DB Path";
+    data.name = \"DB Path\";
     data.value = path ? path.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Flags";
+    data.name = \"Flags\";
     data.value = flags;
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -319,7 +320,7 @@ if (SQLiteDatabase.openDatabase) {
 if (SQLiteDatabase.openOrCreateDatabase) {
   SQLiteDatabase.openOrCreateDatabase.overloads[0].implementation = function(file, factory) {
     if (file) {
-      console.log("SQLiteDatabase.openOrCreateDatabase dbPath: " + file.toString());
+      console.log(\"SQLiteDatabase.openOrCreateDatabase dbPath: \" + file.toString());
       /*   --- Payload Header --- */
       var send_data = {};
       send_data.time = new Date();
@@ -330,7 +331,7 @@ if (SQLiteDatabase.openOrCreateDatabase) {
 
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "DB Path";
+      data.name = \"DB Path\";
       data.value = file ? file.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
@@ -345,7 +346,7 @@ if (SQLiteDatabase.openOrCreateDatabase) {
 if (SQLiteDatabase.openOrCreateDatabase) {
   SQLiteDatabase.openOrCreateDatabase.overloads[1].implementation = function(file, factory, errorHandler) {
     if (file) {
-      console.log("SQLiteDatabase.openOrCreateDatabase dbPath: " + file.toString());
+      console.log(\"SQLiteDatabase.openOrCreateDatabase dbPath: \" + file.toString());
       /*   --- Payload Header --- */
       var send_data = {};
       send_data.time = new Date();
@@ -356,7 +357,7 @@ if (SQLiteDatabase.openOrCreateDatabase) {
 
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "DB Path";
+      data.name = \"DB Path\";
       data.value = file ? file.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
@@ -372,7 +373,7 @@ if (SQLiteDatabase.openOrCreateDatabase) {
 
 
   SQLiteDatabase.openOrCreateDatabase.overloads[2].implementation = function(path, factory) {
-    console.log("SQLiteDatabase.openOrCreateDatabase dbPath: " + path);
+    console.log(\"SQLiteDatabase.openOrCreateDatabase dbPath: \" + path);
     /*   --- Payload Header --- */
     var send_data = {};
     send_data.time = new Date();
@@ -383,7 +384,7 @@ if (SQLiteDatabase.openOrCreateDatabase) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "DB Path";
+    data.name = \"DB Path\";
     data.value = path ? path.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -406,104 +407,104 @@ if (SQLiteDatabase.query) {
     send_data.method = 'query';
     send_data.artifact = [];
 
-    console.log("SQLiteDatabase.query distinct: " + distinct);
-    console.log("SQLiteDatabase.query table: " + table);
+    console.log(\"SQLiteDatabase.query distinct: \" + distinct);
+    console.log(\"SQLiteDatabase.query table: \" + table);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "DISTINCT";
+    data.name = \"DISTINCT\";
     data.value = distinct ? distinct.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Table";
+    data.name = \"Table\";
     data.value = table ? table.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (columns) {
-      console.log("SQLiteDatabase.query columns: " + columns.toString());
+      console.log(\"SQLiteDatabase.query columns: \" + columns.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Columns";
+      data.name = \"Columns\";
       data.value = columns ? columns.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.query selection: " + selection);
+    console.log(\"SQLiteDatabase.query selection: \" + selection);
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Selection";
+    data.name = \"Selection\";
     data.value = selection ? selection.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
     if (selectionArgs) {
-      console.log("SQLiteDatabase.query selectionArgs: " + selectionArgs.toString());
+      console.log(\"SQLiteDatabase.query selectionArgs: \" + selectionArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "selection Arguments";
+      data.name = \"selection Arguments\";
       data.value = selectionArgs ? selectionArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.query groupBy: " + groupBy);
-    console.log("SQLiteDatabase.query having: " + having);
-    console.log("SQLiteDatabase.query orderBy: " + orderBy);
-    console.log("SQLiteDatabase.query limit: " + limit);
+    console.log(\"SQLiteDatabase.query groupBy: \" + groupBy);
+    console.log(\"SQLiteDatabase.query having: \" + having);
+    console.log(\"SQLiteDatabase.query orderBy: \" + orderBy);
+    console.log(\"SQLiteDatabase.query limit: \" + limit);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Group By";
+    data.name = \"Group By\";
     data.value = groupBy ? groupBy.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Having";
+    data.name = \"Having\";
     data.value = having ? having.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Order By";
+    data.name = \"Order By\";
     data.value = orderBy ? orderBy.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Limit";
+    data.name = \"Limit\";
     data.value = limit ? limit.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     var Cursor = this.query.overloads[0].apply(this, arguments);
     var CursorCopy = Cursor;
-    var queryOutput = "";
+    var queryOutput = \"\";
     if (Cursor && Cursor.getColumnCount && Cursor.moveToFirst()) {
       var ColumnCount = parseInt(Cursor.getColumnCount());
       if (ColumnCount > 0) {
-        console.log("Returned Columns");
+        console.log(\"Returned Columns\");
         for (var i = 0; i < ColumnCount; i++) {
-          console.log("ColumnName: " + Cursor.getColumnName(i));
-          queryOutput += "ColumnName: " + Cursor.getColumnName(i) + "\n";
+          console.log(\"ColumnName: \" + Cursor.getColumnName(i));
+          queryOutput += \"ColumnName: \" + Cursor.getColumnName(i) + \"\\n\";
           if (!Cursor.isNull(i)) {
             try {
-              console.log("ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
-              queryOutput += "ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + "\n";
+              console.log(\"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
+              queryOutput += \"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + \"\\n\";
             } catch (e) {
               var blob = Cursor.getBlob(Cursor.getColumnIndex(Cursor.getColumnName(i)));
               var strBlob = normalize(blob);
-              console.log("ColumnData: " + strBlob);
-              queryOutput += "ColumnData: " + strBlob + "\n";
+              console.log(\"ColumnData: \" + strBlob);
+              queryOutput += \"ColumnData: \" + strBlob + \"\\n\";
 
               /*   --- Payload Body --- */
               var data = {};
-              data.name = "Returned Columns";
+              data.name = \"Returned Columns\";
               data.value = queryOutput;
               data.argSeq = 0;
               send_data.artifact.push(data);
@@ -529,97 +530,97 @@ if (SQLiteDatabase.query) {
     send_data.method = 'query';
     send_data.artifact = [];
 
-    console.log("SQLiteDatabase.query table: " + table);
+    console.log(\"SQLiteDatabase.query table: \" + table);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Table";
+    data.name = \"Table\";
     data.value = table ? table.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (columns) {
-      console.log("SQLiteDatabase.query columns: " + columns.toString());
+      console.log(\"SQLiteDatabase.query columns: \" + columns.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Columns";
+      data.name = \"Columns\";
       data.value = columns ? columns.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.query selection: " + selection);
+    console.log(\"SQLiteDatabase.query selection: \" + selection);
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Selection";
+    data.name = \"Selection\";
     data.value = selection ? selection.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
     if (selectionArgs) {
-      console.log("SQLiteDatabase.query selectionArgs: " + selectionArgs.toString());
+      console.log(\"SQLiteDatabase.query selectionArgs: \" + selectionArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Selection Arguments";
+      data.name = \"Selection Arguments\";
       data.value = selectionArgs ? selectionArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.query groupBy: " + groupBy);
-    console.log("SQLiteDatabase.query having: " + having);
-    console.log("SQLiteDatabase.query orderBy: " + orderBy);
-    console.log("SQLiteDatabase.query limit: " + limit);
+    console.log(\"SQLiteDatabase.query groupBy: \" + groupBy);
+    console.log(\"SQLiteDatabase.query having: \" + having);
+    console.log(\"SQLiteDatabase.query orderBy: \" + orderBy);
+    console.log(\"SQLiteDatabase.query limit: \" + limit);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Group By";
+    data.name = \"Group By\";
     data.value = groupBy ? groupBy.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Having";
+    data.name = \"Having\";
     data.value = having ? having.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Order By";
+    data.name = \"Order By\";
     data.value = orderBy ? orderBy.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Limit";
+    data.name = \"Limit\";
     data.value = limit ? limit.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     var Cursor = this.query.overloads[1].apply(this, arguments);
     var CursorCopy = Cursor;
-    var queryOutput = "";
+    var queryOutput = \"\";
     if (Cursor && Cursor.getColumnCount && Cursor.moveToFirst()) {
       var ColumnCount = parseInt(Cursor.getColumnCount());
       if (ColumnCount > 0) {
-        console.log("Returned Columns");
+        console.log(\"Returned Columns\");
 
         for (var i = 0; i < ColumnCount; i++) {
-          console.log("ColumnName: " + Cursor.getColumnName(i));
-          queryOutput += "ColumnName: " + Cursor.getColumnName(i) + "\n";
+          console.log(\"ColumnName: \" + Cursor.getColumnName(i));
+          queryOutput += \"ColumnName: \" + Cursor.getColumnName(i) + \"\\n\";
           if (!Cursor.isNull(i)) {
             try {
-              console.log("ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
-              queryOutput += "ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + "\n";
+              console.log(\"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
+              queryOutput += \"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + \"\\n\";
             } catch (e) {
               var blob = Cursor.getBlob(Cursor.getColumnIndex(Cursor.getColumnName(i)));
               var strBlob = normalize(blob);
-              console.log("ColumnData: " + strBlob);
-              queryOutput += "ColumnData: " + strBlob + "\n";
+              console.log(\"ColumnData: \" + strBlob);
+              queryOutput += \"ColumnData: \" + strBlob + \"\\n\";
 
               /*   --- Payload Body --- */
               var data = {};
-              data.name = "Returned Columns";
+              data.name = \"Returned Columns\";
               data.value = queryOutput;
               data.argSeq = 0;
               send_data.artifact.push(data);
@@ -637,8 +638,8 @@ if (SQLiteDatabase.query) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#query(boolean, java.lang.String, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, android.os.CancellationSignal)
 if (SQLiteDatabase.query) {
   SQLiteDatabase.query.overloads[2].implementation = function(distinct, table, columns, selection, selectionArgs, groupBy, having, orderBy, limit, cancellationSignal) {
-    console.log("SQLiteDatabase.query distinct: " + distinct);
-    console.log("SQLiteDatabase.query table: " + table);
+    console.log(\"SQLiteDatabase.query distinct: \" + distinct);
+    console.log(\"SQLiteDatabase.query table: \" + table);
 
     /*   --- Payload Header --- */
     var send_data = {};
@@ -650,75 +651,75 @@ if (SQLiteDatabase.query) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "DISTINCT";
+    data.name = \"DISTINCT\";
     data.value = distinct ? distinct.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Table";
+    data.name = \"Table\";
     data.value = table ? table.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
 
     if (columns) {
-      console.log("SQLiteDatabase.query columns: " + columns.toString());
+      console.log(\"SQLiteDatabase.query columns: \" + columns.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Columns";
+      data.name = \"Columns\";
       data.value = columns ? columns.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.query selection: " + selection);
+    console.log(\"SQLiteDatabase.query selection: \" + selection);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Selection";
+    data.name = \"Selection\";
     data.value = selection ? selection.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (selectionArgs) {
-      console.log("SQLiteDatabase.query selectionArgs: " + selectionArgs.toString());
+      console.log(\"SQLiteDatabase.query selectionArgs: \" + selectionArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Selection Arguments";
+      data.name = \"Selection Arguments\";
       data.value = selectionArgs ? selectionArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.query groupBy: " + groupBy);
-    console.log("SQLiteDatabase.query having: " + having);
-    console.log("SQLiteDatabase.query orderBy: " + orderBy);
-    console.log("SQLiteDatabase.query limit: " + limit);
+    console.log(\"SQLiteDatabase.query groupBy: \" + groupBy);
+    console.log(\"SQLiteDatabase.query having: \" + having);
+    console.log(\"SQLiteDatabase.query orderBy: \" + orderBy);
+    console.log(\"SQLiteDatabase.query limit: \" + limit);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Group By";
+    data.name = \"Group By\";
     data.value = groupBy ? groupBy.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Having";
+    data.name = \"Having\";
     data.value = having ? having.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Order By";
+    data.name = \"Order By\";
     data.value = orderBy ? orderBy.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Limit";
+    data.name = \"Limit\";
     data.value = limit ? limit.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -726,28 +727,28 @@ if (SQLiteDatabase.query) {
     var Cursor = this.query.overloads[2].apply(this, arguments);
     var CursorCopy = Cursor;
 
-    var queryOutput = "";
+    var queryOutput = \"\";
 
     if (Cursor && Cursor.getColumnCount && Cursor.moveToFirst()) {
       var ColumnCount = parseInt(Cursor.getColumnCount());
       if (ColumnCount > 0) {
-        console.log("Returned Columns");
+        console.log(\"Returned Columns\");
         for (var i = 0; i < ColumnCount; i++) {
-          console.log("ColumnName: " + Cursor.getColumnName(i));
-          queryOutput += "ColumnName: " + Cursor.getColumnName(i) + "\n";
+          console.log(\"ColumnName: \" + Cursor.getColumnName(i));
+          queryOutput += \"ColumnName: \" + Cursor.getColumnName(i) + \"\\n\";
           if (!Cursor.isNull(i)) {
             try {
-              console.log("ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
-              queryOutput += "ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i)));
+              console.log(\"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
+              queryOutput += \"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i)));
             } catch (e) {
               var blob = Cursor.getBlob(Cursor.getColumnIndex(Cursor.getColumnName(i)));
               var strBlob = normalize(blob);
-              console.log("ColumnData: " + strBlob);
-              queryOutput += "ColumnData: " + strBlob + "\n";
+              console.log(\"ColumnData: \" + strBlob);
+              queryOutput += \"ColumnData: \" + strBlob + \"\\n\";
 
               /*   --- Payload Body --- */
               var data = {};
-              data.name = "Returned Columns";
+              data.name = \"Returned Columns\";
               data.value = queryOutput;
               data.argSeq = 0;
               send_data.artifact.push(data);
@@ -765,7 +766,7 @@ if (SQLiteDatabase.query) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#query(java.lang.String, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String)
 if (SQLiteDatabase.query) {
   SQLiteDatabase.query.overloads[3].implementation = function(table, columns, selection, selectionArgs, groupBy, having, orderBy) {
-    console.log("SQLiteDatabase.query table: " + table);
+    console.log(\"SQLiteDatabase.query table: \" + table);
     /*   --- Payload Header --- */
     var send_data = {};
     send_data.time = new Date();
@@ -776,86 +777,86 @@ if (SQLiteDatabase.query) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Table";
+    data.name = \"Table\";
     data.value = table ? table.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (columns) {
-      console.log("SQLiteDatabase.query columns: " + columns.toString());
+      console.log(\"SQLiteDatabase.query columns: \" + columns.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Columns";
+      data.name = \"Columns\";
       data.value = columns ? columns.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.query selection: " + selection);
+    console.log(\"SQLiteDatabase.query selection: \" + selection);
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Selection";
+    data.name = \"Selection\";
     data.value = selection ? selection.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
     if (selectionArgs) {
-      console.log("SQLiteDatabase.query selectionArgs: " + selectionArgs.toString());
+      console.log(\"SQLiteDatabase.query selectionArgs: \" + selectionArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Selection Arguments";
+      data.name = \"Selection Arguments\";
       data.value = selectionArgs ? selectionArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
 
     }
-    console.log("SQLiteDatabase.query groupBy: " + groupBy);
-    console.log("SQLiteDatabase.query having: " + having);
-    console.log("SQLiteDatabase.query orderBy: " + orderBy);
+    console.log(\"SQLiteDatabase.query groupBy: \" + groupBy);
+    console.log(\"SQLiteDatabase.query having: \" + having);
+    console.log(\"SQLiteDatabase.query orderBy: \" + orderBy);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Group By";
+    data.name = \"Group By\";
     data.value = groupBy.toString();
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Having";
+    data.name = \"Having\";
     data.value = having ? having.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Order By";
+    data.name = \"Order By\";
     data.value = orderBy ? orderBy.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     var Cursor = this.query.overloads[3].apply(this, arguments);
     var CursorCopy = Cursor;
-    var queryOutput = "";
+    var queryOutput = \"\";
 
     if (Cursor && Cursor.getColumnCount && Cursor.moveToFirst()) {
       var ColumnCount = parseInt(Cursor.getColumnCount());
       if (ColumnCount > 0) {
-        console.log("Returned Columns");
+        console.log(\"Returned Columns\");
         for (var i = 0; i < ColumnCount; i++) {
-          console.log("ColumnName: " + Cursor.getColumnName(i));
-          queryOutput += "ColumnName: " + Cursor.getColumnName(i) + "\n";
+          console.log(\"ColumnName: \" + Cursor.getColumnName(i));
+          queryOutput += \"ColumnName: \" + Cursor.getColumnName(i) + \"\\n\";
           if (!Cursor.isNull(i)) {
             try {
-              console.log("ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
-              queryOutput += "ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + "\n";
+              console.log(\"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
+              queryOutput += \"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + \"\\n\";
             } catch (e) {
               var blob = Cursor.getBlob(Cursor.getColumnIndex(Cursor.getColumnName(i)));
               var strBlob = normalize(blob);
-              console.log("ColumnData: " + strBlob);
-              queryOutput += "ColumnData: " + strBlob;
+              console.log(\"ColumnData: \" + strBlob);
+              queryOutput += \"ColumnData: \" + strBlob;
 
               /*   --- Payload Body --- */
               var data = {};
-              data.name = "Returned Columns";
+              data.name = \"Returned Columns\";
               data.value = queryOutput;
               data.argSeq = 0;
               send_data.artifact.push(data);
@@ -873,7 +874,7 @@ if (SQLiteDatabase.query) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#queryWithFactory(android.database.sqlite.SQLiteDatabase.CursorFactory, boolean, java.lang.String, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, android.os.CancellationSignal)
 if (SQLiteDatabase.queryWithFactory) {
   SQLiteDatabase.queryWithFactory.overloads[0].implementation = function(cursorFactory, distinct, table, columns, selection, selectionArgs, groupBy, having, orderBy, limit, cancellationSignal) {
-    console.log("SQLiteDatabase.queryWithFactory table: " + table);
+    console.log(\"SQLiteDatabase.queryWithFactory table: \" + table);
 
     /*   --- Payload Header --- */
     var send_data = {};
@@ -885,65 +886,65 @@ if (SQLiteDatabase.queryWithFactory) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Table";
+    data.name = \"Table\";
     data.value = table ? table.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (columns) {
-      console.log("SQLiteDatabase.queryWithFactory columns: " + columns.toString());
+      console.log(\"SQLiteDatabase.queryWithFactory columns: \" + columns.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Columns";
+      data.name = \"Columns\";
       data.value = columns ? columns.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.queryWithFactory selection: " + selection);
+    console.log(\"SQLiteDatabase.queryWithFactory selection: \" + selection);
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Selection";
+    data.name = \"Selection\";
     data.value = selection ? selection.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
     if (selectionArgs) {
-      console.log("SQLiteDatabase.queryWithFactory selectionArgs: " + selectionArgs.toString());
+      console.log(\"SQLiteDatabase.queryWithFactory selectionArgs: \" + selectionArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Selection Arguments";
+      data.name = \"Selection Arguments\";
       data.value = selection ? selectionArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.queryWithFactory groupBy: " + groupBy);
-    console.log("SQLiteDatabase.queryWithFactory having: " + having);
-    console.log("SQLiteDatabase.queryWithFactory orderBy: " + orderBy);
-    console.log("SQLiteDatabase.queryWithFactory limit: " + limit);
+    console.log(\"SQLiteDatabase.queryWithFactory groupBy: \" + groupBy);
+    console.log(\"SQLiteDatabase.queryWithFactory having: \" + having);
+    console.log(\"SQLiteDatabase.queryWithFactory orderBy: \" + orderBy);
+    console.log(\"SQLiteDatabase.queryWithFactory limit: \" + limit);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Group By";
+    data.name = \"Group By\";
     data.value = groupBy ? groupBy.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Having";
+    data.name = \"Having\";
     data.value = having ? having.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Order By";
+    data.name = \"Order By\";
     data.value = orderBy ? orderBy.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Limit";
+    data.name = \"Limit\";
     data.value = limit ? limit.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -951,28 +952,28 @@ if (SQLiteDatabase.queryWithFactory) {
 
     var Cursor = this.queryWithFactory.overloads[0].apply(this, arguments);
     var CursorCopy = Cursor;
-    var queryOutput = "";
+    var queryOutput = \"\";
 
     if (Cursor && Cursor.getColumnCount && Cursor.moveToFirst()) {
       var ColumnCount = parseInt(Cursor.getColumnCount());
       if (ColumnCount > 0) {
-        console.log("Returned Columns");
+        console.log(\"Returned Columns\");
         for (var i = 0; i < ColumnCount; i++) {
-          console.log("ColumnName: " + Cursor.getColumnName(i));
-          queryOutput += "ColumnName: " + Cursor.getColumnName(i) + "\n";
+          console.log(\"ColumnName: \" + Cursor.getColumnName(i));
+          queryOutput += \"ColumnName: \" + Cursor.getColumnName(i) + \"\\n\";
           if (!Cursor.isNull(i)) {
             try {
-              console.log("ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
-              queryOutput += "ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + "\n";
+              console.log(\"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
+              queryOutput += \"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + \"\\n\";
             } catch (e) {
               var blob = Cursor.getBlob(Cursor.getColumnIndex(Cursor.getColumnName(i)));
               var strBlob = normalize(blob);
-              console.log("ColumnData: " + strBlob);
-              queryOutput += "ColumnData: " + strBlob + "\n";
+              console.log(\"ColumnData: \" + strBlob);
+              queryOutput += \"ColumnData: \" + strBlob + \"\\n\";
 
               /*   --- Payload Body --- */
               var data = {};
-              data.name = "Returned Columns";
+              data.name = \"Returned Columns\";
               data.value = queryOutput;
               data.argSeq = 0;
               send_data.artifact.push(data);
@@ -990,7 +991,7 @@ if (SQLiteDatabase.queryWithFactory) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#queryWithFactory(android.database.sqlite.SQLiteDatabase.CursorFactory, boolean, java.lang.String, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, java.lang.String, java.lang.String, java.lang.String, android.os.CancellationSignal)
 if (SQLiteDatabase.queryWithFactory) {
   SQLiteDatabase.queryWithFactory.overloads[1].implementation = function(cursorFactory, distinct, table, columns, selection, selectionArgs, groupBy, having, orderBy, limit) {
-    console.log("SQLiteDatabase.queryWithFactory table: " + table);
+    console.log(\"SQLiteDatabase.queryWithFactory table: \" + table);
 
     /*   --- Payload Header --- */
     var send_data = {};
@@ -1002,97 +1003,97 @@ if (SQLiteDatabase.queryWithFactory) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Table";
+    data.name = \"Table\";
     data.value = table ? table.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
 
     if (columns) {
-      console.log("SQLiteDatabase.queryWithFactory columns: " + columns.toString());
+      console.log(\"SQLiteDatabase.queryWithFactory columns: \" + columns.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Columns";
+      data.name = \"Columns\";
       data.value = columns ? columns.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.queryWithFactory selection: " + selection);
+    console.log(\"SQLiteDatabase.queryWithFactory selection: \" + selection);
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Selection";
+    data.name = \"Selection\";
     data.value = selection ? selection.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
     if (selectionArgs) {
-      console.log("SQLiteDatabase.queryWithFactory selectionArgs: " + selectionArgs.toString());
+      console.log(\"SQLiteDatabase.queryWithFactory selectionArgs: \" + selectionArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Selection Arguments";
+      data.name = \"Selection Arguments\";
       data.value = selectionArgs ? selectionArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.queryWithFactory groupBy: " + groupBy);
-    console.log("SQLiteDatabase.queryWithFactory having: " + having);
-    console.log("SQLiteDatabase.queryWithFactory orderBy: " + orderBy);
-    console.log("SQLiteDatabase.queryWithFactory limit: " + limit);
+    console.log(\"SQLiteDatabase.queryWithFactory groupBy: \" + groupBy);
+    console.log(\"SQLiteDatabase.queryWithFactory having: \" + having);
+    console.log(\"SQLiteDatabase.queryWithFactory orderBy: \" + orderBy);
+    console.log(\"SQLiteDatabase.queryWithFactory limit: \" + limit);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Group By";
+    data.name = \"Group By\";
     data.value = groupBy ? groupBy.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Having";
+    data.name = \"Having\";
     data.value = having ? having.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Order By";
+    data.name = \"Order By\";
     data.value = orderBy ? orderBy.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Limit";
+    data.name = \"Limit\";
     data.value = limit ? limit.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     var Cursor = this.queryWithFactory.overloads[1].apply(this, arguments);
     var CursorCopy = Cursor;
-    var queryOutput = "";
+    var queryOutput = \"\";
 
     if (Cursor && Cursor.getColumnCount && Cursor.moveToFirst()) {
       var ColumnCount = parseInt(Cursor.getColumnCount());
       if (ColumnCount > 0) {
-        console.log("Returned Columns");
+        console.log(\"Returned Columns\");
         for (var i = 0; i < ColumnCount; i++) {
-          console.log("ColumnName: " + Cursor.getColumnName(i));
+          console.log(\"ColumnName: \" + Cursor.getColumnName(i));
 
-          queryOutput += "ColumnName: " + Cursor.getColumnName(i) + "\n";
+          queryOutput += \"ColumnName: \" + Cursor.getColumnName(i) + \"\\n\";
 
           if (!Cursor.isNull(i)) {
             try {
-              console.log("ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
-              queryOutput += "ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + "\n";
+              console.log(\"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
+              queryOutput += \"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + \"\\n\";
 
             } catch (e) {
               var blob = Cursor.getBlob(Cursor.getColumnIndex(Cursor.getColumnName(i)));
               var strBlob = normalize(blob);
-              console.log("ColumnData: " + strBlob);
-              queryOutput += "ColumnData: " + strBlob + "\n";
+              console.log(\"ColumnData: \" + strBlob);
+              queryOutput += \"ColumnData: \" + strBlob + \"\\n\";
 
               /*   --- Payload Body --- */
               var data = {};
-              data.name = "Returned Columns";
+              data.name = \"Returned Columns\";
               data.value = queryOutput;
               data.argSeq = 0;
               send_data.artifact.push(data);
@@ -1110,7 +1111,7 @@ if (SQLiteDatabase.queryWithFactory) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#rawQuery(java.lang.String, java.lang.String[], android.os.CancellationSignal)
 if (SQLiteDatabase.rawQuery) {
   SQLiteDatabase.rawQuery.overloads[0].implementation = function(sql, selectionArgs, cancellationSignal) {
-    console.log("SQLiteDatabase.rawQuery sql: " + sql);
+    console.log(\"SQLiteDatabase.rawQuery sql: \" + sql);
 
     /*   --- Payload Header --- */
     var send_data = {};
@@ -1122,16 +1123,16 @@ if (SQLiteDatabase.rawQuery) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "SQL Statement";
+    data.name = \"SQL Statement\";
     data.value = sql ? sql.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (selectionArgs) {
-      console.log("SQLiteDatabase.rawQuery selectionArgs: " + selectionArgs.toString());
+      console.log(\"SQLiteDatabase.rawQuery selectionArgs: \" + selectionArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Selection Argruments";
+      data.name = \"Selection Argruments\";
       data.value = selectionArgs ? selectionArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
@@ -1139,28 +1140,28 @@ if (SQLiteDatabase.rawQuery) {
 
     var Cursor = this.rawQuery.overloads[0].apply(this, arguments);
     var CursorCopy = Cursor;
-    var queryOutput = "";
+    var queryOutput = \"\";
 
     if (Cursor && Cursor.getColumnCount && Cursor.moveToFirst()) {
       var ColumnCount = parseInt(Cursor.getColumnCount());
       if (ColumnCount > 0) {
-        console.log("Returned Columns");
+        console.log(\"Returned Columns\");
         for (var i = 0; i < ColumnCount; i++) {
-          console.log("ColumnName: " + Cursor.getColumnName(i));
-          queryOutput += "ColumnName: " + Cursor.getColumnName(i) + "\n";
+          console.log(\"ColumnName: \" + Cursor.getColumnName(i));
+          queryOutput += \"ColumnName: \" + Cursor.getColumnName(i) + \"\\n\";
           if (!Cursor.isNull(i)) {
             try {
-              console.log("ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
-              queryOutput += "ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + "\n";
+              console.log(\"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
+              queryOutput += \"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + \"\\n\";
             } catch (e) {
               var blob = Cursor.getBlob(Cursor.getColumnIndex(Cursor.getColumnName(i)));
               var strBlob = normalize(blob);
-              console.log("ColumnData: " + strBlob);
-              queryOutput += "ColumnData: " + strBlob + "\n";
+              console.log(\"ColumnData: \" + strBlob);
+              queryOutput += \"ColumnData: \" + strBlob + \"\\n\";
 
               /*   --- Payload Body --- */
               var data = {};
-              data.name = "Returned Columns";
+              data.name = \"Returned Columns\";
               data.value = queryOutput;
               data.argSeq = 0;
               send_data.artifact.push(data);
@@ -1179,7 +1180,7 @@ if (SQLiteDatabase.rawQuery) {
 if (SQLiteDatabase.rawQuery) {
 
   SQLiteDatabase.rawQuery.overloads[1].implementation = function(sql, selectionArgs) {
-    console.log("SQLiteDatabase.rawQuery sql: " + sql);
+    console.log(\"SQLiteDatabase.rawQuery sql: \" + sql);
 
     /*   --- Payload Header --- */
     var send_data = {};
@@ -1191,44 +1192,44 @@ if (SQLiteDatabase.rawQuery) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "SQL Statement";
+    data.name = \"SQL Statement\";
     data.value = sql ? sql.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (selectionArgs) {
-      console.log("SQLiteDatabase.rawQuery selectionArgs: " + selectionArgs.toString());
+      console.log(\"SQLiteDatabase.rawQuery selectionArgs: \" + selectionArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Selection Argruments";
+      data.name = \"Selection Argruments\";
       data.value = selectionArgs ? selectionArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
     var Cursor = this.rawQuery.overloads[1].apply(this, arguments);
     var CursorCopy = Cursor;
-    var queryOutput = "";
+    var queryOutput = \"\";
 
     if (Cursor && Cursor.getColumnCount && Cursor.moveToFirst()) {
       var ColumnCount = parseInt(Cursor.getColumnCount());
       if (ColumnCount > 0) {
-        console.log("Returned Columns");
+        console.log(\"Returned Columns\");
         for (var i = 0; i < ColumnCount; i++) {
-          console.log("ColumnName: " + Cursor.getColumnName(i));
-          queryOutput += "ColumnName: " + Cursor.getColumnName(i) + "\n";
+          console.log(\"ColumnName: \" + Cursor.getColumnName(i));
+          queryOutput += \"ColumnName: \" + Cursor.getColumnName(i) + \"\\n\";
           if (!Cursor.isNull(i)) {
             try {
-              console.log("ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
-              queryOutput += "ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + "\n";
+              console.log(\"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
+              queryOutput += \"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + \"\\n\";
             } catch (e) {
               var blob = Cursor.getBlob(Cursor.getColumnIndex(Cursor.getColumnName(i)));
               var strBlob = normalize(blob);
-              console.log("ColumnData: " + strBlob);
-              queryOutput += "ColumnData: " + strBlob + "\n";
+              console.log(\"ColumnData: \" + strBlob);
+              queryOutput += \"ColumnData: \" + strBlob + \"\\n\";
 
               /*   --- Payload Body --- */
               var data = {};
-              data.name = "Returned Columns";
+              data.name = \"Returned Columns\";
               data.value = queryOutput;
               data.argSeq = 0;
               send_data.artifact.push(data);
@@ -1246,7 +1247,7 @@ if (SQLiteDatabase.rawQuery) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#rawQueryWithFactory(android.database.sqlite.SQLiteDatabase.CursorFactory, java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal)
 if (SQLiteDatabase.rawQueryWithFactory) {
   SQLiteDatabase.rawQueryWithFactory.overloads[0].implementation = function(cursorFactory, sql, selectionArgs, editTable, cancellationSignal) {
-    console.log("SQLiteDatabase.rawQueryWithFactory sql: " + sql);
+    console.log(\"SQLiteDatabase.rawQueryWithFactory sql: \" + sql);
 
     /*   --- Payload Header --- */
     var send_data = {};
@@ -1258,51 +1259,51 @@ if (SQLiteDatabase.rawQueryWithFactory) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "SQL Statement";
+    data.name = \"SQL Statement\";
     data.value = sql ? sql.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (selectionArgs) {
-      console.log("SQLiteDatabase.rawQueryWithFactory selectionArgs: " + selectionArgs.toString());
+      console.log(\"SQLiteDatabase.rawQueryWithFactory selectionArgs: \" + selectionArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Selection Argruments";
+      data.name = \"Selection Argruments\";
       data.value = selectionArgs ? selectionArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.rawQueryWithFactory editTable: " + editTable);
+    console.log(\"SQLiteDatabase.rawQueryWithFactory editTable: \" + editTable);
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Edit Table";
+    data.name = \"Edit Table\";
     data.value = editTable ? editTable.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
     var Cursor = this.rawQueryWithFactory.overloads[0].apply(this, arguments);
     var CursorCopy = Cursor;
 
-    var queryOutput = "";
+    var queryOutput = \"\";
     if (Cursor && Cursor.getColumnCount && Cursor.moveToFirst()) {
       var ColumnCount = parseInt(Cursor.getColumnCount());
       if (ColumnCount > 0) {
-        console.log("Returned Columns");
+        console.log(\"Returned Columns\");
         for (var i = 0; i < ColumnCount; i++) {
-          console.log("ColumnName: " + Cursor.getColumnName(i));
-          queryOutput += "ColumnName: " + Cursor.getColumnName(i) + "\n";
+          console.log(\"ColumnName: \" + Cursor.getColumnName(i));
+          queryOutput += \"ColumnName: \" + Cursor.getColumnName(i) + \"\\n\";
           if (!Cursor.isNull(i)) {
             try {
-              console.log("ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
-              queryOutput += "ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + "\n";
+              console.log(\"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
+              queryOutput += \"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + \"\\n\";
             } catch (e) {
               var blob = Cursor.getBlob(Cursor.getColumnIndex(Cursor.getColumnName(i)));
               var strBlob = normalize(blob);
-              console.log("ColumnData: " + strBlob);
-              queryOutput += "ColumnData: " + strBlob + "\n";
+              console.log(\"ColumnData: \" + strBlob);
+              queryOutput += \"ColumnData: \" + strBlob + \"\\n\";
 
               /*   --- Payload Body --- */
               var data = {};
-              data.name = "Returned Columns";
+              data.name = \"Returned Columns\";
               data.value = queryOutput;
               data.argSeq = 0;
               send_data.artifact.push(data);
@@ -1320,7 +1321,7 @@ if (SQLiteDatabase.rawQueryWithFactory) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#rawQueryWithFactory(android.database.sqlite.SQLiteDatabase.CursorFactory, java.lang.String, java.lang.String[], java.lang.String)
 if (SQLiteDatabase.rawQueryWithFactory) {
   SQLiteDatabase.rawQueryWithFactory.overloads[1].implementation = function(cursorFactory, sql, selectionArgs, editTable) {
-    console.log("SQLiteDatabase.rawQueryWithFactory sql: " + sql);
+    console.log(\"SQLiteDatabase.rawQueryWithFactory sql: \" + sql);
 
     /*   --- Payload Header --- */
     var send_data = {};
@@ -1332,53 +1333,53 @@ if (SQLiteDatabase.rawQueryWithFactory) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "SQL Statement";
+    data.name = \"SQL Statement\";
     data.value = sql ? sql.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (selectionArgs) {
-      console.log("SQLiteDatabase.rawQueryWithFactory selectionArgs: " + selectionArgs.toString());
+      console.log(\"SQLiteDatabase.rawQueryWithFactory selectionArgs: \" + selectionArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Selection Argruments";
+      data.name = \"Selection Argruments\";
       data.value = selectionArgs ? selectionArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
     }
-    console.log("SQLiteDatabase.rawQueryWithFactory editTable: " + editTable);
+    console.log(\"SQLiteDatabase.rawQueryWithFactory editTable: \" + editTable);
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Edit Table";
+    data.name = \"Edit Table\";
     data.value = editTable ? editTable.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     var Cursor = this.rawQueryWithFactory.overloads[1].apply(this, arguments);
     var CursorCopy = Cursor;
-    var queryOutput = "";
+    var queryOutput = \"\";
     if (Cursor && Cursor.getColumnCount && Cursor.moveToFirst()) {
       var ColumnCount = parseInt(Cursor.getColumnCount());
       if (ColumnCount > 0) {
-        console.log("Returned Columns");
+        console.log(\"Returned Columns\");
         for (var i = 0; i < ColumnCount; i++) {
-          //console.log("DEBUG: " + i);
-          console.log("ColumnName: " + Cursor.getColumnName(i));
-          //console.log("ColumnData: " + Cursor.getColumnIndex(Cursor.getColumnName(i)));
-          queryOutput += "ColumnName: " + Cursor.getColumnName(i) + "\n";
+          //console.log(\"DEBUG: \" + i);
+          console.log(\"ColumnName: \" + Cursor.getColumnName(i));
+          //console.log(\"ColumnData: \" + Cursor.getColumnIndex(Cursor.getColumnName(i)));
+          queryOutput += \"ColumnName: \" + Cursor.getColumnName(i) + \"\\n\";
           if (!Cursor.isNull(i)) {
             try {
-              console.log("ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
-              queryOutput += "ColumnData: " + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + "\n";
+              console.log(\"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))));
+              queryOutput += \"ColumnData: \" + Cursor.getString(Cursor.getColumnIndex(Cursor.getColumnName(i))) + \"\\n\";
             } catch (e) {
               var blob = Cursor.getBlob(Cursor.getColumnIndex(Cursor.getColumnName(i)));
               var strBlob = normalize(blob);
-              console.log("ColumnData: " + strBlob);
-              queryOutput += "ColumnData: " + strBlob + "\n";
+              console.log(\"ColumnData: \" + strBlob);
+              queryOutput += \"ColumnData: \" + strBlob + \"\\n\";
 
               /*   --- Payload Body --- */
               var data = {};
-              data.name = "Returned Columns";
+              data.name = \"Returned Columns\";
               data.value = queryOutput;
               data.argSeq = 0;
               send_data.artifact.push(data);
@@ -1396,7 +1397,7 @@ if (SQLiteDatabase.rawQueryWithFactory) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#update(java.lang.String, android.content.ContentValues, java.lang.String, java.lang.String[])
 if (SQLiteDatabase.update) {
   SQLiteDatabase.update.implementation = function(table, values, whereClause, whereArgs) {
-    console.log("SQLiteDatabase.update table: " + table);
+    console.log(\"SQLiteDatabase.update table: \" + table);
     /*   --- Payload Header --- */
     var send_data = {};
     send_data.time = new Date();
@@ -1407,35 +1408,35 @@ if (SQLiteDatabase.update) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Table";
+    data.name = \"Table\";
     data.value = table ? table.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
     if (values) {
-      console.log("SQLiteDatabase.update values: " + values.toString());
+      console.log(\"SQLiteDatabase.update values: \" + values.toString());
 
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Values";
+      data.name = \"Values\";
       data.value = values ? values.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
 
     }
-    console.log("SQLiteDatabase.update whereClause: " + whereClause);
+    console.log(\"SQLiteDatabase.update whereClause: \" + whereClause);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "WHERE Clause";
+    data.name = \"WHERE Clause\";
     data.value = whereClause ? whereClause.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (whereArgs) {
-      console.log("SQLiteDatabase.update whereArgs: " + whereArgs.toString());
+      console.log(\"SQLiteDatabase.update whereArgs: \" + whereArgs.toString());
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "WHERE Arguments";
+      data.name = \"WHERE Arguments\";
       data.value = whereArgs ? whereArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
@@ -1449,7 +1450,7 @@ if (SQLiteDatabase.update) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#updateWithOnConflict(java.lang.String, android.content.ContentValues, java.lang.String, java.lang.String[], int)
 if (SQLiteDatabase.updateWithOnConflict) {
   SQLiteDatabase.updateWithOnConflict.implementation = function(table, values, whereClause, whereArgs, conflictAlgorithm) {
-    console.log("SQLiteDatabase.updateWithOnConflict table: " + table);
+    console.log(\"SQLiteDatabase.updateWithOnConflict table: \" + table);
     /*   --- Payload Header --- */
     var send_data = {};
     send_data.time = new Date();
@@ -1460,46 +1461,46 @@ if (SQLiteDatabase.updateWithOnConflict) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Table";
+    data.name = \"Table\";
     data.value = table ? table.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
     if (values) {
-      console.log("SQLiteDatabase.updateWithOnConflict values: " + values.toString());
+      console.log(\"SQLiteDatabase.updateWithOnConflict values: \" + values.toString());
 
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "Values";
+      data.name = \"Values\";
       data.value = values ? values.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
 
     }
-    console.log("SQLiteDatabase.updateWithOnConflict whereClause: " + whereClause);
+    console.log(\"SQLiteDatabase.updateWithOnConflict whereClause: \" + whereClause);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "WHERE Clause";
+    data.name = \"WHERE Clause\";
     data.value = whereClause ? whereClause.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
 
     if (whereArgs) {
-      console.log("SQLiteDatabase.updateWithOnConflict whereArgs: " + whereArgs.toString());
+      console.log(\"SQLiteDatabase.updateWithOnConflict whereArgs: \" + whereArgs.toString());
 
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "WHERE Arguments";
+      data.name = \"WHERE Arguments\";
       data.value = whereArgs ? whereArgs.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
 
     }
-    console.log("SQLiteDatabase.updateWithOnConflict conflictAlgorithm: " + conflictAlgorithm);
+    console.log(\"SQLiteDatabase.updateWithOnConflict conflictAlgorithm: \" + conflictAlgorithm);
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "Conflict Algorithm";
+    data.name = \"Conflict Algorithm\";
     data.value = conflictAlgorithm ? conflictAlgorithm.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -1513,7 +1514,7 @@ if (SQLiteDatabase.updateWithOnConflict) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#validateSql(java.lang.String, android.os.CancellationSignal)
 if (SQLiteDatabase.validateSql) {
   SQLiteDatabase.validateSql.implementation = function(sql, cancellationSignal) {
-    console.log("SQLiteDatabase.validateSql SQL: " + sql);
+    console.log(\"SQLiteDatabase.validateSql SQL: \" + sql);
     /*   --- Payload Header --- */
     var send_data = {};
     send_data.time = new Date();
@@ -1524,7 +1525,7 @@ if (SQLiteDatabase.validateSql) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "SQL Statement";
+    data.name = \"SQL Statement\";
     data.value = sql ? sql.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -1539,7 +1540,7 @@ if (SQLiteDatabase.validateSql) {
 // Ref: https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#compileStatement(java.lang.String)
 if (SQLiteDatabase.compileStatement) {
   SQLiteDatabase.compileStatement.implementation = function(sql) {
-    console.log("SQLiteDatabase.compileStatement SQL: " + sql);
+    console.log(\"SQLiteDatabase.compileStatement SQL: \" + sql);
 
     /*   --- Payload Header --- */
     var send_data = {};
@@ -1551,7 +1552,7 @@ if (SQLiteDatabase.compileStatement) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "SQL Statement";
+    data.name = \"SQL Statement\";
     data.value = sql ? sql.toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -1567,7 +1568,7 @@ if (SQLiteDatabase.compileStatement) {
 if (SQLiteDatabase.create) {
   SQLiteDatabase.create.implementation = function(factory) {
     var db = this.create.apply(this, arguments);
-    console.log("SQLiteDatabase.create DB: " + db.getPath());
+    console.log(\"SQLiteDatabase.create DB: \" + db.getPath());
     /*   --- Payload Header --- */
     var send_data = {};
     send_data.time = new Date();
@@ -1578,7 +1579,7 @@ if (SQLiteDatabase.create) {
 
     /*   --- Payload Body --- */
     var data = {};
-    data.name = "DB Path";
+    data.name = \"DB Path\";
     data.value = db.getPath() ? db.getPath().toString() : 'null';
     data.argSeq = 0;
     send_data.artifact.push(data);
@@ -1593,10 +1594,10 @@ if (SQLiteDatabase.create) {
 /*
 if (SQLiteDatabase.delete) {
   SQLiteDatabase.delete.implementation = function(table, whereClause, whereArgs) {
-    console.log("SQLiteDatabase.updateWithOnConflict table: " + table);
-    console.log("SQLiteDatabase.updateWithOnConflict whereClause: " + whereClause);
+    console.log(\"SQLiteDatabase.updateWithOnConflict table: \" + table);
+    console.log(\"SQLiteDatabase.updateWithOnConflict whereClause: \" + whereClause);
     if (whereArgs) {
-      console.log("SQLiteDatabase.updateWithOnConflict whereArgs: " + whereArgs.toString());
+      console.log(\"SQLiteDatabase.updateWithOnConflict whereArgs: \" + whereArgs.toString());
     }
     return this.delete.apply(this, arguments);
   }
@@ -1607,7 +1608,7 @@ if (SQLiteDatabase.delete) {
 if (SQLiteDatabase.deleteDatabase) {
   SQLiteDatabase.deleteDatabase.overloads[0].implementation = function(file) {
     if (file) {
-      console.log("SQLiteDatabase.deleteDatabase File: " + file.toString());
+      console.log(\"SQLiteDatabase.deleteDatabase File: \" + file.toString());
       /*   --- Payload Header --- */
       var send_data = {};
       send_data.time = new Date();
@@ -1618,7 +1619,7 @@ if (SQLiteDatabase.deleteDatabase) {
 
       /*   --- Payload Body --- */
       var data = {};
-      data.name = "DB Path";
+      data.name = \"DB Path\";
       data.value = file ? file.toString() : 'null';
       data.argSeq = 0;
       send_data.artifact.push(data);
@@ -1628,4 +1629,6 @@ if (SQLiteDatabase.deleteDatabase) {
     }
     return this.deleteDatabase.apply(this, file);
   }
+}
+"
 }

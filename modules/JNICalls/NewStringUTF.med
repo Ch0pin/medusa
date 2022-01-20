@@ -1,9 +1,9 @@
-#Description: 'jstring NewStringUTF(JNIEnv *env, const char *bytes)'
-#Help: Constructs a new java.lang.String object from an array of characters in modified UTF-8 encoding.
-
-#Code:
-
-Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"NewStringUTF"),{         
+{
+    "Name": "JNICalls/NewStringUTF",
+    "Description": "jstring NewStringUTF(JNIEnv *env, const char *bytes)",
+    "Help": "Constructs a new java.lang.String object from an array of characters in modified UTF-8 encoding.",
+    "Code": "
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,\"NewStringUTF\"),{         
     onEnter: function(args){
         var trace = Thread.backtrace(this.context, Backtracer.ACCURATE);
         for (var j in trace)
@@ -12,3 +12,5 @@ Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"NewStringUTF"),{
         colorLog('[+] NewStringUTF: '+str,{c:Color.Gray});
     }
 })
+"
+}

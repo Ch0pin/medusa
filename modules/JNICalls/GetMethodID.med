@@ -1,13 +1,11 @@
-#Description: 'jmethodID GetMethodID(JNIEnv *env, jclass clazz, const char *name, const char *sig);'
-#Help: "Returns the method ID for an instance (nonstatic) method of a class or interface. 
-The method may be defined in one of the clazz’s superclasses and inherited by clazz. 
-The method is determined by its name and signature."
-
-#Code:
-
-    Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"GetMethodID"),{         
+{
+    "Name": "JNICalls/GetMethodID",
+    "Description": "jmethodID GetMethodID(JNIEnv *env, jclass clazz, const char *name, const char *sig);",
+    "Help": "Returns the method ID for an instance (nonstatic) method of a class or interface. The method may be defined in one of the clazz’s superclasses and inherited by clazz. The method is determined by its name and signature.",
+    "Code": "
+    Interceptor.attach(getJNIFunctionAdress(jnienv_addr,\"GetMethodID\"),{         
       onEnter: function(args){
-            var Class = Java.use("java.lang.Class")
+            var Class = Java.use(\"java.lang.Class\")
             const obj_class = args[1]
             var castme = Java.cast(obj_class, Class);
 
@@ -16,6 +14,8 @@ The method is determined by its name and signature."
             var signature_c = castme;
 
 
-          colorLog('[+] MethodID: '+signature_c.toString().split(" ")[1]+'.'+method+signature,{c: Color.Gray});
+          colorLog('[+] MethodID: '+signature_c.toString().split(\" \")[1]+'.'+method+signature,{c: Color.Gray});
       }
   })
+"
+}

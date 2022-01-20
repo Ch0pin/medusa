@@ -1,53 +1,44 @@
-#Description: 'jint RegisterNatives(JNIEnv *env, jclass clazz, const JNINativeMethod *methods, jint nMethods)'
-#Help: Original script https://github.com/CreditTone/hooker/blob/master/js/hook_RN.js
+{
+    "Name": "JNICalls/RegisterNatives",
+    "Description": "jint RegisterNatives(JNIEnv *env, jclass clazz, const JNINativeMethod *methods, jint nMethods)",
+    "Help": "Original script https://github.com/CreditTone/hooker/blob/master/js/hook_RN.js\n\nRegisters native methods with the class specified by the clazz argument. The methods parameter specifies an array of JNINativeMethod structures that contain the names, signatures, and function pointers of the native methods. The name and signature fields of the JNINativeMethod structure are pointers to modified UTF-8 strings. The nMethods parameter specifies the number of native methods in the array. The JNINativeMethod structure is defined as follows:
+    typedef struct { 
 
-Registers native methods with the class specified by the clazz argument. 
-The methods parameter specifies an array of JNINativeMethod structures that contain the names, 
-signatures, and function pointers of the native methods. The name and signature fields of the 
-JNINativeMethod structure are pointers to modified UTF-8 strings. The nMethods parameter specifies 
-the number of native methods in the array. The JNINativeMethod structure is defined as follows:
+        char *name; 
 
-typedef struct { 
+        char *signature; 
 
-    char *name; 
+        void *fnPtr; 
 
-    char *signature; 
-
-    void *fnPtr; 
-
-} JNINativeMethod; 
+    } JNINativeMethod;
 
 The function pointers nominally must have the following signature:
 
-ReturnType (*fnPtr)(JNIEnv *env, jobject objectOrClass, ...); 
-
-#Code:
-
-
-
+    ReturnType (*fnPtr)(JNIEnv *env, jobject objectOrClass, ...);",
+    "Code": "
 console.log('========== Original script https://github.com/CreditTone/hooker/blob/master/js/hook_RN.js==============\n');
 
 
 function hook_RegisterNatives() {
-  var symbols = Module.enumerateSymbolsSync("libart.so");
+  var symbols = Module.enumerateSymbolsSync(\"libart.so\");
   var addrRegisterNatives = null;
   for (var i = 0; i < symbols.length; i++) {
       var symbol = symbols[i];
       
       //_ZN3art3JNI15RegisterNativesEP7_JNIEnvP7_jclassPK15JNINativeMethodi
-      if (symbol.name.indexOf("art") >= 0 &&
-              symbol.name.indexOf("JNI") >= 0 && 
-              symbol.name.indexOf("RegisterNatives") >= 0 && 
-              symbol.name.indexOf("CheckJNI") < 0) {
+      if (symbol.name.indexOf(\"art\") >= 0 &&
+              symbol.name.indexOf(\"JNI\") >= 0 && 
+              symbol.name.indexOf(\"RegisterNatives\") >= 0 && 
+              symbol.name.indexOf(\"CheckJNI\") < 0) {
           addrRegisterNatives = symbol.address;
-          colorLog("RegisterNatives is at " + symbol.address + '  '+ symbol.name,{c: Color.Purple});
+          colorLog(\"RegisterNatives is at \" + symbol.address + '  '+ symbol.name,{c: Color.Purple});
       }
   }
 
   if (addrRegisterNatives != null) {
       Interceptor.attach(addrRegisterNatives, {
           onEnter: function (args) {
-            colorLog("[RegisterNatives] method_count:"+ args[3]+" ==========", {c:Color.Blue});
+            colorLog(\"[RegisterNatives] method_count:\"+ args[3]+\" ==========\", {c:Color.Blue});
               var env = args[0];
               var java_class = args[1];
               var class_name = Java.vm.tryGetEnv().getClassName(java_class);
@@ -64,10 +55,10 @@ function hook_RegisterNatives() {
                   var name = Memory.readCString(name_ptr);
                   var sig = Memory.readCString(sig_ptr);
                   var find_module = Process.findModuleByAddress(fnPtr_ptr);
-                  console.log("[RegisterNatives] java_class:", class_name, "name:", name, "sig:", sig, "fnPtr:", fnPtr_ptr, "module_name:", find_module.name, "module_base:", find_module.base, "offset:", ptr(fnPtr_ptr).sub(find_module.base));
+                  console.log(\"[RegisterNatives] java_class:\", class_name, \"name:\", name, \"sig:\", sig, \"fnPtr:\", fnPtr_ptr, \"module_name:\", find_module.name, \"module_base:\", find_module.base, \"offset:\", ptr(fnPtr_ptr).sub(find_module.base));
 
               }
-          colorLog("=============================================\n",{c: Color.Blue});
+          colorLog(\"=============================================\n\",{c: Color.Blue});
 
           }
       });
@@ -76,3 +67,5 @@ function hook_RegisterNatives() {
 }
 
 setImmediate(hook_RegisterNatives);
+"
+}

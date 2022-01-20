@@ -1,11 +1,8 @@
-#Description: 'frida-multiple-unpinning CRITICAL: Make sure is added on the top of the module list (0 index)'
-#Help: 
--   https://codeshare.frida.re/@akabe1/frida-multiple-unpinning
-CRITICAL: Make sure is added on the top of the module list (0 index)
-#Code:
- 
- 
- 
+{
+    "Name": "http_communications/multiple_unpinner",
+    "Description": "frida-multiple-unpinning CRITICAL: Make sure is added on the top of the module list (0 index)",
+    "Help": "https://codeshare.frida.re/@akabe1/frida-multiple-unpinning\nCRITICAL: Make sure is added on the top of the module list (0 index)",
+    "Code": " 
  console.log('');
         console.log('======');
         console.log('[#] Android Bypass for various Certificate Pinning methods [#]');
@@ -362,3 +359,5 @@ CRITICAL: Make sure is added on the top of the module list (0 index)
             console.log('[-] Boye AbstractVerifier pinner not found');
             //console.log(err):
         }
+"
+}

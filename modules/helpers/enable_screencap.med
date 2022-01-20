@@ -1,15 +1,16 @@
-#Description: 'Dissables the secure flag in order to be able to take screen shots'
-#Help: "In case of successfull bypass it will displate the message: Cancelling secure flag"
-#Code:
-    
-    console.log('\n----------Screen Cap enabler------------');
+{
+    "Name": "helpers/enable_screencap",
+    "Description": "Dissables the secure flag in order to be able to take screen shots",
+    "Help": "In case of successfull bypass it will displate the message: Cancelling secure flag",
+    "Code": "    
+    console.log('\\n----------Screen Cap enabler------------');
 
     var window = Java.use('android.view.Window');
  
     window.setFlags.implementation = function(a,b)
     {
-        console.log("Cancelling Flag Secure");
+        console.log(\"Cancelling Flag Secure\");
         
     }
-
-   
+"
+}   

@@ -1,9 +1,8 @@
-
-#Description: 'SBN - (status bar notification) listener intercept'
-#Help:The notification listener is commonly used from many malware apps 
-to intercept various notifications events including sent OTPs e.t.c. 
-#Code:
-
+{
+    "Name": "services/notification_listener",
+    "Description": "SBN - (status bar notification) listener intercept",
+    "Help": "The notification listener is commonly used from many malware apps to intercept various notifications events including sent OTPs e.t.c.",
+    "Code": "
 //var statusBarNotification = Java.use('android.service.notification.StatusBarNotification');
 
 // var service = Java.use('android.service.notification.NotificationListenerService');
@@ -17,7 +16,7 @@ var bundle = Java.use('android.os.Bundle');
 
 telephonySms.getDefaultSmsPackage.implementation = function(context){
     ColorLog('[+] Changing default SMS package to com.medusa.agent.', {c: Color.Blue});
-    return "com.medusa.agent";
+    return \"com.medusa.agent\";
 
 }
 
@@ -28,10 +27,10 @@ bundle.getCharSequence.overloads[0].implementation = function(str){
     {
         var ret = this.getCharSequence(str);
         
-        if (str == "android.text")
-            colorLog("[+] The Application Acquires the Notification's text:"  + ret,{c:Color.Red});
-        else if (str == "android.title")
-            colorLog("[+] The Application Acquires the Notification's title:"  + ret,{c:Color.Red});  
+        if (str == \"android.text\")
+            colorLog(\"[+] The Application Acquires the Notification's text:\"  + ret,{c:Color.Red});
+        else if (str == \"android.title\")
+            colorLog(\"[+] The Application Acquires the Notification's title:\"  + ret,{c:Color.Red});  
                  
         return ret;
 
@@ -46,10 +45,10 @@ bundle.getCharSequence.overloads[1].implementation = function(str){
     {
         var ret = this.getCharSequence(str);
         
-        if (str == "android.text")
-            colorLog("[+] The Application Acquires the Notification's text:"  + ret,{c:Color.Red});
-        else if (str == "android.title")
-            colorLog("[+] The Application Acquires the Notification's title:"  + ret,{c:Color.Red});
+        if (str == \"android.text\")
+            colorLog(\"[+] The Application Acquires the Notification's text:\"  + ret,{c:Color.Red});
+        else if (str == \"android.title\")
+            colorLog(\"[+] The Application Acquires the Notification's title:\"  + ret,{c:Color.Red});
         
         return ret;
 
@@ -64,16 +63,18 @@ statusBarNotification.key.overloads[0].implementation = function() {
     var retval = this['key'].apply(this, arguments); 
     var strArray = retval.split('|');
 
-    colorLog("\n[+] Status bar notification posted:"+ this.toString(),{c: Color.Green});
-    console.log('\tIdentifier: '+strArray[0]+'\n\tPackage: '+strArray[1]+'\n\tID:'+strArray[2]+'\n\ttag:'+strArray[3]+'\n\tUser Id:'+strArray[4]);
+    colorLog(\"\\n[+] Status bar notification posted:\"+ this.toString(),{c: Color.Green});
+    console.log('\tIdentifier: '+strArray[0]+'\\n\tPackage: '+strArray[1]+'\\n\tID:'+strArray[2]+'\\n\ttag:'+strArray[3]+'\\n\tUser Id:'+strArray[4]);
 
     return retval;
 }
 
 statusBarNotification.getPackageName.implementation = function(){
-    colorLog("\n[+] GetPackageName called Returning:com.whatsapp" ,{c: Color.Green});
-    return "com.whatsapp";
+    colorLog(\"\\n[+] GetPackageName called Returning:com.whatsapp\" ,{c: Color.Green});
+    return \"com.whatsapp\";
 
 
 }
 traceClass('android.app.Notification');
+"
+}

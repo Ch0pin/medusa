@@ -1,14 +1,14 @@
-#Description: 'Cordova log loaded cordova plugins'
-#Help: https://cordova.apache.org/plugins/
-
-#Code:
-
-
-
-var pluginManager = Java.use("org.apache.cordova.PluginManager");
+{
+    "Name": "cordova/get_loaded_plugins",
+    "Description": "Cordova log loaded cordova plugins",
+    "Help": "https://cordova.apache.org/plugins/",
+    "Code": "
+var pluginManager = Java.use(\"org.apache.cordova.PluginManager\");
 
 
 pluginManager.instantiatePlugin.implementation = function(pluginName){
-    colorLog("[+] Loading Cordova Plugin: "+pluginName,{c:Color.Green});
+    colorLog(\"[+] Loading Cordova Plugin: \"+pluginName,{c:Color.Green});
     return this.instantiatePlugin(pluginName);
+}
+"
 }

@@ -1,10 +1,9 @@
-#Description: 'void ReleaseStringUTFChars(JNIEnv *env, jstring string, const char *utf)'
-    
-Informs the VM that the native code no longer needs access to utf. The utf argument is a pointer derived from string using GetStringUTFChars().
-
-#Code:
-
-Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"ReleaseStringUTFChars"),{         
+{
+    "Name": "JNICalls/ReleaseStringUTFChars",
+    "Description": "void ReleaseStringUTFChars(JNIEnv *env, jstring string, const char *utf)",
+    "Help": "Informs the VM that the native code no longer needs access to utf. The utf argument is a pointer derived from string using GetStringUTFChars().",
+    "Code": "
+Interceptor.attach(getJNIFunctionAdress(jnienv_addr,\"ReleaseStringUTFChars\"),{         
     onEnter: function(args){
         try{
         
@@ -16,3 +15,5 @@ Interceptor.attach(getJNIFunctionAdress(jnienv_addr,"ReleaseStringUTFChars"),{
         }
     }
 })
+"
+}

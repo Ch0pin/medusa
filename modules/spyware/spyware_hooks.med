@@ -1,26 +1,20 @@
-#Description: 'Use this script to hook content provider queries'
-#Help: 
-Hooks API calls related to spyware software, including 
-- Context provider queries
-- Record audio and media
-- Monitor clipboard
-- Location tracking
-- Screen capture
-
-#Code:
-
-console.log('\n---------------Spyware Hooks by @ch0pin------------------');
+{
+    "Name": "spyware/spyware_hooks",
+    "Description": "Use this script to hook content provider queries",
+    "Help": "Hooks API calls related to spyware software, including \n- Context provider queries\n- Record audio and media\n- Monitor clipboard\n- Location tracking\n- Screen capture",
+    "Code": "
+console.log('\\n---------------Spyware Hooks by @ch0pin------------------');
 
 
-var mediaRecorder = Java.use('android.media.MediaRecorder')
+var mediaRecorder = Java.use('android.media.MediaRecorder');
 var audioRecord = Java.use('android.media.AudioRecord');
 var abstractCursor = Java.use('android.database.AbstractCursor');
 var cursor = Java.use('android.database.Cursor');
 var clipboardManager = Java.use('android.content.ClipboardManager');
 var Location = Java.use('android.location.Location');
 var telephonyManager = Java.use('android.telephony.TelephonyManager');
-var contextWrapper = Java.use("android.content.ContextWrapper");
-var locationListener = Java.use("android.location.LocationListener");
+var contextWrapper = Java.use(\"android.content.ContextWrapper\");
+var locationListener = Java.use(\"android.location.LocationListener\");
 var locationManager = Java.use('android.location.LocationManager');
 var accessibilityNodeInfo = Java.use('android.view.accessibility.AccessibilityNodeInfo');
 var systemProperties = Java.use('android.os.SystemProperties');
@@ -342,7 +336,7 @@ clipboardManager.hasText.implementation = function(){
 
 cursor.getColumnIndex.implementation = function(columnName){
         // console.log('[+-------Query Detected-----------+]');
-        //console.log(Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new()));
+        //console.log(Java.use(\"android.util.Log\").getStackTraceString(Java.use(\"java.lang.Exception\").$new()));
  
          var res = '';
          var index = this.getColumnIndex(columnName);
@@ -350,15 +344,15 @@ cursor.getColumnIndex.implementation = function(columnName){
          if(!this.isAfterLast() && this != null)
           res = this.getString(index);
          
-        colorLog("[+] AbstractCursor DB Query for: " + columnName ,{ c: Color.Red }); 
-        colorLog("[+] Result: " + res,{ c: Color.Red } )
+        colorLog(\"[+] AbstractCursor DB Query for: \" + columnName ,{ c: Color.Red }); 
+        colorLog(\"[+] Result: \" + res,{ c: Color.Red } )
          //this.moveToFirst();
          return this.getColumnIndex(columnName);
  }
  
  abstractCursor.getColumnIndex.implementation = function(columnName){
         // console.log('[+-------Query Detected-----------+]');
-       // console.log(Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new()));
+       // console.log(Java.use(\"android.util.Log\").getStackTraceString(Java.use(\"java.lang.Exception\").$new()));
  
          var res = '';
          var index = this.getColumnIndex(columnName);
@@ -366,21 +360,20 @@ cursor.getColumnIndex.implementation = function(columnName){
          if(!this.isAfterLast() && this != null)
           res = this.getString(index);
         console.log('----------------------------------------------------');
-        colorLog("[+] AbstractCursor DB Query for: " + columnName ,{ c: Color.Red }); 
-        colorLog("[+] Result: " + res,{ c: Color.Green } ) 
+        colorLog(\"[+] AbstractCursor DB Query for: \" + columnName ,{ c: Color.Red }); 
+        colorLog(\"[+] Result: \" + res,{ c: Color.Green } ) 
          //this.moveToFirst();
          return this.getColumnIndex(columnName);
  }
 
 
- contextWrapper.openFileInput.overload("java.lang.String").implementation = function(fileName) {
+ contextWrapper.openFileInput.overload(\"java.lang.String\").implementation = function(fileName) {
 		          
         /*   --- Payload Header --- */
         console.log('[+] Application is opening the file: '+fileName+' for reading ');
     
-        return this.openFileInput.overload("java.lang.String").apply(this, arguments);
+        return this.openFileInput.overload(\"java.lang.String\").apply(this, arguments);
      
 }
-
-
-
+"
+}

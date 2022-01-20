@@ -1,11 +1,8 @@
-#Description: 'Use this module to monitor asset file operations (used usually for Dynamic code loading)'
-#Help: 'Hooks the following calls
-- openNonAssetFd
-- openFd
-- open
-#Code:
-
-
+{
+    "Name": "file_system/asset_manager",
+    "Description": "Use this module to monitor asset file operations (used usually for Dynamic code loading)",
+    "Help": "Hooks the following calls\n- openNonAssetFd\n- openFd\n- open",
+    "Code": "
 var assetManager = Java.use('android.content.res.AssetManager');
 
 
@@ -26,4 +23,5 @@ assetManager.openFd.implementation = function(filename){
 
 
 traceClass('android.content.res.AssetManager');
-
+"
+}

@@ -1,3 +1,6 @@
-#Description: 'Use this module to add your hooks'
-#Help: 'N/A'
-#Code:
+{
+    "Name": "scratchpad",
+    "Description": "Use this module to add your hooks",
+    "Help": "N/A",
+    "Code": ""
+}

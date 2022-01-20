@@ -1,9 +1,9 @@
-
-#Description: 'Encryption Monitor, dump Key, IV, Data and instance'
-#Help: 'Original script: https://github.com/CreditTone/hooker/blob/master/js/cipher.js'
-#Code:  
-
-console.log('\n------------Original script: https://github.com/CreditTone/hooker/blob/master/js/cipher.js---------------\n');
+{
+    "Name": "encryption/cipher_3",
+    "Description": "Encryption Monitor, dump Key, IV, Data and instance",
+    "Help": "Original script: https://github.com/CreditTone/hooker/blob/master/js/cipher.js",
+    "Code": "
+console.log('\\n------------Original script: https://github.com/CreditTone/hooker/blob/master/js/cipher.js---------------\\n');
 
     var java_security_SecureRandom_clz = Java.use('java.security.SecureRandom');
     var java_security_SecureRandom_clz_method_setSeed_tsea = java_security_SecureRandom_clz.setSeed.overload('long');
@@ -442,3 +442,5 @@ console.log('\n------------Original script: https://github.com/CreditTone/hooker
         methodInBeat(invokeId, startTime, 'private static boolean javax.crypto.Cipher.matchAttribute(java.security.Provider$Service,java.lang.String,java.lang.String)', executor);
         return ret;
     };
+"
+}

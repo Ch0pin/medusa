@@ -1,9 +1,8 @@
-#Description: 'Hooks a FirebaseAuth instance'
-#Help: https://firebase.google.com/docs/auth/android/start
-#Code:
-
-
-
+{
+    "Name": "firebase/firebase_authentication",
+    "Description": "Hooks a FirebaseAuth instance",
+    "Help": "https://firebase.google.com/docs/auth/android/start",
+    "Code": "
 console.log('--------------------Firebase authentication hook by @ch0pin-----------------');
 
 var firebaseAuth = Java.use('com.google.firebase.auth.FirebaseAuth');
@@ -20,4 +19,6 @@ firebaseAuth.getInstance.overloads[1].implementation = function(firebaseapp){
 
     console.log('[i] Application is authenticating to the firebase server');
     return this.getInstance(firebaseapp);
+}
+"
 }

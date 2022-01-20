@@ -1,8 +1,9 @@
-#Description: 'Use this module to monitor incoming intents'
-#Help: "Displays a message with the intent acction or extra data when it is feasible"
-#Code:
-
-console.log('\n----------Incoming Intent monitor by @ch0p1n------------');
+{
+    "Name": "ipc/incoming_intents",
+    "Description": "Use this module to monitor incoming intents",
+    "Help": "Displays a message with the intent acction or extra data when it is feasible",
+    "Code": "
+console.log('\\n----------Incoming Intent monitor by @ch0p1n------------');
 
 var uri = Java.use('android.net.Uri'); 
 var intent1 = Java.use('android.content.Intent');
@@ -11,13 +12,13 @@ var bundle1 = Java.use('android.os.Bundle');
 
 uri.getQueryParameter.implementation = function(key){
     var ret = this.getQueryParameter(key);
-    colorLog("[+] Query parameters fetched, key:"+key+", value:"+ret,{c: Color.Red});
+    colorLog(\"[+] Query parameters fetched, key:\"+key+\", value:\"+ret,{c: Color.Red});
     return ret;
 }
 
 uri.getQueryParameters.implementation = function(key){
     var ret = this.getQueryParameters(key);
-    colorLog("[+] Query parameters fetched, key:"+key+", value:"+ret,{c:Color.Red});
+    colorLog(\"[+] Query parameters fetched, key:\"+key+\", value:\"+ret,{c:Color.Red});
     return ret;
 }
 
@@ -168,4 +169,5 @@ intent1.getPackage.implementation = function(){
     console.log('[+]\t intent package origin:'+ret);
     return ret;
 }
-
+"
+}

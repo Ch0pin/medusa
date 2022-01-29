@@ -2,25 +2,25 @@
 
 ### Description:
 
-**Medusa** is an extensible framework for **Android applications** that automate processes and techniques practiced during the **dynamic analysis** of a malware investigation.  
+**MEDUSA** is an Extensible and Modularised framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  
 
-Some of the framework's features are the following:
+Some of the MEDUSA's features include:
 
-- Tracing and instrumentation of API calls used by common malware categories
+- Tracing and instrumentation of API calls clustered according to their action (e.g. File System, IPC, Encryption)
 - Tracing and instrumentation of Java and Native functions 
 - Unpacking (effective for most of the weel known packers, including Qihoo, Secshell e.t.c.)
-- Patching (e.g. autoset the debugable flag)
-- Triggering of various system events in order to initiate a malicious behaviour
+- Patching on the fly or statically (autoset the debugable flag)
+- Triggering of various system events in order to initiate a reaction (e.g. send intents / notifications / events to the target app)
 - Triggering of application's components (Activities, Services e.t.c.)
 
-**Ref: [MEDUSA-Usage-workflows.pdf](https://github.com/Ch0pin/medusa/blob/master/MEDUSA-Usage-workflows.pdf)**
+**Overview of the MEDUSA workflows (Presentation): [MEDUSA-Usage-workflows.pdf](https://github.com/Ch0pin/medusa/blob/master/MEDUSA-Usage-workflows.pdf)**
 
 
 ### Usage:
 
-Medusa's functionality is based the following scripts:
+MEDUSA's functionality is divided in two basic python scripts: the **medusa.py** and the **apkutils.py** with the last to be more of a helping utility which automates processes like **setting a proxy server for the device**, **parcing the Anroid Manifest, starting/stoping activities and many more**. More specifically:
 
-- **medusa.py** 
+- **The medusa.py** 
 
   > Is used to dynamically add or remove tracing of API calls during application's runtime. The tracing 'comes' in a form of modules, where each one of them 'specializes' in an abstract aspect. As an example, to trace the cryptographic procedures of the application (e.g.  fetch AES keys or the plaintext that will be encrypted), simply inject the AES module  and observer the output. 
   >
@@ -54,7 +54,7 @@ Medusa's functionality is based the following scripts:
 
 
 
-- **apkutils.py** 
+- **The apkutils.py** 
 
   > Given a **manifest or and apk file**, the specific script is able to perform the following functionalities:
   >
@@ -79,19 +79,18 @@ Medusa's functionality is based the following scripts:
 
 ### Requirements:
 
-See **requirements.txt** for python requirements. 
-
-Additionally:
-
-- Frida installation (preffered version 12.10.4)
-- apktool (included in the dependencies folder)
-- adb
-
-A rooted device or an emulator is highly recomended in order to use the framework's full capabilities
+See **requirements.txt** for python requirements as well as **frida** and **adb**. A rooted device or an emulator is highly recomended in order to use the framework's full capabilities.
 
 ### Modules:
 
 A module (.med file) consists of three sections. 
+
+    "Name": "foo_bar_dir/module_for_com_foo_bar",
+    "Description": "What your module does ?",
+    "Help": " How your module works ?",
+    "Code": 
+
+- The **'Name'** used in order to reference a module. Default name convention is lower case letters and underscores (e.g. **https_communications/ssl_unpining**)
 
 - The **'Description'** where the usage of the module is described, e.g. *Description: Use this module to perform the following action* . 
 
@@ -101,70 +100,152 @@ A module (.med file) consists of three sections.
 
   What follows is an example of the translation module:
 
+For example the module bellow is used to cancel the killProcess, exit and finish of an application. The script itself is a json file using a .med suffix located under the **/medusa/modules/<category/** directory:
+
 ```js
+{
+    "Name": "helpers/cancel_system_exit",
+    "Description": "Cancels application exit",
+    "Help": "Hooks system.exit, activity.finish to cancel application's exit",
+    "Code": "  
+console.log(\"-----------Hooking SYSTEM EXIT----------------------\");
 
-#Description: 'Use this module to translate UI text to english'
-#Help: 
-"Hooks the setText, setMessage, setTitle functions of basic android UI components 
- and translates the applied text using google's translation API"
-#Code:
+  var sysexit = Java.use(\"java.lang.System\");
+  var activity = Java.use('android.app.Activity');
+  var process = Java.use('android.os.Process');
 
-console.log('\n----------TRANSLATOR SCRIPT -------------');
-console.log('----------twiter:@Ch0pin-------------------');
-   
-    var textViewClass = Java.use("android.widget.TextView");
-    var alertDialog = Java.use("android.app.AlertDialog");
-    var String = Java.use("java.lang.String");
-   
+  process.killProcess.implementation = function(pid){
+    colorLog(\"[i] Canceling process kill with pid:\"+pid, {c: Color.Green});
 
-...
-    textViewClass.setText.overload('java.lang.CharSequence').implementation = function (originalTxt) {
-        var string_to_send = originalTxt.toString();
-        var string_to_recv = "";
-        send(string_to_send); // send data to python code
-        recv(function (received_json_object) {
-            string_to_recv = received_json_object.my_data;
-        }).wait(); 
-        console.log('Translating: ' + string_to_send +" ---> "+ string_to_recv)
-  
-        var castTostring = String.$new(string_to_recv);
+  }
+  sysexit.exit.overload(\"int\").implementation = function(var_0) {
+    colorLog(\"[i] Canceling system exit\", {c: Color.Green});
+  };
 
-        return this.setText(castTostring);
- 
-    }
+  activity.finish.overloads[0].implementation = function(){
+    colorLog(\"[+] Canceling activity's finish\" ,{c: Color.Green});
+    
+  }
+"
+}
+
 
 ```
 
 
 
-### Recipes:
+### Saving a Session (module recipies):
 
-Save a set of modules to a file in order to be used in another session. Simply, export a set of used modules as a recipe by typing: 
+You can save a set of modules to a file in order to use them in another session. Export a set of used modules using the **export** command followed by the filename: 
 
-**medusa>** export
+**medusa>** export MyModuleRecipe.txt
 
-Import the recipe by simply typing:
-
-**./medusa.py** -r recipe.txt
+Continue your session using the -r flag when starting MEDUSA: **./medusa.py** -r MyModuleRecipe.txt
 
 
 
-### Contribute:
+### How To Create a Medusa Module:
 
-- Create an interesting module or...
-- Suggest an improvement or...
-- Share this tool or...
-- Leave a comment :-)
+A Medusa module is essentially a Frida script on steroids combined with multiple ready-made javascript functions that may enhance the final output. Assume that you found a super cool frida script online or you have many of them that you want to save in a classified manner:
 
+1. **Remove Frida script's prologue / epilogue by changing it**
 
+   **FROM:**
 
-#### Intercepting HTTP Requests
+   ```
+   	Java.perform(function() {
+   
+   		var hook = Java.use("com.foo.bar");
+       
+   		hook.function.implementation = function() {
+   			console.log("Info: entered target method");		
+       }
+   
+   	});  
+   ```
+
+   **TO:**
+
+   ```
+   		var hook = Java.use("com.foo.bar");
+       
+   		hook.function.implementation = function() {
+   			console.log("Info: entered target method");		
+       }
+   ```
+
+2. **Insert the modified code in the "code" segment of the following json object:**
+
+   ```json
+   {
+       "Name": "foo_bar_dir/module_for_com_foo_bar",
+       "Description": "What your module does ?",
+       "Help": " How your module works ?",
+       "Code": 
+     "
+       
+       
+   		var hook = Java.use(\"com.foo.bar\");
+       
+   		hook.function.implementation = function() {
+   			console.log(\"Info\\n: entered target method\");		
+       }
+       
+        
+       
+       "
+   }
+   ```
+
+3. **Save the result to the /medusa/modules directory**
+
+ if you think that your module can be classified in one's of Medusa's categories (e.g. http_communications), save your module as .med under the corresponding folder:
+
+```
+/medusa/modules/foo_bar_dir/module_for_com_foo_bar.med
+```
+
+ Or if you think your modulde can be classified to an already existing category, add it to the corresponding folder (e.g. /medusa/modules/http_communications)
+
+That's all ... this module is now accessible via the medusa cli:
+
+> medusa> show all
+>
+> medusa> use foo_bar_dir/module_for_com_foo_bar
+
+4. **Contribute with a PR**
+
+​	if you think that your module can be helpfull to other users, do a pull request
+
+### Show Cases
+
+#### - SSL Unpinning
+
+![Screenshot 2020-09-22 at 16 41 10](https://user-images.githubusercontent.com/4659186/151658672-dc80f37c-f4fb-48b8-a355-1dc0bf2b172c.png)
+
+#### - Intent Monitoring 
+
+<img src="https://user-images.githubusercontent.com/4659186/151658670-2ddac205-4c77-418a-8edd-2035b233387e.png" alt="Screenshot 2020-09-22 at 16 41 10" style="zoom:100%;" />
+
+#### - Passive Monitoring of HTTP Requests
 
 ![Screenshot 2020-09-22 at 16 41 10](https://user-images.githubusercontent.com/4659186/93905749-34203580-fcf3-11ea-9f36-8138141c2302.png)
 
 ![Screenshot 2020-09-22 at 16 43 37](https://user-images.githubusercontent.com/4659186/93905699-25d21980-fcf3-11ea-85e0-fafd62ea7d28.png)
 
-#### Spyware module
+
+
+#### - Native Libraries Enumeration
+
+![Screenshot 2020-09-22 at 16 41 10](https://user-images.githubusercontent.com/4659186/151658663-6c77f2e3-6f42-4424-b593-d8cfe3d3bed3.png)
+
+
+
+#### - Memory READ/WRITE/SEARCH (interactive mode):
+
+![Screenshot 2020-09-22 at 16 41 10](https://user-images.githubusercontent.com/4659186/151658659-b4f83296-60ec-4818-a303-5645284b0a67.png)
+
+#### - Personal information exfiltration monitoring
 
 > Hooks api calls which found to be common for this kind of malware, including:
 >
@@ -181,7 +262,7 @@ Import the recipe by simply typing:
 
 <img src="https://user-images.githubusercontent.com/4659186/87245281-1c4b4c00-c43c-11ea-9cad-195ceb42794a.png" width="450" height="460">
 
-#### Translation module
+#### - Translation 
 
 > Translates the application's UI by hooking 'setText' calls  
 

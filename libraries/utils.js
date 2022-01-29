@@ -726,3 +726,53 @@ function check(str) {
   return true;
 }
 //------------------------https://github.com/CreditTone/hooker EOF----------------------------
+
+function displayAppInfo(){
+  var context = null
+  var ActivityThread = Java.use('android.app.ActivityThread');
+  var app = ActivityThread.currentApplication();
+
+    if (app != null) {
+        context = app.getApplicationContext();
+        var app_classname = app.getClass().toString().split(' ')[1];
+
+        
+            var filesDirectory= context.getFilesDir().getAbsolutePath().toString();
+            var cacheDirectory= context.getCacheDir().getAbsolutePath().toString();
+            var externalCacheDirectory= context.getExternalCacheDir().getAbsolutePath().toString();
+            var codeCacheDirectory= 'getCodeCacheDir' in context ? context.getCodeCacheDir().getAbsolutePath().toString() : 'N/A';
+            var obbDir= context.getObbDir().getAbsolutePath().toString();
+            var packageCodePath= context.getPackageCodePath().toString();
+            var applicationName= app_classname;
+           
+      
+
+        colorLog("\n-------------------Application Info--------------------\n",{c: Color.Green});
+        colorLog("- Application Name: "+applicationName,{c: Color.Gray});
+        colorLog("- Files Directory: "+filesDirectory,{c: Color.Gray});
+        colorLog("- Cache Directory: "+cacheDirectory,{c: Color.Gray});
+        colorLog("- External Cache Directory: "+externalCacheDirectory,{c: Color.Gray});
+        colorLog("- Code Cache Directory: "+codeCacheDirectory,{c: Color.Gray});
+        colorLog("- Obb Directory: "+obbDir,{c: Color.Gray});
+        colorLog("- Package Code Path: "+packageCodePath,{c: Color.Gray});
+        colorLog("\n-------------------EOF Application Info-----------------\n",{c: Color.Green});
+
+
+    } else {
+        console.log("No context yet!")
+    }
+
+
+}
+
+
+//------------------------https://github.com/CreditTone/hooker EOF----------------------------
+
+function notifyNewSharedPreference(key, value) {
+  var k = key;
+  var v = value;
+  Java.use('android.app.SharedPreferencesImpl$EditorImpl').putString.overload('java.lang.String', 'java.lang.String').implementation = function(k, v) {
+    console.log('[SharedPreferencesImpl]', k, '=', v);
+    return this.putString(k, v);
+  }
+}

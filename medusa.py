@@ -489,6 +489,14 @@ catch (err) {
 
 #------------------
 
+    def do_dexload(self,line):
+        try:
+            codejs = '\n\nJava.openClassFile("'+line.split(' ')[0]+'").load();'
+            self.editScratchpad(codejs,'a')
+        except Exception as e:
+            print(e)
+
+
 
     def do_swap(self, line):
         try:
@@ -658,7 +666,7 @@ catch (err) {
             with open(os.path.join(self.base_directory, 'libraries', 'utils.js'), 'r') as file:
                 header = file.read()
             hooks.append(header)
-            hooks.append("\n\nJava.perform(function() {")
+            hooks.append("\n\nJava.perform(function() {\ndisplayAppInfo();\n")
             for mod in self.modManager.staged:
                 if 'JNICalls' in mod.path and not jni_prolog_added:
                     hooks.append("""

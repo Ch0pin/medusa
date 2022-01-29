@@ -22,7 +22,7 @@ MEDUSA's functionality is divided in two basic python scripts: the **medusa.py**
 
 - **The medusa.py** 
 
-  > Is used to dynamically add or remove tracing of API calls during application's runtime. The tracing 'comes' in a form of modules, where each one of them 'specializes' in an abstract aspect. As an example, to trace the cryptographic procedures of the application (e.g.  fetch AES keys or the plaintext that will be encrypted), simply inject the AES module  and observer the output. 
+  > This script is used to dynamically add or remove tracing of API calls during application's runtime. The tracing 'comes' in a form of modules, where each one of them 'specializes' in an abstract aspect. As an example, to trace the cryptographic procedures of the application (e.g.  fetch AES keys or the plaintext that will be encrypted), simply inject the AES module  and observer the output. 
   >
   > Indicatively some of the  functionalities which are implemented so far, include the following: 
   >
@@ -46,10 +46,9 @@ MEDUSA's functionality is divided in two basic python scripts: the **medusa.py**
   >    -  Toll Fraud
   >    -  Sms Fraud
 
-  
+  **MEDUSA's current module set**
 
-
-<img src="https://user-images.githubusercontent.com/4659186/87720238-87827e80-c7ac-11ea-989c-fb80b9aa06b6.png" width="7650" height="350">
+<img src="https://user-images.githubusercontent.com/4659186/151659174-f642bd72-a455-442a-9e51-462c91a68b18.png" width="7650" height="350">
 
 
 

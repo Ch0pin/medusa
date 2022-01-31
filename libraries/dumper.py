@@ -103,9 +103,9 @@ def dump_pkg(pkg):
 
     logging.info("[DEXDump]: found target [{}] {}".format(target.pid, pkg_name))
     session = device.attach(target.pid)
-    path = '.'#os.path.dirname(save_path)
+    path = os.path.dirname(__file__)
     #path = path if path else "."
-    script = session.create_script(open(path + "/dexdump.js").read())
+    script = session.create_script(open(path + "/../dexdump.js").read())
     script.load()
 
     dump(pkg_name, script.exports)

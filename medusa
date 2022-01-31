@@ -1,0 +1,9 @@
+#!/bin/sh
+
+
+if [ "$#" -eq 2 ]; then
+    python3 /Users/ch0pin/Desktop/medusa/medusa.py $1 $2
+else
+    python3 /Users/ch0pin/Desktop/medusa/medusa.py
+fi
+

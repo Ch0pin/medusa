@@ -200,7 +200,7 @@ class nativeHandler():
         try:
 
             path = '.'
-            script = session.create_script(open("libraries/memops.js").read())
+            script = session.create_script(open(os.path.dirname(__file__)+"/memops.js").read())
             script.load()
             api = script.exports
            

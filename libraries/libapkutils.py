@@ -8,7 +8,7 @@ import logging
 import rlcompleter
 import time
 import frida
-from Questions import Polar
+from libraries.Questions import Polar
 
 if 'libedit' in readline.__doc__:
     readline.parse_and_bind("bind -e")

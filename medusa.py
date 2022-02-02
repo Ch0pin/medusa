@@ -13,8 +13,8 @@ import re
 from libraries.dumper import dump_pkg
 from google_trans_new import google_translator  
 from libraries.natives import *
-from Questions import *
-from Modules import *
+from libraries.Questions import *
+from libraries.Modules import *
 
 RED     = "\033[1;31m"
 BLUE    = "\033[1;34m"

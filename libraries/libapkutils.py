@@ -29,7 +29,7 @@ current_dir = os.getcwd()
 class parser(cmd.Cmd):
 
     
-    prompt = BLUE+'apkutils>'+RESET
+    prompt = BLUE+'mango> '+RESET
     INSTALL = False
     device = None
     package = None

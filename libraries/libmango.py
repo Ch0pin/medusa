@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 import subprocess, frida, shutil
-import cmd, os, sys, platform
+import cmd, os, sys, platform,requests
 import readline, logging, time, rlcompleter
 from libraries.Questions import Polar
 from libraries.libguava import *
 from libraries.Questions import *
+from shutil import which
 from colorama import Fore, Back, Style
 
 BASE = os.path.dirname(__file__) 
 
+APKTOOL_URL = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.6.0.jar"
+MEDUSA_AGENT_URL = "https://github.com/Ch0pin/mango/raw/main/agent.apk"
+
 APKTOOL = os.path.abspath(os.path.join(BASE,'../dependencies/apktool.jar'))
-APK_SIGNER =os.path.abspath(os.path.join(BASE,'../dependencies/apksigner')) 
-ZIPALLIGN = os.path.abspath(os.path.join(BASE,'../dependencies/zipalign')) 
+MEDUSA_AGENT = os.path.abspath(os.path.join(BASE,'../dependencies/agent.apk'))
+
 DEBUGGABLE_APK = os.getcwd()+"/debuggable.apk"
 ALLIGNED_APK = os.getcwd()+"/debuggable_alligned_signed.apk"
 TMP_FOLDER = os.getcwd()+"/tmp_dir"
@@ -60,7 +64,8 @@ DESCRIPTION"""+Style.RESET_ALL+"""
                                 Medusa Agent must be installed and running on the device (see installagent).
                                 (Example: > notify 'Title' 'Lorem ipsum dolor sit amet,....')
 
-    patch                       Changes the debuggable flage of the AndroidManifest.xml to true for a given apk.
+    patch                       Changes the debuggable flage of the AndroidManifest.xml to true for a given apk. The 
+                                command requires apksigner and zipalign to have been installed.
                                 (Example: > patch /path/to/foo.apk)
 
     proxy                       Performs a proxy modification or reads a proxy setting (used for MITM). If adb runs as 
@@ -141,6 +146,14 @@ class parser(cmd.Cmd):
 
     strings = []
     packages = []
+
+
+    def download_file(self,url,to_local_file):
+        local_filename = to_local_file
+        r = requests.get(url, allow_redirects=True)
+        open(local_filename, 'wb').write(r.content)
+      
+  
 
 
     def continue_session(self,guava):
@@ -397,17 +410,28 @@ class parser(cmd.Cmd):
             for column in columns:
                 print("{c: <25} {t: <15}".format(c = column[1],t = column[2]))
 
-
-
     def do_patch(self,line):
 
         text_to_search = "<application" 
         replacement_text ='<application android:debuggable="true" '
-
         file = line.split(' ')[0]
+
+            
         if os.path.exists(file):
 
             try:
+                if not self.does_exist("apksigner"):
+                    print("[!] apksigner is not installed, quiting !")
+                    return
+                if not self.does_exist("zipalign"):
+                    print("[!] zipalign is not installed, quiting !")
+                    return
+                if not os.path.exists(APKTOOL):
+                    if(Polar('[?] apktool has not been downloaded, do you want to do it now ?').ask()):
+                        self.download_file(APKTOOL_URL, APKTOOL)
+                else:
+                    return
+
                 print(GREEN+'[+] Unpacking the apk....'+RESET)
                 subprocess.run('java -jar '+ APKTOOL +' d {} -o {}'.format(file,TMP_FOLDER), shell=True)
 
@@ -427,9 +451,9 @@ class parser(cmd.Cmd):
                     print(GREEN+'[+] Repacking the app...'+RESET)
                     subprocess.run('java -jar '+ APKTOOL +' b {} -o {}'.format(TMP_FOLDER,DEBUGGABLE_APK), shell=True)
                     print(GREEN+'[+] Alligning the apk file.....'+RESET)
-                    subprocess.run(ZIPALLIGN +' -p 4 {} {}'.format(DEBUGGABLE_APK,ALLIGNED_APK),shell=True)
+                    subprocess.run('zipalign -p 4 {} {}'.format(DEBUGGABLE_APK,ALLIGNED_APK),shell=True)
                     print(GREEN+'[+] Signing the apk.....'+RESET)
-                    subprocess.run(APK_SIGNER +' sign --ks {} -ks-key-alias common --ks-pass pass:password --key-pass pass:password  {}'.format(SIGNATURE, ALLIGNED_APK),shell=True)
+                    subprocess.run('apksigner sign --ks {} -ks-key-alias common --ks-pass pass:password --key-pass pass:password  {}'.format(SIGNATURE, ALLIGNED_APK),shell=True)
                     print(GREEN+'[+] Removing the unsigned apk.....'+RESET)
                     os.remove(DEBUGGABLE_APK)
                     print(GREEN+'[+] Backing up the original...'+RESET)
@@ -755,7 +779,13 @@ class parser(cmd.Cmd):
 
     def do_installagent(self,line):
         try:
-            subprocess.run('adb -s {} install -g {}'.format(self.device.id,os.path.join(self.base_directory,'../dependencies/agent.apk')),shell=True)
+            if not os.path.exists(APKTOOL):
+                if(Polar('[?] Medusa Agent has not been downloaded, do you want to do it now ?').ask()):
+                    self.download_file(MEDUSA_AGENT_URL, MEDUSA_AGENT)
+            else:
+                    return
+
+            subprocess.run('adb -s {} install -g {}'.format(self.device.id,MEDUSA_AGENT),shell=True)
         except Exception as e:
             print(e)
 
@@ -1097,6 +1127,8 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
         else:
             return output
 
+    def does_exist(self,name):
+        return which(name) is not None
 
     def do_box(self,line):
 
@@ -1115,8 +1147,9 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
             download = Polar("[!] Can't find Bussybox in this device, do you want to download it ?").ask()
             if download:
                 try:
-                    print("[i] Attempting to download the file using 'curl' .....")
-                    print(self.run_command(["curl", BUSSY_BOX_URL+binary, "--output", "busybox.tmp"]).decode('utf-8'))
+                    print("[i] Attempting to download the file...")
+                    self.download_file(BUSSY_BOX_URL+binary,'./busybox.tmp')
+                    #print(self.run_command(["curl", BUSSY_BOX_URL+binary, "--output", "busybox.tmp"]).decode('utf-8'))
                     if os.path.exists("./busybox.tmp"):
                         print("[i] Download successfull, pushing the binary to the device as '/data/local/tmp/{}'".format(binary))
                         print(self.run_command(["adb", "-s", "{}".format(self.device.id), "push", "./busybox.tmp", "/data/local/tmp/{}".format(binary)]).decode('utf-8'))

@@ -107,7 +107,7 @@ class Parser(cmd.Cmd):
             for i in range(len(devices)):
                 print('{}) {}'.format(i, devices[i]))
 
-            self.device = devices[int(Numeric('\nEnter the index of the device to use:', lbound=0).ask())] 
+            self.device = devices[int(Numeric('\nEnter the index of the device to use:', lbound=0,ubound=len(devices)-1).ask())] 
         except:
             self.device = frida.get_remote_device()
         finally:

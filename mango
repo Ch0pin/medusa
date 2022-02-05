@@ -1,8 +1,10 @@
 #!/bin/sh
 
+python3 /Users/ch0pin/Desktop/medusa/mango.py
 
-if [ "$#" -eq 2 ]; then
-    python3 /Users/ch0pin/Desktop/medusa/mango.py $1 $2
-else
-    python3 /Users/ch0pin/Desktop/medusa/mango.py
-fi
+
+# if [ "$#" -eq 2 ]; then
+#     python3 /Users/ch0pin/Desktop/medusa/mango.py $1 $2
+# else
+#     python3 /Users/ch0pin/Desktop/medusa/mango.py
+# fi

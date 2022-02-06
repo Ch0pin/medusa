@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import subprocess, frida, shutil
-import cmd, os, sys, platform,requests
+import cmd2, os, sys, platform,requests
 import readline, logging, time, rlcompleter
 from libraries.Questions import Polar
 from libraries.libguava import *
@@ -21,29 +21,38 @@ ALLIGNED_APK = os.getcwd()+"/debuggable_alligned_signed.apk"
 TMP_FOLDER = os.getcwd()+"/tmp_dir"
 SIGNATURE = os.path.abspath(os.path.join(BASE,'../dependencies/common.jks')) 
 
+RED   = "\033[1;31m"  
+BLUE  = "\033[1;34m"
+CYAN  = "\033[1;36m"
+WHITE = "\033[1;37m"
+YELLOW= "\033[1;33m"
+GREEN = "\033[0;32m"
+RESET = "\033[0;0m"
+BOLD    = "\033[;1m"
+REVERSE = "\033[;7m"
 
 
-readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
+#readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
 BUSSY_BOX_URL = "https://busybox.net/downloads/binaries/1.31.0-defconfig-multiarch-musl/"
 
-HELP_MESSAGE = Style.BRIGHT + "\nSYNOPSIS:"+Style.RESET_ALL+"""
-    mango>[command] <parameters> <flags>""" +Style.BRIGHT +"""
+HELP_MESSAGE ="\nSYNOPSIS:"+"""
+    mango>[command] <parameters> <flags> """ +"""
 
-DESCRIPTION"""+Style.RESET_ALL+"""
+DESCRIPTION """+"""
 
     mango is a MEDUSA's tentacle which helps analysers to extract and analyse 'static' components of and Android
     Application. The results are saved to a SQLite database which can be reloaded or updated with new samples. 
     Additionally, it automates various other tasks, like changing proxy settings on the device, force to 
-    start/stop services, install/uninstall applications, take screenshots and many more."""+ Style.BRIGHT+"""
+    start/stop services, install/uninstall applications, take screenshots and many more.
 
-    The options are as follows:"""+Style.RESET_ALL+"""
+    The options are as follows:
 
     adb                         Start an interactive adb prompt.
 
     box                         Starts a busybox interactive shell. 
 
     c                           Run a local shell command.
-                                (Example: > c ls -al ./)
+                                (Example: > c ls -al ./ , > !ls -al)
 
     cc                          Run a command using the default adb shell.
                                 (Example: > cc ls -al /sdcard)
@@ -102,24 +111,30 @@ DESCRIPTION"""+Style.RESET_ALL+"""
                                 the tab key to see the available services. For non exported services, the adb must run 
                                 with root privileges.
 
+    trace                       -j, -n, -a  Trace the applicaton's calls using Frida-trace                                            
+    
     uninstall, kill, spawn      Uninstalls, kills or starts an app in the device. Use it in combination with the tab 
                                 key to see available packages.
-                                (Example: > uninstall com.foo.bar , > kill com.foo.bar1)"""
+                                (Example: > uninstall com.foo.bar , > kill com.foo.bar1)
 
-RED   = "\033[1;31m"  
-BLUE  = "\033[1;34m"
-CYAN  = "\033[1;36m"
-WHITE = "\033[1;37m"
-YELLOW= "\033[1;33m"
-GREEN = "\033[0;32m"
-RESET = "\033[0;0m"
-BOLD    = "\033[;1m"
-REVERSE = "\033[;7m"
+    ------------------------------------------------------------------------------------
+    Other features availlable:
+    ------------------------------------------------------------------------------------
+
+    - Searchable command history (history command and <Ctrl>+r) - optionally persistent
+    - Run a shell command with !
+    - Pipe command output to shell commands with |
+    - Run shell commands with !
+    - Redirect command output to file with >, >>
+    - Bare >, >> with no filename send output to paste buffer (clipboard)
+ 
+    """
+
 current_dir = os.getcwd()
 
-class parser(cmd.Cmd):
+class parser(cmd2.Cmd):
     NO_APP_LOADED_MSG = "[i] No application is loaded, type 'import /path/to/foo.apk' to load one"
-
+    
     base_directory = os.path.dirname(__file__)
     prompt = Fore.BLUE +Style.BRIGHT +'mango> '+Fore.RESET+Style.RESET_ALL
     current_app_sha256 = None
@@ -137,7 +152,9 @@ class parser(cmd.Cmd):
     services = None
     receivers = None
     providers = None
+
     deeplinks = None
+    total_deep_links = []
     intent_filters = None
     hosts = set()
     schemes = set()
@@ -146,6 +163,7 @@ class parser(cmd.Cmd):
 
     strings = []
     packages = []
+
 
 
     def download_file(self,url,to_local_file):
@@ -215,7 +233,7 @@ class parser(cmd.Cmd):
 |    Debuggable        :{}
 |    Allow Backup      :{} 
 [------------------------------------------------------------------------------------------]
-|                          Type 'help' for a list of commands                              |
+|                          Type 'help' or 'man' for a list of commands                     |
 [------------------------------------------------------------------------------------------]
         """.format(info[0][1],info[0][2],info[0][3],info[0][4],
             info[0][5],info[0][6],info[0][7],info[0][0],info[0][10],info[0][11]) +Style.RESET_ALL)   
@@ -246,58 +264,78 @@ class parser(cmd.Cmd):
 
         display_text = ''
         component = ''
-        lst = []
+        schmlst = []
+        hostlst = []
+        pathPrefixlst = []
+
         for attribs in self.deeplinks:
             if component != attribs[0]:
                 component = attribs[0]
                 l = len(component)
                 if not quite:
-                    print(Fore.GREEN+'-'*l+'\nComponent:{}'.format(component)+Fore.RESET)
+                    print(Fore.GREEN+'-'*l+Fore.YELLOW+'\nDeeplinks that start:'+ Fore.CYAN+ '{}'.format(component)+Fore.RESET)
 
             detonate = attribs[1].split('|')
 
             schemes = ''
-            lst.clear()
+            schmlst.clear()
             for ingredient in detonate:
                 if 'scheme:' in ingredient:
                     t = ingredient.split(':')[1]
                     schemes += t
                     schemes += ' '
-                    lst.append(t)
+                    schmlst.append(t)
             
-                self.schemes =set.union(self.schemes,set(lst))
+                self.schemes =set.union(self.schemes,set(schmlst))
     
         
-            if not quite:
-                print("Schemes: "+schemes)
+            # if not quite:
+            #     print("Schemes: "+schemes)
 
             hosts = ''
-            lst.clear()
+            hostlst.clear()
             for ingredient in detonate:
                 if 'host:' in ingredient:
                     j = ingredient.split(':')[1]
                     hosts += j
                     hosts += ' '
-                    lst.append(j)
+                    hostlst.append(j)
 
-                self.hosts = set.union(self.hosts,set(lst))
+                self.hosts = set.union(self.hosts,set(hostlst))
 
-            if not quite:
-                print("Hosts: "+hosts)
+            # if not quite:
+            #     print("Hosts: "+hosts)
 
             pathPrefix = ''
-            lst.clear()
+            pathPrefixlst.clear()
             for ingredient in detonate:
                 if 'pathPrefix:' in ingredient:
                     p = ingredient.split(':')[1]
                     pathPrefix += p
                     pathPrefix += ' '
-                    lst.append(p)
-                self.pathPrefixes = set.union(self.pathPrefixes,set(lst))
+                    pathPrefixlst.append(p)
+                self.pathPrefixes = set.union(self.pathPrefixes,set(pathPrefixlst))
             
+            # if not quite:
+            #     print("pathPrefix: "+pathPrefix)
+
+            if not pathPrefixlst:
+                pathPrefixlst.append('')
+            if not hostlst:
+                hostlst.append('')
+
+            tmplst = []
+            for s in schmlst:
+                for h in hostlst:
+                    for p in pathPrefixlst:
+                        link = s + '://' + h + p
+                        if link not in tmplst:
+                            tmplst.append(link)
             if not quite:
-                print("pathPrefix: "+pathPrefix)
-  
+                for lnk in tmplst:
+                    print(lnk)
+
+            self.total_deep_links += tmplst                
 
 
 
@@ -412,6 +450,10 @@ class parser(cmd.Cmd):
 
     def do_patch(self,line):
 
+        """Usage: patch /path/to/foo.apk
+        Changes the debuggable flage of the AndroidManifest.xml to true for a given apk. The 
+        command requires apksigner and zipalign to have been installed."""
+
         text_to_search = "<application" 
         replacement_text ='<application android:debuggable="true" '
         file = line.split(' ')[0]
@@ -472,6 +514,10 @@ class parser(cmd.Cmd):
 
 
     def do_query(self,line):
+
+        """Usage: query SELECT * FROM Application
+        Performs a raw query in the session db and returns the results as a list of tuples."""
+
         try:
             print(self.database.query_db(line))
         except Exception as e:
@@ -480,6 +526,11 @@ class parser(cmd.Cmd):
 
 
     def do_swap(self,line):
+
+        """Usage: swap
+            Loads an apk analysis that is already availlable in the session db."""
+
+
         res = self.database.query_db("SELECT sha256, packageName from Application;")
         if res:
             print(Fore.GREEN+"[i] Availlable applications:\n" +Fore.RESET +"-"*7+" "+"-"*70+" "+"-"*57+"\n {0} {1:^68} {2:^60}\n".format("index","sha256","Package Name")+"-"*7+" "+"-"*70+" "+"-"*57)
@@ -498,10 +549,22 @@ class parser(cmd.Cmd):
 
 
     def do_cc(self,line):
+
+        """Usage:cc ls -al /sdcard
+        Run a command using the default adb shell."""
+
         subprocess.run('adb -s {} shell {}'.format(self.device.id, line), shell=True)
 
 
     def do_show(self,line):
+
+        """Usage: show <component> <-e>
+        Prints information about components of the loaded application. The currently available
+        are: activities, services, activityAlias, receivers, deeplinks, providers and 
+        intentFilters. Adding the '-e' flag will print only exported components. Additionaly
+        'database' prints the database structure of the session database, 'manifest' the prints
+        the manifest and 'info' prints general information about the loaded application"""
+
         
         what = line.split(' ')[0]
         if len(line.split(' '))>1:
@@ -582,6 +645,11 @@ class parser(cmd.Cmd):
 
 
     def do_pull(self, line):
+
+        """Usage: pull com.foo.bar
+        Extracts an apk from the device and saves it as 'base.apk' in the working directory.
+        Use it in combination with the tab key to see available packages"""
+
         package = line.split(' ')[0]
         try:
             base_apk = os.popen("adb -s {} shell pm path {} | grep base.apk | cut -d ':' -f 2".format(self.device.id,package)).read()
@@ -616,6 +684,10 @@ class parser(cmd.Cmd):
       
 
     def do_search(self, line):
+
+        """Usage: search foobar
+        Searches for a given string in the extracted components and strings."""
+
 
         if self.current_app_sha256 == None:
             print(self.NO_APP_LOADED_MSG)
@@ -660,6 +732,10 @@ class parser(cmd.Cmd):
             print(e)
         
     def do_import(self,line):
+
+        """Usage: import /path/to/foo.apk
+        Imports an apk file for analysis and saves the results to the session's database. """
+
         apkfile = line.split(' ')[0]
         if os.path.exists(apkfile):
             self.real_import(apkfile)
@@ -668,6 +744,11 @@ class parser(cmd.Cmd):
 
 
     def do_notify(self,line):
+
+        """Usage: notify 'Title' 'Lorem ipsum dolor sit amet,....'
+        Sends a notification to the device (it is used to trigger notification listeners). The
+        Medusa Agent must be installed and running on the device (see installagent)."""
+
         try:
             self.init_packages()   
             if 'com.medusa.agent' in self.packages:   
@@ -684,6 +765,12 @@ class parser(cmd.Cmd):
             self.packages.append(line1.split(':')[1].strip('\n'))
    
     def do_uninstall(self,package):
+
+        """Usage: uninstall [tab] or 'package name'
+        Uninstalls an app from the device. Use it in combination with the tab 
+        key to see available packages."""
+
+
         try:         
             output=os.popen("adb -s {} uninstall {}".format(self.device.id,package.split(' ')[0])).read()
             print(output)
@@ -692,6 +779,11 @@ class parser(cmd.Cmd):
             
 
     def do_kill(self,package):
+
+        """Usage: kill [tab] or 'package name'
+        Stops an app running in the device. Use it in combination with the tab 
+        key to see available packages."""
+
         try:         
             print(package)
             output=os.popen("adb -s {} shell  am force-stop {}".format(self.device.id,package.split(' ')[0])).read()
@@ -701,6 +793,11 @@ class parser(cmd.Cmd):
             
 
     def do_spawn(self,package):
+
+        """Usage: spawn [tab] or 'package name'
+        Starts an app in the device. Use it in combination with the tab 
+        key to see available packages. """
+
         try:         
             print('[+] Starting {}'.format(package))
             os.popen("adb -s {} shell  monkey -p {} -c 'android.intent.category.LAUNCHER 1'".format(self.device.id,package.split(' ')[0])).read()
@@ -754,6 +851,8 @@ class parser(cmd.Cmd):
 
 
     def do_adb(self,line,cmd=None,frombs=False):
+
+        """Start an interactive adb prompt."""
         
         if cmd == None:
             print("[i] Type 'exit' to return ") 
@@ -767,6 +866,11 @@ class parser(cmd.Cmd):
             cmd = input(GREEN+'{}:adb:'.format(self.device.id)+RESET)
 
     def do_install(self,line):
+
+        """Usage: install /full/path/to/foobar.apk
+        
+        Install an apk to the device."""
+
         try:
             if len(line.split(' ')):
                 apk_file = line.split(' ')[0]
@@ -778,6 +882,12 @@ class parser(cmd.Cmd):
 
 
     def do_installagent(self,line):
+
+        """Usage: installagent
+        
+        Install an medusa agent to the device. The agent can be used to extend the
+        framework's functionality."""
+
         try:
             if not os.path.exists(APKTOOL):
                 if(Polar('[?] Medusa Agent has not been downloaded, do you want to do it now ?').ask()):
@@ -791,6 +901,18 @@ class parser(cmd.Cmd):
 
 
     def do_trace(self,line):
+
+        """Usage: trace -j, -n, -a <full class name>
+
+        Examples:
+        trace -j com.myapp.name*:\tTrace all the functions of the com.myapp.name* class
+        trace -n foo:\t\t\tTrace a native function
+        trace -a library.so:\t\tTrace the functions of the library.so
+
+        Spawns a new frida-trace instance with the given options
+        """
+            
+
         if self.current_app_sha256 == None:
             print(self.NO_APP_LOADED_MSG)
         else:
@@ -858,6 +980,11 @@ class parser(cmd.Cmd):
  
 
     def do_screencap(self, line):
+
+        """Usage: screencap -o 'screen1.png'
+        Captures the device screen and saves it as a png file in the current directory.
+        """
+
         try:
             if '-o' in line.split(' ')[0]:
                 os.popen("adb -s {} exec-out screencap -p > {}".format(self.device.id,line.split(' ')[1]))
@@ -872,6 +999,10 @@ class parser(cmd.Cmd):
 
     def do_type(self,line):
 
+        """Usage: type 'lorem ipsum"
+        
+        Sends a text to the device."""
+
         print("Type 'exit' to quit")
 
         while 'exit' not in line:
@@ -885,10 +1016,18 @@ class parser(cmd.Cmd):
 
 
     def do_c(self, line):
+
+        """Usage: c whoami
+        run a local shell command."""
+                                
         subprocess.run(line, shell=True)
 
 
     def do_proxy(self,line):
+
+        """Usage: proxy set ip:port
+        Performs a proxy modification or reads a proxy setting (used for MITM). 
+        If adb runs as root it can be used with the '-t' flag to set a transparent proxy."""
 
         command = line.split(' ')[0]
         try:
@@ -944,6 +1083,11 @@ class parser(cmd.Cmd):
 
 
     def do_installBurpCert(self,line):
+
+        """Usage: installBurpCert
+        Install the Burp certificate to the mobile device."""
+
+
         install_script = os.path.join(self.base_directory,'../utils/installBurpCert.sh')
         self.init_packages()
         if 'com.medusa.agent' not in self.packages:
@@ -977,6 +1121,11 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
 
 
     def do_jdwp(self,line):
+
+        """Usage: jdwp [tab] or 'package name'
+        Create a jdb session. Use it in combination with the tab key to see available packages. 
+        The app has to have the debuggable flag to true."""
+
         try:
             pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,line.split(' ')[0])).read()
             output = os.popen("adb -s {} forward tcp:6667 jdwp:{}".format(self.device.id,pid)).read()
@@ -1006,6 +1155,12 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
 
 
     def do_start(self,line):
+
+        """Usage: start [tab] or 'full activity name'
+        Forces to start an activity of the loaded application. Use it in combination with the 
+        tab key to see the available activities. For non exported activities, the adb must run 
+        with root privileges.""" 
+
         if self.current_app_sha256 == None:
             print(self.NO_APP_LOADED_MSG)
         else:
@@ -1033,6 +1188,13 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
 
 
     def do_startsrv(self,line):
+
+        """Usage: startsrv [tab] or 'service name'
+        Forces to start a service of the loaded application. Use it in combination with the
+        tab key to see the available services. For non exported services, the adb must run 
+        with root privileges."""
+
+
         if self.current_app_sha256 == None:
             print(self.NO_APP_LOADED_MSG)
         else:
@@ -1056,6 +1218,12 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
         return completions
 
     def do_stopsrv(self,line):
+
+        """Usage: stopsrv [tab] or 'service name'
+        Forces to stop a service of the loaded application. Use it in combination with the
+        tab key to see the available services. For non exported services, the adb must run 
+        with root privileges."""
+
         if self.current_app_sha256 == None:
             print(self.NO_APP_LOADED_MSG)
         else:
@@ -1078,6 +1246,11 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
 
 
     def do_deeplink(self,line):
+
+        """Usage: deeplink [tab] or 'full deeplink' < --poc > 
+        Sends a deeplink to the device. When used with --poc it will create an html link
+        that contains the deeplink."""
+
         if self.current_app_sha256 == None:
             print(self.NO_APP_LOADED_MSG)
         else:
@@ -1097,24 +1270,14 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
                 print(e)
 
     def complete_deeplink(self, text, line, begidx, endidx):
-        s = list(self.schemes)
-        h = list(self.hosts)
-
 
         if not text:
-            completions = s[:]
+            completions = self.total_deep_links[:]
         else:
-            if not ':' in text:
-                completions = [ f
-                                for f in s
-                                if f.startswith(text)
-                                ]
-            else:
-                w = text.split(':')[1]
-                completions = [ f
-                                for f in h
-                                if f.startswith(w)
-                                ]
+            completions = [ f
+                            for f in self.total_deep_links
+                            if f.startswith(text)
+                            ]
         return completions
 
 
@@ -1131,6 +1294,7 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
         return which(name) is not None
 
     def do_box(self,line):
+        """Starts a busybox interactive shell. """
 
         arch = self.run_command(["adb","-s",'{}'.format(self.device.id),"shell","getprop","ro.product.cpu.abi"])
 
@@ -1176,25 +1340,27 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
             
 
     def do_exit(self,line):
-        print('[i] Checking the working directory for leftovers... ')
+        """Usage: exit 
+        Exits the application."""
+        print('Checking the working directory for leftovers... ')
         try:
             if os.path.isfile('./script.sh'):
                 Polar('\tDo you want to delete the trace script file ?',
                     lambda: os.remove('./script.sh')).ask()
-            if os.path.isfile('./script.bat'):
+            if os.path.isfile('.\script.bat'):
                 Polar('\tDo you want to delete the trace script file?',
                     lambda: os.remove('./script.bat')).ask()
             if os.path.exists("__handlers__/"):
                 Polar('\tDo you want to delete the __handlers__ folder?',
                     lambda: os.system("rm -r __handlers__/")).ask()
-
-
+            else:
+                print("All good !")
 
         except Exception as e:
             print(e) 
 
-        print('All good...Bye !!')
-        exit()
+        print('Bye !!')
+        sys.exit()
 
 
     def highlight(self,word,str):
@@ -1204,7 +1370,7 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
             return ''
 
 
-    def do_help(self,line):
+    def do_man(self,line):
         if len(line.split(' ')) > 0:
             topic = line.split(' ')[0]
             h = self.highlight(topic, HELP_MESSAGE)
@@ -1213,5 +1379,7 @@ $mv /sdcard/*.der /system/etc/security/cacerts/*.0
             else:
                 print(h)
         else:
-            print(HELP_MESSAGE)
-    
+            line = " "
+            topic = "optionally"
+            h = self.highlight(topic, HELP_MESSAGE)
+            print(h)

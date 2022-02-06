@@ -11,14 +11,7 @@ import sys, os.path
 
 
 
-        
-def print_usage(script):
-    print("""[i] ---------------------------USAGE--------------------------------:\n
-  ./{} <apkfile> <sqlite.db>\n
-  --help    Display this message
-  --patch   When used with an apk as input it will set the "debuggable" flag to true
-        
-        """.format(script))    
+
 
 def print_logo():
   print(Style.BRIGHT+"""
@@ -62,6 +55,7 @@ def start_session(db_session,existing = False):
   guava = Guava(application_database)
   p = parser()   
   p.database = application_database
+  p.guava = guava
   if existing:
     p.continue_session(guava)
 

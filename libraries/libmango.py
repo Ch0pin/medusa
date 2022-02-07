@@ -164,7 +164,11 @@ class parser(cmd2.Cmd):
     strings = []
     packages = []
 
+    def __init__(self):
+        super().__init__(
+            allow_cli_args=False
 
+        )
 
     def download_file(self,url,to_local_file):
         local_filename = to_local_file
@@ -522,14 +526,9 @@ class parser(cmd2.Cmd):
             print(self.database.query_db(line))
         except Exception as e:
             print(e)
-    
 
 
-    def do_swap(self,line):
-
-        """Usage: swap
-            Loads an apk analysis that is already availlable in the session db."""
-
+    def load_or_remove_application(self):
 
         res = self.database.query_db("SELECT sha256, packageName from Application;")
         if res:
@@ -539,13 +538,37 @@ class parser(cmd2.Cmd):
                 sha256, package_name = entry
                 print(Fore.CYAN+Style.BRIGHT+"{0:^7} {1:^68} {2:^60}".format(index,sha256,package_name))
                 index+=1
-            
-            chosen_index = int(Numeric(Style.RESET_ALL+'\nEnter the index of  application to load:', lbound=0,ubound=index-1).ask())
-            chosen_sha256 = res[chosen_index][0]
-            self.init_application_info(self.database,chosen_sha256)
+
+            task = int(Numeric(Style.RESET_ALL+'\n[i] Options: \n\t\t0 - Load an application \n\t\t1 - Delete an application \n\t\t2 - Exit this submenu\n\n[?] Please choose an option:', lbound=0,ubound=2).ask())
+
+            if task != 2:
+                chosen_index = int(Numeric(Style.RESET_ALL+'\nEnter the index of the application:', lbound=0,ubound=index-1).ask())
+                chosen_sha256 = res[chosen_index][0]
+
+            if task == 0:
+                self.real_load_app(chosen_sha256)
+            elif task==1:
+                if self.current_app_sha256 == chosen_sha256:
+                    if Polar("[!] The application is currently loaded, do you still want to delete it ?").ask():
+                        self.current_app_sha256 = None
+                        self.real_remove_app(chosen_sha256)
+                    else:
+                        return
+            elif task == 2:
+                return
+        
         else:
             print(Fore.RED+Style.BRIGHT+ "[!] No Entries found in the given database !"+Style.RESET_ALL)
         return
+
+
+
+    def real_remove_app(self,chosen_sha256):
+        self.database.delete_application(chosen_sha256) 
+  
+    def real_load_app(self,chosen_sha256):
+        self.init_application_info(self.database,chosen_sha256)
+
 
 
     def do_cc(self,line):
@@ -560,10 +583,11 @@ class parser(cmd2.Cmd):
 
         """Usage: show <component> <-e>
         Prints information about components of the loaded application. The currently available
-        are: activities, services, activityAlias, receivers, deeplinks, providers and 
-        intentFilters. Adding the '-e' flag will print only exported components. Additionaly
-        'database' prints the database structure of the session database, 'manifest' the prints
-        the manifest and 'info' prints general information about the loaded application"""
+        are: activities, services, activityAlias, receivers, deeplinks, providers and intentFilters. 
+        Adding the '-e' flag will print only exported components. Additionaly 'database' prints the 
+        database structure, 'manifest' prints the application's manifest, and 'applications' allows 
+        you to load or remove an application that is availlable in the session file. Finally, 'info' 
+        prints general information about the loaded application"""
 
         
         what = line.split(' ')[0]
@@ -574,6 +598,8 @@ class parser(cmd2.Cmd):
         
         if 'database' in what:
             self.print_database_structure()
+        elif 'applications' in what:
+            self.load_or_remove_application()
         else:
             if self.current_app_sha256 == None:
                 print(self.NO_APP_LOADED_MSG)
@@ -624,7 +650,7 @@ class parser(cmd2.Cmd):
                 elif 'strings' in what:
                     self.print_strings(self.strings)    
                 else:
-                    print('[i] Usage: show [activities, activityAlias, database, deeplinks, info, intentFilters, manifest, permissions, providers, receivers, services, strings]')
+                    print('[i] Usage: show [activities, activityAlias, applications, database, deeplinks, info, intentFilters, manifest, permissions, providers, receivers, services, strings]')
 
 
 
@@ -633,7 +659,7 @@ class parser(cmd2.Cmd):
         if self.current_app_sha256 == None:
             components = ['database']
         else:
-            components = sorted(['activityAlias','info','permissions', 'activities', 'services', 'receivers', 'intentFilters','providers', 'deeplinks','strings','database','manifest'])
+            components = sorted(['applications','activityAlias','info','permissions', 'activities', 'services', 'receivers', 'intentFilters','providers', 'deeplinks','strings','database','manifest'])
         if not text:
             completions = components[:]
         else:

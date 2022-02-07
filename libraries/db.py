@@ -26,6 +26,7 @@ class apk_db():
         self.cursor.execute("""CREATE TABLE Application(sha256 TEXT, name TEXT, packageName TEXT, versionCode TEXT, 
                         versionName TEXT, minSdkVersion TEXT, targetSdkVersion TEXT, maxSdkVersion TEXT,
                         permissions TEXT, libraries TEXT, debuggable TEXT, allowbackup TEXT, androidManifest TEXT, stringResources TEXT)""")
+
         self.cursor.execute("""CREATE TABLE Permissions(app_sha256 TEXT, permission TEXT, type TEXT, shortDescription TEXT, fullDescription TEXT)""")
 
         self.cursor.execute("""CREATE TABLE Activities(app_sha256 TEXT, name TEXT, enabled TEXT, exported TEXT, autoRemoveFromRecents TEXT, 
@@ -42,7 +43,27 @@ class apk_db():
         self.cursor.execute("""CREATE TABLE IntentFilters(app_sha256 TEXT, componentName TEXT, actionList TEXT, categoryList TEXT, dataList TEXT)""")
 
 
+    def delete_application(self,sha256):
+        sql1 = "DELETE FROM Application WHERE sha256 = '{}'".format(sha256)
+        sql2 = "DELETE FROM Permissions WHERE app_sha256 = '{}'".format(sha256)
+        sql3 = "DELETE FROM Activities WHERE app_sha256 = '{}'".format(sha256)
+        sql4 = "DELETE FROM Services WHERE app_sha256 = '{}'".format(sha256)
+        sql5 = "DELETE FROM Providers WHERE app_sha256 = '{}'".format(sha256)
+        sql6 = "DELETE FROM Receivers WHERE app_sha256 = '{}'".format(sha256)
+        sql7 = "DELETE FROM ActivityAlias WHERE app_sha256 = '{}'".format(sha256)
+        sql8 = "DELETE FROM IntentFilters WHERE app_sha256 = '{}'".format(sha256)
 
+        self.cursor.execute(sql1)
+        self.cursor.execute(sql2)
+        self.cursor.execute(sql3)
+        self.cursor.execute(sql4)
+        self.cursor.execute(sql5)
+        self.cursor.execute(sql6)
+        self.cursor.execute(sql7)
+        self.cursor.execute(sql8)
+
+        self.connection.commit()
+        return
 
 
     def get_deeplinks(self,sha256):

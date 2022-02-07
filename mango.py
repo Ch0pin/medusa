@@ -67,35 +67,45 @@ def start_session(db_session,existing = False):
 if __name__ == "__main__":
 
   print_logo()
-  menu = {}
-  menu['1']="Start a new session" 
-  menu['2']="Continue an existing session"
-  menu['3']="Exit"
-  
-  while True: 
-    print("-"*50 + "\n[?] What do you want to do ?\n"+"-"*50)
-    options=menu.keys()
 
-    for entry in options:
-      print(entry, menu[entry])
-    selection=input("\n[?] Enter your selection: ") 
+  if len(sys.argv) > 1:
+    session = sys.argv[1]
 
-    if selection =='1':
-      session = input("\n[?] Enter a session name: ") 
-      start_session(session)
-      break
-    elif selection == '2':
-      session = input("\n[?] Enter full path to the session file: ")  
-      if os.path.exists(session):
-        start_session(session, True)
-      else:
+    if os.path.exists(session):
+      start_session(session, True)
+    else:
         print(Fore.RED+"[!] Fatal: can't find: {} ".format(session)+Fore.RESET)
         exit()
-      break
-    elif selection == '3':
-      exit()
-    else: 
-      print("[!] Unknown Option Selected!")
+  else:
+    menu = {}
+    menu['1']="Start a new session" 
+    menu['2']="Continue an existing session"
+    menu['3']="Exit"
+    
+    while True: 
+      print("-"*50 + "\n[?] What do you want to do ?\n"+"-"*50)
+      options=menu.keys()
+
+      for entry in options:
+        print(entry, menu[entry])
+      selection=input("\n[?] Enter your selection: ") 
+
+      if selection =='1':
+        session = input("\n[?] Enter a session name: ") 
+        start_session(session)
+        break
+      elif selection == '2':
+        session = input("\n[?] Enter full path to the session file: ")  
+        if os.path.exists(session):
+          start_session(session, True)
+        else:
+          print(Fore.RED+"[!] Fatal: can't find: {} ".format(session)+Fore.RESET)
+          exit()
+        break
+      elif selection == '3':
+        exit()
+      else: 
+        print("[!] Unknown Option Selected!")
  
 
 

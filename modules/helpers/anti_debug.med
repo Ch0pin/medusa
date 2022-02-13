@@ -7,6 +7,13 @@
     
     var antidebug = Java.use('android.os.Debug');
 
+    var a_activity = Java.use('ndroid.app.Activity');
+
+    a_activity.isTaskRoot.implementation=function(){
+        console.log('[!] overwriting isTaskRoot');
+        return true;
+    }
+
 
 
 

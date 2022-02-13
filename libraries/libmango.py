@@ -94,18 +94,16 @@ DESCRIPTION """+"""
     search                      Searches for a given string in the extracted components and strings.
                                 (Example: search foobar)
 
-    show                        Prints information about components of the loaded application. The currently available
-                                are: activities, services, activityAlias, receivers, deeplinks, providers and 
-                                intentFilters. Adding the '-e' flag will print only exported components. Additionaly
-                                'database' prints the database structure of the session database, 'manifest' the prints
-                                the manifest and 'info' prints general information about the loaded application. 
-                                (Example: > show activities -e)
+    show                        Prints information about components of the loaded application or session. The currently
+                                availlable info includes: applications, activities, services, activityAlias, receivers, 
+                                deeplinks, providers and intentFilters. Adding the '-e' flag will print only exported 
+                                components. Additionaly 'database' prints the database structure of the session database, 
+                                'manifest' the prints the manifest and 'info' prints general information about the loaded 
+                                application (Example: > show activities -e).
                                 
     start                       Forces to start an activity of the loaded application. Use it in combination with the 
                                 tab key to see the available activities. For non exported activities, the adb must run 
                                 with root privileges. 
-
-    swap                        Loads an apk analysis that is already availlable in the session db.
 
     startsrv, stoprsrv          Forces to start or stop a service of the loaded application. Use it in combination with 
                                 the tab key to see the available services. For non exported services, the adb must run 
@@ -215,6 +213,7 @@ class parser(cmd2.Cmd):
             self.service_names = list('\n'.join(map(lambda x: str(x[0]), application_database.query_db("SELECT name from Services WHERE app_sha256='{}'".format(app_sha256)))).split('\n'))
             self.manifest = application_database.query_db("SELECT androidManifest FROM Application WHERE sha256='{}';".format(app_sha256))
             self.strings = application_database.query_db("SELECT stringResources FROM Application WHERE sha256='{}';".format(app_sha256))[0][0].decode('utf-8')
+            self.total_deep_links = []
             self.deeplinks = application_database.get_deeplinks(app_sha256)
             self.print_deeplinks(True) #propagate the deeplink lists
             self.current_app_sha256 = app_sha256
@@ -310,10 +309,12 @@ class parser(cmd2.Cmd):
             # if not quite:
             #     print("Hosts: "+hosts)
 
+            paths = ['path:','pathPrefix:','pathPattern:']
             pathPrefix = ''
             pathPrefixlst.clear()
             for ingredient in detonate:
-                if 'pathPrefix:' in ingredient:
+                if any(pth in ingredient for pth in paths):
+                #if 'pathPrefix:' in igredient:
                     p = ingredient.split(':')[1]
                     pathPrefix += p
                     pathPrefix += ' '
@@ -554,6 +555,8 @@ class parser(cmd2.Cmd):
                         self.real_remove_app(chosen_sha256)
                     else:
                         return
+                else:
+                    self.real_remove_app(chosen_sha256)
             elif task == 2:
                 return
         

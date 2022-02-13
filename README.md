@@ -15,10 +15,42 @@ Some of the MEDUSA's features include:
 
 **Overview of the MEDUSA workflows (Presentation): [MEDUSA-Usage-workflows.pdf](https://github.com/Ch0pin/medusa/blob/master/MEDUSA-Usage-workflows.pdf)**
 
+### Changelong:
+
+##### 11/02/2022: 
+
+**Medusa was made directory independent,** meaning `medusa.py` can now be run from anywhere in the system. Modules, namely the `scratchpad`, were also made directory independent. In particular, users may now add arbitrary modules by using the `add` command, and specifying a full path to a custom module. These features implied a cascade of changes, described below.
+
+- Calls to the `agent.js`, snippets, utilities, libraries, and default modules are now referred to by their full path. This path is obtained at startup, by setting the `base_directory` property of the `Parser` class to hold the result of calling `os.path.dirname(__file__)`.
+- Modules are now represented by a `Module` class, and may be managed by a `ModuleManager`, both included in the newly created `Modules.py`. This relieves some of the strain from `medusa.py`, improves readability, and significantly reduces code size and code repetition.
+- The format of modules was revamped, and now consists of JSON code. The name of the module is now [category]/[name], where the category is optional, and defaults to *uncategorized* if missing. Without significant changes for the end user, this makes parsing modules very easy, less prone to error, and makes the format extensible. All files in the `modules` directory were updated accordingly.
+
+Additional changes include:
+
+- Command completion now properly handles the forward slash ('/') character.
+- Code formatting has been harmonised.
+- Many local code improvements.
+
+Note that although the changes were tested, since they are significant, some bugs may have been inadvertently introduced.
+
+**apkutils.py has been replace with mango.py**
+
+With mango.py you can load multiple applications at once and extract attributes of their main components, including activities, services, providers and receivers.  The gathered data will be saved in a local SQLite database which can be easily queried via the mango cli. All the helping functions of **apkutils** have been maintained and similarly to medusa.py, mango.py is directory independent. 
+
+**Added requirements: **
+
+androguard==3.3.5
+click==8.0.3
+cmd2==2.3.3
+colorama==0.4.4
+frida==15.1.13
+google_trans_new==1.1.9
+requests==2.25.1
+
 
 ### Usage:
 
-MEDUSA's functionality is divided in two basic python scripts: the **medusa.py** and the **apkutils.py** with the last to be more of a helping utility which automates processes like **setting a proxy server for the device**, **parcing the Anroid Manifest, starting/stoping activities and many more**. More specifically:
+MEDUSA's functionality is divided in two basic python scripts: the **medusa.py** and the **mango.py** with the last to be more of a helping utility which automates processes like **setting a proxy server for the device**, **parcing the Anroid Manifest, starting/stoping activities and many more**. More specifically:
 
 - **The medusa.py** 
 
@@ -53,9 +85,9 @@ MEDUSA's functionality is divided in two basic python scripts: the **medusa.py**
 
 
 
-- **The apkutils.py** 
+- **The mango.py** 
 
-  > Given a **manifest or and apk file**, the specific script is able to perform the following functionalities:
+  > Given an **apk file**, the specific script is able to perform the following functionalities:
   >
   > - Display the application's components and technical characteristics, including:
   >   - Activities

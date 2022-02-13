@@ -8,14 +8,16 @@ import sys
 NS_ANDROID_URI = "http://schemas.android.com/apk/res/android"
 NS_ANDROID = '{http://schemas.android.com/apk/res/android}'
 
-filter_list = {}
+
 
 
 
 class Guava:
+  filter_list = {}
 
   def __init__(self, db_instance):
         self.application_database = db_instance
+        filter_list = {}
       
 
   def sha256sum(self,filename):
@@ -60,29 +62,31 @@ class Guava:
 
         filterList.append(intentFilter)
       
-      filter_list[name] = filterList
+      self.filter_list[name] = filterList
 
 
 
   def fill_activities(self,application,sha256):
 
       for activity in application.findall("activity"):
-          activityName = activity.get(NS_ANDROID+"name")
-          enabled = activity.get(NS_ANDROID+"enabled")
-          exported = activity.get(NS_ANDROID+"exported")
-          autoRemoveFromRecents = activity.get(NS_ANDROID+"autoRemoveFromRecents")
-          excludeFromRecents = activity.get(NS_ANDROID+"excludeFromRecents")
-          noHistory = activity.get(NS_ANDROID+"noHistory")
-          permission = activity.get(NS_ANDROID+"permission")
 
+        activityName = activity.get(NS_ANDROID+"name")
+        enabled = activity.get(NS_ANDROID+"enabled")
+        exported = activity.get(NS_ANDROID+"exported")
+        autoRemoveFromRecents = activity.get(NS_ANDROID+"autoRemoveFromRecents")
+        excludeFromRecents = activity.get(NS_ANDROID+"excludeFromRecents")
+        noHistory = activity.get(NS_ANDROID+"noHistory")
+        permission = activity.get(NS_ANDROID+"permission")
 
-          if len(activity.findall("intent-filter")) > 0:
-              exported = "true (intent filter)"
-              filters = activity.findall("intent-filter")
-              self.extractIntentFilters(filters, activity)
+        if len(activity.findall("intent-filter")) > 0:
+          if exported != 'false':
+            exported = "true (intent filter)"
 
-          activity_attribs = (sha256, activityName, enabled, exported,autoRemoveFromRecents, excludeFromRecents,noHistory,permission)
-          self.application_database.update_activities(activity_attribs)
+          filters = activity.findall("intent-filter")
+          self.extractIntentFilters(filters, activity)
+
+        activity_attribs = (sha256, activityName, enabled, exported,autoRemoveFromRecents, excludeFromRecents,noHistory,permission)
+        self.application_database.update_activities(activity_attribs)
 
 
 
@@ -97,9 +101,10 @@ class Guava:
           process = service.get(NS_ANDROID+"process")
 
           if len(service.findall("intent-filter")) > 0:
+            if exported != 'false':
               exported = "true (intent filter)"
-              filters = service.findall("intent-filter")
-              self.extractIntentFilters(filters, service)
+            filters = service.findall("intent-filter")
+            self.extractIntentFilters(filters, service)
 
           service_attribs = (sha256, servicename, enabled, exported,foregroundServiceType, permission,process)
           self.application_database.update_services(service_attribs)
@@ -130,9 +135,10 @@ class Guava:
           process = receiver.get(NS_ANDROID+"process")
 
           if len(receiver.findall("intent-filter")) > 0:
+            if exported == 'false':
               exported = "true (intent filter)"
-              filters = receiver.findall("intent-filter")
-              self.extractIntentFilters(filters, receiver)
+            filters = receiver.findall("intent-filter")
+            self.extractIntentFilters(filters, receiver)
 
           receiver_attribs = (sha256, receivername, enabled, exported,permission,process)
           self.application_database.update_receivers(receiver_attribs)  
@@ -147,9 +153,10 @@ class Guava:
           targetActivity = activity_alias.get(NS_ANDROID+"targetActivity")
 
           if len(activity_alias.findall("intent-filter")) > 0:
+            if  exported == 'false':
               exported = "true (intent filter)"
-              filters = activity_alias.findall("intent-filter")
-              self.extractIntentFilters(filters, activity_alias)
+            filters = activity_alias.findall("intent-filter")
+            self.extractIntentFilters(filters, activity_alias)
 
           activity_alias_attributes = (sha256, aliasname, enabled, exported,permission,targetActivity)
           self.application_database.update_activity_alias(activity_alias_attributes)  
@@ -157,8 +164,8 @@ class Guava:
               
   def fill_intent_filters(self,sha256):
 
-      for filter in filter_list:
-          objlist = filter_list[filter]
+      for filter in self.filter_list:
+          objlist = self.filter_list[filter]
           for item in objlist:
               filter_attribs = (sha256,filter,'|'.join(item.actionList),'|'.join(item.categoryList),'|'.join(item.dataList))
               self.application_database.update_intent_filters(filter_attribs)
@@ -197,7 +204,7 @@ class Guava:
     print("[+] Analysis finished.")
     print("[+] Filling up the database....")
 
-
+    self.filter_list = {}
     self.fill_application_attributes(apk_r,app_sha256,application)
     self.fill_permissions(apk_r,app_sha256)
     self.fill_activities(application,app_sha256)

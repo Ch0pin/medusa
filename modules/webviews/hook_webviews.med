@@ -91,12 +91,16 @@ webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,
 
 webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
     console.log('[i] Loading URL: ' + url);
+    this.setWebContentsDebuggingEnabled(true);
+
     this.loadUrl(url,additionalHttpHeaders);
 }
 
 
 webView.loadUrl.overload('java.lang.String').implementation = function(url){
     console.log('[i] Loading URL:' + url);
+    this.setWebContentsDebuggingEnabled(true);
+
     this.loadUrl(url);
 }
 

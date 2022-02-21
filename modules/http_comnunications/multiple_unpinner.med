@@ -1,5 +1,5 @@
 {
-    "Name": "http_communications/multiple-unpinner_v2",
+    "Name": "http_communications/multiple_unpinner",
     "Description": "frida-multiple-unpinning CRITICAL: Make sure is added on the top of the module list (0 index)",
 	"Help": "Android ssl certificate pinning bypass script for various methods by Maurizio Siddu (https://codeshare.frida.re/@akabe1/frida-multiple-unpinning)\nCRITICAL: Make sure is added on the top of the module list (0 index)",
 	"Code": "

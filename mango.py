@@ -75,7 +75,7 @@ if __name__ == "__main__":
       start_session(session, True)
     else:
         print(Fore.RED+"[!] Fatal: can't find: {} ".format(session)+Fore.RESET)
-        exit()
+        sys.exit()
   else:
     menu = {}
     menu['1']="Start a new session" 
@@ -100,10 +100,10 @@ if __name__ == "__main__":
           start_session(session, True)
         else:
           print(Fore.RED+"[!] Fatal: can't find: {} ".format(session)+Fore.RESET)
-          exit()
+          sys.exit()
         break
       elif selection == '3':
-        exit()
+        sys.exit()
       else: 
         print("[!] Unknown Option Selected!")
  

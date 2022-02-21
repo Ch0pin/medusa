@@ -59,4 +59,4 @@ class ModuleManager:
         self.staged = [mod for mod in self.staged if mod.Name != moduleName]
 
     def findModule(self, pattern):
-        return [mod.Name for mod in self.available if pattern.lower() in mod.Name]
+        return [mod.Name for mod in self.available if pattern.casefold() in mod.Name.casefold()]

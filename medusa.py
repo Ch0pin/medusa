@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import subprocess
 import platform
-import cmd
+import cmd2
 import os, sys
 import readline
 import logging
@@ -25,9 +25,9 @@ GREEN   = "\033[0;32m"
 RESET   = "\033[0;0m"
 BOLD    = "\033[;1m"
 REVERSE = "\033[;7m"
-readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
+#readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
 
-class Parser(cmd.Cmd):
+class Parser(cmd2.Cmd):
     base_directory = os.path.dirname(__file__)
     snippets = []
     packages = []
@@ -46,6 +46,12 @@ class Parser(cmd.Cmd):
     currentPackage = None
     libname = None
     modManager = ModuleManager()
+
+    def __init__(self):
+        super().__init__(
+            allow_cli_args=False
+        )
+
 
     def refreshPackages(self):
         self.packages = []
@@ -640,7 +646,8 @@ catch (err) {
     
         self.scratchreset()
         print('Bye!!')
-        exit()
+        sys.exit()
+
 
 
     def do_shell(self, line):

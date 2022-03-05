@@ -77,8 +77,17 @@ bundle1.getShort.overloads[1].implementation = function(key,def){
     console.log('getShort Bundle key:'+key + ', value:'+ret);
     return ret;
 }
+intent1.getSerializableExtra.implementation = function(name){
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    console.log('[+]\tSerializable Extra, name: '+ name);
+    return this.getSerializableExtra(name);
+}
 
-
+intent1.getParcelableExtra.implementation = function(name){
+    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    console.log('[+]\tParcelable Extra, name: '+ name);
+    return this.getParcelableExtra(name);
+}
 
 intent1.getBooleanExtra.implementation = function(name,value){
     colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});

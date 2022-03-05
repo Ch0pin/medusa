@@ -70,8 +70,8 @@ statusBarNotification.key.overloads[0].implementation = function() {
 }
 
 statusBarNotification.getPackageName.implementation = function(){
-    colorLog(\"\\n[+] GetPackageName called Returning:com.whatsapp\" ,{c: Color.Green});
-    return \"com.whatsapp\";
+    colorLog(\"\\n[+] GetPackageName called Returning:com.medusa.agent\" ,{c: Color.Green});
+    return \"com.medusa.agent\";
 
 
 }

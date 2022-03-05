@@ -88,7 +88,7 @@ class nativeHandler():
                 time.sleep(5)
                 script.unload()
             else:
-            
+
                 #pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,package)).read().strip()
                 pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip()
                 #pid = self.device.get_process(package).pid //not valid
@@ -97,7 +97,7 @@ class nativeHandler():
                     print("[+] Could not find process with this name.")
                     return None
                 print("[i] Attaching to process {} [pid:{}]".format(package,pid))
-                session = self.device.attach(package)
+                session = self.device.attach(int(pid))
                 script = session.create_script(open("libraries/native.js").read())
                 script.on('message', self.on_message)
                 script.load()

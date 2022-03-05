@@ -673,7 +673,15 @@ catch (err) {
             with open(os.path.join(self.base_directory, 'libraries', 'utils.js'), 'r') as file:
                 header = file.read()
             hooks.append(header)
-            hooks.append("\n\nJava.perform(function() {\ndisplayAppInfo();\n")
+
+            #add delay
+            delay = ''
+            options = len(line.split())
+            if options == 2 and ('-t' in line.split()[0]):             
+                delay = line.split()[1]
+                hooks.append("\n\nsetTimeout(function() {\n")
+
+            hooks.append("\n\nJava.perform(function() { \ntry {\ndisplayAppInfo();\n")
             for mod in self.modManager.staged:
                 if 'JNICalls' in mod.path and not jni_prolog_added:
                     hooks.append("""
@@ -688,7 +696,17 @@ catch (err) {
                     """)
                     jni_prolog_added = True
             hooks.append(self.modManager.compile())
-            hooks.append('});')
+            epilog = """}
+    catch(error){
+        colorLog("------------Error Log start-------------",{ c:Color.Red })
+        console.log(error);
+        colorLog("------------Error Log EOF---------------",{ c:Color.Red })
+      } } );"""
+            if delay != '':
+                hooks.append(epilog[:-1])
+                hooks.append("}}, {});".format(delay))
+            else:
+                hooks.append(epilog)
 
             with open(os.path.join(self.base_directory, 'agent.js'), 'w') as agent:
                 for line in hooks:

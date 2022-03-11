@@ -746,7 +746,7 @@ function displayAppInfo(){
             var applicationName= app_classname;
            
       
-
+        
         colorLog("\n-------------------Application Info--------------------\n",{c: Color.Green});
         colorLog("- Application Name: "+applicationName,{c: Color.Gray});
         colorLog("- Files Directory: "+filesDirectory,{c: Color.Gray});
@@ -756,6 +756,18 @@ function displayAppInfo(){
         colorLog("- Obb Directory: "+obbDir,{c: Color.Gray});
         colorLog("- Package Code Path: "+packageCodePath,{c: Color.Gray});
         colorLog("\n-------------------EOF Application Info-----------------\n",{c: Color.Green});
+        
+            var info = {};
+            info.applicationName = applicationName;
+            info.filesDirectory = filesDirectory;
+            info.cacheDirectory = cacheDirectory;
+            info.externalCacheDirectory = externalCacheDirectory;
+            info.codeCacheDirectory = codeCacheDirectory;
+            info.obbDir = obbDir;
+            info.packageCodePath = packageCodePath;
+ 
+            send(JSON.stringify(info));
+        
 
 
     } else {

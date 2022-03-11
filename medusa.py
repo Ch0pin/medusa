@@ -33,6 +33,7 @@ class Parser(cmd2.Cmd):
     packages = []
     system_libraries = []
     app_libraries = []
+    app_info = {}
     show_commands = ['mods', 'categories', 'all', 'snippets']
     prompt = BLUE + 'medusa> ' + RESET
     device = None
@@ -753,23 +754,50 @@ catch (err) {
         except Exception as e:
             print(e)
 
+    def fill_app_info(self,data):
+        self.app_info = json.loads(data)
+
 
     def my_message_handler(self, message, payload):
         if message["type"] == "send":
+            
             data = message["payload"].split(":")[0].strip()
             if "trscrpt|" in data:
                 result = self.translator.translate(data[data.index("trscrpt|") + len("trscrpt|"):])
                 self.script.post({"my_data": result}) 
             else:
-                print(data)
+                self.fill_app_info(message["payload"])
 
 
     def on_detached(self, reason):
         print("Session is detached due to:", reason)
         self.detached = True
+    
+    def print_app_info(self):
+
+        if self.app_info:
+            appname = self.app_info["applicationName"]
+            filesDirectory = self.app_info["filesDirectory"]
+            cacheDirectory = self.app_info["cacheDirectory"]
+            externalCacheDirectory = self.app_info["externalCacheDirectory"]
+            codeCacheDirectory = self.app_info["codeCacheDirectory"]
+            obbDir = self.app_info["obbDir"]
+            packageCodePath = self.app_info["packageCodePath"]
+
+
+            print(RESET+"""\nApplication Name: {}
+Data Directory: {}
+Cache Directory: {}
+External Cache Directory: {}
+Code Cache Directory: {}
+Obb Directory: {}
+Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCacheDirectory,codeCacheDirectory,obbDir,packageCodePath)+RESET)
+        else:
+            print("[!] No availlable info.")
 
 
     def run_frida(self, force, detached, package_name, device):
+        in_session_menu = WHITE + '[in-session] |' + GREEN + 'e:' + WHITE + 'exit |' + GREEN + 'r:' + WHITE + 'reload | ' + GREEN + 'i:' + WHITE + 'info | ' + GREEN +'?:'+WHITE +'help |:'+RESET
         creation_time = modified_time = None
         self.detached = False
         session = self.frida_session_handler(device,force,package_name)
@@ -783,11 +811,11 @@ catch (err) {
             self.script.load()  
             if force:
                 device.resume(self.pid)
-            s = input(WHITE + 'in-session-commands |' + GREEN + 'e:' + WHITE + 'exit |' + GREEN + 'r:' + WHITE + 'reload | ' + GREEN + '?:' + WHITE + 'help' + WHITE + '|:')
+            s = ""
             
-            while ('e' not in s) and (not self.detached):
-                s = input(WHITE + '[in-session] |' + GREEN + 'e:' + WHITE + 'exit |' + GREEN + 'r:' + WHITE + 'reload | ' + GREEN + '?:' + WHITE + 'help' + WHITE + '|:')
-                if 'r' in s:
+            while (s!='e') and (not self.detached):
+                s = input(in_session_menu)
+                if s == 'r':
                     #handle changes during runtime
                  
                     modified_time = self.modification_time(os.path.join(self.base_directory, "agent.js"))
@@ -803,8 +831,14 @@ catch (err) {
                         self.script.load()  
                     else:
                          print(GREEN + "Script unchanged, nothing to reload ...." + RESET)
-                if '?' in s:
-                    print(WHITE + '|' + GREEN + 'e:' + WHITE + 'exit |' + GREEN + 'r:' + WHITE + 'reload | ' + GREEN + '?:' + WHITE + 'help' + WHITE + '|')                
+                elif s == '?':
+                    print(RESET+"""\nHelp: 
+    'e' to exit the session 
+    'r' to reload the script (use if script changed)
+    'i' to read information about the application
+    '?' to print this message\n"""+RESET)
+                elif s == 'i':
+                    self.print_app_info()              
             
             if self.script:
                 self.script.unload()

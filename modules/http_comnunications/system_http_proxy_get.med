@@ -1,0 +1,33 @@
+{
+    "Name": "http_communications/system_get_proxy",
+    "Description": "Returns return \"null:null\"; for System.getProperty proxy host and port",
+    "Help": "Bypass the check performed by some apps to trace existance of a proxy",
+    "Code": " 
+
+
+var systemProp = Java.use('java.lang.System');
+var overloadCount = systemProp['getProperty'].overloads.length;
+
+for (var i = 0; i < overloadCount; i++) 
+{
+
+    systemProp['getProperty'].overloads[i].implementation = function() 
+    {
+        var retval = this['getProperty'].apply(this, arguments);
+        if(arguments[0]=='http.proxyPort' || arguments[0]=='http.proxyHost')
+        {
+            colorLog(\"[+] Detected call to \" +'getProperty: '+ arguments[0],{ c: Color.Green });
+            retval = \"null\";
+        }
+        else 
+        {
+            colorLog(\"[+] Detected call to \" +'getProperty: '+ arguments[0],{ c: Color.Green });
+            return retval;
+        }
+        
+       
+        
+    }
+}
+
+"}

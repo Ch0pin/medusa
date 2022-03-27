@@ -524,7 +524,10 @@ class parser(cmd2.Cmd):
         Performs a raw query in the session db and returns the results as a list of tuples."""
 
         try:
-            print(self.database.query_db(line))
+            print(line)
+            res = self.database.query_db(str(line))
+            print(res)
+
         except Exception as e:
             print(e)
 

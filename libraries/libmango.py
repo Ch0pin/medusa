@@ -476,8 +476,6 @@ class parser(cmd2.Cmd):
                 if not os.path.exists(APKTOOL):
                     if(Polar('[?] apktool has not been downloaded, do you want to do it now ?').ask()):
                         self.download_file(APKTOOL_URL, APKTOOL)
-                else:
-                    return
 
                 print(GREEN+'[+] Unpacking the apk....'+RESET)
                 subprocess.run('java -jar '+ APKTOOL +' d {} -o {}'.format(file,TMP_FOLDER), shell=True)

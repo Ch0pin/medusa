@@ -756,8 +756,12 @@ class parser(cmd2.Cmd):
 
     def real_import(self,apk_file):
         try:
-            self.guava.full_analysis(apk_file)
-            self.init_application_info(self.database,self.guava.sha256sum(apk_file))
+            sha256 = self.guava.sha256sum(apk_file)
+            if self.guava.sha256Exists(sha256):
+                print("[i] Application has already being analysed !")
+            else:
+                self.guava.full_analysis(apk_file)
+                self.init_application_info(self.database,self.guava.sha256sum(apk_file))
         except Exception as e:
             print(e)
         

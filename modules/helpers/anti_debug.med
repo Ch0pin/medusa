@@ -26,16 +26,21 @@ antidebug.isDebuggerConnected.implementation = function(){
 }
 
 
-
-
     var RootPackages = [\"com.noshufou.android.su\", \"com.noshufou.android.su.elite\", \"eu.chainfire.supersu\",
         \"com.koushikdutta.superuser\", \"com.thirdparty.superuser\", \"com.yellowes.su\", \"com.koushikdutta.rommanager\",
         \"com.koushikdutta.rommanager.license\", \"com.dimonvideo.luckypatcher\", \"com.chelpus.lackypatch\",
         \"com.ramdroid.appquarantine\", \"com.ramdroid.appquarantinepro\", \"com.devadvance.rootcloak\", \"com.devadvance.rootcloakplus\",
         \"de.robv.android.xposed.installer\", \"com.saurik.substrate\", \"com.zachspong.temprootremovejb\", \"com.amphoras.hidemyroot\",
         \"com.amphoras.hidemyrootadfree\", \"com.formyhm.hiderootPremium\", \"com.formyhm.hideroot\", \"me.phh.superuser\",
-        \"eu.chainfire.supersu.pro\", \"com.kingouser.com\"
-    ];
+        \"eu.chainfire.supersu.pro\", \"com.kingouser.com\",\"com.android.vending.billing.InAppBillingService.COIN\",
+        \"com.android.vending.billing.InAppBillingService.LUCK\",\"com.chelpus.luckypatcher\",\"com.blackmartalpha\",
+        \"org.blackmart.market\",\"com.allinone.free\",\"com.repodroid.app\", \"org.creeplays.hack\", \"com.baseappfull.fwd\", 
+        \"com.zmapp\", \"com.dv.marketmod.installer\", \"org.mobilism.android\", \"com.android.wp.net.log\", 
+        \"com.android.camera.update\", \"cc.madkite.freedom\", \"com.solohsu.android.edxp.manager\", 
+        \"org.meowcat.edxposed.manager\", \"com.xmodgame\", \"com.cih.game_cih\",\"com.kingroot.kinguser\", 
+        \"com.charles.lpoqasert\", \"catch_.me_.if_.you_.can_\",\"com.topjohnwu.magisk\",\"com.kingo.root\",
+        \"com.smedialink.oneclickroot\", \"com.zhiqupk.root.global\", \"com.alephzain.framaroot\"];
+    
 
     var RootBinaries = [\"su\", \"busybox\", \"supersu\", \"Superuser.apk\", \"KingoUser.apk\", \"SuperSu.apk\"];
 
@@ -104,7 +109,7 @@ antidebug.isDebuggerConnected.implementation = function(){
     PackageManager.getPackageInfo.overloads[0].implementation = function(pname, flags) {
         var shouldFakePackage = (RootPackages.indexOf(pname) > -1);
         if (shouldFakePackage) {
-            console.log(\"Bypass root check for package: \" + pname);
+            console.log(\"Bypass root check for package (0): \" + pname);
             pname = \"set.package.name.to.a.fake.one.so.we.can.bypass.it\";
         }
         return this.getPackageInfo.call(this, pname, flags);
@@ -115,7 +120,25 @@ antidebug.isDebuggerConnected.implementation = function(){
     PackageManager.getPackageInfo.overloads[1].implementation = function(sname, flags) {
         var shouldFakePackage = (RootPackages.indexOf(sname) > -1);
         if (shouldFakePackage) {
-            console.log(\"Bypass root check for package: \" + sname);
+            console.log(\"Bypass root check for package (1): \" + sname);
+            pname = \"set.package.name.to.a.fake.one.so.we.can.bypass.it\";
+        }
+    
+        return this.getPackageInfo.call(this, sname, flags);
+    };
+
+    PackageManager.getPackageInfo.overloads[2].implementation = function(sname, flags) {
+        var shouldFakePackage = (RootPackages.indexOf(sname) > -1);
+        if (shouldFakePackage) {
+            console.log(\"Bypass root check for package (2): \" + sname);
+            pname = \"set.package.name.to.a.fake.one.so.we.can.bypass.it\";
+        }
+        return this.getPackageInfo.call(this, sname, flags);
+    };
+    PackageManager.getPackageInfo.overloads[3].implementation = function(sname, flags) {
+        var shouldFakePackage = (RootPackages.indexOf(sname) > -1);
+        if (shouldFakePackage) {
+            console.log(\"Bypass root check for package (1): \" + sname);
             pname = \"set.package.name.to.a.fake.one.so.we.can.bypass.it\";
         }
         return this.getPackageInfo.call(this, sname, flags);

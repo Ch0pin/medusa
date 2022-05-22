@@ -3,7 +3,6 @@ from androguard.core.bytecodes import apk
 from libraries.IntentFilter import *
 from libraries.db import *
 import hashlib
-import sys
 
 NS_ANDROID_URI = "http://schemas.android.com/apk/res/android"
 NS_ANDROID = '{http://schemas.android.com/apk/res/android}'
@@ -28,6 +27,12 @@ class Guava:
           for n in iter(lambda : f.readinto(mv), 0):
               h.update(mv[:n])
       return h.hexdigest()
+
+  def sha256Exists(self,sha):
+    sql = """SELECT name from Application WHERE sha256='{}'""".format(sha)
+    return self.application_database.query_db(sql)
+
+
 
 
   def extractIntentFilters(self,filters,obj):

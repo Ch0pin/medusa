@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.png" width="150" height="150">
+<img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.png">
 
 ### Description:
 

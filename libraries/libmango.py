@@ -1139,14 +1139,16 @@ class parser(cmd2.Cmd):
                 time.sleep(1)
                 print(GREEN+"""
 -------------------------------------------------------------------
-Note: Burp certificate has been copied to sdcard, use the following 
+Note: Burp certificate has been copied to sdcard/<old_hash>.cer, use the following 
 commands to install it as a system certificate:
 -------------------------------------------------------------------
 $adb remount
-$cd /system/etc/security/cacerts
-$mkdir tmp
-$mv * tmp/
-$mv /sdcard/*.der /system/etc/security/cacerts/*.0
+#cd /system/etc/security/cacerts
+#mv /sdcard/<old_hash>.cer /system/etc/security/cacerts/<old_hash>.0
+#chmod 644 /system/etc/security/cacerts/<old_hash>.0
+#chown root:root /system/etc/security/cacerts/<old_hash>.0
+#reboot
+
                 """+RESET)
                 print()
         except Exception as e:

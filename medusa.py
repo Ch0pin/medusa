@@ -666,6 +666,39 @@ catch (err) {
             for name, description in zip([mod.Name for mod in mods], [mod.Description for mod in mods]):
                 print(GREEN + f"{name: <{width}}" + BLUE + f"{description}" + RESET)
 
+    
+    def do_strace(self, line):
+        
+        self.detached = False
+        session = self.frida_session_handler(self.device,True,line.split(' ')[0])
+        try:
+
+            with open(os.path.join(self.base_directory, 'libraries', 'strace.js'), 'r') as file:
+                self.script = session.create_script(file.read())
+       
+            session.on('detached',self.on_detached)
+            self.script.on("message",self.my_message_handler)  # register the message handler
+            self.script.load()  
+            self.device.resume(self.pid)
+            s = ""
+            print(RED+"----- Credits @FrenchYeti -----")
+            print("[i] Type 'e' to exit the strace "+RESET)
+            while (s!='e') and (not self.detached):
+                s = input("Type 'e' to exit:")          
+            
+            if self.script:
+                self.script.unload()
+
+        except Exception as e:
+            print(e)
+        print(RESET)
+        
+        return
+
+    def complete_strace(self, text, line, begidx, endidx):
+        self.refreshPackages()
+        return [package for package in self.packages if package.startswith(text)]
+
 
     def do_compile(self, line):
         try:
@@ -952,7 +985,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                         - export  'filename'        : Save session modules and scripts to 'filename'
                         - import [tab]              : Import frida script from available snippet
                         - pad                       : Edit the scratchpad using vi
-                        - compile                   : Compile the modules to a frida script
+                        - compile [-t X millisec]   : Compile the modules to a frida script, use '-t' to add a load delay 
                         - hook [option]
                     
                             -a [class name]         : Set hooks for all the functions of the given class
@@ -964,6 +997,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                 NATIVE OPERATIONS:
 
                         - memops package_name lib.so    : READ/WRITE/SEARCH process memory
+                        - strace package_name           : logs system calls, signal deliveries, and changes of process state 
 
                         - load package_name full_library_path
                                                         : Manually load a library in order to explore using memops

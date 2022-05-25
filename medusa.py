@@ -715,7 +715,7 @@ catch (err) {
                 delay = line.split()[1]
                 hooks.append("\n\nsetTimeout(function() {\n")
 
-            hooks.append("setImmediate(function() {\n\nJava.perform(function() { \ntry {\ndisplayAppInfo();\n")
+            hooks.append("Java.perform(function() { \ntry {\ndisplayAppInfo();\n")
             for mod in self.modManager.staged:
                 if 'JNICalls' in mod.path and not jni_prolog_added:
                     hooks.append("""
@@ -735,7 +735,7 @@ catch (err) {
         colorLog("------------Error Log start-------------",{ c:Color.Red })
         console.log(error);
         colorLog("------------Error Log EOF---------------",{ c:Color.Red })
-     } })} );"""
+     } });"""
             if delay != '':
                 hooks.append(epilog[:-1])
                 hooks.append("}}, {});".format(delay))

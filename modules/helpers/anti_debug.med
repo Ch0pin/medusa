@@ -127,23 +127,6 @@ antidebug.isDebuggerConnected.implementation = function(){
         return this.getPackageInfo.call(this, sname, flags);
     };
 
-    PackageManager.getPackageInfo.overloads[2].implementation = function(sname, flags) {
-        var shouldFakePackage = (RootPackages.indexOf(sname) > -1);
-        if (shouldFakePackage) {
-            console.log(\"Bypass root check for package (2): \" + sname);
-            pname = \"set.package.name.to.a.fake.one.so.we.can.bypass.it\";
-        }
-        return this.getPackageInfo.call(this, sname, flags);
-    };
-    PackageManager.getPackageInfo.overloads[3].implementation = function(sname, flags) {
-        var shouldFakePackage = (RootPackages.indexOf(sname) > -1);
-        if (shouldFakePackage) {
-            console.log(\"Bypass root check for package (1): \" + sname);
-            pname = \"set.package.name.to.a.fake.one.so.we.can.bypass.it\";
-        }
-        return this.getPackageInfo.call(this, sname, flags);
-    };
-
     NativeFile.exists.implementation = function() {
         var name = NativeFile.getName.call(this);
         var shouldFakeReturn = (RootBinaries.indexOf(name) > -1);

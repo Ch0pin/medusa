@@ -44,40 +44,42 @@ camera.startPreview.implementation = function(){
 
 
 
-// contentResolver.query.overloads[0].implementation = function(uri, projection,queryArgs, cancelationSignal) {
-//         colorLog('[+] Content Resolver Query for URI: '+uri,{c: Color.Red});
-//         return this.query(uri, projection,queryArgs, cancelationSignal); 
-// }
-// contentResolver.query.overloads[1].implementation = function( uri, 
-//        projection, 
-//         selection, 
-//         selectionArgs, 
-//         ortOrder, 
-//         cancellationSignal) {
-//         colorLog('[+] Content Resolver Query for URI: '+uri+' with selection: '+selection,{c: Color.Red});
-//         return this.query(uri, 
-//                 projection, 
-//                  selection, 
-//                  selectionArgs, 
-//                  ortOrder, 
-//                  cancellationSignal); 
-// }
-// contentResolver.query.overloads[2].implementation = function(  uri, 
-//         projection, 
-//         selection, 
-//         selectionArgs, 
-//          sortOrder) {
-//          colorLog('[+] Content Resolver Query for URI: '+uri+' with selection: '+selection,{c: Color.Red});
-//          return this.query(uri,projection, 
-//                 selection, 
-//                 selectionArgs, 
-//                  sortOrder); 
-//  }
 
-// uri.parse.implementation = function(queryW){
-//         colorLog('[+] uri parse for '+queryW,{c: Color.Red});
-//         return this.parse(queryW);   
-// }
+
+ contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'android.os.Bundle', 'android.os.CancellationSignal').implementation = function(uri, projection,queryArgs, cancelationSignal) {
+         colorLog('[+] Content Resolver Query for URI: '+uri,{c: Color.Red});
+         return this.query(uri, projection,queryArgs, cancelationSignal); 
+ }
+ contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'java.lang.String', '[Ljava.lang.String;', 'java.lang.String', 'android.os.CancellationSignal').implementation = function( uri, 
+        projection, 
+         selection, 
+         selectionArgs, 
+         ortOrder, 
+         cancellationSignal) {
+        colorLog('[+] Content Resolver Query for URI: '+uri+' with selection: '+selection,{c: Color.Red});
+         return this.query(uri, 
+                 projection, 
+                  selection, 
+                  selectionArgs, 
+                  ortOrder, 
+                  cancellationSignal); 
+ }
+ contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'java.lang.String', '[Ljava.lang.String;', 'java.lang.String').implementation = function( uri, 
+         projection, 
+         selection, 
+         selectionArgs, 
+          sortOrder) {
+          colorLog('[+] Content Resolver Query for URI: '+uri+' with selection: '+selection,{c: Color.Red});
+          return this.query(uri,projection, 
+                 selection, 
+                 selectionArgs, 
+                  sortOrder); 
+  }
+  
+ uri.parse.implementation = function(queryW){
+         colorLog('[+] uri parse for '+queryW,{c: Color.Red});
+         return this.parse(queryW);   
+ }
 //SCREEN CAPTURE
 
 screenCapture.createScreenCaptureIntent.implementation = function(){

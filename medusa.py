@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pickle import decode_long
 import subprocess
 import platform
 import cmd2
@@ -60,16 +61,17 @@ class Parser(cmd2.Cmd):
             self.packages.append(line.split(':')[1].strip('\n'))
 
     def preloop(self):
-        for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'modules')):
-            for filename in filenames:
-                if filename.endswith('.med'):
-                    self.modManager.add(os.path.join(root, filename))
+        self.do_reload("dummy")
+        # for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'modules')):
+        #     for filename in filenames:
+        #         if filename.endswith('.med'):
+        #             self.modManager.add(os.path.join(root, filename))
 
-        for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'snippets')):
-            for filename in sorted(filenames):
-                if filename.endswith('.js'):
-                    filepath = os.path.join(root, filename)
-                    self.snippets.append(filepath.split(os.path.sep)[-1].split('.')[0])
+        # for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'snippets')):
+        #     for filename in sorted(filenames):
+        #         if filename.endswith('.js'):
+        #             filepath = os.path.join(root, filename)
+        #             self.snippets.append(filepath.split(os.path.sep)[-1].split('.')[0])
         try:
             if len(sys.argv) > 1:
                 data = ''
@@ -106,6 +108,55 @@ class Parser(cmd2.Cmd):
 
 
  Type help for options\n\n""", fg='green')
+        self.do_loaddevice("dummy")
+
+
+
+
+    def do_reload(self,line):
+        print("[i] Loading modules...")
+        self.modManager = ModuleManager()
+        self.snippets = []
+        for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'modules')):
+            for filename in filenames:
+                if filename.endswith('.med'):
+                    self.modManager.add(os.path.join(root, filename))
+
+        for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'snippets')):
+            for filename in sorted(filenames):
+                if filename.endswith('.js'):
+                    filepath = os.path.join(root, filename)
+                    self.snippets.append(filepath.split(os.path.sep)[-1].split('.')[0])
+        try:
+             
+            if "-r" in line.split(' ')[0]:
+                self.modManager.reset()
+                data = ''
+                print('[+] Loading a recipe....')
+                recipe = line.split(' ')[1]
+                if os.path.exists(recipe):
+                    with open(recipe, 'r') as file:
+                        for line in file:
+                            if line.startswith('MODULE'):
+                                module = line[7:-1]
+                                print('- Loading {}'.format(module))
+                                self.modManager.stage(module)
+                            else:
+                                data += line
+                    self.modified = True
+                    if data != '':
+                        print("[+] Writing to scratchpad...")
+                        self.editScratchpad(data)
+                else:
+                    print("[!] Recipe file was not found !")
+                        
+        except Exception as e:
+            print(e)
+
+        print("[i] Done....")
+
+
+    def do_loaddevice(self,line):
 
         try:
             print('Available devices:\n')
@@ -978,6 +1029,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                         - rem [module name]         : Remove a module from the list that will be loaded
                         - swap old_index new_index  : Change the order of modules in the compiled script
                         - reset                     : Remove all modules from the list that will be loaded
+                        - reload                    : Reload all the existing modules
                 ===================================================================================================
 
                 SCRIPT OPERATIONS:
@@ -1020,6 +1072,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                         - run        [package name] : Initiate a Frida session and attach to the selected package
                         - run -f     [package name] : Initiate a Frida session and spawn the selected package
                         - dump       [package_name] : Dump the requested package name (works for most unpackers)
+                        - loaddevice                : Load or reload a device
                 ====================================================================================================
                     
                 HELPERS:

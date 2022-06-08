@@ -1,169 +1,248 @@
 <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.png" width ="335" height="508">
 
-### Description:
+# **Description**:
 
 **MEDUSA** is an Extensible and Modularised framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  
 
-Some of the MEDUSA's features include:
+# **Installation**
 
-- Tracing and instrumentation of API calls clustered according to their action (e.g. File System, IPC, Encryption)
-- Tracing and instrumentation of Java and Native functions 
-- Unpacking (effective for most of the weel known packers, including Qihoo, Secshell e.t.c.)
-- Patching on the fly or statically (autoset the debugable flag)
-- Triggering of various system events in order to initiate a reaction (e.g. send intents / notifications / events to the target app)
-- Triggering of application's components (Activities, Services e.t.c.)
+I keep the requirements.txt updated, so you can install Medusa by simply running:
 
-**Overview of the MEDUSA workflows (Presentation): [MEDUSA-Usage-workflows.pdf](https://github.com/Ch0pin/medusa/blob/master/MEDUSA-Usage-workflows.pdf)**
+```
+$ pip install -r requirements.txt
+```
 
-### Changelong:
+**Other requirements include:** 
 
-##### 11/02/2022: 
+- Linux or macOS (currently we don't support windows)
+- Python 3 
+- Rooted device 
+- adb
+- FRIDA server (running on the mobile device)
 
-**Medusa was made directory independent,** meaning `medusa.py` can now be run from anywhere in the system. Modules, namely the `scratchpad`, were also made directory independent. In particular, users may now add arbitrary modules by using the `add` command, and specifying a full path to a custom module. These features implied a cascade of changes, described below.
+Medusa has two main scripts: **medusa.py** and **mango.py** which you can run as **$python3 medusa.py** and **$python3 mango.py** . 
 
-- Calls to the `agent.js`, snippets, utilities, libraries, and default modules are now referred to by their full path. This path is obtained at startup, by setting the `base_directory` property of the `Parser` class to hold the result of calling `os.path.dirname(__file__)`.
-- Modules are now represented by a `Module` class, and may be managed by a `ModuleManager`, both included in the newly created `Modules.py`. This relieves some of the strain from `medusa.py`, improves readability, and significantly reduces code size and code repetition.
-- The format of modules was revamped, and now consists of JSON code. The name of the module is now [category]/[name], where the category is optional, and defaults to *uncategorized* if missing. Without significant changes for the end user, this makes parsing modules very easy, less prone to error, and makes the format extensible. All files in the `modules` directory were updated accordingly.
+# **Using mango.py**
 
-Additional changes include:
+After starting Mango, you can import an apk by simply running: 
 
-- Command completion now properly handles the forward slash ('/') character.
-- Code formatting has been harmonised.
-- Many local code improvements.
+**mango>** ***import** com.foo.bar.apk* 
 
-Note that although the changes were tested, since they are significant, some bugs may have been inadvertently introduced.
+You can also import an apk from the device:
 
-**apkutils.py has been replace with mango.py**
+**mango>** ***pull** com.foo.bar* 
 
-With mango.py you can load multiple applications at once and extract attributes of their main components, including activities, services, providers and receivers.  The gathered data will be saved in a local SQLite database which can be easily queried via the mango cli. All the helping functions of **apkutils** have been maintained and similarly to medusa.py, mango.py is directory independent. 
+and then:
 
-**Added requirements: **
+**mango>** ***import** base.apk* 
 
-androguard==3.3.5
-click==8.0.3
-cmd2==2.3.3
-colorama==0.4.4
-frida==15.1.13
-google_trans_new==1.1.9
-requests==2.25.1
+After this **mango** will analyse the apk and save the analysis results to a SQLite database. It will also parse the manifest file to give you an overview of:
 
+- The application's main components (activities, services, providers, receivers):
 
-### Usage:
+  **mango>** **show activities** // to display the activities (use -e to filter only the exported ones), similarly **show services** will display the services e.t.c. 
 
-MEDUSA's functionality is divided in two basic python scripts: the **medusa.py** and the **mango.py** with the last to be more of a helping utility which automates processes like **setting a proxy server for the device**, **parcing the Anroid Manifest, starting/stoping activities and many more**. More specifically:
+- The application's deeplinks and the corresponding activities that handles them:
 
-- **The medusa.py** 
+  **mango>** **show deeplinks**
 
-  > This script is used to dynamically add or remove tracing of API calls during application's runtime. The tracing 'comes' in a form of modules, where each one of them 'specializes' in an abstract aspect. As an example, to trace the cryptographic procedures of the application (e.g.  fetch AES keys or the plaintext that will be encrypted), simply inject the AES module  and observer the output. 
-  >
-  > Indicatively some of the  functionalities which are implemented so far, include the following: 
-  >
-  > -  SSL pinning bypass
-  > -  UI restriction bypass (e.g. Flag secure, button enable)
-  > -  Class enumeration
-  > -  Hook native functions
-  > -  Monitoring of:
-  >    -  Encryption process (keys, IVs, data to be encrypted)
-  >    -  Intents
-  >    -  Http communications
-  >    -  Websockets
-  >    -  Webview events
-  >    -  File operations
-  >    -  Database interactions
-  >    -  Bluetooth operations
-  >    -  Clipboard
-  > -  Monitoring of API calls used by malware applications, such as:
-  >    -  Spyware
-  >    -  Click Fraud
-  >    -  Toll Fraud
-  >    -  Sms Fraud
-  >
+Mango wraps all the "borring tasks" in simple commands. For example you can install a burp certificate by simply running **installBurpCert**, set/reset a proxy (transparent or not) with **proxy set <IP:PORT> ** or you can patch the debuggable flag of the apk by simply running **patch com.foo.bar.apk**
 
-  **MEDUSA's current module set**
+**Here is the full list:**
+
+    adb                         Start an interactive adb prompt.
+    box                         Starts a busybox interactive shell.
+    c                           Run a local shell command 
+    cc                          Run a command using the default adb shell
+    exit                        Exits the application.
+    help                        Displays this text.
+    
+    import                      Imports an apk file for analysis and saves the results to the session's database 
+    
+    installBurpCert             Install the Burp certificate to the mobile device.
+    jdwp                        Create a jdb session. Use it in combination with the tab key to see available packages. The app has to have the debuggable flag to true.
+    
+    notify                      Sends a notification to the device 
+                                (Example: > notify 'Title' 'Lorem ipsum dolor sit amet,....')
+    
+    patch                       Changes the debuggable flage of the AndroidManifest.xml to true for a given apk. 
+    
+    proxy                       Performs a proxy modification or reads a proxy setting (used for MITM). If adb runs as
+                                root it can be used with the '-t' flag to set a transparent proxy.
+                                (Example: > proxy set 192.168.1.2:8080 -t)
+    
+    pull                        Extracts an apk from the device and saves it as 'base.apk' in the working directory.
+                                Use it in combination with the tab key to see available packages
+                                (Example: > pull com.foo.bar)
+    
+    query                       Performs a raw query in the session db and returns the results as a list of tuples.
+                                (Example: > query SELECT * FROM Application)
+    
+    screencap                   Captures the device screen and saves it as a png file in the current directory.
+                                (Example: > screencap -o 'screen1.png')
+    
+    search                      Searches for a given string in the extracted components and strings.
+                                (Example: search foobar)
+    
+    show                        Prints information about components of the loaded application or session. The currently availlable info includes: applications, activities, services, activityAlias, receivers, deeplinks, providers and intentFilters. Adding the '-e' flag will print only exported components. Additionaly 'database' prints the database structure of the session database, 'manifest' prints the manifest and 'info' prints general information about the loaded application  
+    
+    start                       Forces to start an activity of the loaded application. Use it in combination with the tab key to see the available activities. For non exported activities, the adb must run with root privileges.
+    
+    startsrv, stoprsrv          Forces to start or stop a service of the loaded application. Use it in combination with the tab key to see the available services. For non exported services, the adb must run with root privileges.
+    
+    trace                       trace the applicaton's calls using Frida-trace
+    uninstall, kill, spawn      Uninstalls, kills or starts an app in the device. Use it in combination with the tab key to see available packages.
+
+# **Using medusa.py**
+
+The main idea behind this script is to be able to combine frida scripts on the fly in order to hook specific API subsets. Medusa has **more than** **80** modules which can be combined, each one of them dedicated on a simple task. Some of these tasks include:
+
+-  SSL pinning bypass
+-  UI restriction bypass (e.g. Flag secure, button enable)
+-  Class enumeration
+-  Monitoring of:
+   -  Encryption process (keys, IVs, data to be encrypted)
+   -  Intents
+   -  Http communications
+   -  Websockets
+   -  Webview events
+   -  File operations
+   -  Database interactions
+   -  Bluetooth operations
+   -  Clipboard
+-  Monitoring of API calls used by malware applications, such as:
+   -  Spyware
+   -  Click Fraud
+   -  Toll Fraud
+   -  Sms Fraud
+
+## **Quick start**
+
+Have the frida server running on the mobile device and run the medusa script using **$python3 medusa.py** , then simply follow the directions to connect to the device. 
+
+- **To find scripts:**
+
+  **medusa**> search http 		//*will print all the modules related to HTTP communications, alternative you can use the **show all** command to see all availlable scripts.* 
+
+- **You can combine as many scripts as you want by simply running:**
+
+  **medusa**> use <module_name> 
+
+  **medusa>** show mods //*will print the currently loaded scripts*
+
+  **medusa>** compile      //will combine the currently loaded scripts to a single one (called agent.js). To add latency  (e.g. to wait for something to load first in order to hook) use the -t parameter  
 
 <img src="https://user-images.githubusercontent.com/4659186/151659174-f642bd72-a455-442a-9e51-462c91a68b18.png" width="7650" height="350">
 
+- To hook a class, a java function or a native function, you can simply run:
 
+  **medusa>** hook -a com.foo.bar.class 	//*hook all the functions of the com.foo.bar.class class*
 
-- **The mango.py** 
+  **medusa>** hook -f 	//*to hook a single function* *(following screen instructions)*
 
-  > Given an **apk file**, the specific script is able to perform the following functionalities:
-  >
-  > - Display the application's components and technical characteristics, including:
-  >   - Activities
-  >   - Services
-  >   - Receivers
-  >   - Permissions
-  >   - Intent Filters 
-  >   - Content providers
-  > - Trace application functions 
-  > - Trigger an activity, service or an intent
-  > - Automate actions performed during dynamic analysis:
-  >   - Change device proxy settings
-  >   - Capture screenshots of the device
-  >   - Install/Uninstall/kill an application
-  > - Patch (set the debug flag to true) / Sign / Install 
+  **medusa>** hook -n	//*to hook a native function* *(following screen instructions)*
 
-  **apkutils.py:**
+To start a session you can simply run: 
 
-  <img src="https://user-images.githubusercontent.com/4659186/87721141-e3013c00-c7ad-11ea-843c-66eb34d44c96.png" width="7650" height="490">
+**medusa>** run -f com.foo.bar 			// to spawn the package, or ommit the '-f' in order to attach
 
-### Requirements:
+## **Native code**
 
-See **requirements.txt** for python requirements as well as **frida** and **adb**. A rooted device or an emulator is highly recomended in order to use the framework's full capabilities.
+Medusa can do the following:
 
-### Modules:
+- Display loaded libraries:
 
-A module (.med file) consists of three sections. 
+  **medusa>** libs <-a, -s, -j> com.foo.bar 					*//list the loaded libraries of com.foo.bar*
 
-    "Name": "foo_bar_dir/module_for_com_foo_bar",
-    "Description": "What your module does ?",
-    "Help": " How your module works ?",
-    "Code": 
+- Find exported functions:
 
-- The **'Name'** used in order to reference a module. Default name convention is lower case letters and underscores (e.g. **https_communications/ssl_unpining**)
+​				**medusa>** enumerate com.foo.bar libfoo.so			//*list the exported functions of the libfoo.so*
 
-- The **'Description'** where the usage of the module is described, e.g. *Description: Use this module to perform the following action* . 
+- Patch/READ/DUMP a library on the fly:
 
-- The **'Help'** where a more detailed information message or even a link to a website providing explanations about the module's usage is inserted
+​				**medusa>** memops com.foo.bar libfoo.so				//this will start the following interactive shell:
 
-- The **Code** is where the javascript code should be inserted in order to hook a specific API call. 
+![Screenshot 2020-09-22 at 16 41 10](https://user-images.githubusercontent.com/4659186/151658659-b4f83296-60ec-4818-a303-5645284b0a67.png)
 
-  What follows is an example of the translation module:
+**Here is the full list:**
 
-For example the module bellow is used to cancel the killProcess, exit and finish of an application. The script itself is a json file using a .med suffix located under the **/medusa/modules/<category/** directory:
-
-```js
-{
-    "Name": "helpers/cancel_system_exit",
-    "Description": "Cancels application exit",
-    "Help": "Hooks system.exit, activity.finish to cancel application's exit",
-    "Code": "  
-console.log(\"-----------Hooking SYSTEM EXIT----------------------\");
-
-  var sysexit = Java.use(\"java.lang.System\");
-  var activity = Java.use('android.app.Activity');
-  var process = Java.use('android.os.Process');
-
-  process.killProcess.implementation = function(pid){
-    colorLog(\"[i] Canceling process kill with pid:\"+pid, {c: Color.Green});
-
-  }
-  sysexit.exit.overload(\"int\").implementation = function(var_0) {
-    colorLog(\"[i] Canceling system exit\", {c: Color.Green});
-  };
-
-  activity.finish.overloads[0].implementation = function(){
-    colorLog(\"[+] Canceling activity's finish\" ,{c: Color.Green});
+    MODULE OPERATIONS:
     
-  }
-"
-}
+    - search [keyword]          : Search for a module containing a specific keyword
+    - help [module name]        : Display help for a module
+    - add [fullpath]            : Adds the module specified by fullpath to the list of available modules
+    - snippet [tab]             : Show / display available frida script snippets
+    - use [module name]         : Select a module to add to the final script
+    - show mods                 : Show selected modules
+    - show categories           : Display the available module categories (start here)
+    - show mods [category]      : Display the available modules for the selected category
+    - show snippets             : Display available snippets of frida scripts
+    - show all                  : Show all available modules
+    - import [snippet]          : Import a snippet to the scratchpad
+    - rem [module name]         : Remove a module from the list that will be loaded
+    - swap old_index new_index  : Change the order of modules in the compiled script
+    - reset                     : Remove all modules from the list that will be loaded
+    - reload                    : Reload all the existing modules
+    ===============================================================================
+    
+    SCRIPT OPERATIONS:
+    
+    - export  'filename'        : Save session modules and scripts to 'filename'
+    - import [tab]              : Import frida script from available snippet
+    - pad                       : Edit the scratchpad using vi
+    - compile [-t X millisec]   : Compile the modules to a frida script, use '-t' to add a load delay
+    - hook [option]
+    		-a [class name]         : Set hooks for all the functions of the given class
+    		-f                      : Initiate a dialog for hooking a Java function
+    		-n                      : Initiate a dialog for hooking a native function
+    		-r                      : Reset the hooks setted so far
+    ==================================================================================
+    NATIVE OPERATIONS:
+    
+    - memops package_name lib.so    : READ/WRITE/SEARCH process memory
+    - strace package_name           : logs system calls, signal deliveries, and changes of process state
+    - load package_name full_library_path : Manually load a library in order to explore using memops. Tip: run "list package_name path" to get the application's directories
+    
+    - libs (-a, -s, -j) package_name [--attach]
+          -a                          : List ALL loaded libraries
+          -s                          : List System loaded libraries
+          -j                          : List Application's Libraries
+          --attach                    : Attach to the process (Default is spawn)
+    - enumerate pkg_name libname [--attach] Enumerate a library's exported functions (e.g. - enumerate com.foo.gr libfoo)
+                ==============================================================================================
+    FRIDA SESSION:
+    
+    - run        [package name] : Initiate a Frida session and attach to the selected package
+    - run -f     [package name] : Initiate a Frida session and spawn the selected package
+    - dump       [package_name] : Dump the requested package name (works for most unpackers)
+    - loaddevice                : Load or reload a device
+                ==============================================================================================
+    HELPERS:
+    - type 'text'               : Send a text to the device
+    - list 'package_name' path  : List data/app paths of 3rd party packages
+    - status                    : Print Current Package/Libs/Native-Functions
+    - shell                     : Open an interactive shell
+    - clear                     : Clear the screen
+    - c [command]               : Run a shell command
+    - cc [command]              : Run a shell command on the mobile device
+              ==============================================================================================
+    
+    Tip: Use the /modules/scratchpad.med to insert your own hooks and include them to the agent.js
+                        using the 'compile script' command
 
+# **Contribute**:
 
-```
+- By making a pull request
+- By creating medusa modules (see bellow how to)
+- By buying a beer 
 
+**Bitcoin (BTC) Address**: bc1qhun6a7chkav6mn8fqz3924mr8m3v0wq4r7jchz
 
+**Ethereum (ETH) Address**: 0x0951D1DD2C9F57a9401BfE7D972D0D5A65e71dA4
+
+# **Other usefull stuff**
+
+**Overview of the MEDUSA workflows (Presentation): [MEDUSA-Usage-workflows.pdf](https://github.com/Ch0pin/medusa/blob/master/MEDUSA-Usage-workflows.pdf)**
 
 ### Saving a Session (module recipies):
 
@@ -172,8 +251,6 @@ You can save a set of modules to a file in order to use them in another session.
 **medusa>** export MyModuleRecipe.txt
 
 Continue your session using the -r flag when starting MEDUSA: **./medusa.py** -r MyModuleRecipe.txt
-
-
 
 ### How To Create a Medusa Module:
 
@@ -316,176 +393,6 @@ That's all ... this module is now accessible via the medusa cli:
 - https://github.com/shivsahni/APKEnum
 - https://github.com/0xdea/frida-scripts
 - https://github.com/Areizen/JNI-Frida-Hook
-
-
-
-### ChangeLog:
-
-**08/05/2021:**
-
-- Added busybox support
-- Ability to force native library loading
-
-**07/02/2021:**
-
-- **Medusa agent** was modified to include certificate set up functionality as well as a floating mod
-- Burp Certificate installation
-- Transparent proxy set up
-
-**27/11/2020:** 
-
-Feature added according to which the user can search for code snippets that may later imported to the current session. 
-
-The code snippets are saved in the 'examples' directory and may be imported using the 'import' command, e.g.:
-
-**medusa> import RegisterClass**
-
-The code will be appended to the scratchpad and later get compiled to the final agent script.
-
-**05/11/2020:** 
-
-Added option to dump a specific module from memory
-
-**05/10/2020:** 
-
-- Introducing **Medusa Agent**, to load and explore dex or jar files dropped by APKs:
-
-<img src="https://user-images.githubusercontent.com/4659186/95062556-1096bb00-06f5-11eb-9dda-62bfacaa0570.png" alt="medusa_agent" width="230" height="430" />
-
-- Spoof the Notification Listeners
-- Hook notification events
-- Fixes to dynamic code loading module
-- Patch an apk by turning the debug flag to true
-
-
-
-**04/11/2020:** More native hook options added:
-
-- Hook by offset
-- Hook by pattern
-
-
-
-**16/09/2020:** READ/WRITE/SEARCH process memory
-
-By issuing  **medusa> memops** **package_name** **module_name**, the framework can be used to perform read/write operations in the process memory.
-
-```
-medusa>memops com.foo.app libfoo.so
-[i] Using device with id Device(id="192.168.1.5:1111", name="Dev", type='usb')
-[i] Attaching to process com.foo.app [pid:19538]
-|(E)xit |r@offset |⏎ |w@offset |? (help)|:
-```
-
-Issuing a read command (**r@2000**)
-
-```
-READ MEMORY:
-
-|(E)xit |r@offset |⏎ |w@offset |? (help)|:r@2000
-
-0x2000
-Base Address:0x7b62471000 Dumping at:0x7b62473000 Offset:2000
-           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
-00000000  88 0d 00 00 11 00 0c 00 2f ff 02 00 00 00 00 00  ......../.......
-00000010  1d 00 00 00 00 00 00 00 a0 22 00 00 10 00 f1 ff  ........."......
-00000020  30 20 04 00 00 00 00 00 00 00 00 00 00 00 00 00  0 ..............
-00000030  72 0f 00 00 11 00 0c 00 24 fd 02 00 00 00 00 00  r.......$.......
-00000040  01 00 00 00 00 00 00 00 42 0d 00 00 12 00 0b 00  ........B.......
-00000050  3c 08 01 00 00 00 00 00 a8 0c 00 00 00 00 00 00  <...............
-00000060  08 0e 00 00 11 00 0c 00 68 05 03 00 00 00 00 00  ........h.......
-00000070  19 00 00 00 00 00 00 00 c2 02 00 00 11 00 0c 00  ................
-```
-
-Issuing a write command (**w@2000**)
-
-```
-|(E)xit |r@offset |⏎ |w@offset |? (help)|:w@2000
-Bytes to write (in the form of 00 11 22 33):90 90 90 90
-Bytes in:[0x90,0x90,0x90,0x90]
-```
-
-```
-Base Address:0x7b62471000 Dumping at:0x7b62473000 Offset:2000
-           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
-00000000  90 90 90 90 11 00 0c 00 2f ff 02 00 00 00 00 00  ......../.......
-00000010  1d 00 00 00 00 00 00 00 a0 22 00 00 10 00 f1 ff  ........."......
-00000020  30 20 04 00 00 00 00 00 00 00 00 00 00 00 00 00  0 ..............
-00000030  72 0f 00 00 11 00 0c 00 24 fd 02 00 00 00 00 00  r.......$.......
-00000040  01 00 00 00 00 00 00 00 42 0d 00 00 12 00 0b 00  ........B.......
-00000050  3c 08 01 00 00 00 00 00 a8 0c 00 00 00 00 00 00  <...............
-00000060  08 0e 00 00 11 00 0c 00 68 05 03 00 00 00 00 00  ........h.......
-00000070  19 00 00 00 00 00 00 00 c2 02 00 00 11 00 0c 00  ................
-00000080  fa ff 02 00 00 00 00 00 19 00 00 00 00 00 00 00  ................
-```
-
-
-
-**01/09/2020**: Native hook support added:
-
-```
-medusa>hook -n
-[?] Libary name:libjpeg.so
-[?] Function name:jpeg_CreateDecompress
-[?] Enable backtrace (yes/no):yes
-[?] Enable memory read (yes/no):yes
-[?] Buffer read size (0-1024):1024
-
-Entering Native function:  jpeg_CreateDecompress
-Backtrace:
-	0x7891e6d40c libhwui.so!_ZN7SkCodec13skipScanlinesEi+0xa18
-	0x7891e6cd18 libhwui.so!_ZN7SkCodec13skipScanlinesEi+0x324
-	0x7891e6d970 libhwui.so!_ZN6SkData17MakeUninitializedEm+0x3e8
-	0x7891e6d898 libhwui.so!_ZN6SkData17MakeUninitializedEm+0x310
-	0x7891e618c8 libhwui.so!_ZN7SkCodec14MakeFromStreamENSt3__110unique_ptrI8SkStreamNS0_14default_deleteIS2_EEEEPNS_6ResultEP16SkPngChunkReader+0x104
-	0x7892326b84 libandroid_runtime.so!_Z38register_android_graphics_ImageDecoderP7_JNIEnv+0x1738
-	0x7892325834 libandroid_runtime.so!_Z38register_android_graphics_ImageDecoderP7_JNIEnv+0x3e8
-	0x714050e4 boot-framework.oat!0x28b0e4
-Leaving Native function:  jpeg_CreateDecompress
-Return Value: 0x77a01c6180
-           0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
-00000000  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000010  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000020  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000030  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000040  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000050  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-00000090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-000000a0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-000000b0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-```
-
-
-
-**25/08/2020**: Hook all functions of a given class (example):
-
-```
-medusa>hook -a com.foo.class
-
-Hook(s) have been added to the modules/schratchpad.me ,you may include it in the final script.
-```
-
-
-
-**21/08/2020**: Hook a function by giving the name and its class name (example):
-
-```
-medusa>hook -f
-
-Enter the full name of the function(s) class: foo.com
-Enter a function name (CTRL+C to Exit): onCreate
-
-Hook has been added to the modules/schratchpad.me ,you may include it in the final script.
-```
-
-
-
-
-
-
 
 ##### About me:
 

@@ -54,7 +54,7 @@ webView.setVisibility.implementation = function(a){
     
 }
 webView.addJavascriptInterface.implementation = function(object, name){
-    console.log('[i] Javascript interface detected:' + object.$className + ' instatiated as: ' + name);
+    colorLog('[i] Javascript interface detected:' + object.$className + ' instatiated as: ' + name,{c:Color.Red});
     this.addJavascriptInterface(object,name);
 }
 
@@ -69,8 +69,28 @@ webView.getOriginalUrl.implementation = function(){
     return this.getOriginalUrl();
 }
 
+function dumpWebview(wv){
+    console.log('[i] -------- Dumping webview settings-----------:');
+    highlight('     Allows Content Access: ',wv.getSettings().getAllowContentAccess());
+    highlight('     Allows Javascript execution: ',wv.getSettings().getJavaScriptEnabled());
+    highlight('     Allows File Access: ',wv.getSettings().getAllowFileAccess());
+    highlight('     Allows File Access From URLs: ',wv.getSettings().getAllowFileAccessFromFileURLs());
+    highlight('     Allows Universal Access from file URLs: ',wv.getSettings().getAllowUniversalAccessFromFileURLs());
+    colorLog('[i] -------- Dumping webview settings EOF -------',{c:Color.Blue});
+
+}
+
+function highlight(tag, flag){
+  if(flag)
+    colorLog(tag + flag,{c:Color.Red});
+  else 
+    console.log(tag+flag);
+
+}
+
 webView.getUrl.implementation = function(){
-    console.log('[i] Current Loaded url:' + this.getUrl());
+    colorLog('[i] Current Loaded url:' + this.getUrl(),{c:Color.Blue});
+    dumpWebview(this);
     return this.getUrl();
 }
 
@@ -91,6 +111,7 @@ webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,
 
 webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
     console.log('[i] Loading URL: ' + url);
+    dumpWebview(this);
     this.setWebContentsDebuggingEnabled(true);
 
     this.loadUrl(url,additionalHttpHeaders);
@@ -99,6 +120,7 @@ webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = f
 
 webView.loadUrl.overload('java.lang.String').implementation = function(url){
     console.log('[i] Loading URL:' + url);
+    dumpWebview(this);
     this.setWebContentsDebuggingEnabled(true);
 
     this.loadUrl(url);

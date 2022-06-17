@@ -989,20 +989,23 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
 
 
     def do_list(self,line):
-        try:
-            package = line.split()[0]
-            option = line.split()[1]
-            dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
-            if option == "path":
-                print('-'*20+package+' '+"paths"+'-'*20)
-                for ln in dumpsys:
-                    for keyword in ["resourcePath","codePath","legacyNativeLibraryDir","primaryCpuAbi"]:
-                        if keyword in ln:
-                            print(ln,end='')
+        if len(line.split()) == 0:
+            self.init_packages()
+        else:
+            try:    
+                package = line.split()[0]
+                option = line.split()[1]
+                dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
+                if option == "path":
+                    print('-'*20+package+' '+"paths"+'-'*20)
+                    for ln in dumpsys:
+                        for keyword in ["resourcePath","codePath","legacyNativeLibraryDir","primaryCpuAbi"]:
+                            if keyword in ln:
+                                print(ln,end='')
 
-            print("-"*31+'EOF'+'-'*len(package)+'-'*12)
-        except Exception as e:
-            print(e)
+                print("-"*31+'EOF'+'-'*len(package)+'-'*12)
+            except Exception as e:
+                print(e)
 
 
     def complete_list(self, text, line, begidx, endidx):
@@ -1082,8 +1085,8 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
 
                         - run        [package name] : Initiate a Frida session and attach to the selected package
                         - run -f     [package name] : Initiate a Frida session and spawn the selected package
-                        - run -n     [package num]  : Initiate a Frida session and spawn the package referenced by 
-                                                      this number
+                        - run -n     [package num]  : Initiate a Frida session and spawn the 3rd party package 
+                                                      number num (listed by "list")
                         - dump       [package_name] : Dump the requested package name (works for most unpackers)
                         - loaddevice                : Load or reload a device
                 ====================================================================================================
@@ -1091,6 +1094,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                 HELPERS:
 
                         - type 'text'               : Send a text to the device
+                        - list                      : List 3rd party packages
                         - list 'package_name' path  : List data/app paths of 3rd party packages 
                         - status                    : Print Current Package/Libs/Native-Functions
                         - shell                     : Open an interactive shell

@@ -267,7 +267,7 @@ A Medusa module is essentially a Frida script on steroids combined with multiple
        
    		hook.function.implementation = function() {
    			console.log("Info: entered target method");		
-       }
+      }
    
    	});  
    ```
@@ -279,10 +279,11 @@ A Medusa module is essentially a Frida script on steroids combined with multiple
        
    		hook.function.implementation = function() {
    			console.log("Info: entered target method");		
-       }
+      }
    ```
 
-2. **Insert the modified code in the "code" segment of the following json object:**
+2. **Insert the modified code in the "code" segment of the following json object:** Do not forget to escape all 
+quotes (`\"`).
 
    ```json
    {

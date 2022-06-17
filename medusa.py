@@ -587,7 +587,6 @@ catch (err) {
         for i in range(len(self.packages)):
             print('[{}] {}'.format(i, self.packages[i]))
 
-
     def do_dump(self, line):
         pkg = line.split(' ')[0].strip()
         if pkg == '':
@@ -826,9 +825,21 @@ catch (err) {
             if length == 1:
                 self.run_frida(False, False, line, self.device)
             elif length == 2:
-                print(flags[1])
+                
                 if '-f' in flags[0]:
+                    print(flags[1])
                     self.run_frida(True, False, flags[1], self.device)
+                
+                if '-n' in flags[0]:
+                    try:
+                        if len(self.packages) == 0:
+                            self.refreshPackages()
+                        #print(flags[1])
+                        package_name = self.packages[int(flags[1])]
+                        #print("package name: ", package_name)
+                        self.run_frida(True, False, package_name, self.device)
+                    except (IndexError, TypeError) as error:
+                        print('Invalid package number')
 
                 else:
                     print('Invalid flag given!')
@@ -978,20 +989,23 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
 
 
     def do_list(self,line):
-        try:
-            package = line.split()[0]
-            option = line.split()[1]
-            dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
-            if option == "path":
-                print('-'*20+package+' '+"paths"+'-'*20)
-                for ln in dumpsys:
-                    for keyword in ["resourcePath","codePath","legacyNativeLibraryDir","primaryCpuAbi"]:
-                        if keyword in ln:
-                            print(ln,end='')
+        if len(line.split()) == 0:
+            self.init_packages()
+        else:
+            try:    
+                package = line.split()[0]
+                option = line.split()[1]
+                dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
+                if option == "path":
+                    print('-'*20+package+' '+"paths"+'-'*20)
+                    for ln in dumpsys:
+                        for keyword in ["resourcePath","codePath","legacyNativeLibraryDir","primaryCpuAbi"]:
+                            if keyword in ln:
+                                print(ln,end='')
 
-            print("-"*31+'EOF'+'-'*len(package)+'-'*12)
-        except Exception as e:
-            print(e)
+                print("-"*31+'EOF'+'-'*len(package)+'-'*12)
+            except Exception as e:
+                print(e)
 
 
     def complete_list(self, text, line, begidx, endidx):
@@ -1071,6 +1085,8 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
 
                         - run        [package name] : Initiate a Frida session and attach to the selected package
                         - run -f     [package name] : Initiate a Frida session and spawn the selected package
+                        - run -n     [package num]  : Initiate a Frida session and spawn the 3rd party package 
+                                                      number num (listed by "list")
                         - dump       [package_name] : Dump the requested package name (works for most unpackers)
                         - loaddevice                : Load or reload a device
                 ====================================================================================================
@@ -1078,6 +1094,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                 HELPERS:
 
                         - type 'text'               : Send a text to the device
+                        - list                      : List 3rd party packages
                         - list 'package_name' path  : List data/app paths of 3rd party packages 
                         - status                    : Print Current Package/Libs/Native-Functions
                         - shell                     : Open an interactive shell

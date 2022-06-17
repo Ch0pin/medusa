@@ -66,10 +66,12 @@
         return this.$init(filename, librarySearchPath, parent);
     }
 
-    delegateLoader.$init.overload('java.lang.String', 'java.lang.String', 'java.lang.ClassLoader', 'boolean').implementation = function(filename, librarySearchPath, parent, resourceLoading) {
-        colorLog('DelegateLastClassLoader(f,l,p,b) called: '+filename, {c: Color.Yellow});
-        dump(filename);
-        return this.$init(filename, librarySearchPath, parent, resourceLoading);
+    if (Java.use('android.os.Build$VERSION').SDK_INT.value > 28) {
+        delegateLoader.$init.overload('java.lang.String', 'java.lang.String', 'java.lang.ClassLoader', 'boolean').implementation = function(filename, librarySearchPath, parent, resourceLoading) {
+            colorLog('DelegateLastClassLoader(f,l,p,b) called: '+filename, {c: Color.Yellow});
+            dump(filename);
+            return this.$init(filename, librarySearchPath, parent, resourceLoading);
+        }
     }
 
     memoryLoader.$init.overload('java.nio.ByteBuffer', 'java.lang.ClassLoader').implementation = function(dexbuffer, loader) {

@@ -587,7 +587,6 @@ catch (err) {
         for i in range(len(self.packages)):
             print('[{}] {}'.format(i, self.packages[i]))
 
-
     def do_dump(self, line):
         pkg = line.split(' ')[0].strip()
         if pkg == '':
@@ -826,9 +825,21 @@ catch (err) {
             if length == 1:
                 self.run_frida(False, False, line, self.device)
             elif length == 2:
-                print(flags[1])
+                
                 if '-f' in flags[0]:
+                    print(flags[1])
                     self.run_frida(True, False, flags[1], self.device)
+                
+                if '-n' in flags[0]:
+                    try:
+                        if len(self.packages) == 0:
+                            self.refreshPackages()
+                        #print(flags[1])
+                        package_name = self.packages[int(flags[1])]
+                        #print("package name: ", package_name)
+                        self.run_frida(True, False, package_name, self.device)
+                    except (IndexError, TypeError) as error:
+                        print('Invalid package number')
 
                 else:
                     print('Invalid flag given!')
@@ -1071,6 +1082,8 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
 
                         - run        [package name] : Initiate a Frida session and attach to the selected package
                         - run -f     [package name] : Initiate a Frida session and spawn the selected package
+                        - run -n     [package num]  : Initiate a Frida session and spawn the package referenced by 
+                                                      this number
                         - dump       [package_name] : Dump the requested package name (works for most unpackers)
                         - loaddevice                : Load or reload a device
                 ====================================================================================================

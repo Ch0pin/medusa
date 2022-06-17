@@ -1,9 +1,11 @@
 #!/bin/sh
 
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
+
+
 
 if [ "$#" -eq 2 ]; then
-    python3 /Users/ch0pin/Desktop/medusa/medusa.py $1 $2
+    python3 $SCRIPT_DIR/medusa.py $1 $2
 else
-    python3 /Users/ch0pin/Desktop/medusa/medusa.py
+    python3 $SCRIPT_DIR/medusa.py
 fi
-

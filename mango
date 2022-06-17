@@ -1,7 +1,11 @@
 #!/bin/sh
 
-if [ "$#" -eq 1 ]; then
-    python3 /Users/ch0pin/Desktop/medusa/mango.py $1 
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
+
+
+if [ "$#" -eq 2 ]; then
+    python3 $SCRIPT_DIR/mango.py $1
 else
-    python3 /Users/ch0pin/Desktop/medusa/mango.py
+    python3 $SCRIPT_DIR/mango.py
 fi
+

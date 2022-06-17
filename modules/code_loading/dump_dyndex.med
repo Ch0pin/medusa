@@ -32,42 +32,42 @@
         fis.close();
         fos.close();
 
-        console.log(\"[*] Dumped \"+filename+\" to dump_\"+counter);
+        console.log(\"[+] Dumped \"+filename+\" to dump_\"+counter);
     }
 
 
     classLoader.$init.implementation = function(filename, b, c, d) {
-	    colorLog('DexClassLoader called:', {c: Color.Green});
+	    colorLog('DexClassLoader called: '+filename, {c: Color.Yellow});
         dump(filename);
         return this.$init(filename, b, c, d);
     }
 
     pathLoader.$init.overload('java.lang.String', 'java.lang.ClassLoader').implementation = function(filename, parent) {
-        console.log(\"[*] PathClassLoader(file=\"+filename+', parent)');
+        colorLog('PathClassLoader(f,p) called: '+filename, {c: Color.Yellow});
         dump(filename);
         return this.$init(filename, parent);
     }
 
     pathLoader.$init.overload('java.lang.String', 'java.lang.String', 'java.lang.ClassLoader').implementation = function(filename, librarySearchPath, parent) {
-        console.log(\"[*] PathClassLoader(file=\"+filename+\", librarySearchPath, parent)\");
+        colorLog('PathClassLoader(f,l,p) called: '+filename, {c: Color.Yellow});
         dump(filename);
         return this.$init(filename, librarySearchPath, parent);
     }
 
     delegateLoader.$init.overload('java.lang.String', 'java.lang.ClassLoader').implementation = function(filename, parent) {
-        console.log(\"[*] DelegateLastClassLoader(file=\"+filename+', parent)');
+        colorLog('DelegateLastClassLoader(f,p) called: '+filename, {c: Color.Yellow});
         dump(filename);
         return this.$init(filename, parent);
     }
 
     delegateLoader.$init.overload('java.lang.String', 'java.lang.String', 'java.lang.ClassLoader').implementation = function(filename, librarySearchPath, parent) {
-        console.log(\"[*] DelegateLastClassLoader(file=\"+filename+\", librarySearchPath, parent)\");
+        colorLog('DelegateLastClassLoader(f,l,p) called: '+filename, {c: Color.Yellow});
         dump(filename);
         return this.$init(filename, librarySearchPath, parent);
     }
 
     delegateLoader.$init.overload('java.lang.String', 'java.lang.String', 'java.lang.ClassLoader', 'boolean').implementation = function(filename, librarySearchPath, parent, resourceLoading) {
-        console.log(\"[*] DelegateLastClassLoader(file=\"+filename+\", librarySearchPath, parent, resourceLoading)\");
+        colorLog('DelegateLastClassLoader(f,l,p,b) called: '+filename, {c: Color.Yellow});
         dump(filename);
         return this.$init(filename, librarySearchPath, parent, resourceLoading);
     }
@@ -80,7 +80,7 @@
 	
         var filename = 'dump_' + counter;
         counter = counter + 1;
-	    console.log(\"[*] Opening file name=\"+filename+\" to write \"+remaining+\" bytes\");
+	    console.log(\"[*] InMemoryDexClassLoader: Opening file name=\"+filename+\" to write \"+remaining+\" bytes\");
 
 	    const f = new File(filename,'wb');
 	    var buf = new Uint8Array(remaining);

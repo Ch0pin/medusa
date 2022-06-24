@@ -954,15 +954,14 @@ class parser(cmd2.Cmd):
             
                 opsys = platform.system()
                 script = self.create_script(opsys,line)
-                path = os.getcwd()
 
                 if not 'Error' in script:
                     if 'Darwin' in opsys:
-                        subprocess.run("""osascript -e 'tell application "Terminal" to do script "{}" ' """.format(path+script), shell=True)
+                        subprocess.run("""osascript -e 'tell application "Terminal" to do script "{}" ' """.format(script), shell=True)
                     elif 'Linux' in opsys:
-                        subprocess.run("""x-terminal-emulator -e {}""".format(path+script)) 
+                        subprocess.run("""x-terminal-emulator -e {}""".format(script)) 
                     elif 'Windows' in opsys:
-                        subprocess.call('start /wait {}'.format(path+script), shell=True)
+                        subprocess.call('start /wait {}'.format(script), shell=True)
             except Exception as e:
                 print(e)
 
@@ -974,7 +973,7 @@ class parser(cmd2.Cmd):
 
         if '-j' in switch:
             param1 = line.split(' ')[1]+ '*!*'
-            param = """frida-trace -D {} {} -j '{}' """.format(self.device.id,self.info[0][2],param1)
+            param = """frida-trace -D {} -f {} -j '{}' """.format(self.device.id,self.info[0][2],param1)
         elif '-n' in switch:
             param1 = line.split(' ')[1]+ '*'
             param = """frida-trace -D {} -i '{}' {}""".format(self.device.id,param1,self.info[0][2])
@@ -1379,16 +1378,17 @@ $adb remount
         """Usage: exit 
         Exits the application."""
         print('Checking the working directory for leftovers... ')
+        path = os.getcwd();
         try:
             if os.path.isfile('./script.sh'):
-                Polar('\tDo you want to delete the trace script file ?',
-                    lambda: os.remove('./script.sh')).ask()
+                if Polar('\t (!) Delete {} ?'.format(path+'/script.sh')).ask():
+                    os.remove('script.sh')
             if os.path.isfile('.\script.bat'):
-                Polar('\tDo you want to delete the trace script file?',
-                    lambda: os.remove('./script.bat')).ask()
-            if os.path.exists("__handlers__/"):
-                Polar('\tDo you want to delete the __handlers__ folder?',
-                    lambda: os.system("rm -r __handlers__/")).ask()
+                if Polar('\t(!) Do you want to delete the trace script file?').ask():
+                    os.remove('./script.bat')
+            if os.path.exists('__handlers__/'):
+                if Polar('\t(!) Delete the folder {}?'.format(path+'/__handlers__')).ask():   
+                    os.system("rm -r __handlers__/")
             else:
                 print("All good !")
 

@@ -15,7 +15,7 @@ $ pip install -r requirements.txt
 **Other requirements include:** 
 
 - Linux or macOS (currently we don't support windows)
-- Python 3 
+- Python 3 (use the latest [python release](https://www.python.org/downloads/macos/) instead of the one shiped with MacOS to avoid issues with using libedit instead of GNU's readline)
 - Rooted device 
 - adb
 - FRIDA server (running on the mobile device)

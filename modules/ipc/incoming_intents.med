@@ -78,6 +78,7 @@ bundle1.getShort.overloads[1].implementation = function(key,def){
     return ret;
 }
 intent1.getSerializableExtra.implementation = function(name){
+    
     colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
     console.log('[+]\tSerializable Extra, name: '+ name);
     return this.getSerializableExtra(name);

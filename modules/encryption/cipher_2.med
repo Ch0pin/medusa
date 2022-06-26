@@ -6,10 +6,7 @@
 console.log(\"---------------Monitoring of ENCRYPTION/DECRYPTION process BY @ch0pin-----------\");
 
 
-
 var cipher = Java.use('javax.crypto.Cipher');
-
-
 
 
 cipher.init.overload('int', 'java.security.Key').implementation = function(mode,key){
@@ -53,7 +50,7 @@ cipher.init.overload('int', 'java.security.Key', 'java.security.spec.AlgorithmPa
 
 
 
-cipher.init.overload('int', 'java.security.Key', 'java.security.AlgorithmParameters', 'java.security.SecureRandom').implementation = function(mode,key,paramsec){
+cipher.init.overload('int', 'java.security.Key', 'java.security.AlgorithmParameters', 'java.security.SecureRandom').implementation = function(mode,key,paramsec,secRnd){
     var operation = '';
     var algorithm = this.getAlgorithm();
     var castedToIv = Java.cast(paramsec, Java.use('javax.crypto.spec.IvParameterSpec'));
@@ -69,7 +66,7 @@ cipher.init.overload('int', 'java.security.Key', 'java.security.AlgorithmParamet
         colorLog('\t\t[-] Key (Ascii): '+ byteArrayToStringE(key.getEncoded()), {c:Color.Red});
     }
     colorLog('\t[-] IV (hex): '+ byteArraytoHexString(castedToIv.getIV()), {c:Color.Gray});
-    return this.init(mode,key,paramsec); 
+    return this.init(mode,key,paramsec,secRnd); 
 }
 
 
@@ -86,14 +83,6 @@ cipher.doFinal.overload('[B').implementation = function(byteArray){
     return this.doFinal(byteArray);
 }
 
-cipher.doFinal.overload('[B').implementation = function(byteArray,outputOffset){
-
-    var txt = byteArrayToString(byteArray);
-
-    colorLog('[ -------------------- ByteArray IN (Ascii) ------------------- :\\n'+txt, {c:Color.Green});
-    this.doFinal(byteArray,outputOffset);
-    
-}
 
 cipher.doFinal.overload('[B', 'int').implementation = function(byteArray,outputOffset){
 

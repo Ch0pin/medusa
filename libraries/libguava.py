@@ -140,7 +140,7 @@ class Guava:
           process = receiver.get(NS_ANDROID+"process")
 
           if len(receiver.findall("intent-filter")) > 0:
-            if exported == 'false':
+            if exported != 'false':
               exported = "true (intent filter)"
             filters = receiver.findall("intent-filter")
             self.extractIntentFilters(filters, receiver)
@@ -158,7 +158,7 @@ class Guava:
           targetActivity = activity_alias.get(NS_ANDROID+"targetActivity")
 
           if len(activity_alias.findall("intent-filter")) > 0:
-            if  exported == 'false':
+            if  exported != 'false':
               exported = "true (intent filter)"
             filters = activity_alias.findall("intent-filter")
             self.extractIntentFilters(filters, activity_alias)

@@ -16,7 +16,26 @@
 
 
 
+var hook = Java.use('android.provider.Settings$Secure');
 
+var overloadCount1 = hook['getInt'].overloads.length;
+
+for (var i = 0; i < overloadCount1; i++) {
+    hook['getInt'].overloads[i].implementation = function() {
+        colorLog('*** entered ' +'android.provider.Settings$Secure.getInt',{ c: Color.Green });
+         console.log('[i] Setting fetched:' + arguments[1]);
+            var retval = this['getInt'].apply(this, arguments);
+        var param = arguments[1];
+        if(param==='development_settings_enabled' || param == 'adb_enabled')
+        {
+            colorLog('[!] AntiDebug technique detected:'+param,{c: Color.Red});
+            return 0;
+
+        }
+            
+        return retval;
+        }
+    }
 
     
 

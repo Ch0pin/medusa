@@ -96,6 +96,7 @@ webView.getUrl.implementation = function(){
 
 webView.loadData.implementation = function(data,mimeType, encoding){
     console.log('[i] Load data called with the following parameters:\\n' + 'Data:' + data + '\\nMime type: '+mimeType+'\\nEncoding: '+ encoding);
+    dumpWebview(this);
     this.loadData(data,mimeType,encoding);
 }
 
@@ -105,7 +106,7 @@ webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,
     '\\nData: ' + data+
     '\\nmimeType: ' + mimeType+
     '\\nhistory URL' + historyUrl);
-
+    dumpWebview(this);
     this.loadDataWithBaseURL(baseUrl,data,mimeType,encoding,historyUrl);
 }
 

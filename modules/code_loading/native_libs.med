@@ -6,19 +6,32 @@
 console.log('\\n--------Native load hook module by @ch0pin--------------\\n');
 
 var systemA = Java.use('java.lang.System');
+    const System = Java.use('java.lang.System');
+    const Runtime = Java.use('java.lang.Runtime');
+    const SystemLoad_2 = System.loadLibrary.overload('java.lang.String');
+    const VMStack = Java.use('dalvik.system.VMStack');
 
+    SystemLoad_2.implementation = function(library) {
+        colorLog('[+] Application is loading the following library:' + library,{c: Color.Red});
+        try {
+            const loaded = Runtime.getRuntime().loadLibrary0(VMStack.getCallingClassLoader(), library);
+            return loaded;
+        } catch(ex) {
+            console.log(ex);
+        }
+    };
 
 systemA.load.implementation = function(filename){
     colorLog('[+] Application is loading the following library: '+filename, {c: Color.Red});
     return this.load(filename);
 }
-systemA.loadLibrary.implementation = function(libname){
-    colorLog('[+] Application is loading the following library:'+libname,{c: Color.Red});
-    return this.loadLibrary(libname);
-}
+//systemA.loadLibrary.implementation = function(libname){
+//    colorLog('[+] Application is loading the following library:'+libname,{c: Color.Red});
+//    return this.loadLibrary(libname);
+//}
 
 systemA.mapLibraryName.implementation = function(libname){
-    ret = this.mapLibraryName(libname);
+    var ret = this.mapLibraryName(libname);
     colorLog('[+] Application maps '+libname+ ' to ' + ret , {c: Color.Red});
     return ret;
 }

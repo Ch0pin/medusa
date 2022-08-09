@@ -77,6 +77,14 @@ bundle1.getShort.overloads[1].implementation = function(key,def){
     console.log('getShort Bundle key:'+key + ', value:'+ret);
     return ret;
 }
+
+intent1.hasExtra.implementation = function(name){
+    colorLog('[+]INTENT hasExtra: '+name,{c:Color.Yellow});
+  
+    return this.hasExtra(name);
+}
+
+
 intent1.getSerializableExtra.implementation = function(name){
     
     colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});

@@ -229,6 +229,41 @@ class Parser(cmd2.Cmd):
         self.native_handler = nativeHandler(self.device)
         self.native_handler.loadLibrary(line.split()[0],line.split()[1])
 
+
+
+
+    def do_jtrace(self,line):
+        function_path = line.split(' ')[0]
+        class_name = '.'.join(function_path.split('.')[:-1])
+        function_name = function_path.split('.')[-1]       
+        codejs = '\n'
+        codejs += """var hook = Java.use('""" + class_name + """');"""
+
+        codejs += """
+    var overloadCount = hook['""" + function_name + """'].overloads.length;
+                                       
+    for (var i = 0; i < overloadCount; i++) {
+        hook['""" + function_name + """'].overloads[i].implementation = function() {
+            colorLog("*** Entering " +'""" + function_name + """',{ c: Color.Green });
+
+            Java.perform(function() {
+                var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
+                    console.log("-----------Printing Stack Trace-------");
+                    colorLog(bt,{c: Color.Blue});
+                    console.log("--------------------------------------")
+            });   
+
+            var retval = this['""" + function_name + """'].apply(this, arguments); 
+            
+            colorLog("*** Exiting " + '""" + function_name + """',{ c: Color.Green });
+            return retval;
+        }
+    }
+"""
+        self.editScratchpad(codejs, 'a')
+        print("Stack trace have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
+
+
 #----------------------------
     def complete_load(self, text, line, begidx, endidx):
         return self.complete_list(text, line, begidx, endidx)
@@ -1051,6 +1086,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                         - export  'filename'        : Save session modules and scripts to 'filename'
                         - import [tab]              : Import frida script from available snippet
                         - pad                       : Edit the scratchpad using vi
+                        - jtrace function_path      : Prints the stack trace of a function
                         - compile [-t X millisec]   : Compile the modules to a frida script, use '-t' to add a load delay 
                         - hook [option]
                     

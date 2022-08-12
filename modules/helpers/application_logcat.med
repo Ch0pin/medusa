@@ -3,76 +3,71 @@
     "Description": "Hook the android log output",
     "Help": "Hooks the following log types:\n- ASSERT\n- DEBUG\n- ERROR \n- INFO \n- VERBOSE \n- WARN",
     "Code": "
+
 console.log('-------Debug log monitor by @chopin--------------');
 
-var androidLog = Java.use('android.util.Log');
+var hook = Java.use('android.util.Log');
 
 
-androidLog.d.overloads[0].imlementation = function(tag,msg,throwable){
-    colorLog('DEBUG tag:'+tag + ' msg:'+msg, {c:Color.Yellow});
-    return this.d(tag,msg,throwable);
+var overloadCount = hook['i'].overloads.length;
+for (var i = 0; i < overloadCount; i++) {
+    hook['i'].overloads[i].implementation = function() {
+        colorLog('[+] Logcat.INFO:',{ c: Color.Yellow });
+        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+        var retval = this['i'].apply(this, arguments);
+        return retval;
+    }
 }
 
-androidLog.d.overloads[1].imlementation = function(tag,msg){
-    colorLog('DEBUG tag:'+tag + ' msg:'+msg, {c:Color.Yellow});
-    return this.d(tag,msg);
+
+var overloadCount = hook['d'].overloads.length;
+for (var i = 0; i < overloadCount; i++) {
+    hook['d'].overloads[i].implementation = function() {
+        colorLog('[+] Logcat.DEBUG: ',{ c: Color.Yellow });
+        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+        var retval = this['d'].apply(this, arguments);
+        return retval;
+    }
 }
 
-androidLog.e.overloads[0].imlementation = function(tag,msg){
-    colorLog('ERROR tag:'+tag + ' msg:'+msg, {c:Color.Red});
-    return this.e(tag,msg);
+var overloadCount = hook['e'].overloads.length;
+for (var i = 0; i < overloadCount; i++) {
+    hook['e'].overloads[i].implementation = function() {
+        colorLog('[+] Logcat.ERROR:',{ c: Color.Yellow });
+        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+        var retval = this['e'].apply(this, arguments);
+        return retval;
+    }
 }
 
-androidLog.e.overloads[1].imlementation = function(tag,msg,throwable){
-    colorLog('ERROR tag:'+tag + ' msg:'+msg, {c:Color.Red});
-    return this.e(tag,msg,throwable);
-}
-androidLog.i.overloads[0].imlementation = function(tag,msg,throwable){
-    colorLog('INFO tag:'+tag + ' msg:'+msg, {c:Color.Red});
-    return this.i(tag,msg,throwable);
-}
-
-androidLog.i.overloads[1].imlementation = function(tag,msg){
-    colorLog('INFO tag:'+tag + ' msg:'+msg, {c:Color.Red});
-    return this.i(tag,msg);
+var overloadCount = hook['v'].overloads.length;
+for (var i = 0; i < overloadCount; i++) {
+    hook['v'].overloads[i].implementation = function() {
+        colorLog('[+] Logcat.VERBOSE:',{ c: Color.Yellow });
+        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+        var retval = this['v'].apply(this, arguments);
+        return retval;
+    }
 }
 
-androidLog.v.overloads[0].imlementation = function(tag,msg){
-    colorLog('VERBOSE tag:'+tag + ' msg:'+msg, {c:Color.Cyan});
-    return this.v(tag,msg);
-}
-androidLog.v.overloads[1].imlementation = function(tag,msg,throwable){
-    colorLog('VERBOSE tag:'+tag + ' msg:'+msg, {c:Color.Cyan});
-    return this.v(tag,msg,throwable);
-}
-androidLog.v.overloads[0].imlementation = function(tag,throwable){
-    colorLog('WARN tag:'+tag + ' msg:'+throwable.toString(), {c:Color.Blue});
-    return this.w(tag,throwable);
+var overloadCount = hook['w'].overloads.length;
+for (var i = 0; i < overloadCount; i++) {
+    hook['w'].overloads[i].implementation = function() {
+        colorLog('[+] Logcat.WARN:',{ c: Color.Yellow });
+        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+        var retval = this['w'].apply(this, arguments);
+        return retval;
+    }
 }
 
-androidLog.w.overloads[1].imlementation = function(tag,msg,throwable){
-    colorLog('WARN tag:'+tag + ' msg:'+msg, {c:Color.Cyan});
-    return this.w(tag,msg,throwable);
-}
-
-androidLog.w.overloads[2].imlementation = function(tag,msg){
-    colorLog('WARN tag:'+tag + ' msg:'+msg, {c:Color.Cyan});
-    return this.w(tag,msg);
-}
-
-androidLog.wtf.overloads[0].imlementation = function(tag,msg){
-    colorLog('WTF tag:'+tag + ' msg:'+msg, {c:Color.Red});
-    return this.wtf(tag,msg);
-}
-
-androidLog.wtf.overloads[1].imlementation = function(tag,throwable){
-    colorLog('WARN tag:'+tag + ' msg:'+throwable.toString(), {c:Color.Red});
-    return this.wtf(tag,throwable);
-}
-
-androidLog.wtf.overloads[2].imlementation = function(tag,msg,throwable){
-    colorLog('WARN tag:'+tag + ' msg:'+throwable.toString(), {c:Color.Red});
-    return this.wtf(tag,msg,throwable);
+var overloadCount = hook['wtf'].overloads.length;
+for (var i = 0; i < overloadCount; i++) {
+    hook['wtf'].overloads[i].implementation = function() {
+        colorLog('[+] Logcat.TERRIBLE_FAILURE:',{ c: Color.RED });
+        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+        var retval = this['wtf'].apply(this, arguments);
+        return retval;
+    }
 }
 "
 }

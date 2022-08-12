@@ -923,13 +923,13 @@ class parser(cmd2.Cmd):
         framework's functionality."""
 
         try:
-            if not os.path.exists(APKTOOL):
+            if not os.path.exists(MEDUSA_AGENT):
                 if(Polar('[?] Medusa Agent has not been downloaded, do you want to do it now ?').ask()):
                     self.download_file(MEDUSA_AGENT_URL, MEDUSA_AGENT)
-            else:
+                else:
                     return
-
-            subprocess.run('adb -s {} install -g {}'.format(self.device.id,MEDUSA_AGENT),shell=True)
+            else:
+                subprocess.run('adb -s {} install -g {}'.format(self.device.id,MEDUSA_AGENT),shell=True)
         except Exception as e:
             print(e)
 

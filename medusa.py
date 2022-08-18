@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from imp import reload
 from pickle import decode_long
 import subprocess
 import platform
@@ -862,10 +863,8 @@ catch (err) {
             elif length == 2:
                 
                 if '-f' in flags[0]:
-                    print(flags[1])
                     self.run_frida(True, False, flags[1], self.device)
-                
-                if '-n' in flags[0]:
+                elif '-n' in flags[0]:
                     try:
                         if len(self.packages) == 0:
                             self.refreshPackages()
@@ -880,7 +879,7 @@ catch (err) {
                     print('Invalid flag given!')
 
             else:
-                print('Invalid flags given')
+                pass
         except Exception as e:
             print(e)
 
@@ -927,7 +926,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
 
 
     def run_frida(self, force, detached, package_name, device):
-        in_session_menu = WHITE + '[in-session] |' + GREEN + 'e:' + WHITE + 'exit |' + GREEN + 'r:' + WHITE + 'reload | ' + GREEN + 'i:' + WHITE + 'info | ' + GREEN +'?:'+WHITE +'help |:'+RESET
+        in_session_menu = WHITE + '[in-session] |'+ GREEN + 'c:' + WHITE + 'clear |'  + GREEN + 'e:' + WHITE + 'exit |' + GREEN + 'r:' + WHITE + 'reload | \n' + '| '+ GREEN + 'rs:' + WHITE + 'reset scratchpad |' +  GREEN + 'i:' + WHITE + 'info |' + GREEN + 't:' + WHITE + 'trace  |' + GREEN +'?:'+WHITE +'help |:'+RESET
         creation_time = modified_time = None
         self.detached = False
         session = self.frida_session_handler(device,force,package_name)
@@ -949,16 +948,16 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                     #handle changes during runtime
                  
                     modified_time = self.modification_time(os.path.join(self.base_directory, "agent.js"))
-                
                     if modified_time != creation_time:
                         print(RED + "Script changed, reloading ...." + RESET)
                         creation_time = modified_time
-                        self.script.unload()
-                        with open(os.path.join(self.base_directory, "agent.js")) as f:
-                            self.script = session.create_script(f.read())
-                        session.on('detached',self.on_detached)
-                        self.script.on("message",self.my_message_handler)  # register the message handler
-                        self.script.load()  
+                        self.reload_script(session)
+                        # self.script.unload()
+                        # with open(os.path.join(self.base_directory, "agent.js")) as f:
+                        #     self.script = session.create_script(f.read())
+                        # session.on('detached',self.on_detached)
+                        # self.script.on("message",self.my_message_handler)  # register the message handler
+                        # self.script.load()  
                     else:
                          print(GREEN + "Script unchanged, nothing to reload ...." + RESET)
                 elif s == '?':
@@ -966,9 +965,24 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
     'e' to exit the session 
     'r' to reload the script (use if script changed)
     'i' to read information about the application
+    't' to trace a function and print the stac trace (e.g. t com.foo.bar.func)
     '?' to print this message\n"""+RESET)
                 elif s == 'i':
-                    self.print_app_info()              
+                    self.print_app_info()
+                elif s == 'c':
+                    self.do_clear('')
+                elif s == 'rs':
+                    self.scratchreset()
+                    self.do_compile('')
+                    self.reload_script(session)
+                elif s.split(' ')[0] == 't':
+                    try: 
+                        self.do_jtrace(s.split(' ')[1])
+                        self.do_compile('')
+                        self.reload_script(session)
+                    except Exception as e:
+                        pass
+                                 
             
             if self.script:
                 self.script.unload()
@@ -977,6 +991,14 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
             print(e)
         print(RESET)
         return
+
+    def reload_script(self,session):
+        self.script.unload()
+        with open(os.path.join(self.base_directory, "agent.js")) as f:
+            self.script = session.create_script(f.read())
+            session.on('detached',self.on_detached)
+            self.script.on("message",self.my_message_handler)  # register the message handler
+            self.script.load()  
 
 
     def modification_time(self, path_to_file):

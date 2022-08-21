@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-from imp import reload
-from pickle import decode_long
 import subprocess
 import platform
 import cmd2

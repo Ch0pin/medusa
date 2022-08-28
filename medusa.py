@@ -4,12 +4,9 @@ import platform
 import cmd2
 import os, sys
 import readline
-import logging
-import rlcompleter
 import time
 import frida
 import click
-import re
 from libraries.dumper import dump_pkg
 from google_trans_new import google_translator  
 from libraries.natives import *
@@ -230,6 +227,15 @@ class Parser(cmd2.Cmd):
 
 
 
+    def do_describe_java_class(self,line):
+        class_path = line.split(' ')[0]
+        codejs = '\n'
+        codejs += """console.log("-----------dumping:'"""+class_path+"""'-------------------");\n"""
+        codejs += "console.log(describeJavaClass('"+class_path+"'));\n"
+        codejs += """console.log("-----------End of dumping:'"""+class_path+"""'------------");"""
+
+        self.editScratchpad(codejs, 'a')
+        print("Stack trace have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
     def do_jtrace(self,line):
         function_path = line.split(' ')[0]
@@ -944,7 +950,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                 s = input(in_session_menu)
                 if s == 'r':
                     #handle changes during runtime
-                 
+
                     modified_time = self.modification_time(os.path.join(self.base_directory, "agent.js"))
                     if modified_time != creation_time:
                         print(RED + "Script changed, reloading ...." + RESET)
@@ -973,9 +979,19 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                     self.scratchreset()
                     self.do_compile('')
                     self.reload_script(session)
+
                 elif s.split(' ')[0] == 't':
-                    try: 
+                    try:
+                      
                         self.do_jtrace(s.split(' ')[1])
+                        self.do_compile('')
+                        self.reload_script(session)
+                    except Exception as e:
+                        pass
+
+                elif s.split(' ')[0] == 'dc':
+                    try: 
+                        self.do_describe_java_class(s.split(' ')[1])
                         self.do_compile('')
                         self.reload_script(session)
                     except Exception as e:

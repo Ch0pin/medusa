@@ -3,6 +3,7 @@ import subprocess, frida, shutil
 import cmd2, os, sys, platform,requests
 import readline, logging, time, rlcompleter
 from libraries.Questions import Polar
+from libraries.libadb import android_device
 from libraries.libguava import *
 from libraries.Questions import *
 from shutil import which
@@ -453,6 +454,48 @@ class parser(cmd2.Cmd):
             for column in columns:
                 print("{c: <25} {t: <15}".format(c = column[1],t = column[2]))
 
+    def do_jlog(self,line):
+
+        """Usage: jlog
+        Wrapper for: adb logcat -s AndroidRuntime
+        Displays java crash logs."""
+
+        ad = android_device(self.device.id)
+        ad.print_java_crash_log()
+    
+    def do_nlog(self,line):
+
+        """Usage: nlog
+        Wrapper for: adb logcat -s libc,DEBUG
+        Displays native crash logs."""
+
+        ad = android_device(self.device.id)
+        ad.print_native_crash_log()
+
+
+    def do_logcat(self,line):
+
+        """Usage: logcat
+        Wrapper for: adb logcat --pid=`adb shell pidof -s com.app.package`
+        Displays adb logcat info about the app, exit with ctrl^C."""
+
+        ad = android_device(self.device.id)
+        ad.print_runtime_logs(line)
+    
+    def complete_logcat(self, text, line, begidx, endidx):
+
+        self.init_packages()
+        if not text:
+            completions = self.packages[:]
+            self.packages = []
+        else:
+            completions = [ f
+                            for f in self.packages
+                            if f.startswith(text)
+                            ]
+            self.packages = []
+        return completions
+    
     def do_patch(self,line):
 
         """Usage: patch /path/to/foo.apk

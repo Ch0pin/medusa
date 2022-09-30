@@ -10,6 +10,7 @@ import click
 from libraries.dumper import dump_pkg
 from google_trans_new import google_translator  
 from libraries.natives import *
+from libraries.libadb import *
 from libraries.Questions import *
 from libraries.Modules import *
 
@@ -162,6 +163,9 @@ class Parser(cmd2.Cmd):
                 print('{}) {}'.format(i, devices[i]))
 
             self.device = devices[int(Numeric('\nEnter the index of the device to use:', lbound=0,ubound=len(devices)-1).ask())] 
+ 
+            android_dev = android_device(self.device.id)
+            android_dev.print_dev_properties()
         except:
             self.device = frida.get_remote_device()
         finally:

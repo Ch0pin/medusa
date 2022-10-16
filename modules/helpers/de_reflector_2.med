@@ -27,8 +27,9 @@ console.log('-----De reflection script by @0xabc0-------------------------------
 
 
     obj.getClass.implementation = function(){
-        o = this.getClass()
-        return this.getClass()
+        var o = this.getClass()
+        //console.log(o)
+        return o
     }
 
     member.getName.implementation = function(){
@@ -36,9 +37,9 @@ console.log('-----De reflection script by @0xabc0-------------------------------
         return this.getName()
     }
     classDef.getMethods.implementation = function(){
-        o = this.getMethods()
+        var o = this.getMethods()
         //console.log(o)
-        return this.getMethods()
+        return o
     }
     reflect.invoke.implementatition = function(a,b){
         console.log(\"invoke catched -> \" + a)
@@ -54,7 +55,7 @@ console.log('-----De reflection script by @0xabc0-------------------------------
     }
     fo.$init.overload('java.lang.String').implementation = function(a){
         console.log(\"[+] Output stream created with the file : \" + a)
-        //stackTrace()
+        stackTrace()
         return this.$init(a)
 
     }
@@ -68,15 +69,20 @@ console.log('-----De reflection script by @0xabc0-------------------------------
         fd = this.getFD()
 
     }
-    dalvik.loadDex.implementation = function(a,b,c){
+    dalvik.loadDex.overload('java.lang.String', 'java.lang.String', 'int').implementation = function(a,b,c){
         console.log(\"[+] loadDex Catched -> \" + a)
-        //stackTrace()
+        stackTrace()
         return dalvik.loadDex(a,b,c)
+    }
+    dalvik.loadDex.overload('java.lang.String', 'java.lang.String', 'int', 'java.lang.ClassLoader', '[Ldalvik.system.DexPathList$Element;').implementation = function(a,b,c,d,e){
+        console.log(\"[+] loadDex Catched -> \" + a)
+        stackTrace()
+        return dalvik.loadDex(a,b,c,d,e)
         
     }
     dalvik2.$init.implementation = function (a,b,c,d) {
         console.log(\"[+] DexClassLoader Catched -> \" + a)
-        //stackTrace()
+        stackTrace()
         this.$init(a,b,c,d)
     }
     forName.implementation = function(class_name, flag, class_loader) {
@@ -88,7 +94,7 @@ console.log('-----De reflection script by @0xabc0-------------------------------
         }
         if (isGood) {
             console.log(\"Reflection => forName => \" + class_name);
-            //stackTrace()
+            stackTrace()
         }
         return forName.call(this, class_name, flag, class_loader);
     }
@@ -107,7 +113,7 @@ console.log('-----De reflection script by @0xabc0-------------------------------
     function stackTrace() {
         console.log(\"--------------------------START STACK-------------------------------------\")
         var stack = ThreadObj.currentThread().getStackTrace();
-        send(stack[4])
+        //send(stack[4])
         for (var i = 0; i < stack.length; i++) {
             console.log(i + \" => \" + stack[i].toString());
         }

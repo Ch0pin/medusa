@@ -954,6 +954,8 @@ class parser(cmd2.Cmd):
 
                 if os.path.exists(apk_file):
                     self.do_adb('adb','install {}'.format(apk_file),True)
+                else:
+                    print(Fore.RED+"[!] Fatal: can't find: {} ".format(apkfile)+Fore.RESET)
         except Exception as e:
             print(e)
 
@@ -1321,6 +1323,12 @@ $adb remount
                             if f.startswith(text)
                             ]
         return completions
+    
+    def do_playstore(self,line):
+        """Usage: playstore package_name
+        Search the playstore for the app with id package_name"""
+
+        self.do_deeplink('market://details?id='+line.split(' ')[0])
 
 
     def do_deeplink(self,line):

@@ -26,6 +26,21 @@ console.log('----------twiter:@Ch0pin-------------------');
         return castTostring;
 
     }
+    context.getString.overload('int', '[Ljava.lang.Object;').implementation = function(id){
+
+        var string_to_send = this.getString(id);
+        var string_to_recv = \"\";
+        send(\"trscrpt|\"+string_to_send); // send data to python code
+        recv(function (received_json_object) {
+            string_to_recv = received_json_object.my_data;
+        }).wait(); 
+        colorLog('Translating: ' + string_to_send +\" ---> \"+ string_to_recv, {c: Color.Green})
+  
+        var castTostring = String.$new(string_to_recv);
+
+        return castTostring;
+
+    }
 
     alertDialog.setMessage.implementation = function(originalTxt){
                 //in case of error use the following:

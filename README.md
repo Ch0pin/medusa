@@ -1,5 +1,10 @@
 <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.png" width ="335" height="508">
 
+# Using the translator script:
+1. Replace the default google_trans_new.py of you google_trans_new python package with the one from the utils/google_trans_new.py
+2. Import it with medusa>use helpers/tranlsator
+3. Have fun 
+   
 # **Description**:
 
 **MEDUSA** is an Extensible and Modularised framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  

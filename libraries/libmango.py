@@ -539,7 +539,7 @@ class parser(cmd2.Cmd):
                     print(GREEN+'[+] Repacking the app...'+RESET)
                     subprocess.run('java -jar '+ APKTOOL +' b {} -o {}'.format(TMP_FOLDER,DEBUGGABLE_APK), shell=True)
                     print(GREEN+'[+] Alligning the apk file.....'+RESET)
-                    subprocess.run('zipalign -p 4 {} {}'.format(DEBUGGABLE_APK,ALLIGNED_APK),shell=True)
+                    subprocess.run('zipalign -p -v 4 {} {}'.format(DEBUGGABLE_APK,ALLIGNED_APK),shell=True)
                     print(GREEN+'[+] Signing the apk.....'+RESET)
                     subprocess.run('apksigner sign --ks {} -ks-key-alias common --ks-pass pass:password --key-pass pass:password  {}'.format(SIGNATURE, ALLIGNED_APK),shell=True)
                     print(GREEN+'[+] Removing the unsigned apk.....'+RESET)
@@ -758,15 +758,24 @@ class parser(cmd2.Cmd):
 
     def do_search(self, line):
 
-        """Usage: search foobar
-        Searches for a given string in the extracted components and strings."""
+        """Usage: search foobar [APK file]
+        Searches for a given string in the extracted components and strings.
+        Adding an apk file as a third parameter, will dump the apk instread
+        of the extracted components using aapt2 (supports regular expressions)"""
 
 
         if self.current_app_sha256 == None:
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
-                what = line.split(' ')[0]
+                inp = line.split(' ')
+                what = inp[0]
+                if len(inp) > 1:
+                    pkg = inp[1]
+                    print(RED+'Searching Strings using aapt2:'+RESET)
+                    subprocess.Popen('aapt2 dump strings {} | grep {} --color'.format(pkg,what),shell=True)
+                    return
+
                 print(RED+'Searching Activities:'+RESET)
                 if not self.real_search(what, self.activities):
                     print('No Activities found containing: {} !'.format(what))
@@ -786,12 +795,15 @@ class parser(cmd2.Cmd):
                 print(RED+'Searching String Resources:'+RESET)
 
                 found = False
-                for line in self.strings.split('\n'):
-                    if what.casefold() in  line:
-                        print(line.replace(what.casefold(),Fore.GREEN + what.casefold()+Fore.RESET))
+                for line1 in self.strings.split('\n'):
+                    if what.casefold() in  line1:
+                        print(line1.replace(what.casefold(),Fore.GREEN + what.casefold()+Fore.RESET))
                         found = True
                 if not found:
                     print('No Strings found containing: {} !'.format(what))
+                
+                
+
 
             except Exception as e:
                 print(e)

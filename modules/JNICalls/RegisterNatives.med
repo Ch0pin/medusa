@@ -16,7 +16,7 @@ The function pointers nominally must have the following signature:
 
     ReturnType (*fnPtr)(JNIEnv *env, jobject objectOrClass, ...);",
     "Code": "
-console.log('========== Original script https://github.com/lasting-yang/frida_hook_libart/blob/master/hook_RegisterNatives.js==============\n');
+console.log('========== Original script https://github.com/lasting-yang/frida_hook_libart/blob/master/hook_RegisterNatives.js==============');
 
 
 

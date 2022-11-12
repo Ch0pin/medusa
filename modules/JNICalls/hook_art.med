@@ -4,7 +4,7 @@
     "Help": "Original script https://github.com/lasting-yang/frida_hook_libart/blob/master/hook_art.js\n\n",
     "Code": "
 
-    console.log('\\n---------------------------Original script:https://github.com/lasting-yang/frida_hook_libart/blob/master/hook_art.js----------------------------\\n');
+    console.log('\\n---------------------------Original script:https://github.com/lasting-yang/frida_hook_libart/blob/master/hook_art.js----------------------------');
 
     const STD_STRING_SIZE = 3 * Process.pointerSize;
 class StdString {

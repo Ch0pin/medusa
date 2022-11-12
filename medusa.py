@@ -300,7 +300,7 @@ class Parser(cmd2.Cmd):
 
     def hook_native(self):
         library = Open('Libary name (e.g.: libnative.so):').ask()
-        type_ = Alternative('Hook an imported or exported function?', 'i', 'e').ask()
+        type_ = Alternative('Imported or exported function?', 'i', 'e').ask()
         function = Open('Function name or offset (e.g.: 0x1234):').ask()
         number_of_args = Numeric('Number of function arguments (0 to disable trace):', lbound=0).ask()
         backtraceEnable = Polar('Enable backtrace?', False).ask()

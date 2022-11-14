@@ -1,5 +1,5 @@
 {
-    "Name": "db_queries/content_provider_query",
+    "Name": "content_providers/content_provider_query",
     "Description": "Monitor Content Provider Queries",
     "Help": "N/A",
     "Code": "

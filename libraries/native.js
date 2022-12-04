@@ -55,6 +55,5 @@ function enumerateModules(){
   }
 
 Java.perform(function() {
-enumerateExportsJs('libbytehook.so');
- 
+enumerateModules(); 
 });

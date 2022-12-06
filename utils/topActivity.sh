@@ -1,17 +1,26 @@
 #!/bin/sh
 
+sdk=$(adb shell getprop ro.build.version.sdk)
 
-echo '---------------Foreground Activity Monitor -------------------'
+if [[ $sdk -gt 30 ]]
+then
+    subc="topResumedActivity"
+    f=3
+else
+    subc="mResumedActivity"
+    f=4
+fi
+var1=$(adb shell dumpsys activity activities | grep $subc)
 
-var1=$(adb shell dumpsys activity activities | grep mResumedActivity)
+
 var2=$var1
-echo $var2 | cut -d ' ' -f 4
+echo $var2 | cut -d ' ' -f $f
 while true; do  
-    sleep 1
-    var1=$(adb shell dumpsys activity activities | grep mResumedActivity)
+    sleep 0.5
+    var1=$(adb shell dumpsys activity activities | grep  $subc)
     if [ "$var1" != "$var2" ]; then
         var2=$var1
-        echo $var2 | cut -d ' ' -f 4
+        echo $var2 | cut -d ' ' -f $f
     fi
 
 done

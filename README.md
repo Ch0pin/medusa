@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.png" width ="335" height="508">
+<img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.svg" width ="335" height="508">
 
 # Using the translator script:
 1. Replace the default google_trans_new.py of you google_trans_new python package with the one from the utils/google_trans_new.py

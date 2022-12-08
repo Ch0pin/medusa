@@ -85,18 +85,31 @@ intent1.hasExtra.implementation = function(name){
 }
 
 
-intent1.getSerializableExtra.implementation = function(name){
+intent1.getSerializableExtra.overload('java.lang.String').implementation = function(name){
     
     colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
     console.log('[+]\tSerializable Extra, name: '+ name);
     return this.getSerializableExtra(name);
 }
+if(Java.androidVersion > 12)
+    intent1.getSerializableExtra.overload('java.lang.String', 'java.lang.Class').implementation = function(name, clazz){
+        
+        colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+        console.log('[+]\tSerializable Extra, name: '+ name);
+        return this.getSerializableExtra(name,clazz);
+    }
 
-intent1.getParcelableExtra.implementation = function(name){
+intent1.getParcelableExtra.overload('java.lang.String').implementation = function(name){
     colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
     console.log('[+]\tParcelable Extra, name: '+ name);
     return this.getParcelableExtra(name);
 }
+if(Java.androidVersion > 12)
+    intent1.getParcelableExtra.overload('java.lang.String', 'java.lang.Class').implementation = function(name,clazz){
+        colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+        console.log('[+]\tParcelable Extra, name: '+ name);
+        return this.getParcelableExtra(name,clazz);
+    }
 
 intent1.getBooleanExtra.implementation = function(name,value){
     colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});

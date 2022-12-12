@@ -830,7 +830,7 @@ catch (err) {
                 delay = line.split()[1]
                 hooks.append("\n\nsetTimeout(function() {\n")
 
-            hooks.append("Java.perform(function() { \ntry {\ndisplayAppInfo();\n")
+            hooks.append("Java.perform(function() { \ntry {\nsetTimeout(displayAppInfo,500);\n")
             for mod in self.modManager.staged:
                 if 'JNICalls' in mod.path and not jni_prolog_added:
                     hooks.append("""

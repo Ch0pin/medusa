@@ -1,0 +1,30 @@
+{
+    "Name": "file_system/file_input_stream",
+    "Description": "Use this module to monitor file input stream operations",
+    "Help": "https://docs.oracle.com/javase/7/docs/api/java/io/FileInputStream.html",
+    "Code": "
+console.log('-------file input stream operations monitor by @chopin--------------');
+
+      var fileInputStream= Java.use('java.io.FileInputStream');
+
+
+      fileInputStream.$init.overload('java.io.File').implementation = function(file){
+        var fname = file.getAbsolutePath();
+        colorLog('[+] App is opening: '+fname + ' for READ',{c: Color.Green} );
+        
+        return this.$init(file);
+      }
+      fileInputStream.$init.overload('java.io.FileDescriptor').implementation = function(fd){
+        var fname = fd.toString();
+        colorLog('[+] App is opening: '+fname + ' for READ',{c: Color.Green} );
+        
+        return this.$init(fd);
+      }
+      fileInputStream.$init.overload('java.lang.String').implementation = function(name){
+        var fname = name;
+        colorLog('[+] App is opening: '+fname + ' for READ',{c: Color.Green} );
+        
+        return this.$init(name);
+      }
+"
+}

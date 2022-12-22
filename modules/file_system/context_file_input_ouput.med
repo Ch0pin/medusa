@@ -1,0 +1,49 @@
+{
+    "Name": "file_system/context_file_input_output",
+    "Description": "Use this module to monitor file input output operations associated with Context application package",
+    "Help": "https://developer.android.com/reference/android/content/Context#openFileInput(java.lang.String)",
+    "Code": "
+console.log('-------App context file input output operations monitor by @chopin--------------');
+
+      var contextWrapper= Java.use('android.content.ContextWrapper');
+
+
+      if (contextWrapper.openFileInput) {
+        // Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#openFileInput(java.lang.String)
+        contextWrapper.openFileInput.overload(\"java.lang.String\").implementation = function(fileName) {
+          
+          colorLog('[+] App is opening the file: '+fileName + ' for reading',{c: Color.Red} );
+          return this.openFileInput.overload(\"java.lang.String\").apply(this, arguments);
+       
+        };
+      }
+
+      if (contextWrapper.openFileOutput) {
+        // Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#openFileOutput(java.lang.String, int)
+        contextWrapper.openFileOutput.overload(\"java.lang.String\", \"int\").implementation = function(fileName, mode) {
+
+          colorLog('[+] App is opening the file: '+fileName + ' using mode: '+mode,{c: Color.Red});
+          return this.openFileOutput.overload(\"java.lang.String\", \"int\").apply(this, arguments);
+        };
+      }
+
+      if (contextWrapper.deleteFile) {
+        // Ref: https://developer.android.com/reference/android/content/ContextWrapper.html#deleteFile(java.lang.String)
+        contextWrapper.deleteFile.overload(\"java.lang.String\").implementation = function(fileName) {
+          
+          /*   --- Payload Header --- */
+          colorLog('[+] App is deleting the file: '+fileName,{c: Color.Red});
+
+          return this.deleteFile.overload(\"java.lang.String\").apply(this, arguments);
+        };
+      }
+"
+}
+
+
+
+
+
+
+
+

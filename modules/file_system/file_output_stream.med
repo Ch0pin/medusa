@@ -1,0 +1,70 @@
+{
+    "Name": "file_system/file_output_stream",
+    "Description": "Use this module to monitor file output stream operations",
+    "Help": "https://docs.oracle.com/javase/7/docs/api/java/io/FileOutputStream.html",
+    "Code": "
+console.log('-------file output stream operations monitor by @chopin--------------');
+
+      var fileOutputStream = Java.use('java.io.FileOutputStream');
+ 
+
+      fileOutputStream.$init.overload('java.io.File').implementation = function(name){
+        var fname = name.getAbsolutePath();
+        colorLog('[+] App is opening: '+fname + ' for WRITE',{c: Color.Red} );
+        
+        return this.$init(name);
+      }
+
+      fileOutputStream.$init.overload('java.io.File','boolean').implementation = function(name, append){
+        var fname = name.getAbsolutePath();
+        let mode = '';
+        if(append==true) 
+            mode = 'APPEND';
+        else
+            mode = 'WRITE'
+
+
+        colorLog('[+] App is opening: '+fname + ' for '+mode,{c: Color.Red} );
+        
+        return this.$init(name,append);
+      }
+
+
+      fileOutputStream.$init.overload('java.io.FileDescriptor').implementation = function(fd){
+        var fname = fd.toString();
+
+        colorLog('[+] App is opening: '+fname + ' for WRITE',{c: Color.Red} );
+        
+        return this.$init(fd);
+      }
+
+      fileOutputStream.$init.overload('java.lang.String').implementation = function(filename){
+
+        colorLog('[+] App is opening: '+filename + ' for WRITE',{c: Color.Red} );
+        
+        return this.$init(filename);
+      }
+    
+    fileOutputStream.$init.overload('java.lang.String','boolean').implementation = function(filename,append){
+        let mode = '';
+        if(append==true) 
+            mode = 'APPEND';
+        else
+            mode = 'WRITE'
+
+
+        colorLog('[+] App is opening: '+filename + ' for '+mode,{c: Color.Red} );
+        
+        return this.$init(filename,append);
+
+      }
+
+"
+}
+
+
+
+
+
+
+

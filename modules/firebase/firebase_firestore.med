@@ -6,8 +6,8 @@
 var instance = Java.use('com.google.firebase.firestore.FirebaseFirestore');
 var collectionReference = Java.use('com.google.firebase.firestore.CollectionReference');
 
-var overloadCount = instance['getInstance'].overloads.length;
-colorLog(\"Tracing \" +'getInstance' + \" [\" + overloadCount + \" overload(s)]\",{ c: Color.Green });
+var overloadCount8 = instance['getInstance'].overloads.length;
+colorLog(\"Tracing \" +'getInstance' + \" [\" + overloadCount8 + \" overload(s)]\",{ c: Color.Green });
 
 var overloadCount_0 = collectionReference['document'].overloads.length;
 colorLog(\"Tracing \" +'CollectionReference.document' + \" [\" + overloadCount_0 + \" overload(s)]\",{ c: Color.Green });
@@ -23,7 +23,7 @@ collectionReference.add.implementation = function(doc){
     return this.add(doc);
 
 }
-for (var i = 0; i < overloadCount; i++) {
+for (var i = 0; i < overloadCount8; i++) {
     instance['getInstance'].overloads[i].implementation = function() {
         colorLog(\"[+] The application is fetching an instance of the firebase database\",{ c: Color.Green });
       

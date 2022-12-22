@@ -81,11 +81,11 @@ function traceMethod(targetClassMethod)
 	var targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length)
 
 	var hook = Java.use(targetClass);
-	var overloadCount = hook[targetMethod].overloads.length;
+	var overloadCount12 = hook[targetMethod].overloads.length;
 
-	colorLog("Tracing " + targetClassMethod + " [" + overloadCount + " overload(s)]",{c: Color.Green});
+	colorLog("Tracing " + targetClassMethod + " [" + overloadCount12 + " overload(s)]",{c: Color.Green});
 
-	for (var i = 0; i < overloadCount; i++) {
+	for (var i = 0; i < overloadCount12; i++) {
 
 		hook[targetMethod].overloads[i].implementation = function() {
 		  colorLog("\n[+] Entering: " + targetClassMethod,{c: Color.Red});
@@ -748,6 +748,8 @@ function displayAppInfo(){
       
         
         colorLog("\n-------------------Application Info--------------------\n",{c: Color.Green});
+        colorLog("- Frida version: "+Frida.version,{c: Color.Gray});
+        colorLog("- Script runtime: "+Script.runtime,{c: Color.Gray});
         colorLog("- Application Name: "+applicationName,{c: Color.Gray});
         colorLog("- Files Directory: "+filesDirectory,{c: Color.Gray});
         colorLog("- Cache Directory: "+cacheDirectory,{c: Color.Gray});

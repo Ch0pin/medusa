@@ -6,9 +6,9 @@
 
 
 var systemProp = Java.use('java.lang.System');
-var overloadCount = systemProp['getProperty'].overloads.length;
+var overloadCount7 = systemProp['getProperty'].overloads.length;
 
-for (var i = 0; i < overloadCount; i++) 
+for (var i = 0; i < overloadCount7; i++) 
 {
 
     systemProp['getProperty'].overloads[i].implementation = function() 

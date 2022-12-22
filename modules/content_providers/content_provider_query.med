@@ -7,10 +7,10 @@ console.log('\\n-----------Content Provider Query Monitor by @chopin---------\\n
 
 
 var hook = Java.use('android.content.ContentProvider');
-var overloadCount = hook['query'].overloads.length;
-colorLog(\"Tracing \" +'query' + \" [\" + overloadCount + \" overload(s)]\",{ c: Color.Green });
+var overloadCount11 = hook['query'].overloads.length;
+colorLog(\"Tracing \" +'query' + \" [\" + overloadCount11 + \" overload(s)]\",{ c: Color.Green });
                                             
-for (var i = 0; i < overloadCount; i++) {
+for (var i = 0; i < overloadCount11; i++) {
                     
     hook['query'].overloads[i].implementation = function() {
         colorLog(\"Content Provider Query Detected: \" ,{ c: Color.Blue });

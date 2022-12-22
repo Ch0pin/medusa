@@ -8,10 +8,10 @@ console.log('\\n-----------Risky_grant_uri_perm by @chopin---------\\n');
 
 var contex_wrapper = Java.use('android.content.ContextWrapper');
 
-var overloadCount = contex_wrapper['grantUriPermission'].overloads.length;
-colorLog(\"Tracing \" +'grantUriPermission' + \" [\" + overloadCount + \" overload(s)]\",{ c: Color.Green });
+var overloadCount9 = contex_wrapper['grantUriPermission'].overloads.length;
+colorLog(\"Tracing \" +'grantUriPermission' + \" [\" + overloadCount9 + \" overload(s)]\",{ c: Color.Green });
                                             
-for (var i = 0; i < overloadCount; i++) {
+for (var i = 0; i < overloadCount9; i++) {
                     
     contex_wrapper['grantUriPermission'].overloads[i].implementation = function() {
         colorLog(\"Risky api call detected: \" ,{ c: Color.Yellow });

@@ -550,30 +550,31 @@ catch (err) {
         codejs = '\n'
         if '-f' in option:
             className = input("Enter the full name of the function(s) class: ")
+            uuid = str(int(time.time()))
 
-            codejs = """var hook = Java.use('""" + className + """');"""
+            codejs = """let hook_"""+uuid+""" = Java.use('""" + className + """');"""
             functionName = input("Enter a function name (CTRL+C to Exit): ")
 
             while (True):
                 try:
                     codejs += """
-                    var overloadCount = hook['""" + functionName + """'].overloads.length;
-                    colorLog("Tracing " +'""" + functionName + """' + " [" + overloadCount + " overload(s)]",{ c: Color.Green });
+                    let overloadCount_"""+uuid+""" = hook_"""+uuid+"""['""" + functionName + """'].overloads.length;
+                    colorLog("Tracing " +'""" + functionName + """' + " [" + overloadCount_"""+uuid+""" + " overload(s)]",{ c: Color.Green });
                         
-                        for (var i = 0; i < overloadCount; i++) {
-                            hook['""" + functionName + """'].overloads[i].implementation = function() {
+                        for (let i = 0; i < overloadCount_"""+uuid+"""; i++) {
+                            hook_"""+uuid+"""['""" + functionName + """'].overloads[i].implementation = function() {
                             colorLog("*** entered " +'""" + functionName + """',{ c: Color.Green });
 
                     Java.perform(function() {
-                        var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
+                        let bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
                             console.log("Backtrace:" + bt);
                     });   
 
                     if (arguments.length) console.log();
-                    for (var j = 0; j < arguments.length; j++) {
+                    for (let j = 0; j < arguments.length; j++) {
                         console.log("arg[" + j + "]: " + arguments[j]);
                     }
-                    var retval = this['""" + functionName + """'].apply(this, arguments); 
+                    let retval = this['""" + functionName + """'].apply(this, arguments); 
                     console.log("retval: " + retval);
                     colorLog("*** exiting " + '""" + functionName + """',{ c: Color.Green });
                     return retval;

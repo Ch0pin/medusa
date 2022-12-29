@@ -79,7 +79,7 @@ class Parser(cmd2.Cmd):
                             if line.startswith('MODULE'):
                                 module = line[7:-1]
                                 print('- Loading {}'.format(module))
-                                self.modManager.stage(module)
+                                self.modManager.stage_verbadim(module)
                             else:
                                 data += line
                     self.modified = True
@@ -688,9 +688,11 @@ catch (err) {
 
     def do_rem(self, mod):
         try:
-            self.modManager.unstage(mod)
-            print("\nRemoved: {}".format(mod) )
-            self.modified = True
+            if self.modManager.unstage(mod):
+                print("\nRemoved module(s) starting with : {}".format(mod) )
+                self.modified = True
+            else:
+                print("Module(s) is not active.")
             print()  
         except Exception as e:
             print(e)

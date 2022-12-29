@@ -1,0 +1,20 @@
+{
+    "Name": "content_providers/file_provider_implementation",
+    "Description": "Logs maps of file->content URIs",
+    "Help": "N/A",
+    "Code": "
+console.log('\\n-----------File Provider impl Monitor by @chopin---------\\n');
+
+let hook_1672136330 = Java.use('androidx.core.content.FileProvider$SimplePathStrategy');
+let overloadCount_1672136330 = hook_1672136330['addRoot'].overloads.length;
+for (let i = 0; i < overloadCount_1672136330; i++) {\n\thook_1672136330['addRoot'].overloads[i].implementation = function() {
+    colorLog('[i] File Provider detected -> uri -> content://' + this.mAuthority.value +'/' + arguments[0],{ c: Color.Green });
+    colorLog('\\t\\\\',{c: Color.Blue});\n\t\tcolorLog('\\t for --->file://'+arguments[1] +'\\n', {c: Color.Blue});
+    let retval = this['addRoot'].apply(this, arguments); 
+    return retval;
+     
+    }
+}
+
+"
+}

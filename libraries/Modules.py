@@ -1,5 +1,6 @@
 import json
 import os
+import glob
 
 class Module:
     def __init__(self, fullPath, name, description, useCase, code):
@@ -48,6 +49,24 @@ class ModuleManager:
         self.staged = []
 
     def stage(self, moduleName):
+        added = False
+        for mod in self.available:
+            if mod.Name == moduleName and mod not in self.staged:
+                self.staged.append(mod)
+                break
+
+            elif mod.Name.startswith(moduleName):
+                if mod not in self.staged:
+                    self.staged.append(mod)
+                else:
+                    print('Module {} alread added !'.format(mod.Name))
+                added = True
+        if added: 
+            return
+        else:
+            print('Module {} not found!'.format(moduleName))
+
+    def stage_verbadim(self,moduleName):
         if moduleName not in [mod.Name for mod in self.staged]:
             for mod in self.available:
                 if mod.Name == moduleName:
@@ -56,7 +75,14 @@ class ModuleManager:
             print('Module {} not found!'.format(moduleName))
 
     def unstage(self, moduleName):
-        self.staged = [mod for mod in self.staged if mod.Name != moduleName]
+        tmp = self.staged
+        self.staged = [mod for mod in self.staged if not mod.Name.startswith(moduleName)]
+
+        if len(tmp) == len(self.staged):
+            return False
+        return True
+
+        #self.staged = [mod for mod in self.staged if mod.Name != moduleName]
 
     def findModule(self, pattern):
         return [mod.Name for mod in self.available if pattern.casefold() in mod.Name.casefold()]

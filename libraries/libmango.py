@@ -696,8 +696,21 @@ class parser(cmd2.Cmd):
 
                 elif 'strings' in what:
                     self.print_strings(self.strings)    
+                elif 'exposure' in what:
+                    print("|----------------------------------- [ ⚠️  ] Potential attack targets [ ⚠️  ] ---------------------------------------|\n[+] Deeplinks:")
+                    self.print_deeplinks()
+                    print("\n[+] Exported activities and activity aliases:")
+                    self.print_activities(False)
+                    self.print_activity_alias(False)
+                    print("[+] Exported services:")
+                    self.print_services(False)
+                    print("[+] Exported receivers:")
+                    self.print_receivers(False)
+                    print("[+] Exported providers:")
+                    self.print_providers(False)
+                    
                 else:
-                    print('[i] Usage: show [activities, activityAlias, applications, database, deeplinks, info, intentFilters, manifest, permissions, providers, receivers, services, strings]')
+                    print('[i] Usage: show [activities, activityAlias, applications, database, deeplinks, exposure, info, intentFilters, manifest, permissions, providers, receivers, services, strings]')
 
 
 
@@ -706,7 +719,7 @@ class parser(cmd2.Cmd):
         if self.current_app_sha256 == None:
             components = ['database']
         else:
-            components = sorted(['applications','activityAlias','info','permissions', 'activities', 'services', 'receivers', 'intentFilters','providers', 'deeplinks','strings','database','manifest'])
+            components = sorted(['exposure', 'applications','activityAlias','info','permissions', 'activities', 'services', 'receivers', 'intentFilters','providers', 'deeplinks','strings','database','manifest'])
         if not text:
             completions = components[:]
         else:

@@ -371,6 +371,7 @@ class parser(cmd2.Cmd):
                 print('Action(s): '+attribs[1].replace('|',' # '))
             if attribs[2]:
                 print('Category: '+attribs[2].replace('|',' # '))
+
      
   
             print(Fore.GREEN+'-'*l+Fore.RESET)

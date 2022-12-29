@@ -74,7 +74,7 @@ class apk_db():
 
 
     def get_intent_filters(self,sha256):
-        sql = """SELECT componentName,actionList,categoryList from IntentFilters WHERE app_sha256='{}' AND dataList=''""".format(sha256)
+        sql = """SELECT componentName,actionList,categoryList from IntentFilters WHERE app_sha256='{}'""".format(sha256)
         self.cursor.execute(sql) 
         return self.cursor.fetchall()
 

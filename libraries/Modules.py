@@ -59,7 +59,7 @@ class ModuleManager:
                 if mod not in self.staged:
                     self.staged.append(mod)
                 else:
-                    print('Module {} alread added !'.format(mod.Name))
+                    print('Module {} already added !'.format(mod.Name))
                 added = True
         if added: 
             return

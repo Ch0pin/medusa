@@ -179,13 +179,13 @@ class parser(cmd2.Cmd):
 
     def continue_session(self,guava):
         self.guava = guava
-        res = self.database.query_db("SELECT sha256, packageName from Application;")
+        res = self.database.query_db("SELECT sha256, packageName from Application order by packagename asc;")
         if res:
             print(Fore.GREEN+"[i] Availlable applications:\n" +Fore.RESET +"-"*7+" "+"-"*70+" "+"-"*57+"\n {0} {1:^68} {2:^60}\n".format("index","sha256","Package Name")+"-"*7+" "+"-"*70+" "+"-"*57)
             index = 0
             for entry in res:
                 sha256, package_name = entry
-                print(Fore.CYAN+Style.BRIGHT+"{0:^7} {1:^68} {2:^60}".format(index,sha256,package_name))
+                print(Fore.CYAN+Style.BRIGHT+"{0:^7} {1:^68}\t {2:<60}".format(index,sha256,package_name))
                 index+=1
             
             chosen_index = int(Numeric(Style.RESET_ALL+'\nEnter the index of  application to load:', lbound=0,ubound=index-1).ask())
@@ -576,13 +576,13 @@ class parser(cmd2.Cmd):
 
     def load_or_remove_application(self):
 
-        res = self.database.query_db("SELECT sha256, packageName from Application;")
+        res = self.database.query_db("SELECT sha256, packageName from Application order by packageName asc;")
         if res:
             print(Fore.GREEN+"[i] Availlable applications:\n" +Fore.RESET +"-"*7+" "+"-"*70+" "+"-"*57+"\n {0} {1:^68} {2:^60}\n".format("index","sha256","Package Name")+"-"*7+" "+"-"*70+" "+"-"*57)
             index = 0
             for entry in res:
                 sha256, package_name = entry
-                print(Fore.CYAN+Style.BRIGHT+"{0:^7} {1:^68} {2:^60}".format(index,sha256,package_name))
+                print(Fore.CYAN+Style.BRIGHT+"{0:^7} {1:^68}\t {2:<60}".format(index,sha256,package_name))
                 index+=1
 
             task = int(Numeric(Style.RESET_ALL+'\n[i] Options: \n\t\t0 - Load an application \n\t\t1 - Delete an application \n\t\t2 - Exit this submenu\n\n[?] Please choose an option:', lbound=0,ubound=2).ask())

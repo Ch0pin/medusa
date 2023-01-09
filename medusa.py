@@ -158,7 +158,7 @@ class Parser(cmd2.Cmd):
                             if line.startswith('MODULE'):
                                 module = line[7:-1]
                                 print('- Loading {}'.format(module))
-                                self.modManager.stage(module)
+                                self.modManager.stage_verbadim(module)
                             else:
                                 data += line
                     self.modified = True

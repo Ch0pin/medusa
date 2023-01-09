@@ -88,17 +88,18 @@ function traceMethod(targetClassMethod)
 	for (var i = 0; i < overloadCount12; i++) {
 
 		hook[targetMethod].overloads[i].implementation = function() {
-		  colorLog("\n[+] Entering: " + targetClassMethod,{c: Color.Red});
+		  colorLog("\n[ ▶︎▶︎▶︎] Entering: " + targetClassMethod,{c: Color.Purple});
 
-			if (arguments.length) console.log();
+			//if (arguments.length) console.log();
 			for (var j = 0; j < arguments.length; j++) {
-				console.log("\targ[" + j + "]: " + arguments[j]);
+				console.log("\t\\_arg[" + j + "]: " + arguments[j]);
 			}
+      if (arguments.length) console.log();
 
-			// print retval
 			var retval = this[targetMethod].apply(this, arguments); // rare crash (Frida bug?)
-			console.log("\n\tRetval: " + retval);
-			colorLog("\n[-] Exiting " + targetClassMethod);
+			colorLog("\n[ ◀︎◀︎◀︎ ] Exiting " + targetClassMethod ,{c: Color.Purple});
+      
+      console.log('\t\\_Returns: '+retval+'\n');
 			return retval;
 		}
 	}

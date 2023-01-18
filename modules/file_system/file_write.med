@@ -35,7 +35,7 @@ fos_construct_2.implementation = function(file) {
     var filename = file;
     if (openedfile != filename) {
 	openedfile = filename;
-	console.log(\"|File opened for write|===============================>: \" + filename);
+	console.log(\"|File $init called|===============================>: \" + filename);
 	isOpen = true;
     }
     return fos_construct_2.call(this, file);
@@ -44,7 +44,7 @@ fos_construct_3.implementation = function(file) {
     var filename = file.getAbsolutePath();
     if (openedfile != filename) {
 	openedfile = filename;
-	console.log(\"|File opened for write|===============================>: \" + filename);
+	console.log(\"|File $init called|===============================>: \" + filename);
 	isOpen = true;
     }
     return fos_construct_3.call(this, file);
@@ -53,7 +53,7 @@ fos_construct_4.implementation = function(file, true_false) {
     var filename = file;
     if (openedfile != filename) {
 	openedfile = filename;
-	console.log(\"|File opened for write|===============================>: \" + filename);
+	console.log(\"|File $init called|===============================>: \" + filename);
 	isOpen = true;
     }
     return fos_construct_4.call(this, file, true_false);
@@ -62,7 +62,7 @@ fos_construct_5.implementation = function(file, true_false) {
     var filename = file.getAbsolutePath();
     if (openedfile != filename) {
 	openedfile = filename;
-	console.log(\"|File opened for write|===============================>: \" + filename);
+	console.log(\"|File $init called|===============================>: \" + filename);
 	isOpen = true;
     }
     return fos_construct_5.call(this, file, true_false);

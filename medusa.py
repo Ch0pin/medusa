@@ -518,8 +518,9 @@ catch (err) {
         else:
             raise Exception('Attempted to open scratchpad in invalid mode {}'.format(mode))
         scratchpad.save()
-        self.modManager.stage('scratchpad')
-        self.modified = True
+        if code != '':
+            self.modManager.stage('scratchpad')
+            self.modified = True
 
 
     def do_export(self, line):

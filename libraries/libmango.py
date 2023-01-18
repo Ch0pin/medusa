@@ -151,7 +151,7 @@ class parser(cmd2.Cmd):
     services = None
     receivers = None
     providers = None
-
+    total_apps = []
     deeplinks = None
     total_deep_links = []
     intent_filters = None
@@ -187,6 +187,7 @@ class parser(cmd2.Cmd):
                 sha256, package_name = entry
                 print(Fore.CYAN+Style.BRIGHT+"{0:^7} {1:^68}\t {2:<60}".format(index,sha256,package_name))
                 index+=1
+                self.total_apps.append(package_name+":"+sha256)
             
             chosen_index = int(Numeric(Style.RESET_ALL+'\nEnter the index of  application to load:', lbound=0,ubound=index-1).ask())
             chosen_sha256 = res[chosen_index][0]
@@ -559,9 +560,28 @@ class parser(cmd2.Cmd):
 
 
 
+    def do_load(self,line):
+        """Usage: load [package_name]
+        Load an applications which allready exists in the current database."""
+        self.real_load_app(line.split(':')[1])
+        return
+
+    def complete_load(self, text, line, begidx, endidx):
+
+        self.init_packages()
+        if not text:
+            completions = self.total_apps[:]
+            self.packages = []
+        else:
+            completions = [ f
+                            for f in self.total_apps
+                            if f.startswith(text)
+                            ]
+            self.packages = []
+        return completions
+
 
     def do_query(self,line):
-
         """Usage: query SELECT * FROM Application
         Performs a raw query in the session db and returns the results as a list of tuples."""
 
@@ -572,6 +592,7 @@ class parser(cmd2.Cmd):
 
         except Exception as e:
             print(e)
+        return res
 
 
     def load_or_remove_application(self):
@@ -625,6 +646,7 @@ class parser(cmd2.Cmd):
         Run a command using the default adb shell."""
 
         subprocess.run('adb -s {} shell {}'.format(self.device.id, line), shell=True)
+
 
 
     def do_show(self,line):

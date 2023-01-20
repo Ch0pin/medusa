@@ -669,6 +669,8 @@ catch (err) {
     def do_reset(self,line):
         self.modManager.reset()
         self.modified = False
+        self.do_compile('',True)
+        self.scratchreset()
 
 
     def complete_show(self, text, line, begidx, endidx):
@@ -819,7 +821,7 @@ catch (err) {
         return [package for package in self.packages if package.startswith(text)]
 
 
-    def do_compile(self, line):
+    def do_compile(self, line, rs=False):
         try:
             hooks = []
             jni_prolog_added = False
@@ -864,7 +866,10 @@ catch (err) {
             with open(os.path.join(self.base_directory, 'agent.js'), 'w') as agent:
                 for line in hooks:
                     agent.write('%s\n' % line)
-            print("\nScript is compiled\n")
+            if rs:
+                print("\nScript has been reset\n")
+            else:
+                print("\nScript is compiled\n")
             self.modified = False
 
         except Exception as e:

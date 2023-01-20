@@ -4,17 +4,50 @@
     "Help": "N/A",
     "Code": "
 console.log('\\n-----------File Provider impl Monitor by @chopin---------\\n');
+try {
+    let hook_1672136330 = Java.use('androidx.core.content.FileProvider$SimplePathStrategy');
+    let overloadCount_1672136330 = hook_1672136330['addRoot'].overloads.length;
 
-let hook_1672136330 = Java.use('androidx.core.content.FileProvider$SimplePathStrategy');
-let overloadCount_1672136330 = hook_1672136330['addRoot'].overloads.length;
-for (let i = 0; i < overloadCount_1672136330; i++) {\n\thook_1672136330['addRoot'].overloads[i].implementation = function() {
-    colorLog('[i] File Provider detected -> uri -> content://' + this.mAuthority.value +'/' + arguments[0],{ c: Color.Green });
-    colorLog('\\t\\\\',{c: Color.Blue});\n\t\tcolorLog('\\t for --->file://'+arguments[1] +'\\n', {c: Color.Blue});
-    let retval = this['addRoot'].apply(this, arguments); 
-    return retval;
+    for (let i = 0; i < overloadCount_1672136330; i++) {\n\thook_1672136330['addRoot'].overloads[i].implementation = function() 
+    {
+            colorLog('[i] File Provider detected -> uri -> content://' + this.mAuthority.value +'/' + arguments[0],{ c: Color.Green });
+            colorLog('\\t\\\\',{c: Color.Blue});\n\t\tcolorLog('\\t for --->file://'+arguments[1] +'\\n', {c: Color.Blue});
+            let retval = this['addRoot'].apply(this, arguments); 
+            return retval;
      
+        }
     }
-}
+    } catch (err) 
+    {
+			console.log('[-] androidx.core.content.FileProvider$SimplePathStrategy not found (probably due to obfuscation) - Trying common class names..');
+			
+		}
+
+
+try {
+        let hook_1672136331 = Java.use('androidx.core.content.FileProvider$b');
+        var authority = '';
+
+        hook_1672136331.$init.implementation = function(a){
+            authority = a;
+            return this.$init(a);
+        }
+
+
+        hook_1672136331['a'].overloads[3].implementation = function() 
+        {
+            colorLog('[i] File Provider detected -> uri -> content://' + authority +'/' + arguments[0],{ c: Color.Green });
+            colorLog('\\t\\\\',{c: Color.Blue});\n\t\tcolorLog('\\t for --->file://'+arguments[1] +'\\n', {c: Color.Blue});
+            let retval = this['a'].apply(this, arguments); 
+            return retval;
+        }
+    } 
+    catch (err) 
+    {
+			console.log('[-] androidx.core.content.FileProvider$b not found (probably due to obfuscation)');
+			
+		}
+
 
 "
 }

@@ -7,14 +7,14 @@ console.log('\\n--------Native load hook module by @ch0pin--------------\\n');
 
 var systemA = Java.use('java.lang.System');
     const System = Java.use('java.lang.System');
-    const Runtime = Java.use('java.lang.Runtime');
+    const Runtime_1 = Java.use('java.lang.Runtime');
     const SystemLoad_2 = System.loadLibrary.overload('java.lang.String');
     const VMStack = Java.use('dalvik.system.VMStack');
 
     SystemLoad_2.implementation = function(library) {
         colorLog('[+] Application is loading the following library:' + library,{c: Color.Red});
         try {
-            const loaded = Runtime.getRuntime().loadLibrary0(VMStack.getCallingClassLoader(), library);
+            const loaded = Runtime_1.getRuntime().loadLibrary0(VMStack.getCallingClassLoader(), library);
             return loaded;
         } catch(ex) {
             console.log(ex);

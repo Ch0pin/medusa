@@ -40,6 +40,7 @@ function enumerateExportsJs(libname) {
     
         if (found) break;
     }
+    if(!found) send("Can't find module !"); 
 }
 
 function enumerateModules(){
@@ -55,5 +56,6 @@ function enumerateModules(){
   }
 
 Java.perform(function() {
-enumerateModules(); 
+enumerateExportsJs('libart.so');
+ 
 });

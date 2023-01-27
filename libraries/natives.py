@@ -18,7 +18,7 @@ REVERSE = "\033[;7m"
 class nativeHandler():
 
 
-
+    base_directory = os.path.dirname(__file__)
     modules = []
     device = None
     script = None
@@ -72,43 +72,36 @@ class nativeHandler():
 
 
     def getModules(self,package,force):
-
         print('[i] Using device with id {}'.format(self.device))
-
         self.modules = []
+        pid = 0
         try:
             if force:
                 pid = self.device.spawn(package)
                 print("[i] Starting process {} [pid:{}]".format(package,pid))
-                session = self.device.attach(pid)
-                script = session.create_script(open("libraries/native.js").read())
-                script.on('message', self.on_message)
-                script.load()
-                self.device.resume(pid)
-                time.sleep(5)
-                script.unload()
             else:
-
-                #pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,package)).read().strip()
-                pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip()
-                #pid = self.device.get_process(package).pid //not valid
-
-                if pid == '':
-                    print("[+] Could not find process with this name.")
-                    return None
+                pid = int(os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip())
+                if pid == None:
+                        print("[+] Could not find process with this name {}.".format(pid_s))
+                        return 
                 print("[i] Attaching to process {} [pid:{}]".format(package,pid))
-                session = self.device.attach(int(pid))
-                script = session.create_script(open("libraries/native.js").read())
-                script.on('message', self.on_message)
-                script.load()
-                time.sleep(5)
-                script.unload()
+                
+
+            print("PID:{}".format(pid))
+            session = self.device.attach(pid)
+            script = session.create_script(open(os.path.join(self.base_directory, "native.js")).read())
+            script.on('message', self.on_message)
+            script.load()
+            self.device.resume(pid)
+            time.sleep(5)
+            script.unload()
                 
         except Exception as e:
             print(e)
         
         return self.modules
-
+  
+#############################
 
     def memops(self,line):
         try:
@@ -215,12 +208,7 @@ class nativeHandler():
         except Exception as e:
             click.secho("[Except] - {}:".format(e), bg='red')
 
-
-
-
-
     def scan_memory(self,lib,pattern,session,script):
-     
         codejs =''
         try:
             if lib != '':
@@ -407,7 +395,7 @@ class nativeHandler():
 
 
     def form_bytes(self,bytes):
-	    return '[%s]' % ','.join(["0x%02x" % int(x, 16) for x in bytes.split(' ')])
+        return '[%s]' % ','.join(["0x%02x" % int(x, 16) for x in bytes.split(' ')])
 
     def __getitem__(self,key):
         return self.modules

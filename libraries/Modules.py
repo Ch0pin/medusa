@@ -64,9 +64,7 @@ class ModuleManager:
                     added = True
                 else:
                     print('Module {} already added !'.format(mod.Name))
-                    wasThere = True
-                    
- 
+                    wasThere = True                   
         if added: 
             return
         else:

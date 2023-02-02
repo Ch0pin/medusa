@@ -791,3 +791,48 @@ function notifyNewSharedPreference(key, value) {
     return this.putString(k, v);
   }
 }
+
+
+//------------------------ch0pin----------------------------
+
+function dumpIntent(intent, redump=true)
+{
+  if(intent.getStringExtra("marked_as_dumped") && redump === false)
+    return;
+
+  var bundle_clz = intent.getExtras();
+  var data = intent.getData();
+  var action = intent.getAction();
+
+  colorLog(intent, {c:Color.Cyan});
+  var type = null;
+  if(data != null)
+  {
+    colorLog('\t\\_data: ', {c:Color.Cyan})
+    colorLog('\t\t'+data, {c:Color.Yellow})
+  }
+  if(action != null)
+  {
+    colorLog('\t\\_action: ', {c:Color.Cyan})
+    colorLog('\t\t'+action, {c:Color.Yellow})
+  }
+
+  if(bundle_clz != null)
+  {
+    colorLog('\t\\_Extras: ', {c:Color.Cyan})
+    var keySet = bundle_clz.keySet();
+    var iter = keySet.iterator();
+    while(iter.hasNext()) {
+      var currentKey = iter.next();
+      var currentValue = bundle_clz.get(currentKey);
+      if (currentValue!=null)
+        type =  currentValue.getClass().toString();
+      else type = 'undefined'
+    
+      var t = type.substring(type.lastIndexOf('.')+1,type.length)
+      
+      console.log( '\t\t('+t+ ') '+ currentKey + ' = ' + currentValue);
+    }
+  }
+  intent.putExtra("marked_as_dumped","marked");
+}

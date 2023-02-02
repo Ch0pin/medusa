@@ -1,0 +1,165 @@
+{
+    "Name": "intents/intent_monitor_v2",
+    "Description": "Use this module to monitor intents",
+    "Help": "hooks the getIntent, onNewIntent and setIntent functions to log details about an incoming intent.",
+    "Code": "
+console.log('\\n----------Incoming Intent monitor V2 by @ch0p1n------------');
+
+
+  let activity_clazz = Java.use('android.app.Activity');
+  let intent_clz = Java.use('android.content.Intent');
+  let srvc = Java.use('android.app.Service');
+  let intent_index = 0;
+  var intent_inst =  intent_clz.$new();
+  
+
+    intent_clz.hasExtra.implementation = function(name){
+        colorLog('[+] Checking for Extra: '+name,{c:Color.Gray});
+        return this.hasExtra(name);
+    }
+
+  srvc.onTaskRemoved.implementation = function(intent){
+    if(!intent_inst.equals(intent))
+    {
+        intent_index++;
+        colorLog('\\n SRV_OTR['+intent_index+']  ===> '+this, {c:Color.Cyan})
+        intent_inst.$dispose();
+        intent_inst = intent;
+        dumpIntent(intent);
+    }
+    return this.onTaskRemoved(intent);
+  }
+
+  srvc.onStartCommand.implementation = function(intent,flags,startId){
+    if(!intent_inst.equals(intent))
+    {
+        intent_index++;
+        colorLog('\\n SRV_OSC['+intent_index+']  ===> '+this, {c:Color.Cyan})
+        intent_inst.$dispose();
+        intent_inst = intent;
+        dumpIntent(intent);
+    }
+    return this.onStartCommand(intent,flags,startId);
+  }
+
+//  srvc.onUnbind.implementation = function(intent){
+//    if(!intent_inst.equals(intent))
+//    {
+//        intent_index++;
+//        colorLog('\\n SRV_OU['+intent_index+']  ===> '+this, {c:Color.Cyan})
+//        intent_inst.$dispose();
+//        intent_inst = intent;
+//        dumpIntent(intent);
+//  }
+//  return this.onUnbind(intent);
+// }
+  
+  srvc.onBind.implementation = function(intent){
+    if(!intent_inst.equals(intent))
+    {
+        intent_index++;
+        colorLog('\\n SRV_OB['+intent_index+']  ===> '+this, {c:Color.Cyan})
+        intent_inst.$dispose();
+        intent_inst = intent;
+        dumpIntent(intent);
+    }
+    return this.onBind(intent);
+  }
+
+  srvc.onRebind.implementation = function(intent){
+    if(!intent_inst.equals(intent))
+    {
+        intent_index++;
+        colorLog('\\n SRV_ORB['+intent_index+']  ===> '+this, {c:Color.Cyan})
+        intent_inst.$dispose();
+        intent_inst = intent;
+        dumpIntent(intent);
+    }
+    return this.onRebind(intent);
+  }
+
+  activity_clazz.onCreate.overload('android.os.Bundle', 'android.os.PersistableBundle').implementation = function(bundle,persistentState){
+    var intent = this.getIntent();
+    if(!intent_inst.equals(intent))
+    {
+        intent_index++;
+        colorLog('\\n A_OC_1['+intent_index+'] '+this.getCallingActivity()+' ===> '+this, {c:Color.Cyan})
+        intent_inst.$dispose();
+        intent_inst = intent;
+        dumpIntent(bundle,persistentState);
+    }
+    this.onCreate(bundle,persistentState);
+  }
+
+  activity_clazz.onCreate.overload('android.os.Bundle').implementation = function(bundle){
+    var intent = this.getIntent();
+    if(!intent_inst.equals(intent))
+    {
+        intent_index++;
+        colorLog('\\n A_OC_0['+intent_index+'] '+this.getCallingActivity()+' ===> '+this, {c:Color.Cyan})
+        intent_inst.$dispose();
+        intent_inst = intent;
+        dumpIntent(intent);
+    }
+    this.onCreate(bundle);
+     
+  }
+  activity_clazz.onResume.implementation = function(){
+    var intent = this.getIntent();
+    if(!intent_inst.equals(intent))
+    {
+        intent_index++;
+        colorLog('\\n A_OR['+intent_index+'] '+this.getCallingActivity()+' ===> '+this, {c:Color.Cyan})
+        intent_inst.$dispose();
+        intent_inst = intent;
+        dumpIntent(intent);
+    }
+    this.onResume();
+     
+  }
+
+
+
+  // activity_clazz.setIntent.implementation = function(intent){
+  //   if(!intent_inst.equals(intent))
+  //   {
+  //       intent_index++;
+  //       colorLog('\\n SI['+intent_index+'] '+this.getCallingActivity()+' ===> '+this, {c:Color.Cyan})
+  //       intent_inst.$dispose();
+  //       intent_inst = intent;
+  //       dumpIntent(intent);
+  //   }
+  //   this.setIntent(intent);
+  // }
+
+  // activity_clazz.onNewIntent.implementation = function(intent){
+  //   if(!intent_inst.equals(intent))
+  //   {
+  //       intent_index++;
+  //       colorLog('\\n A_NI['+intent_index+'] '+this.getCallingActivity()+' ===> '+this, {c:Color.Cyan})
+  //       intent_inst.$dispose();
+  //       intent_inst = intent;
+  //       dumpIntent(intent);
+  //   }
+  //   this.onNewIntent(intent);
+  // }
+ 
+
+  // activity_clazz.getIntent.implementation = function(){
+  //   var tmp = this.getIntent();
+  //   if(!intent_inst.equals(tmp))
+  //   {
+  //       intent_index++;
+  //       colorLog('\\n GI['+intent_index+'] '+this.getCallingActivity()+' ===> '+this, {c:Color.Cyan})
+  //       intent_inst.$dispose();
+  //       intent_inst = tmp;
+  //       dumpIntent(tmp);
+  //   }
+
+  //   return this.getIntent();
+  // }
+
+
+
+"
+}

@@ -1,5 +1,5 @@
 {
-    "Name": "ipc/outgoing_intents",
+    "Name": "intents/outgoing_intents",
     "Description": "Use this module to monitor outgoing intents",
     "Help": "Displays a message with the intent acction or extra data when it is feasible",
     "Code": "

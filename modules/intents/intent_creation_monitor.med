@@ -1,5 +1,5 @@
 {
-    "Name": "ipc/intent_creation_monitor",
+    "Name": "intents/intent_creation_monitor",
     "Description": "Use this module to monitor created intents",
     "Help": "Displays a message with the intent acction or extra data when it is feasible",
     "Code": "

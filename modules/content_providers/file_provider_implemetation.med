@@ -34,7 +34,7 @@ try {
         }
 
 
-        hook_1672136331['a'].overloads[3].implementation = function() 
+        hook_1672136331['a'].overload('java.lang.String','java.io.File').implementation = function() 
         {
             colorLog('[i] File Provider detected -> uri -> content://' + authority +'/' + arguments[0],{ c: Color.Green });
             colorLog('\\t\\\\',{c: Color.Blue});\n\t\tcolorLog('\\t for --->file://'+arguments[1] +'\\n', {c: Color.Blue});

@@ -1,5 +1,5 @@
 {
-    "Name": "ipc/pending_intents",
+    "Name": "intents/pending_intents",
     "Description": "Use this module to monitor pending intent creation",
     "Help": "Displays a message with the pending intent parameters",
     "Code": "

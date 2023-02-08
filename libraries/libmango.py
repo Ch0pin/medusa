@@ -244,6 +244,10 @@ class parser(cmd2.Cmd):
             info[0][5],info[0][6],info[0][7],info[0][0],info[0][10],info[0][11]) +Style.RESET_ALL)   
 
 
+    def print_strings(self):
+        for string in self.strings.split('\n'):
+            print(string)
+
 
     def print_activity_alias(self,all = True):
 
@@ -716,9 +720,8 @@ class parser(cmd2.Cmd):
                     self.print_intent_filters()
                 elif 'manifest' in what:
                     print(self.manifest[0][0].decode('utf-8'))
-
                 elif 'strings' in what:
-                    self.print_strings(self.strings)    
+                    self.print_strings()
                 elif 'exposure' in what:
                     print("|----------------------------------- [ ⚠️  ] Potential attack targets [ ⚠️  ] ---------------------------------------|\n[+] Deeplinks:")
                     self.print_deeplinks()

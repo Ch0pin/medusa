@@ -830,8 +830,8 @@ function dumpIntent(intent, redump=true)
       else type = 'undefined'
     
       var t = type.substring(type.lastIndexOf('.')+1,type.length)
-      
-      console.log( '\t\t('+t+ ') '+ currentKey + ' = ' + currentValue);
+      if(currentKey!='marked_as_dumped')
+        console.log( '\t\t('+t+ ') '+ currentKey + ' = ' + currentValue);
     }
   }
   intent.putExtra("marked_as_dumped","marked");

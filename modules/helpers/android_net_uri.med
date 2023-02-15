@@ -19,19 +19,11 @@ Uri.getQueryParameter.implementation = function(key)
       currentUri = this.toString();
       colorLog('[+] getQueryParameter for Uri: '+currentUri,{c: Color.Green})
     }
-    for(var j = 0; j < targetWords.length; j++)
-    {
-      if(key.toString().toLowerCase().indexOf(targetWords[j].toLocaleLowerCase())!=-1)
-      {
-        colorLog('\t\\\\_key:'+key+', value:'+retval, {c: Color.Red});
-        break;
-      }
-      else
-      {
-        console.log('\t\\\\_key:'+key+', value:'+retval);
-        break;
-      }
-    }
+
+    if(targetWords.includes(key.toString().toLowerCase()))
+      colorLog('\t\\\\_key:'+key+', value:'+retval, {c: Color.Red});
+    else
+      console.log('\t\\\\_key:'+key+', value:'+retval);
     return retval;
 }
 
@@ -43,19 +35,10 @@ Uri.getQueryParameters.implementation = function(key){
     currentUri = this.toString();
     colorLog('[+] getQueryParameters for Uri: '+currentUri,{c: Color.Green})
   }
-  for(var j = 0; j < targetWords.length; j++)
-    {
-      if(key.toString().toLowerCase().indexOf(targetWords[j].toLocaleLowerCase())!=-1)
-      {
-        colorLog('\t\\\\_key:'+key+', value:'+retval, {c: Color.Red});
-        break;
-      }
-      else
-      {
-        console.log('\t\\\\_key:'+key+', value:'+retval);
-        break;
-      }
-    }
+    if(targetWords.includes(key.toString().toLowerCase()))
+      colorLog('\t\\\\_key:'+key+', value:'+retval, {c: Color.Red});
+    else
+      console.log('\t\\\\_key:'+key+', value:'+retval);
     return retval;
 }
 

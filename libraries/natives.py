@@ -100,25 +100,94 @@ class nativeHandler():
             print(e)
         
         return self.modules
+
+###-------------------
+    def memraw(self,line):
+        try:
+
+            args = line.split(' ')
+            if len(args) == 3:
+                package = args[0]
+                size = args[2]
+                base_addr = args[1]
+            else:
+                print('Usage: memdump package_name base_address size')
+                return
+
+            prolog = 'Java.perform(function () {\n\n'
+            if base_addr != '':
+                prolog += 'var size = '+size+';\n'
+                prolog += 'var p_foo = ptr('+base_addr+');'+"""
+                if (!p_foo) {
+                    console.log("Could not find module....");
+                    return 0;
+                }"""
+            payload = ''
+            epilog = '\n\n});'
+            codejs = prolog + payload + epilog
+            print('[i] Using device with id {}'.format(self.device))
+            try:
+                pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip()
+                if pid == '':
+                    print("[+] Could not find process with this name.")
+                    return None
+            except Exception as e:
+                    print(e)
+                    x = input("Please run the application and press enter....")
+                    pid = self.device.get_frontmost_application().pid
+            print("[i] Attaching to process {} [pid:{}]".format(package,pid))
+            session = self.device.attach(int(pid))
+            script = session.create_script(codejs)
+            script.load()
+            prompt = WHITE+'|' +GREEN+'(E)xit '+ WHITE+  '|'+GREEN+ 'r@offset ' +WHITE +'|:'
+            cmd = input(prompt) 
+            prev_cmd = 'e'
+
+            while( not cmd.lower().startswith('e')):
+                if cmd.startswith('r@'):
+                    cmd = self.read_memory(cmd[2:],script,session,codejs,prolog,epilog,payload,prompt,True)
+                    continue
+                # elif cmd.startswith('w@'):
+                #     in_bytes = input("Bytes to write (in the form of 00 11 22 33):")
+                #     bytesx = self.form_bytes(in_bytes)
+                #     print("Bytes in:{}".format(bytesx))
+                #     self.write_memory(cmd[2:],script,session,codejs,prolog,epilog,payload,bytesx)
+                # elif cmd.startswith('h'):
+                #     self.display_help()
+                # elif cmd.startswith('scan'):
+                #     in_bytes = input("Enter a text or byte array in form of bytes (DE 00 11 ?? ?? BE AF):")
+                #     if in_bytes.startswith('bytes('):
+                #         pattern = in_bytes[6:].strip(')')
+                #     else:
+                #         pattern = self.form_scan_input(in_bytes)
+                #     print("BYTES IN: {}".format(pattern))
+                    
+                #     self.scan_memory(lib,pattern,session,script)
+                
+                # elif cmd.startswith('dump'):
+                #     script.unload()
+                #     print("dumping....")
+                #     self.dump(session,lib)
+
+                cmd = input(prompt) 
+
+            script.unload()
+        except Exception as e:
+            print(e)   
+#------------------------------------------------
   
 #############################
 
     def memops(self,line):
+
         try:
-
             args = line.split(' ')
-
-            if len(args)<2:
-                lib = ''
-            elif len(args) >= 2:
+            if len(args)==2:
+                package = args[0]
                 lib = args[1]
-                pkg = args[0]
             else:
                 print('Usage: memops package_name [lib]')
                 return
-
-
-            package = args[0]
 
             prolog = 'Java.perform(function () {\n\n'
             if lib != '':
@@ -134,10 +203,7 @@ class nativeHandler():
             codejs = prolog + payload + epilog
 
             print('[i] Using device with id {}'.format(self.device))
-            try:
-                
-                
-                #pid = os.popen("adb -s {} shell ps -A | grep {} | cut -d ' ' -f 8".format(self.device.id,pkg)).read().strip()
+            try: 
                 pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip()
                 if pid == '':
                     print("[+] Could not find process with this name.")
@@ -156,7 +222,7 @@ class nativeHandler():
 
             while( not cmd.lower().startswith('e')):
                 if cmd.startswith('r@'):
-                    cmd = self.read_memory(cmd[2:],script,session,codejs,prolog,epilog,payload)
+                    cmd = self.read_memory(cmd[2:],script,session,codejs,prolog,epilog,payload,self.prompt_)
                     continue
                 elif cmd.startswith('w@'):
                     in_bytes = input("Bytes to write (in the form of 00 11 22 33):")
@@ -329,9 +395,7 @@ class nativeHandler():
             print(e)
 
 
-
-
-    def read_memory(self,offset, script_in,session_in,codejs_in,prolog_in,epilog_in,payload_in):
+    def read_memory(self,offset, script_in,session_in,codejs_in,prolog_in,epilog_in,payload_in,prompt,free=False):
         
         script = script_in
         session = session_in
@@ -357,28 +421,30 @@ class nativeHandler():
                 print(BLUE+'[+] Offset:' + arithemetic_offset+RESET)
 
                 payload += '\nvar address = p_foo.add('+str(arithemetic_offset)+');'
-                payload += """    
-                var baseAddress = parseInt(p_foo,16);
-                var endAddress = baseAddress + module.size;
-                """
+                payload += "var baseAddress = parseInt(p_foo,16);"
+                if(free):
+                    payload+="var endAddress = baseAddress + size;"
+                else:
+                    payload+="var endAddress = baseAddress + module.size;"
+
                 payload += '\nvar offset = '+str(arithemetic_offset);
                 payload += """\nvar buf = Memory.readByteArray(ptr(address),296);
                 if(buf){
-                
                     console.log('Address Range:'+p_foo+' --> '+endAddress.toString(16));
-                    console.log('Module Size:' + module.size+' Dumping at:'+address);
-                    console.log(hexdump(buf, {offset: 0, length:296, header: true, ansi: false
-                }))};"""
+                    """
+                if(free):
+                    payload+= "console.log('Module Size:' + size+' Dumping at:'+address);"
+                else:
+                    payload+= "console.log('Module Size:' + module.size+' Dumping at:'+address);"
+                payload+="console.log(hexdump(buf, { offset: 0, length:296, header: true, ansi: false}))};"
                 codejs = prolog + payload + epilog
                 script = session.create_script(codejs)
                 script.load()
                 payload = ''
-
-
             except Exception as e:
                 print(e)
 
-            cmd = input(self.prompt_)
+            cmd = input(prompt)
             offset_in = cmd
         
         return cmd

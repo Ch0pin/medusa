@@ -698,6 +698,17 @@ class Parser(cmd2.Cmd):
         self.native_handler = nativeHandler(self.device)
         self.native_handler.memops(line)
 
+    def do_memraw(self,line) -> None:
+        """
+        READ/WRITE/SEARCH process memory
+        Usage:
+        memraw package_name base-address size
+        Example:
+        memraw package_name 0x7000040000 2000
+        """
+        self.native_handler = nativeHandler(self.device)
+        self.native_handler.memraw(line)
+
     def do_pad(self, line) -> None:
         """
         Manualy edit scratchpad using vi
@@ -992,6 +1003,9 @@ class Parser(cmd2.Cmd):
         return self.complete_list(text, line, begidx, endidx)
 
     def complete_memops(self, text, line, begidx, endidx) -> list:
+        return self.complete_list(text, line, begidx, endidx)
+    
+    def complete_memraw(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
 
     def complete_rem(self, text, line, begidx, endidx) -> list:

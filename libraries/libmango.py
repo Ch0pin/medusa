@@ -169,14 +169,6 @@ class parser(cmd2.Cmd):
 
         )
 
-    def download_file(self,url,to_local_file):
-        local_filename = to_local_file
-        r = requests.get(url, allow_redirects=True)
-        open(local_filename, 'wb').write(r.content)
-      
-  
-
-
     def continue_session(self,guava):
         self.guava = guava
         res = self.database.query_db("SELECT sha256, packageName from Application order by packagename asc;")
@@ -192,12 +184,15 @@ class parser(cmd2.Cmd):
             chosen_index = int(Numeric(Style.RESET_ALL+'\nEnter the index of  application to load:', lbound=0,ubound=index-1).ask())
             chosen_sha256 = res[chosen_index][0]
             self.init_application_info(self.database,chosen_sha256)
-        
-
         else:
             print(Fore.RED+Style.BRIGHT+ "[!] No Entries found in the given database !"+Style.RESET_ALL)
         return
 
+    def download_file(self,url,to_local_file):
+        local_filename = to_local_file
+        r = requests.get(url, allow_redirects=True)
+        open(local_filename, 'wb').write(r.content)
+      
     
     def init_application_info(self,application_database,app_sha256):
 
@@ -223,8 +218,38 @@ class parser(cmd2.Cmd):
             print(e)
 
 
+    def print_activity_alias(self,all = True):
+        display_text = ''
+        for attribs in self.activityallias:
+            display_text = attribs[1]
+            if attribs[2]:
+                display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
+            if attribs[3]:
+                display_text += Fore.GREEN + ' | exported = '+attribs[3]+' |' + Fore.RESET
+            if attribs[5]:
+                display_text += Fore.CYAN + ' | Target = '+attribs[5] + Fore.RESET
+
+            if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+                continue
+            else:
+                print(display_text)
+        print(Style.RESET_ALL)
+
+    def print_activities(self,all = True):
+        display_text = ''
+        for attribs in self.activities:
+            display_text = attribs[1]
+            if attribs[2]:
+                display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
+            if attribs[3]:
+                display_text += Fore.GREEN + ' | exported = '+attribs[3]+Fore.RESET
+            if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+                continue
+            else:
+                print(display_text)
+        print(Style.RESET_ALL)
+
     def print_application_info(self,info):
-        
         print(Back.BLACK+Fore.RED+Style.BRIGHT+"""
 [------------------------------------Package Details---------------------------------------]:
 |    Application Name  :{}
@@ -242,35 +267,17 @@ class parser(cmd2.Cmd):
 [------------------------------------------------------------------------------------------]
         """.format(info[0][1],info[0][2],info[0][3],info[0][4],
             info[0][5],info[0][6],info[0][7],info[0][0],info[0][10],info[0][11]) +Style.RESET_ALL)   
-
-
-    def print_strings(self):
-        for string in self.strings.split('\n'):
-            print(string)
-
-
-    def print_activity_alias(self,all = True):
-
-        display_text = ''
-        for attribs in self.activityallias:
-            display_text = attribs[1]
-            if attribs[2]:
-                display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
-            if attribs[3]:
-                display_text += Fore.GREEN + ' | exported = '+attribs[3]+' |' + Fore.RESET
-            if attribs[5]:
-                display_text += Fore.CYAN + ' | Target = '+attribs[5] + Fore.RESET
-
-            if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
-                continue
-            else:
-                print(display_text)
-        print(Style.RESET_ALL)
-
-
     
-    def print_deeplinks(self,quite=False):
+    def print_database_structure(self):
+        res = self.database.query_db("SELECT name FROM sqlite_master WHERE type='table';")
+        for entry in res:
+            print(Fore.GREEN + "-"*40+"\nTable Name: {}\n".format(entry[0])+"-"*40+Fore.RESET)
+            columns = self.database.query_db("PRAGMA table_info({});".format(entry[0]))
+            print("{c: <25} {t: <15}".format(c="Column Name",t="Type"))
+            for column in columns:
+                print("{c: <25} {t: <15}".format(c = column[1],t = column[2]))
 
+    def print_deeplinks(self,quite=False):
         display_text = ''
         component = ''
         schmlst = []
@@ -296,8 +303,6 @@ class parser(cmd2.Cmd):
                     schmlst.append(t)
             
                 self.schemes =set.union(self.schemes,set(schmlst))
-    
-        
             # if not quite:
             #     print("Schemes: "+schemes)
 
@@ -348,24 +353,6 @@ class parser(cmd2.Cmd):
 
             self.total_deep_links += tmplst                
 
-
-
-    def print_activities(self,all = True):
-
-        display_text = ''
-        for attribs in self.activities:
-            display_text = attribs[1]
-            if attribs[2]:
-                display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
-            if attribs[3]:
-                display_text += Fore.GREEN + ' | exported = '+attribs[3]+Fore.RESET
-            if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
-                continue
-            else:
-                print(display_text)
-        print(Style.RESET_ALL)
-
-
     def print_intent_filters(self):
         display_text = ''
         for attribs in self.intent_filters:
@@ -376,17 +363,20 @@ class parser(cmd2.Cmd):
                 print('Action(s): '+attribs[1].replace('|',' # '))
             if attribs[2]:
                 print('Category: '+attribs[2].replace('|',' # '))
-
-     
   
             print(Fore.GREEN+'-'*l+Fore.RESET)
-            
-
-
         print(Style.RESET_ALL)
     
-    def print_providers(self,all = True):
+    def print_permissions(self):
+        display_text = ''
+        for permission in self.permissions:
+            print("#"*92)
+            display_text = Fore.GREEN+'Name:' + Fore.RESET + permission[1]+'\n'
+            display_text += Fore.GREEN+'Type:' + Fore.RESET + permission[2]+'\n'
+            display_text += Fore.GREEN+'Description:' + Fore.RESET + permission[4]+'\n'
+            print(display_text)
 
+    def print_providers(self,all = True):
         display_text = ''
         for attribs in self.providers:
             display_text = attribs[1]
@@ -436,29 +426,9 @@ class parser(cmd2.Cmd):
                 print(display_text)
         print(Style.RESET_ALL)
     
-
-    def print_permissions(self):
-        display_text = ''
-        for permission in self.permissions:
-            print("#"*92)
-            display_text = Fore.GREEN+'Name:' + Fore.RESET + permission[1]+'\n'
-            display_text += Fore.GREEN+'Type:' + Fore.RESET + permission[2]+'\n'
-            display_text += Fore.GREEN+'Description:' + Fore.RESET + permission[4]+'\n'
-            print(display_text)
-
-
-    
-    def print_database_structure(self):
-
-        res = self.database.query_db("SELECT name FROM sqlite_master WHERE type='table';")
-
-        for entry in res:
-            print(Fore.GREEN + "-"*40+"\nTable Name: {}\n".format(entry[0])+"-"*40+Fore.RESET)
-        
-            columns = self.database.query_db("PRAGMA table_info({});".format(entry[0]))
-            print("{c: <25} {t: <15}".format(c="Column Name",t="Type"))
-            for column in columns:
-                print("{c: <25} {t: <15}".format(c = column[1],t = column[2]))
+    def print_strings(self):
+        for string in self.strings.split('\n'):
+            print(string)
 
     def do_jlog(self,line):
 

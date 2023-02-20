@@ -13,6 +13,7 @@ from libraries.natives import *
 from libraries.libadb import *
 from libraries.Questions import *
 from libraries.Modules import *
+from pick import pick
 
 RED     = "\033[1;31m"
 BLUE    = "\033[1;34m"
@@ -698,16 +699,37 @@ class Parser(cmd2.Cmd):
         self.native_handler = nativeHandler(self.device)
         self.native_handler.memops(line)
 
-    def do_memraw(self,line) -> None:
+
+    def do_memmap(self,line) -> None:
         """
-        READ/WRITE/SEARCH process memory
+        READ process memory
         Usage:
-        memraw package_name base-address size
-        Example:
-        memraw package_name 0x7000040000 2000
+        Make sure the application is running and then type:
+        memmap package_name 
         """
-        self.native_handler = nativeHandler(self.device)
-        self.native_handler.memraw(line)
+        try:
+
+            pkg = line.split(' ')[0]
+            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+            maps = os.popen("""adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().strip().split('\n')
+            title = "Please chose the memory address range: "
+            option, index = pick(maps,title,indicator="=>",default_index=0)
+            range1 = int(option.split(' ')[0].split('-')[0],16)
+            range2 = int(option.split(' ')[0].split('-')[1],16)
+            sz = range2 - range1
+            print('Starting addres: {}, size: {}'.format(hex(range1),range2-range1))
+
+            self.native_handler = nativeHandler(self.device)
+            self.native_handler.memraw(pkg + ' ' + hex(range1) + ' ' + str(sz))
+            
+        except Exception as e:
+            print(e)
+            print("Are you sure the app is running ?")
+   
+
+
+
+
 
     def do_pad(self, line) -> None:
         """
@@ -1005,7 +1027,7 @@ class Parser(cmd2.Cmd):
     def complete_memops(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
     
-    def complete_memraw(self, text, line, begidx, endidx) -> list:
+    def complete_memmap(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
 
     def complete_rem(self, text, line, begidx, endidx) -> list:

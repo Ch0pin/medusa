@@ -6,3 +6,4 @@ frida==16.0.0
 requests==2.25.1
 urllib3==1.26.8
 google-trans-new==1.1.9
+pick==2.2.0

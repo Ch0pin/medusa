@@ -139,13 +139,13 @@ class nativeHandler():
             session = self.device.attach(int(pid))
             script = session.create_script(codejs)
             script.load()
-            prompt = WHITE+'|' +GREEN+'(E)xit '+ WHITE+  '|'+GREEN+ 'r@offset ' +WHITE +'|:'
+            prompt = WHITE+'|' +GREEN+'(E)xit '+ WHITE+  '|'+GREEN+ 'r@offset ' +WHITE+'|'+GREEN+'dump ' +WHITE +'|:'
             cmd = input(prompt) 
             prev_cmd = 'e'
 
             while( not cmd.lower().startswith('e')):
                 if cmd.startswith('r@'):
-                    cmd = self.read_memory(cmd[2:],script,session,codejs,prolog,epilog,payload,prompt,True)
+                    cmd = self.read_memory(cmd[2:],script,session,codejs,prolog,epilog,payload,prompt,True,size)
                     continue
                 # elif cmd.startswith('w@'):
                 #     in_bytes = input("Bytes to write (in the form of 00 11 22 33):")
@@ -154,20 +154,40 @@ class nativeHandler():
                 #     self.write_memory(cmd[2:],script,session,codejs,prolog,epilog,payload,bytesx)
                 # elif cmd.startswith('h'):
                 #     self.display_help()
-                # elif cmd.startswith('scan'):
-                #     in_bytes = input("Enter a text or byte array in form of bytes (DE 00 11 ?? ?? BE AF):")
-                #     if in_bytes.startswith('bytes('):
-                #         pattern = in_bytes[6:].strip(')')
-                #     else:
-                #         pattern = self.form_scan_input(in_bytes)
-                #     print("BYTES IN: {}".format(pattern))
-                    
-                #     self.scan_memory(lib,pattern,session,script)
+                #elif cmd.startswith('scan'):
+                    #  in_bytes = input("Enter a text or byte array in form of bytes (DE 00 11 ?? ?? BE AF):")
+                    #  if in_bytes.startswith('bytes('):
+                    #      pattern = in_bytes[6:].strip(')')
+                    #  else:
+                    #      pattern = self.form_scan_input(in_bytes)
+                    #  print("BYTES IN: {}".format(pattern))    
+                    #  self.scan_memory(lib,pattern,session,script)
                 
-                # elif cmd.startswith('dump'):
-                #     script.unload()
-                #     print("dumping....")
-                #     self.dump(session,lib)
+                elif cmd.startswith('dump'):
+                    k = 0
+                    script.unload()
+                    print("dumping....")
+                    int_size = int(size)
+                    chunk = 134217728
+                    if int_size > chunk:
+                        print("Memory region too large, breaking to chunks...")
+                        while int_size > 0:
+                            if int_size - chunk > 0:
+                                print("dumping: {} to {}".format(base_addr,hex(int(base_addr,16)+chunk)))
+                                self.dump(session,base_addr+"_dump",True,int(base_addr,16),chunk)
+                        
+                            else:
+                                print("dumping: {} to {}".format(base_addr,hex(int(base_addr,16)+int_size)))
+                                self.dump(session,base_addr+"_dump",True,int(base_addr,16),int_size)
+                                break
+                            int_size -= chunk
+                            baddr = int(base_addr,16) + chunk
+                            base_addr=hex(baddr)
+
+                            
+
+                    else:
+                        self.dump(session,base_addr+"_dump",True,int(base_addr,16),int_size)
 
                 cmd = input(prompt) 
 
@@ -254,25 +274,27 @@ class nativeHandler():
 
 #############################
 
-    def dump(self,session,lib):
-
+    def dump(self,session,lib,free=False,base_address=None,size=None):
         try:
-
             path = '.'
             script = session.create_script(open(os.path.dirname(__file__)+"/memops.js").read())
             script.load()
             api = script.exports
-           
-            dump_area = api.moduleaddress(lib)
-            for area in dump_area:
-                bs = api.memorydump(area["addr"],area["size"])
-            
-            with open(lib + ".dat", 'wb') as out:
+            if not free:
+                dump_area = api.moduleaddress(lib)
+                for area in dump_area:
+                    bs = api.memorydump(area["addr"],area["size"])
+            else:
+                bs = api.memorydump(base_address,size)
+            if not os.path.exists('dump'):
+                os.mkdir('dump')    
+            with open('./dump/'+lib + ".dat", 'wb') as out:
                 out.write(bs)
-            click.secho('[+] dump saved to {}.dat'.format(lib), fg='green')
+            click.secho('[+] dump saved to ./dump/{}.dat'.format(lib), fg='green')
 
         except Exception as e:
             click.secho("[Except] - {}:".format(e), bg='red')
+
 
     def scan_memory(self,lib,pattern,session,script):
         codejs =''
@@ -376,8 +398,6 @@ class nativeHandler():
         payload=payload_in
         offset_in = offset
         arithemetic_offset = int(offset_in,16)
-     
-        
         try:
 
             payload += '\nvar address = p_foo.add('+str(arithemetic_offset)+');'
@@ -395,7 +415,7 @@ class nativeHandler():
             print(e)
 
 
-    def read_memory(self,offset, script_in,session_in,codejs_in,prolog_in,epilog_in,payload_in,prompt,free=False):
+    def read_memory(self,offset, script_in,session_in,codejs_in,prolog_in,epilog_in,payload_in,prompt,free=False, size = None):
         
         script = script_in
         session = session_in
@@ -406,7 +426,6 @@ class nativeHandler():
         offset_in = offset
         arithemetic_offset_tmp = hex(0)
         cmd = ''
-
         while cmd == '':
             arithemetic_offset = hex(0) 
             try:
@@ -417,6 +436,12 @@ class nativeHandler():
                 else:
                     arithemetic_offset_tmp = hex(int(offset_in,16)+296)
                     arithemetic_offset = hex(int(arithemetic_offset,16) + int(offset_in,16))
+
+                
+                if size != None:
+                    #print("current arithetic offset:{}".format(int(arithemetic_offset,16)))
+                    if int(arithemetic_offset,16) > int(size) - 296:
+                        arithemetic_offset=hex(0)
 
                 print(BLUE+'[+] Offset:' + arithemetic_offset+RESET)
 

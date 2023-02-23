@@ -1,12 +1,19 @@
 <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.svg" width ="1835" height="508">
 
+
+
+A detailed guide about the project is moving to our [wiki page](https://github.com/Ch0pin/medusa/wiki), so until we fully move there we are going to be a bit messy. 
+
+Some quickstart guides can be found here:
+
+- https://www.youtube.com/watch?v=4hpjRuNJNDw&t=16s (credits @ByteTheories)
+- https://www.youtube.com/watch?v=kUqucdkVtSU&t=256s (credits @ByteTheories)
+- https://www.youtube.com/watch?v=D2-jREzCE9k (credits @cryptax)
+
+Special Credits to @rscloura for his contributions
+
 Logo Credits: https://www.linkedin.com/in/rafael-c-ferreira
 
-# Using the translator script:
-1. Replace the default google_trans_new.py of you google_trans_new python package with the one from the utils/google_trans_new.py
-2. Import it with medusa>use helpers/tranlsator
-3. Have fun 
-   
 # **Description**:
 
 **MEDUSA** is an Extensible and Modularised framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  
@@ -390,6 +397,13 @@ That's all ... this module is now accessible via the medusa cli:
 
 <img src="https://user-images.githubusercontent.com/4659186/86785693-eb919e00-c05a-11ea-901e-8cc180d6274a.png" width="550" height="250">
 
+
+
+# Using the translator script:
+1. Replace the default google_trans_new.py of you google_trans_new python package with the one from the utils/google_trans_new.py
+2. Import it with medusa>use helpers/tranlsator
+3. Have fun 
+   
 
 
 **CREDITS**:

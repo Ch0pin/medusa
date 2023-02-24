@@ -724,9 +724,14 @@ class Parser(cmd2.Cmd):
 
             pkg = line.split(' ')[0]
             pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+
             if pid == "":
                 print("Can't find  pid. Is the application running ?")
                 return
+            elif len(pid.split(' ')) > 1:
+                option, index = pick(pid.split(' '),"More than one processes found running with that name:",indicator="=>",default_index=0)
+                pid = option
+
             maps = os.popen("""adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().strip().split('\n')
             title = "Please chose the memory address range: "
             option, index = pick(maps,title,indicator="=>",default_index=0)
@@ -739,7 +744,7 @@ class Parser(cmd2.Cmd):
             print('Starting addres: {}, size: {}'.format(hex(range1),range2-range1))
 
             self.native_handler = nativeHandler(self.device)
-            self.native_handler.memraw(pkg + ' ' + hex(range1) + ' ' + str(sz))
+            self.native_handler.memraw(pkg + ' ' + pid + ' ' + hex(range1) + ' ' + str(sz))
             
         except Exception as e:
             print(e)

@@ -106,10 +106,11 @@ class nativeHandler():
         try:
 
             args = line.split(' ')
-            if len(args) == 3:
+            if len(args) == 4:
                 package = args[0]
-                size = args[2]
-                base_addr = args[1]
+                pid = args[1]
+                size = args[3]
+                base_addr = args[2]
             else:
                 print('Usage: memdump package_name base_address size')
                 return
@@ -126,15 +127,15 @@ class nativeHandler():
             epilog = '\n\n});'
             codejs = prolog + payload + epilog
             print('[i] Using device with id {}'.format(self.device))
-            try:
-                pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip()
-                if pid == '':
-                    print("[+] Could not find process with this name.")
-                    return None
-            except Exception as e:
-                    print(e)
-                    x = input("Please run the application and press enter....")
-                    pid = self.device.get_frontmost_application().pid
+            # try:
+            #     pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip()
+            #     if pid == '':
+            #         print("[+] Could not find process with this name.")
+            #         return None
+            # except Exception as e:
+            #         print(e)
+            #         x = input("Please run the application and press enter....")
+            #         pid = self.device.get_frontmost_application().pid
             print("[i] Attaching to process {} [pid:{}]".format(package,pid))
             session = self.device.attach(int(pid))
             script = session.create_script(codejs)

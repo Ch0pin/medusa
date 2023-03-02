@@ -33,77 +33,6 @@ $ pip install -r requirements.txt
 
 Medusa consists of two main scripts: **medusa.py** and **mango.py**:
 
-# **Using mango.py**
-
-After starting Mango, you can import an apk by simply running: 
-
-**mango>** ***import** com.foo.bar.apk* 
-
-You can also import an apk from the device:
-
-**mango>** ***pull** com.foo.bar* 
-
-and then:
-
-**mango>** ***import** base.apk* 
-
-After this **mango** will analyse the apk and save the analysis results to a SQLite database. It will also parse the manifest file to give you an overview of:
-
-- The application's main components (activities, services, providers, receivers):
-
-  **mango>** **show activities** // to display the activities (use -e to filter only the exported ones), similarly **show services** will display the services e.t.c. 
-
-- The application's deeplinks and the corresponding activities that handles them:
-
-  **mango>** **show deeplinks**
-
-Mango wraps all the "borring tasks" in simple commands. For example you can install a burp certificate by simply running **installBurpCert**, set/reset a proxy (transparent or not) with **proxy set <IP:PORT> ** or you can patch the debuggable flag of the apk by simply running **patch com.foo.bar.apk**
-
-**Here is the full list:**
-
-    adb                         Start an interactive adb prompt.
-    box                         Starts a busybox interactive shell.
-    c                           Run a local shell command 
-    cc                          Run a command using the default adb shell
-    exit                        Exits the application.
-    help                        Displays this text.
-    
-    import                      Imports an apk file for analysis and saves the results to the session's database 
-    
-    installBurpCert             Install the Burp certificate to the mobile device.
-    jdwp                        Create a jdb session. Use it in combination with the tab key to see available packages. The app has to have the debuggable flag to true.
-    
-    notify                      Sends a notification to the device 
-                                (Example: > notify 'Title' 'Lorem ipsum dolor sit amet,....')
-    
-    patch                       Changes the debuggable flage of the AndroidManifest.xml to true for a given apk. 
-    
-    proxy                       Performs a proxy modification or reads a proxy setting (used for MITM). If adb runs as
-                                root it can be used with the '-t' flag to set a transparent proxy.
-                                (Example: > proxy set 192.168.1.2:8080 -t)
-    
-    pull                        Extracts an apk from the device and saves it as 'base.apk' in the working directory.
-                                Use it in combination with the tab key to see available packages
-                                (Example: > pull com.foo.bar)
-    
-    query                       Performs a raw query in the session db and returns the results as a list of tuples.
-                                (Example: > query SELECT * FROM Application)
-    
-    screencap                   Captures the device screen and saves it as a png file in the current directory.
-                                (Example: > screencap -o 'screen1.png')
-    
-    search                      Searches for a given string in the extracted components and strings.
-                                (Example: search foobar)
-    
-    show                        Prints information about components of the loaded application or session. The currently available info includes: applications, activities, services, activityAlias, receivers, deeplinks, providers and intentFilters. Adding the '-e' flag will print only exported components. Additionaly 'database' prints the database structure of the session database, 'manifest' prints the manifest and 'info' prints general information about the loaded application  
-    
-    start                       Forces to start an activity of the loaded application. Use it in combination with the tab key to see the available activities. For non exported activities, the adb must run with root privileges.
-    
-    startsrv, stoprsrv          Forces to start or stop a service of the loaded application. Use it in combination with the tab key to see the available services. For non exported services, the adb must run with root privileges.
-    
-    trace                       trace the application's calls using Frida-trace
-    uninstall, kill, spawn      Uninstalls, kills or starts an app in the device. Use it in combination with the tab key to see available packages.
-
 # **Using medusa.py**
 
 The main idea behind MEDUSA is to be able to add or remove hooks for Java or Native methods in a large scale while keeping the process simple and effective. MEDUSA has **more than** **90** modules which can be combined, each one of them dedicated to a set of tasks. Indicatively, some of these tasks include:
@@ -370,6 +299,77 @@ That's all ... this module is now accessible via the medusa cli:
 
 <img src="https://user-images.githubusercontent.com/4659186/86785693-eb919e00-c05a-11ea-901e-8cc180d6274a.png" width="550" height="250">
 
+
+# **Using mango.py**
+
+After starting Mango, you can import an apk by simply running: 
+
+**mango>** ***import** com.foo.bar.apk* 
+
+You can also import an apk from the device:
+
+**mango>** ***pull** com.foo.bar* 
+
+and then:
+
+**mango>** ***import** base.apk* 
+
+After this **mango** will analyse the apk and save the analysis results to a SQLite database. It will also parse the manifest file to give you an overview of:
+
+- The application's main components (activities, services, providers, receivers):
+
+  **mango>** **show activities** // to display the activities (use -e to filter only the exported ones), similarly **show services** will display the services e.t.c. 
+
+- The application's deeplinks and the corresponding activities that handles them:
+
+  **mango>** **show deeplinks**
+
+Mango wraps all the "borring tasks" in simple commands. For example you can install a burp certificate by simply running **installBurpCert**, set/reset a proxy (transparent or not) with **proxy set <IP:PORT> ** or you can patch the debuggable flag of the apk by simply running **patch com.foo.bar.apk**
+
+**Here is the full list:**
+
+    adb                         Start an interactive adb prompt.
+    box                         Starts a busybox interactive shell.
+    c                           Run a local shell command 
+    cc                          Run a command using the default adb shell
+    exit                        Exits the application.
+    help                        Displays this text.
+    
+    import                      Imports an apk file for analysis and saves the results to the session's database 
+    
+    installBurpCert             Install the Burp certificate to the mobile device.
+    jdwp                        Create a jdb session. Use it in combination with the tab key to see available packages. The app has to have the debuggable flag to true.
+    
+    notify                      Sends a notification to the device 
+                                (Example: > notify 'Title' 'Lorem ipsum dolor sit amet,....')
+    
+    patch                       Changes the debuggable flage of the AndroidManifest.xml to true for a given apk. 
+    
+    proxy                       Performs a proxy modification or reads a proxy setting (used for MITM). If adb runs as
+                                root it can be used with the '-t' flag to set a transparent proxy.
+                                (Example: > proxy set 192.168.1.2:8080 -t)
+    
+    pull                        Extracts an apk from the device and saves it as 'base.apk' in the working directory.
+                                Use it in combination with the tab key to see available packages
+                                (Example: > pull com.foo.bar)
+    
+    query                       Performs a raw query in the session db and returns the results as a list of tuples.
+                                (Example: > query SELECT * FROM Application)
+    
+    screencap                   Captures the device screen and saves it as a png file in the current directory.
+                                (Example: > screencap -o 'screen1.png')
+    
+    search                      Searches for a given string in the extracted components and strings.
+                                (Example: search foobar)
+    
+    show                        Prints information about components of the loaded application or session. The currently available info includes: applications, activities, services, activityAlias, receivers, deeplinks, providers and intentFilters. Adding the '-e' flag will print only exported components. Additionaly 'database' prints the database structure of the session database, 'manifest' prints the manifest and 'info' prints general information about the loaded application  
+    
+    start                       Forces to start an activity of the loaded application. Use it in combination with the tab key to see the available activities. For non exported activities, the adb must run with root privileges.
+    
+    startsrv, stoprsrv          Forces to start or stop a service of the loaded application. Use it in combination with the tab key to see the available services. For non exported services, the adb must run with root privileges.
+    
+    trace                       trace the application's calls using Frida-trace
+    uninstall, kill, spawn      Uninstalls, kills or starts an app in the device. Use it in combination with the tab key to see available packages.
 
 
 # Using the translator script:

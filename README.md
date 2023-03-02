@@ -1,7 +1,6 @@
 <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.svg" width ="1835" height="508">
 
 
-
 A detailed guide about the project is moving to our [wiki page](https://github.com/Ch0pin/medusa/wiki), so until we fully move there we are going to be a bit messy. 
 
 Some quickstart guides can be found here:
@@ -10,31 +9,29 @@ Some quickstart guides can be found here:
 - https://www.youtube.com/watch?v=kUqucdkVtSU&t=256s (credits @ByteTheories)
 - https://www.youtube.com/watch?v=D2-jREzCE9k (credits @cryptax)
 
-Special Credits to @rscloura for his contributions
+Special Credits to [@rscloura](https://github.com/rscloura) for his contributions
 
 Logo Credits: https://www.linkedin.com/in/rafael-c-ferreira
 
 # **Description**:
 
-**MEDUSA** is an Extensible and Modularised framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  
+**MEDUSA** is an Extensible and Modularized framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  
 
 # **Installation**
-
-I keep the requirements.txt updated, so you can install Medusa by simply running:
 
 ```
 $ pip install -r requirements.txt
 ```
 
-**Other requirements include:** 
+**Requirements:** 
 
-- Linux or macOS (currently we don't support windows)
-- Python 3 (use the latest [python release](https://www.python.org/downloads/macos/) instead of the one shiped with MacOS to avoid issues with using libedit instead of GNU's readline)
+- Linux or macOS (currently medusa doesn't support windows)
+- Python 3 (use the latest python release instead of the one shiped with MacOS to avoid issues with using libedit instead of GNU's readline)
 - Rooted device 
 - adb
 - FRIDA server (running on the mobile device)
 
-Medusa has two main scripts: **medusa.py** and **mango.py** which you can run as **$python3 medusa.py** and **$python3 mango.py** . 
+Medusa consists of two main scripts: **medusa.py** and **mango.py**:
 
 # **Using mango.py**
 
@@ -98,18 +95,18 @@ Mango wraps all the "borring tasks" in simple commands. For example you can inst
     search                      Searches for a given string in the extracted components and strings.
                                 (Example: search foobar)
     
-    show                        Prints information about components of the loaded application or session. The currently availlable info includes: applications, activities, services, activityAlias, receivers, deeplinks, providers and intentFilters. Adding the '-e' flag will print only exported components. Additionaly 'database' prints the database structure of the session database, 'manifest' prints the manifest and 'info' prints general information about the loaded application  
+    show                        Prints information about components of the loaded application or session. The currently available info includes: applications, activities, services, activityAlias, receivers, deeplinks, providers and intentFilters. Adding the '-e' flag will print only exported components. Additionaly 'database' prints the database structure of the session database, 'manifest' prints the manifest and 'info' prints general information about the loaded application  
     
     start                       Forces to start an activity of the loaded application. Use it in combination with the tab key to see the available activities. For non exported activities, the adb must run with root privileges.
     
     startsrv, stoprsrv          Forces to start or stop a service of the loaded application. Use it in combination with the tab key to see the available services. For non exported services, the adb must run with root privileges.
     
-    trace                       trace the applicaton's calls using Frida-trace
+    trace                       trace the application's calls using Frida-trace
     uninstall, kill, spawn      Uninstalls, kills or starts an app in the device. Use it in combination with the tab key to see available packages.
 
 # **Using medusa.py**
 
-The main idea behind this script is to be able to combine frida scripts on the fly in order to hook specific API subsets. Medusa has **more than** **80** modules which can be combined, each one of them dedicated on a simple task. Some of these tasks include:
+The main idea behind MEDUSA is to be able to add or remove hooks for Java or Native methods in a large scale while keeping the process simple and effective. MEDUSA has **more than** **90** modules which can be combined, each one of them dedicated to a set of tasks. Indicatively, some of these tasks include:
 
 -  SSL pinning bypass
 -  UI restriction bypass (e.g. Flag secure, button enable)
@@ -129,36 +126,12 @@ The main idea behind this script is to be able to combine frida scripts on the f
    -  Click Fraud
    -  Toll Fraud
    -  Sms Fraud
+   
+Furthermore you can intercept Java or Native methods that belong to 3rd party apps or create complex frida modules with just few simple commands. 
 
-## **Quick start**
+A [detailed wiki](https://github.com/Ch0pin/medusa/wiki) is currently in progress  
 
-Have the frida server running on the mobile device and run the medusa script using **$python3 medusa.py** , then simply follow the directions to connect to the device. 
-
-- **To find scripts:**
-
-  **medusa**> search http 		//*will print all the modules related to HTTP communications, alternative you can use the **show all** command to see all availlable scripts.* 
-
-- **You can combine as many scripts as you want by simply running:**
-
-  **medusa**> use <module_name> 
-
-  **medusa>** show mods //*will print the currently loaded scripts*
-
-  **medusa>** compile      //will combine the currently loaded scripts to a single one (called agent.js). To add latency  (e.g. to wait for something to load first in order to hook) use the -t parameter  
-
-<img src="https://user-images.githubusercontent.com/4659186/151659174-f642bd72-a455-442a-9e51-462c91a68b18.png" width="7650" height="350">
-
-- To hook a class, a java function or a native function, you can simply run:
-
-  **medusa>** hook -a com.foo.bar.class 	//*hook all the functions of the com.foo.bar.class class*
-
-  **medusa>** hook -f 	//*to hook a single function* *(following screen instructions)*
-
-  **medusa>** hook -n	//*to hook a native function* *(following screen instructions)*
-
-To start a session you can simply run: 
-
-**medusa>** run -f com.foo.bar 			// to spawn the package, or ommit the '-f' in order to attach
+The functionality that hasn't be covered so far in the wiki is described below.
 
 ## **Native code**
 

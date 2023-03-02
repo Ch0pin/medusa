@@ -216,7 +216,8 @@ class Parser(cmd2.Cmd):
 
     def do_compile(self, line, rs=False) -> None:
         """
-        Compile the current staged modules to a single js frida script (no args)
+        Compile the current staged modules to a single js frida script. Use '-t' to add a delay.
+        compile [-t X], where X is a value in milisec
         """
         try:
             hooks = []
@@ -334,7 +335,7 @@ class Parser(cmd2.Cmd):
                 if '--attach' in line.split(' ')[2]:
                     modules = self.native_handler.getModules(package,False)
                 else:
-                    print("[i] Usage: enumerate package libary [--attach]")
+                    print("[i] Usage: enumerate package library [--attach]")
             else:
                 modules = self.native_handler.getModules(package,True)
 
@@ -345,7 +346,7 @@ class Parser(cmd2.Cmd):
 
         except Exception as e:
             print(e)
-            print("[i] Usage: enumerate package libary [--attach]")
+            print("[i] Usage: enumerate package library [--attach]")
 
     def do_exit(self,line) -> None:
         """
@@ -383,43 +384,53 @@ class Parser(cmd2.Cmd):
         """
         Display the manual 
         """
-        if line != '':
-            print('\n' + BLUE + self.modManager.getModule(line).Help + RESET)
-        else:
-            print("""
-                MODULE OPERATIONS:
+        try:
+            print(BOLD+"""
+                Module Stashing / Un-Stashing:
 
-                        - search [keyword]          : Search for a module containing a specific keyword
-                        - man [module name]         : Display help for a module
-                        - add [fullpath]            : Adds the module specified by fullpath to the list of available modules
-                        - snippet [tab]             : Show / display available frida script snippets
-                        - use [module name]         : Select a module to add to the final script
-                        - show mods                 : Show selected modules
-                        - show categories           : Display the available module categories (start here)
-                        - show mods [category]      : Display the available modules for the selected category
-                        - show snippets             : Display available snippets of frida scripts
-                        - show all                  : Show all available modules
+                        - add [fullpath]            : Adds the module, specified by the "fullpath" option, to a 
+                                                      list of stashed modules
+                        - compile [-t X ms]         : Compile the stashed modules. Use -t X to add X ms delay
                         - import [snippet]          : Import a snippet to the scratchpad
                         - info [module name]        : Display info about a module
-                        - rem [module name]         : Remove a module from the list that will be loaded
+                        - rem [module name]         : Remove a module from the stashed ones
+                        - reload                    : Reload all the medusa modules
+                        - reset                     : Remove all modules from the list of the stashed ones
+                        - search [keyword]          : Search for a module containing a specific keyword in its name
+
+                        - show [option]
+                                all                 : Show all available modules
+                                categories          : Display the available module categories
+                                mods                : Show stashed modules
+                                mods [category]     : Display the available modules for the selected category
+                                snippets            : Display available snippets of frida scripts
+
+                        - snippet [tab]             : Show / display available frida script snippets
                         - swap old_index new_index  : Change the order of modules in the compiled script
-                        - reset                     : Remove all modules from the list that will be loaded
-                        - reload                    : Reload all the existing modules
+                        - use [module name]         : Select a module to add to the final script
+
                 ===================================================================================================
 
-                SCRIPT OPERATIONS:
+                Hooking beyond the modules:
 
-                        - export  'filename'        : Save session modules and scripts to 'filename'
-                        - import [tab]              : Import frida script from available snippet
-                        - pad                       : Edit the scratchpad using vi
-                        - jtrace function_path      : Prints the stack trace of a function
-                        - compile [-t X millisec]   : Compile the modules to a frida script, use '-t' to add a load delay 
                         - hook [option]
-                    
-                            -a [class name]         : Set hooks for all the functions of the given class
-                            -f                      : Initiate a dialog for hooking a Java function
-                            -n                      : Initiate a dialog for hooking a native function
-                            -r                      : Reset the hooks setted so far
+                            -a [class name]         : Set hooks for all the methods of the given class
+                            -f                      : Initiate a dialog for hooking a Java method
+                            -n                      : Initiate a dialog for hooking a native method
+                            -r                      : Reset the hooks set so far
+                        - jtrace method_path        : Prints the stack trace of a method (similar to hook -f)
+                        - pad                       : Edit the scratchpad using vim
+                        - import [tab]              : Import a frida script from the snippets folder
+
+                ===================================================================================================
+
+                Starting a session:
+
+                        - run        [package name] : Initiate a Frida session and attach to the selected package
+                        - run -f     [package name] : Initiate a Frida session and spawn the selected package
+                        - run -n     [package num]  : Initiate a Frida session and spawn the 3rd party package 
+                                                      number num (listed by "list")
+
                 ===================================================================================================
 
                 NATIVE OPERATIONS:
@@ -441,16 +452,7 @@ class Parser(cmd2.Cmd):
                         - enumerate pkg_name libname [--attach]    
                         
                         Enumerate a library's exported functions (e.g. - enumerate com.foo.gr libfoo)
-                ===================================================================================================
 
-                FRIDA SESSION:
-
-                        - run        [package name] : Initiate a Frida session and attach to the selected package
-                        - run -f     [package name] : Initiate a Frida session and spawn the selected package
-                        - run -n     [package num]  : Initiate a Frida session and spawn the 3rd party package 
-                                                      number num (listed by "list")
-                        - dump       [package_name] : Dump the requested package name (works for most unpackers)
-                        - loaddevice                : Load or reload a device
                 ====================================================================================================
                     
                 HELPERS:
@@ -463,30 +465,36 @@ class Parser(cmd2.Cmd):
                         - clear                     : Clear the screen
                         - c [command]               : Run a shell command
                         - cc [command]              : Run a shell command on the mobile device
+                        - dump [package_name]       : Dump the requested package name (works for most unpackers)
+                        - loaddevice                : Load or reload a device
+                        - export 'filename'         : Save session modules and scripts to 'filename'
                 ==============================================================================================
 
                         Tip: Use the /modules/scratchpad.med to insert your own hooks and include them to the agent.js 
-                        using the 'compile script' command""")
+                        using the 'compile script' command"""+RESET)
+
+        except Exception as e:
+            print(e)
 
 
     def do_hook(self,line) -> None:
         """
-        Hook a function or functions
+        Hook a method or methods
         Usage:
         hook [options] where option can be one of the following:
-            -a [class name]: Set hooks for all the functions of the given class
-            -f              : Initiate a dialog for hooking a Java function
-            -n              : Initiate a dialog for hooking a native function
+            -a [class name]: Set hooks for all the methods of the given class
+            -f              : Initiate a dialog for hooking a Java method
+            -n              : Initiate a dialog for hooking a native method
             -r              : Reset the hooks setted so far
         """
         option = line.split(' ')[0]
         codejs = '\n'
         if '-f' in option:
-            className = input("Enter the full name of the function(s) class: ")
+            className = input("Enter the full name of the method(s) class: ")
             uuid = str(int(time.time()))
 
             codejs = """let hook_"""+uuid+""" = Java.use('""" + className + """');"""
-            functionName = input("Enter a function name (CTRL+C to Exit): ")
+            functionName = input("Enter a method name (CTRL+C to Exit): ")
             enable_backtrace =  Polar('Enable backtrace?', False).ask()
 
             while (True):
@@ -517,8 +525,8 @@ class Parser(cmd2.Cmd):
                     }
                     }
                     """
-                    print('[+] Function: {} hook added !'.format(functionName))
-                    functionName = input("Enter a function name (CTRL+C to Exit): ")
+                    print('[+] Method: {} hook added !'.format(functionName))
+                    functionName = input("Enter a method name (CTRL+C to Exit): ")
 
                 except KeyboardInterrupt:
                     self.edit_scratchpad(codejs, 'a')
@@ -1132,7 +1140,7 @@ class Parser(cmd2.Cmd):
         return frida_session
 
     def hook_native(self) -> None:
-        library = Open('Libary name (e.g.: libnative.so):').ask()
+        library = Open('Library name (e.g.: libnative.so):').ask()
         type_ = Alternative('Imported or exported function?', 'i', 'e').ask()
         function = Open('Function name or offset (e.g.: 0x1234):').ask()
         number_of_args = Numeric('Number of function arguments (0 to disable trace):', lbound=0).ask()
@@ -1315,11 +1323,13 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                          print(GREEN + "Script unchanged, nothing to reload ...." + RESET)
                 elif s == '?':
                     print(RESET+"""\nHelp: 
-    'e' to exit the session 
-    'r' to reload the script (use if script changed)
-    'i' to read information about the application
-    't' to trace a function and print the stac trace (e.g. t com.foo.bar.func)
-    '?' to print this message\n"""+RESET)
+    'c'  (c)lear the sreen 
+    'e'  (e)xit the session
+    'r'  (r)eload the script in case it changed
+    'rs' (r)e(s)et the scratchpad
+    'i'  print (i)nformation about the application
+    't'  (t)race a method and print the stack trace (e.g. t com.foo.bar.func)
+    '?'  print this help message\n"""+RESET)
                 elif s == 'i':
                     self.print_app_info()
                 elif s == 'c':

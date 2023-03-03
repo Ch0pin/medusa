@@ -130,58 +130,6 @@ class Parser(cmd2.Cmd):
 
 
 ###################################################### do_ defs start ############################################################
-    def do_get(self,line):
-        """
-        Print the value of fields of class instances
-        Usage: get package_name full.path.to.class.field
-        """
-        try:
-            package_name = line.split(' ')[0]
-            class_field_path = line.split(' ')[1]
-            field = class_field_path.split('.')[-1]
-            clazz = '.'.join(class_field_path.split('.')[:-1])
-            if field == '*':
-                codeJs = """
-                Java.perform(function() { 
-                    try {
-                        var jClass = Java.use('"""+clazz+"""');
-                        var _fields = jClass.class.getFields().map(f => {
-                        return f.toString()
-                        })  
-                        Java.choose('"""+clazz+"""', {
-                        onMatch: function(instance) {
-                            for(var i = 0; i < _fields.length; i++){
-                            var field = _fields[i].substring(_fields[i].lastIndexOf(".") + 1);                
-                            console.log('var '+field+ ' ='+JSON.stringify(instance[field].value))
-                            }
-                        }, onComplete: function() {
-                        }
-                        })
-                    }
-                        catch(e){console.log(e)}
-                    });
-                    """
-        
-            else:
-                codeJs = "Java.perform(function() { try { Java.choose('"+clazz+"',{"
-                codeJs+="onMatch: function(instance) {"
-                codeJs+= "console.log('Current field value of '+instance+ ' is:'+JSON.stringify(instance."+field+'.value))'
-                codeJs+="}, onComplete: function() { }});} catch (e){console.log(e)}})"
-        
-            self.detached = False
-
-            session = self.frida_session_handler(self.device,False,package_name)
-            if session is None:
-                print("[!] Can't create session for the given package name. Is it running ?")
-
-            script = session.create_script(codeJs)
-            session.on('detached',self.on_detached)
-            script.load()
-            input()
-            if script:
-                script.unload()
-        except Exception as e:
-            print(e)
 
     def do_add(self, mod) -> None:
         """
@@ -379,6 +327,58 @@ class Parser(cmd2.Cmd):
             print(e) 
             print("[i] Usage: export filename")
     
+    def do_get(self,line):
+        """
+        Print the value of fields of class instances
+        Usage: get package_name full.path.to.class.field
+        """
+        try:
+            package_name = line.split(' ')[0]
+            class_field_path = line.split(' ')[1]
+            field = class_field_path.split('.')[-1]
+            clazz = '.'.join(class_field_path.split('.')[:-1])
+            if field == '*':
+                codeJs = """
+                Java.perform(function() { 
+                    try {
+                        var jClass = Java.use('"""+clazz+"""');
+                        var _fields = jClass.class.getFields().map(f => {
+                        return f.toString()
+                        })  
+                        Java.choose('"""+clazz+"""', {
+                        onMatch: function(instance) {
+                            for(var i = 0; i < _fields.length; i++){
+                            var field = _fields[i].substring(_fields[i].lastIndexOf(".") + 1);                
+                            console.log('var '+field+ ' ='+JSON.stringify(instance[field].value))
+                            }
+                        }, onComplete: function() {
+                        }
+                        })
+                    }
+                        catch(e){console.log(e)}
+                    });
+                    """
+        
+            else:
+                codeJs = "Java.perform(function() { try { Java.choose('"+clazz+"',{"
+                codeJs+="onMatch: function(instance) {"
+                codeJs+= "console.log('Current field value of '+instance+ ' is:'+JSON.stringify(instance."+field+'.value))'
+                codeJs+="}, onComplete: function() { }});} catch (e){console.log(e)}})"
+        
+            self.detached = False
+
+            session = self.frida_session_handler(self.device,False,package_name)
+            if session is None:
+                print("[!] Can't create session for the given package name. Is it running ?")
+
+            script = session.create_script(codeJs)
+            session.on('detached',self.on_detached)
+            script.load()
+            input()
+            if script:
+                script.unload()
+        except Exception as e:
+            print(e)
 
     def do_man(self,line) -> None:
         """
@@ -433,30 +433,35 @@ class Parser(cmd2.Cmd):
 
                 ===================================================================================================
 
-                NATIVE OPERATIONS:
-
-                        - memops package_name lib.so    : READ/WRITE/SEARCH process memory
-                        - strace package_name           : logs system calls, signal deliveries, and changes of process state 
-
-                        - load package_name full_library_path
-                                                        : Manually load a library in order to explore using memops
-                                                          Tip: run "list package_name path" to get the application's
-                                                          directories
+                Working with native libraries:
 
                         - libs (-a, -s, -j) package_name [--attach]  
 
-                            -a                          : List ALL loaded libraries
-                            -s                          : List System loaded libraries
-                            -j                          : List Application's Libraries
-                            --attach                    : Attach to the process (Default is spawn) 
+                            -a                          : List aLL loaded libraries
+                            -s                          : List system's loaded libraries
+                            -j                          : List application's Libraries
+                            --attach                    : Attach to the process (default is to first run the app) 
+                        
                         - enumerate pkg_name libname [--attach]    
                         
-                        Enumerate a library's exported functions (e.g. - enumerate com.foo.gr libfoo)
+                            Enumerate a library's exported functions (e.g. enumerate com.foo.gr libfoo.so)
+
+                        - load package_name full_library_path
+
+                                                        : Force the application to load a native library 
+                                            
+                ===================================================================================================
+
+                Working with the application's memory:
+
+                        - memops package_name lib.so    : read/write/search/dump a native library
+                        - memmap package_name           : read/dump read or dump a memory region
 
                 ====================================================================================================
                     
-                HELPERS:
-
+                Other commands:
+                
+                        - strace package_name           : logs system calls, signal deliveries, and changes of process state 
                         - type 'text'               : Send a text to the device
                         - list                      : List 3rd party packages
                         - list 'package_name' path  : List data/app paths of 3rd party packages 
@@ -741,7 +746,7 @@ class Parser(cmd2.Cmd):
                 pid = option
 
             maps = os.popen("""adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().strip().split('\n')
-            title = "Please chose the memory address range: "
+            title = "Please choose a memory address range: "
             option, index = pick(maps,title,indicator="=>",default_index=0)
             print("Selected:")
             click.echo(click.style(option,bg='blue', fg='white'))

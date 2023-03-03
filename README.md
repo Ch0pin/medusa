@@ -3,11 +3,13 @@
 
 A detailed guide about the project is moving to our [wiki page](https://github.com/Ch0pin/medusa/wiki), so until we fully move there we are going to be a bit messy. 
 
-Some quickstart guides can be found here:
+Some demo videos can be found here:
 
-- https://www.youtube.com/watch?v=4hpjRuNJNDw&t=16s (credits @ByteTheories)
-- https://www.youtube.com/watch?v=kUqucdkVtSU&t=256s (credits @ByteTheories)
-- https://www.youtube.com/watch?v=D2-jREzCE9k (credits @cryptax)
+- [MEDUSA | Android Penetration tool](https://www.youtube.com/watch?v=4hpjRuNJNDw) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))
+- [MEDUSA | Android Malware Analysis 101](https://www.youtube.com/watch?v=kUqucdkVtSU) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))
+- [Unpacking Android malware with Medusa](https://www.youtube.com/watch?v=D2-jREzCE9k) (credits [@cryptax](https://twitter.com/cryptax))
+- [Unpacking Android APKs with Medusa](https://www.youtube.com/watch?v=ffM5R2Wfl0A) (credits [@LaurieWired](https://twitter.com/LaurieWired))
+- [#Medusa - Extensible binary instrumentation framework based on #FRIDA for Android applications](https://www.youtube.com/watch?v=Hon7zETJawA) (credits [@AndroidAppSec](https://www.youtube.com/@AndroidAppSec))
 
 Special Credits to [@rscloura](https://github.com/rscloura) for his contributions
 

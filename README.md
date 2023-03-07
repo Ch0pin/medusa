@@ -1,17 +1,7 @@
 <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.svg" width ="1835" height="508">
 
 
-A detailed guide about the project is moving to our [wiki page](https://github.com/Ch0pin/medusa/wiki), so until we fully move there we are going to be a bit messy. 
-
-Some demo videos can be found here:
-
-- [MEDUSA | Android Penetration tool](https://www.youtube.com/watch?v=4hpjRuNJNDw) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))
-- [MEDUSA | Android Malware Analysis 101](https://www.youtube.com/watch?v=kUqucdkVtSU) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))
-- [Unpacking Android malware with Medusa](https://www.youtube.com/watch?v=D2-jREzCE9k) (credits [@cryptax](https://twitter.com/cryptax))
-- [Unpacking Android APKs with Medusa](https://www.youtube.com/watch?v=ffM5R2Wfl0A) (credits [@LaurieWired](https://twitter.com/LaurieWired))
-- [#Medusa - Extensible binary instrumentation framework based on #FRIDA for Android applications](https://www.youtube.com/watch?v=Hon7zETJawA) (credits [@AndroidAppSec](https://www.youtube.com/@AndroidAppSec))
-
-Special Credits to [@rscloura](https://github.com/rscloura) for his contributions
+> A detailed guide about the project is moving to our [wiki page](https://github.com/Ch0pin/medusa/wiki), so until we fully move there we are going to be a bit messy. 
 
 Logo Credits: https://www.linkedin.com/in/rafael-c-ferreira
 
@@ -32,6 +22,14 @@ $ pip install -r requirements.txt
 - Rooted device 
 - adb
 - FRIDA server (running on the mobile device)
+
+Demo videos on how Medusa works can be found in the links below:
+
+- [MEDUSA | Android Penetration tool](https://www.youtube.com/watch?v=4hpjRuNJNDw) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))
+- [MEDUSA | Android Malware Analysis 101](https://www.youtube.com/watch?v=kUqucdkVtSU) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))
+- [Unpacking Android malware with Medusa](https://www.youtube.com/watch?v=D2-jREzCE9k) (credits [@cryptax](https://twitter.com/cryptax))
+- [Unpacking Android APKs with Medusa](https://www.youtube.com/watch?v=ffM5R2Wfl0A) (credits [@LaurieWired](https://twitter.com/LaurieWired))
+- [#Medusa - Extensible binary instrumentation framework based on #FRIDA for Android applications](https://www.youtube.com/watch?v=Hon7zETJawA) (credits [@AndroidAppSec](https://www.youtube.com/@AndroidAppSec))
 
 Medusa consists of two main scripts: **medusa.py** and **mango.py**:
 
@@ -64,90 +62,35 @@ Please reffer to our [detailed wiki](https://github.com/Ch0pin/medusa/wiki) for 
 
 # **Using mango.py**
 
-After starting Mango, you can import an apk by simply running: 
+Mango is medusa's twin brother. It's main functionalities include:
 
-**mango>** ***import** com.foo.bar.apk* 
+- Parse an application's Android Manifest
+- Create your local application research database
+- Automate boring processes like: set the debuggable flag of an app, set up a MITM, indicate the application's attack surface (exported activities, deeplinks, services etc.) and many many more ...
 
-You can also import an apk from the device:
+A [detailed WIKI](https://github.com/Ch0pin/medusa/wiki) is currently under construction.
 
-**mango>** ***pull** com.foo.bar* 
+# **Updates**:
 
-and then:
-
-**mango>** ***import** base.apk* 
-
-After this **mango** will analyse the apk and save the analysis results to a SQLite database. It will also parse the manifest file to give you an overview of:
-
-- The application's main components (activities, services, providers, receivers):
-
-  **mango>** **show activities** // to display the activities (use -e to filter only the exported ones), similarly **show services** will display the services e.t.c. 
-
-- The application's deeplinks and the corresponding activities that handles them:
-
-  **mango>** **show deeplinks**
-
-Mango wraps all the "borring tasks" in simple commands. For example you can install a burp certificate by simply running **installBurpCert**, set/reset a proxy (transparent or not) with **proxy set <IP:PORT> ** or you can patch the debuggable flag of the apk by simply running **patch com.foo.bar.apk**
-
-**Here is the full list:**
-
-    adb                         Start an interactive adb prompt.
-    box                         Starts a busybox interactive shell.
-    c                           Run a local shell command 
-    cc                          Run a command using the default adb shell
-    exit                        Exits the application.
-    help                        Displays this text.
-    
-    import                      Imports an apk file for analysis and saves the results to the session's database 
-    
-    installBurpCert             Install the Burp certificate to the mobile device.
-    jdwp                        Create a jdb session. Use it in combination with the tab key to see available packages. The app has to have the debuggable flag to true.
-    
-    notify                      Sends a notification to the device 
-                                (Example: > notify 'Title' 'Lorem ipsum dolor sit amet,....')
-    
-    patch                       Changes the debuggable flage of the AndroidManifest.xml to true for a given apk. 
-    
-    proxy                       Performs a proxy modification or reads a proxy setting (used for MITM). If adb runs as
-                                root it can be used with the '-t' flag to set a transparent proxy.
-                                (Example: > proxy set 192.168.1.2:8080 -t)
-    
-    pull                        Extracts an apk from the device and saves it as 'base.apk' in the working directory.
-                                Use it in combination with the tab key to see available packages
-                                (Example: > pull com.foo.bar)
-    
-    query                       Performs a raw query in the session db and returns the results as a list of tuples.
-                                (Example: > query SELECT * FROM Application)
-    
-    screencap                   Captures the device screen and saves it as a png file in the current directory.
-                                (Example: > screencap -o 'screen1.png')
-    
-    search                      Searches for a given string in the extracted components and strings.
-                                (Example: search foobar)
-    
-    show                        Prints information about components of the loaded application or session. The currently available info includes: applications, activities, services, activityAlias, receivers, deeplinks, providers and intentFilters. Adding the '-e' flag will print only exported components. Additionaly 'database' prints the database structure of the session database, 'manifest' prints the manifest and 'info' prints general information about the loaded application  
-    
-    start                       Forces to start an activity of the loaded application. Use it in combination with the tab key to see the available activities. For non exported activities, the adb must run with root privileges.
-    
-    startsrv, stoprsrv          Forces to start or stop a service of the loaded application. Use it in combination with the tab key to see the available services. For non exported services, the adb must run with root privileges.
-    
-    trace                       trace the application's calls using Frida-trace
-    uninstall, kill, spawn      Uninstalls, kills or starts an app in the device. Use it in combination with the tab key to see available packages.
+### (12/2022) Using the translator script:
+1. Replace the default google_trans_new.py of you google_trans_new python package with the one from the utils/google_trans_new.py
+2. Import it with medusa>use helpers/tranlsator
 
 
 # **Contribute**:
 
 - By making a pull request
-- By creating medusa modules (see bellow how to)
-- By buying a beer 
+- By creating a medusa module (see [how to](https://github.com/Ch0pin/medusa/wiki/Medusa#creating-a-medusa-module))
+- By reporting an error/issue 
+- By suggesting an improvement
+- By buying a treat:
 
 **Bitcoin (BTC) Address**: bc1qhun6a7chkav6mn8fqz3924mr8m3v0wq4r7jchz
 
 **Ethereum (ETH) Address**: 0x0951D1DD2C9F57a9401BfE7D972D0D5A65e71dA4
 
-# **Other usefull stuff**
 
-
-### Screenshots
+# Screenshots
 
 #### - SSL Unpinning
 
@@ -196,25 +139,15 @@ Mango wraps all the "borring tasks" in simple commands. For example you can inst
 
 > Translates the application's UI by hooking 'setText' calls  
 
-
-
 <img src="https://user-images.githubusercontent.com/4659186/86785673-e59bbd00-c05a-11ea-8fb0-9c3f86043104.png" width="250" height="450">                             <img src="https://user-images.githubusercontent.com/4659186/86785688-e9c7da80-c05a-11ea-838f-e4c7568c7c2a.png" width="250" height="450">     
-
 
 
 <img src="https://user-images.githubusercontent.com/4659186/86785693-eb919e00-c05a-11ea-901e-8cc180d6274a.png" width="550" height="250">
 
 
-
-
-# Using the translator script:
-1. Replace the default google_trans_new.py of you google_trans_new python package with the one from the utils/google_trans_new.py
-2. Import it with medusa>use helpers/tranlsator
-3. Have fun 
-   
-
-
 **CREDITS**:
+
+Special Credits to [@rscloura](https://github.com/rscloura) for his contributions
 
 - https://github.com/frida/frida
 - https://github.com/dpnishant/appmon
@@ -223,8 +156,4 @@ Mango wraps all the "borring tasks" in simple commands. For example you can inst
 - https://github.com/shivsahni/APKEnum
 - https://github.com/0xdea/frida-scripts
 - https://github.com/Areizen/JNI-Frida-Hook
-
-##### About me:
-
-[![Ch0pins's github stats](https://github-readme-stats.vercel.app/api?username=Ch0pin)](https://github.com/anuraghazra/github-readme-stats)
 

@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
-import subprocess
-import platform
-import cmd2
-import os, sys
-import readline
-import time
-import frida
-import click
+import subprocess, platform, os, sys, readline, time, argparse
+import cmd2, click, frida
 from libraries.dumper import dump_pkg
 from google_trans_new import google_translator  
 from libraries.natives import *
@@ -60,36 +54,34 @@ class Parser(cmd2.Cmd):
 
     def preloop(self):
         self.do_reload("dummy")
-        # for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'modules')):
-        #     for filename in filenames:
-        #         if filename.endswith('.med'):
-        #             self.modManager.add(os.path.join(root, filename))
+    
+        parser = argparse.ArgumentParser(
+                            prog = 'Medusa',
+                            description = 'An extensible and modularized framework that automates processes and techniques practiced during the dynamic analysis of Android Applications.')
+        parser.add_argument('-r','--recipe', help='Use this option to load a session/recipe')
+        args = parser.parse_args()
 
-        # for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'snippets')):
-        #     for filename in sorted(filenames):
-        #         if filename.endswith('.js'):
-        #             filepath = os.path.join(root, filename)
-        #             self.snippets.append(filepath.split(os.path.sep)[-1].split('.')[0])
-        try:
-            if len(sys.argv) > 1:
-                data = ''
-                if '-r' in sys.argv[1]:
-                    print('[+] Loading a recipe....')
-                    with open(sys.argv[2], 'r') as file:
-                        for line in file:
-                            if line.startswith('MODULE'):
-                                module = line[7:-1]
-                                print('- Loading {}'.format(module))
-                                self.modManager.stage_verbadim(module)
-                            else:
-                                data += line
-                    self.modified = True
-                if data != '':
-                    print("[+] Writing to scratchpad...")
-                    self.edit_scratchpad(data)
+        if args.recipe:
+            self.write_recipe(args.recipe)
+
+            # if len(sys.argv) > 1:
+            #     data = ''
+            #     if '-r' in sys.argv[1]:
+            #         print('[+] Loading a recipe....')
+            #         with open(sys.argv[2], 'r') as file:
+            #             for line in file:
+            #                 if line.startswith('MODULE'):
+            #                     module = line[7:-1]
+            #                     print('- Loading {}'.format(module))
+            #                     self.modManager.stage_verbadim(module)
+            #                 else:
+            #                     data += line
+            #         self.modified = True
+            #     if data != '':
+            #         print("[+] Writing to scratchpad...")
+            #         self.edit_scratchpad(data)
                         
-        except Exception as e:
-            print(e)
+
 
         click.secho(""" 
                                                                                                                         
@@ -329,7 +321,7 @@ class Parser(cmd2.Cmd):
     
     def do_get(self,line):
         """
-        Print the value of fields of class instances
+        Print the current value of a fields of a class instance
         Usage: get package_name full.path.to.class.field
         """
         try:
@@ -458,25 +450,39 @@ class Parser(cmd2.Cmd):
                         - memmap package_name           : read/dump read or dump a memory region
 
                 ====================================================================================================
-                    
-                Other commands:
-                
-                        - strace package_name           : logs system calls, signal deliveries, and changes of process state 
-                        - type 'text'               : Send a text to the device
-                        - list                      : List 3rd party packages
-                        - list 'package_name' path  : List data/app paths of 3rd party packages 
-                        - status                    : Print Current Package/Libs/Native-Functions
-                        - shell                     : Open an interactive shell
-                        - clear                     : Clear the screen
+
+                Getting Class and Object snapshots:
+
+                        - describe_java_class full.path.to.class.name   : Log details about the given class
+                        - get package_name full.path.to.class.field     : Get the current value of a field of an 
+                                                                          instnatiated java class. 
+                ====================================================================================================
+
+                Usefull utilities:
+
                         - c [command]               : Run a shell command
                         - cc [command]              : Run a shell command on the mobile device
+                        - clear                     : Clear the screen
+                        - shell                     : Open an interactive shell
+                ----------------------------------------------------------------------------------------------------
                         - dump [package_name]       : Dump the requested package name (works for most unpackers)
+                        - list                      : List 3rd party packages
+                        - list 'package_name' path  : List data/app paths of 3rd party packages
                         - loaddevice                : Load or reload a device
-                        - export 'filename'         : Save session modules and scripts to 'filename'
-                ==============================================================================================
+                        - reload [-r recipe]        : Reload the modules. Use -r to load a recipe (see export command)
+                        - status                    : Print Current Package/Libs/Native-Functions
+                        - strace package_name       : logs system calls, signal deliveries, and changes of process state 
+                        - type 'text'               : Send a text to the device
 
-                        Tip: Use the /modules/scratchpad.med to insert your own hooks and include them to the agent.js 
-                        using the 'compile script' command"""+RESET)
+                ==============================================================================================
+                
+                Saving a session:
+
+                        - export 'filename'         : Save session modules and scripts to 'filename'. 
+                        
+                          (-) To load this file when starting medusa, add the -r option followed by the filename
+                          (-) To load this file while running medusa, type 'reload -r filename'                                      
+"""+RESET)
 
         except Exception as e:
             print(e)
@@ -778,6 +784,7 @@ class Parser(cmd2.Cmd):
     def do_reload(self,line) -> None:
         """
         Reload the medusa modules (in case of a module edit)
+        Use the -r filename option to load a saved session or recipe 
         """
         print("[i] Loading modules...")
         self.modManager = ModuleManager()
@@ -792,32 +799,11 @@ class Parser(cmd2.Cmd):
                 if filename.endswith('.js'):
                     filepath = os.path.join(root, filename)
                     self.snippets.append(filepath.split(os.path.sep)[-1].split('.')[0])
-        try:
+    
              
-            if "-r" in line.split(' ')[0]:
-                self.modManager.reset()
-                data = ''
-                print('[+] Loading a recipe....')
-                recipe = line.split(' ')[1]
-                if os.path.exists(recipe):
-                    with open(recipe, 'r') as file:
-                        for line in file:
-                            if line.startswith('MODULE'):
-                                module = line[7:-1]
-                                print('- Loading {}'.format(module))
-                                self.modManager.stage_verbadim(module)
-                            else:
-                                data += line
-                    self.modified = True
-                    if data != '':
-                        print("[+] Writing to scratchpad...")
-                        self.edit_scratchpad(data)
-                else:
-                    print("[!] Recipe file was not found !")
-                        
-        except Exception as e:
-            print(e)
-
+        if "-r" in line.split(' ')[0]:
+            self.modManager.reset()
+            self.write_recipe(line.split(' ')[1])
         print("[i] Done....")
 
     def do_rem(self, mod) -> None:
@@ -1089,6 +1075,28 @@ class Parser(cmd2.Cmd):
 
 ###################################################### implementations start ############################################################
 
+    def write_recipe(self,filename) -> None:
+        try:
+            data = ''
+            click.echo(click.style("[+] Loading a recipe....",bg='blue', fg='white'))
+            if os.path.exists(filename):
+                with open(filename, 'r') as file:
+                    for line in file:
+                        if line.startswith('MODULE'):
+                            module = line[7:-1]
+                            click.echo(click.style('\tLoading {}'.format(module), fg='yellow'))
+                            self.modManager.stage_verbadim(module)
+                        else:
+                            data += line
+                self.modified = True
+                if data != '':
+                    click.echo(click.style("[+] Writing to scratchpad...",bg='blue', fg='white'))
+                    self.edit_scratchpad(data)
+            else:
+                click.echo(click.style("[!] Recipe not found !",bg='red', fg='white'))
+        except Exception as e:
+            print(e)
+        
     def edit_scratchpad(self, code, mode='w') -> None:
         scratchpad = self.modManager.getModule('scratchpad')
         if mode == 'a':
@@ -1207,8 +1215,6 @@ catch (err) {
     onEnter: function(args) {
       console.log();
       colorLog("[--->] Entering Native function: " +" """ + function + '",{ c: Color.Red });' + argread + tracejs + """
-      
-
     },
     onLeave: function(retval) {
 

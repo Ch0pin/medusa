@@ -1,13 +1,12 @@
 <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.svg" width ="1835" height="508">
 
-
-> A detailed guide about the project is moving to our [wiki page](https://github.com/Ch0pin/medusa/wiki), so until we fully move there we are going to be a bit messy. 
-
 Logo Credits: https://www.linkedin.com/in/rafael-c-ferreira
 
 # **Description**:
 
 **MEDUSA** is an Extensible and Modularized framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  
+
+> A detailed guide about the project is moving to our [wiki page](https://github.com/Ch0pin/medusa/wiki), so until we fully move there we are going to be a bit messy. 
 
 # **Installation**
 

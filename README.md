@@ -1,7 +1,5 @@
 <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.svg" width ="1835" height="508">
 
-Logo Credits: https://www.linkedin.com/in/rafael-c-ferreira
-
 # **Description**:
 
 **MEDUSA** is an Extensible and Modularized framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  
@@ -146,8 +144,8 @@ A [detailed WIKI](https://github.com/Ch0pin/medusa/wiki) is currently under cons
 
 **CREDITS**:
 
-Special Credits to [@rscloura](https://github.com/rscloura) for his contributions
-
+- Special Credits to [@rscloura](https://github.com/rscloura) for his contributions
+- Logo Credits: https://www.linkedin.com/in/rafael-c-ferreira
 - https://github.com/frida/frida
 - https://github.com/dpnishant/appmon
 - https://github.com/brompwnie/uitkyk

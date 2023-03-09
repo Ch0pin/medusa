@@ -59,11 +59,16 @@ Please reffer to our [detailed wiki](https://github.com/Ch0pin/medusa/wiki) for 
 
 # **Using mango.py**
 
-Mango is medusa's twin brother. It's main functionalities include:
+Mango is medusa's twin brother. It can be used to:
 
-- Parse an application's Android Manifest
-- Create your local application research database
-- Automate boring processes like: set the debuggable flag of an app, set up a MITM, indicate the application's attack surface (exported activities, deeplinks, services etc.) and many many more ...
+- Parse and analyse the Android manifest
+- Enumerate an application's attack entry points (exported activities, deeplinks, services etc.)
+- Automate boring processes like: 
+  - Set up a MITM
+  - Patching 
+  - Wrap adb commands 
+  - Set/View/Reset the device's proxy configuration
+...and a lot more
 
 A [detailed WIKI](https://github.com/Ch0pin/medusa/wiki) is currently under construction.
 

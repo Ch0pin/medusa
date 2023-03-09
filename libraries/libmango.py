@@ -891,44 +891,16 @@ $adb remount
         return completions
 
     def complete_jdwp(self, text, line, begidx, endidx):
-        self.init_packages()
-        if not text:
-            completions = self.packages[:]
-            self.packages = []
-        else:
-            completions = [f for f in self.packages if f.startswith(text)]
-            self.packages = []
-        return completions
+        return self.get_packages_starting_with(text)
 
     def complete_kill(self, text, line, begidx, endidx):
-        self.init_packages()
-        if not text:
-            completions = self.packages[:]
-            self.packages = []
-        else:
-            completions = [f for f in self.packages if f.startswith(text)]
-            self.packages = []
-        return completions
+        return self.get_packages_starting_with(text)
 
     def complete_load(self, text, line, begidx, endidx):
-        self.init_packages()
-        if not text:
-            completions = self.total_apps[:]
-            self.packages = []
-        else:
-            completions = [f for f in self.total_apps if f.startswith(text)]
-            self.packages = []
-        return completions
+        return self.get_packages_starting_with(text)
 
     def complete_logcat(self, text, line, begidx, endidx):
-        self.init_packages()
-        if not text:
-            completions = self.packages[:]
-            self.packages = []
-        else:
-            completions = [f for f in self.packages if f.startswith(text)]
-            self.packages = []
-        return completions
+        return self.get_packages_starting_with(text)
 
     def complete_proxy(self, text, line, begidx, endidx):
         proxy_cmd = ['set','get','reset']
@@ -939,14 +911,7 @@ $adb remount
         return completions
 
     def complete_pull(self, text, line, begidx, endidx):
-        self.init_packages()
-        if not text:
-            completions = self.packages[:]
-            self.packages = []
-        else:
-            completions = [f for f in self.packages if f.startswith(text)]
-            self.packages = []
-        return completions
+        return self.get_packages_starting_with(text)
 
     def complete_show(self, text, line, begidx, endidx):
         if self.current_app_sha256 == None:
@@ -981,16 +946,14 @@ $adb remount
         return completions
 
     def complete_spawn(self, text, line, begidx, endidx):
-        self.init_packages()
-        if not text:
-            completions = self.packages[:]
-            self.packages = []
-        else:
-            completions = [f for f in self.packages if f.startswith(text)]
-            self.packages = []
-        return completions
+        return self.get_packages_starting_with(text)
 
     def complete_uninstall(self, text, line, begidx, endidx):
+        return self.get_packages_starting_with(text)
+    
+###################################################### print defs start ############################################################
+
+    def get_packages_starting_with(self, text):
         self.init_packages()
         if not text:
             completions = self.packages[:]
@@ -999,8 +962,6 @@ $adb remount
             completions = [f for f in self.packages if f.startswith(text)]
             self.packages = []
         return completions
-
-###################################################### print defs start ############################################################
 
     def print_activities(self,all = True):
         display_text = ''

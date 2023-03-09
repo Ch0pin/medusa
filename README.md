@@ -71,7 +71,7 @@ Mango is medusa's twin brother which can be used to:
   
 ...and many many more
 
-A [a WIKI](https://github.com/Ch0pin/medusa/wiki) is currently under construction.
+A [wiki page](https://github.com/Ch0pin/medusa/wiki) is currently under construction.
 
 # **Updates**:
 

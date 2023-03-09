@@ -74,7 +74,7 @@ A [detailed WIKI](https://github.com/Ch0pin/medusa/wiki) is currently under cons
 2. Import it with medusa>use helpers/tranlsator
 
 
-# **Contribute by:**:
+# **Contribute by:**
 
 - Making a pull request
 - Creating a medusa module (see [how to](https://github.com/Ch0pin/medusa/wiki/Medusa#creating-a-medusa-module))

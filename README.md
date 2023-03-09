@@ -20,7 +20,7 @@ $ pip install -r requirements.txt
 - adb
 - FRIDA server (running on the mobile device)
 
-Demo videos on how Medusa works can be found in the links below:
+How-to demos 
 
 - [MEDUSA | Android Penetration tool](https://www.youtube.com/watch?v=4hpjRuNJNDw) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))
 - [MEDUSA | Android Malware Analysis 101](https://www.youtube.com/watch?v=kUqucdkVtSU) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))
@@ -74,13 +74,14 @@ A [detailed WIKI](https://github.com/Ch0pin/medusa/wiki) is currently under cons
 2. Import it with medusa>use helpers/tranlsator
 
 
-# **Contribute**:
+# **Contribute by:**:
 
-- By making a pull request
-- By creating a medusa module (see [how to](https://github.com/Ch0pin/medusa/wiki/Medusa#creating-a-medusa-module))
-- By reporting an error/issue 
-- By suggesting an improvement
-- By buying a treat:
+- Making a pull request
+- Creating a medusa module (see [how to](https://github.com/Ch0pin/medusa/wiki/Medusa#creating-a-medusa-module))
+- Reporting an error/issue 
+- Suggesting an improvement
+- Making this project more popular by sharing it or giving a star
+- Buying a treat:
 
 **Bitcoin (BTC) Address**: bc1qhun6a7chkav6mn8fqz3924mr8m3v0wq4r7jchz
 

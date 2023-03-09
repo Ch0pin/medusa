@@ -20,7 +20,7 @@ $ pip install -r requirements.txt
 - adb
 - FRIDA server (running on the mobile device)
 
-How-to demos 
+**How-to demos**
 
 - [MEDUSA | Android Penetration tool](https://www.youtube.com/watch?v=4hpjRuNJNDw) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))
 - [MEDUSA | Android Malware Analysis 101](https://www.youtube.com/watch?v=kUqucdkVtSU) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))

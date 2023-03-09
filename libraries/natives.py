@@ -16,33 +16,95 @@ BOLD    = "\033[;1m"
 REVERSE = "\033[;7m"
 
 class nativeHandler():
-
-
     base_directory = os.path.dirname(__file__)
     modules = []
     device = None
     script = None
     prompt_ = WHITE+'|' +GREEN+'(E)xit '+ WHITE+  '|'+GREEN+ 'r@offset ' + WHITE+'|' +GREEN+ 'w@offset '+ WHITE+'|' +GREEN+'⏎ '+ WHITE+ '|' +GREEN+ 'scan '+ WHITE+'|'+ GREEN + '(h)elp' +WHITE +'|'+ GREEN + ' dump' +WHITE +'|:'
 
-
     def __init__(self,device):
         super(nativeHandler,self).__init__()
         self.device = device
 
-   
+    def __getitem__(self,key):
+        return self.modules
 
-    def on_message(self,message, data):
-        try:
-            if message["type"] == "send":
-                payload = message["payload"]
-                self.modules.append(payload.split(":")[0].strip())   
-                #self.script.post({'input':'null'}) 
-          
-        except Exception as e:
-            print(e) 
-    
+    def display_help(self):
+        print("""Available commands:
+        
+        (e)xit:     Exit memops
+        dump:     Dump loaded module to a file
+        r@offset:   Read @ offet (e.g. r@beaf)
+        Return:     Read next 296 bytes
+        w@offset:   Write @ offset (e.g. w@beaf)
+        scan:       Scan a memory region for a pattern
+        ?:          Display this message
+        """)
 
 #todo add force or attach
+    def dump(self,session,lib,free=False,base_address=None,size=None):
+        try:
+            path = '.'
+            script = session.create_script(open(os.path.dirname(__file__)+"/memops.js").read())
+            script.load()
+            api = script.exports
+            if not free:
+                dump_area = api.moduleaddress(lib)
+                for area in dump_area:
+                    bs = api.memorydump(area["addr"],area["size"])
+            else:
+                bs = api.memorydump(base_address,size)
+            if not os.path.exists('dump'):
+                os.mkdir('dump')    
+            with open('./dump/'+lib + ".dat", 'wb') as out:
+                out.write(bs)
+            click.secho('[+] dump saved to ./dump/{}.dat'.format(lib), fg='green')
+
+        except Exception as e:
+            click.secho("[Except] - {}:".format(e), bg='red')
+
+    def form_bytes(self,bytes):
+        return '[%s]' % ','.join(["0x%02x" % int(x, 16) for x in bytes.split(' ')])
+
+    def form_scan_input(self,scan_str):
+        ret = ''
+        for letter in scan_str:
+            bt = str(hex(ord(letter)))[2:]
+            if not scan_str.endswith(letter):
+                ret += bt + ' '
+            else:
+                ret += bt
+        return ret
+
+    def getModules(self,package,force):
+        print('[i] Using device with id {}'.format(self.device))
+        self.modules = []
+        pid = 0
+        try:
+            if force:
+                pid = self.device.spawn(package)
+                print("[i] Starting process {} [pid:{}]".format(package,pid))
+            else:
+                pid = int(os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip())
+                if pid == None:
+                        print("[+] Could not find process with this name {}.".format(pid_s))
+                        return 
+                print("[i] Attaching to process {} [pid:{}]".format(package,pid))
+
+            print("PID:{}".format(pid))
+            session = self.device.attach(pid)
+            script = session.create_script(open(os.path.join(self.base_directory, "native.js")).read())
+            script.on('message', self.on_message)
+            script.load()
+            self.device.resume(pid)
+            time.sleep(5)
+            script.unload()
+                
+        except Exception as e:
+            print(e)
+        
+        return self.modules
+
     def loadLibrary(self,package,libname):
         try:
             scriptContent = "Java.perform(function() {"
@@ -70,38 +132,7 @@ class nativeHandler():
         except Exception as e:
             print(e)
 
-
-    def getModules(self,package,force):
-        print('[i] Using device with id {}'.format(self.device))
-        self.modules = []
-        pid = 0
-        try:
-            if force:
-                pid = self.device.spawn(package)
-                print("[i] Starting process {} [pid:{}]".format(package,pid))
-            else:
-                pid = int(os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip())
-                if pid == None:
-                        print("[+] Could not find process with this name {}.".format(pid_s))
-                        return 
-                print("[i] Attaching to process {} [pid:{}]".format(package,pid))
-                
-
-            print("PID:{}".format(pid))
-            session = self.device.attach(pid)
-            script = session.create_script(open(os.path.join(self.base_directory, "native.js")).read())
-            script.on('message', self.on_message)
-            script.load()
-            self.device.resume(pid)
-            time.sleep(5)
-            script.unload()
-                
-        except Exception as e:
-            print(e)
-        
-        return self.modules
-
-###-------------------
+###-------------------meraw
     def memraw(self,line):
         try:
 
@@ -197,8 +228,7 @@ class nativeHandler():
             print(e)   
 #------------------------------------------------
   
-#############################
-
+#############################memops
     def memops(self,line):
 
         try:
@@ -272,30 +302,75 @@ class nativeHandler():
             script.unload()
         except Exception as e:
             print(e)   
-
+            
 #############################
 
-    def dump(self,session,lib,free=False,base_address=None,size=None):
+    def on_message(self,message, data):
         try:
-            path = '.'
-            script = session.create_script(open(os.path.dirname(__file__)+"/memops.js").read())
-            script.load()
-            api = script.exports
-            if not free:
-                dump_area = api.moduleaddress(lib)
-                for area in dump_area:
-                    bs = api.memorydump(area["addr"],area["size"])
-            else:
-                bs = api.memorydump(base_address,size)
-            if not os.path.exists('dump'):
-                os.mkdir('dump')    
-            with open('./dump/'+lib + ".dat", 'wb') as out:
-                out.write(bs)
-            click.secho('[+] dump saved to ./dump/{}.dat'.format(lib), fg='green')
-
+            if message["type"] == "send":
+                payload = message["payload"]
+                self.modules.append(payload.split(":")[0].strip())   
+                #self.script.post({'input':'null'}) 
+          
         except Exception as e:
-            click.secho("[Except] - {}:".format(e), bg='red')
+            print(e)
 
+    def read_memory(self,offset, script_in,session_in,codejs_in,prolog_in,epilog_in,payload_in,prompt,free=False, size = None):
+        script = script_in
+        session = session_in
+        codejs = codejs_in
+        prolog = prolog_in
+        epilog = epilog_in
+        payload=payload_in
+        offset_in = offset
+        arithemetic_offset_tmp = hex(0)
+        cmd = ''
+        while cmd == '':
+            arithemetic_offset = hex(0) 
+            try:
+                
+                if offset_in == '':
+                    arithemetic_offset = hex(int(arithemetic_offset,16)+int(arithemetic_offset_tmp,16))
+                    arithemetic_offset_tmp = hex(int(arithemetic_offset,16) + 296)
+                else:
+                    arithemetic_offset_tmp = hex(int(offset_in,16)+296)
+                    arithemetic_offset = hex(int(arithemetic_offset,16) + int(offset_in,16))
+
+                
+                if size != None:
+                    #print("current arithetic offset:{}".format(int(arithemetic_offset,16)))
+                    if int(arithemetic_offset,16) > int(size) - 296:
+                        arithemetic_offset=hex(0)
+
+                print(BLUE+'[+] Offset:' + arithemetic_offset+RESET)
+
+                payload += '\nvar address = p_foo.add('+str(arithemetic_offset)+');'
+                payload += "var baseAddress = parseInt(p_foo,16);"
+                if(free):
+                    payload+="var endAddress = baseAddress + size;"
+                else:
+                    payload+="var endAddress = baseAddress + module.size;"
+
+                payload += '\nvar offset = '+str(arithemetic_offset);
+                payload += """\nvar buf = Memory.readByteArray(ptr(address),296);
+                if(buf){
+                    console.log('Address Range:'+p_foo+' --> '+endAddress.toString(16));
+                    """
+                if(free):
+                    payload+= "console.log('Module Size:' + size+' Dumping at:'+address);"
+                else:
+                    payload+= "console.log('Module Size:' + module.size+' Dumping at:'+address);"
+                payload+="console.log(hexdump(buf, { offset: 0, length:296, header: true, ansi: false}))};"
+                codejs = prolog + payload + epilog
+                script = session.create_script(codejs)
+                script.load()
+                payload = ''
+            except Exception as e:
+                print(e)
+
+            cmd = input(prompt)
+            offset_in = cmd
+        return cmd
 
     def scan_memory(self,lib,pattern,session,script):
         codejs =''
@@ -370,25 +445,10 @@ class nativeHandler():
             codejs += """
         processNext();
 """
-
             script = session.create_script(codejs)
             script.load()
-
         except Exception as e:
             print(e)       
-
-
-    def display_help(self):
-        print("""Available commands:
-        
-        (e)xit:     Exit memops
-        dump:     Dump loaded module to a file
-        r@offset:   Read @ offet (e.g. r@beaf)
-        Return:     Read next 296 bytes
-        w@offset:   Write @ offset (e.g. w@beaf)
-        scan:       Scan a memory region for a pattern
-        ?:          Display this message
-        """)
 
     def write_memory(self,offset, script_in,session_in,codejs_in,prolog_in,epilog_in,payload_in,bytes):
         script = script_in
@@ -414,80 +474,3 @@ class nativeHandler():
             payload = ''     
         except Exception as e:
             print(e)
-
-
-    def read_memory(self,offset, script_in,session_in,codejs_in,prolog_in,epilog_in,payload_in,prompt,free=False, size = None):
-        
-        script = script_in
-        session = session_in
-        codejs = codejs_in
-        prolog = prolog_in
-        epilog = epilog_in
-        payload=payload_in
-        offset_in = offset
-        arithemetic_offset_tmp = hex(0)
-        cmd = ''
-        while cmd == '':
-            arithemetic_offset = hex(0) 
-            try:
-                
-                if offset_in == '':
-                    arithemetic_offset = hex(int(arithemetic_offset,16)+int(arithemetic_offset_tmp,16))
-                    arithemetic_offset_tmp = hex(int(arithemetic_offset,16) + 296)
-                else:
-                    arithemetic_offset_tmp = hex(int(offset_in,16)+296)
-                    arithemetic_offset = hex(int(arithemetic_offset,16) + int(offset_in,16))
-
-                
-                if size != None:
-                    #print("current arithetic offset:{}".format(int(arithemetic_offset,16)))
-                    if int(arithemetic_offset,16) > int(size) - 296:
-                        arithemetic_offset=hex(0)
-
-                print(BLUE+'[+] Offset:' + arithemetic_offset+RESET)
-
-                payload += '\nvar address = p_foo.add('+str(arithemetic_offset)+');'
-                payload += "var baseAddress = parseInt(p_foo,16);"
-                if(free):
-                    payload+="var endAddress = baseAddress + size;"
-                else:
-                    payload+="var endAddress = baseAddress + module.size;"
-
-                payload += '\nvar offset = '+str(arithemetic_offset);
-                payload += """\nvar buf = Memory.readByteArray(ptr(address),296);
-                if(buf){
-                    console.log('Address Range:'+p_foo+' --> '+endAddress.toString(16));
-                    """
-                if(free):
-                    payload+= "console.log('Module Size:' + size+' Dumping at:'+address);"
-                else:
-                    payload+= "console.log('Module Size:' + module.size+' Dumping at:'+address);"
-                payload+="console.log(hexdump(buf, { offset: 0, length:296, header: true, ansi: false}))};"
-                codejs = prolog + payload + epilog
-                script = session.create_script(codejs)
-                script.load()
-                payload = ''
-            except Exception as e:
-                print(e)
-
-            cmd = input(prompt)
-            offset_in = cmd
-        
-        return cmd
-
-    def form_scan_input(self,scan_str):
-        ret = ''
-        for letter in scan_str:
-            bt = str(hex(ord(letter)))[2:]
-            if not scan_str.endswith(letter):
-                ret += bt + ' '
-            else:
-                ret += bt
-        return ret
-
-
-    def form_bytes(self,bytes):
-        return '[%s]' % ','.join(["0x%02x" % int(x, 16) for x in bytes.split(' ')])
-
-    def __getitem__(self,key):
-        return self.modules

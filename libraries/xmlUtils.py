@@ -11,60 +11,8 @@ REVERSE = "\033[;7m"
 
 # etree.register_namespace('android', 'http://schemas.android.com/apk/res/android')
 
-
-def get_elements(xmlDoc,node,attrib):
-    node = xmlDoc.getElementsByTagName(node)
-   
-    for  atr in node:
-        return atr.getAttribute(attrib)
-
-def get_elements_sub(xmlDoc):
-
-    manifest = tree.parse(xmlDoc)
-    root = manifest.getroot()
-    broadcasts = []
-    for child in root.iter():
-        if child.tag == 'intent-filter':
-            for action in child:
-                broadcasts.append( action.get("{http://schemas.android.com/apk/res/android}name"))
-  
-    return broadcasts
-
-def parse_strings_xml(xmlDoc):
-    try:
-        stringsXML = tree.parse(xmlDoc)
-        root = stringsXML.getroot()
-        strings = []
-        for child in root.iter():        
-            if child.tag=='string':
-                attrib = child.attrib['name']
-                text = child.text
-                if attrib is not None and text is not None:
-                    strings.append(attrib+"="+text)
-    except Exception as e:
-        print(e) 
-    return strings
-
-
-def get_element_list(xmlDoc,node,attrib):
-    elements = []
-    nod = xmlDoc.getElementsByTagName(node)
-   
-    for  atr in nod:
-
-        elements.append(atr.getAttribute(attrib))
-        if 'true' in atr.getAttribute("android:exported"):
-            print(RED + '{:18}'.format(node)+'{:80}'.format(atr.getAttribute(attrib)) + CYAN+' is exported')
-
-       
-    
-    return elements
-
-
 def get_deeplinks(xmlDoc):
-    
     deeplinksTree = {}
-    
     activityNodes = xmlDoc.getElementsByTagName('activity')
     activityNodes +=xmlDoc.getElementsByTagName('activity-alias')
     for act in activityNodes:
@@ -77,8 +25,6 @@ def get_deeplinks(xmlDoc):
             patterns = []
             pathPrefixes = []
             port = ''
-
-
             for data in intent_filter.item(i).getElementsByTagName('data'):
                 if data.hasAttribute('android:scheme') and data.hasAttribute('android:host'):        #scenario 1
                     scheme = data.getAttribute('android:scheme')
@@ -124,8 +70,6 @@ def get_deeplinks(xmlDoc):
                         deeplink+=pathPrefix
                     #print(deeplink)
                     deeplinks.append(deeplink)
-
-
                 #print(deeplink)
                 deeplinks.append(deeplink)
             if deeplinks:
@@ -133,6 +77,41 @@ def get_deeplinks(xmlDoc):
 
     return deeplinksTree
 
+def get_element_list(xmlDoc,node,attrib):
+    elements = []
+    nod = xmlDoc.getElementsByTagName(node)
+    for  atr in nod:
+        elements.append(atr.getAttribute(attrib))
+        if 'true' in atr.getAttribute("android:exported"):
+            print(RED + '{:18}'.format(node)+'{:80}'.format(atr.getAttribute(attrib)) + CYAN+' is exported')
+    return elements
 
-    
+def get_elements(xmlDoc,node,attrib):
+    node = xmlDoc.getElementsByTagName(node)
+    for  atr in node:
+        return atr.getAttribute(attrib)
 
+def get_elements_sub(xmlDoc):
+    manifest = tree.parse(xmlDoc)
+    root = manifest.getroot()
+    broadcasts = []
+    for child in root.iter():
+        if child.tag == 'intent-filter':
+            for action in child:
+                broadcasts.append( action.get("{http://schemas.android.com/apk/res/android}name"))
+    return broadcasts
+
+def parse_strings_xml(xmlDoc):
+    try:
+        stringsXML = tree.parse(xmlDoc)
+        root = stringsXML.getroot()
+        strings = []
+        for child in root.iter():        
+            if child.tag=='string':
+                attrib = child.attrib['name']
+                text = child.text
+                if attrib is not None and text is not None:
+                    strings.append(attrib+"="+text)
+    except Exception as e:
+        print(e) 
+    return strings

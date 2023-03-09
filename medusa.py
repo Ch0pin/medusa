@@ -137,14 +137,13 @@ class Parser(cmd2.Cmd):
             print("Module file has an incorrect format")
 
     def do_c(self, line) -> None:
-        """
-        Get a local shell (no args)
-        """
+        """Usage: c [shell command]
+        Run a shell command on the local host."""
         subprocess.run(line, shell=True)
 
     def do_cc(self, line) -> None:
         """
-        Get an adb shell (no args)
+        Get an adb shell to the connected device (no args)
         """
         subprocess.run('adb -s {} shell {}'.format(self.device.id, line), shell=True)
 

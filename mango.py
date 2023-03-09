@@ -11,9 +11,6 @@ import hashlib
 import sys, os.path
 
 
-
-
-
 def print_logo():
   print(Style.BRIGHT+"""
   Welcome to:
@@ -52,7 +49,6 @@ def get_device_or_emulator_id():
     print(e)
     return None
 
-
 def start_session(db_session,existing = False):
   application_database = apk_db(db_session)
   guava = Guava(application_database)
@@ -64,7 +60,6 @@ def start_session(db_session,existing = False):
 
   p.device = get_device_or_emulator_id() 
   p.cmdloop()
-
 
 
 if __name__ == "__main__":

@@ -7,17 +7,12 @@ import hashlib
 NS_ANDROID_URI = "http://schemas.android.com/apk/res/android"
 NS_ANDROID = '{http://schemas.android.com/apk/res/android}'
 
-
-
-
-
 class Guava:
   filter_list = {}
 
   def __init__(self, db_instance):
         self.application_database = db_instance
         filter_list = {}
-      
 
   def sha256sum(self,filename):
       h  = hashlib.sha256()
@@ -31,9 +26,6 @@ class Guava:
   def sha256Exists(self,sha):
     sql = """SELECT name from Application WHERE sha256='{}'""".format(sha)
     return self.application_database.query_db(sql)
-
-
-
 
   def extractIntentFilters(self,filters,obj):
       filterList = []
@@ -64,17 +56,12 @@ class Guava:
               intentFilter.addData("pathPrefix:"+data.get(NS_ANDROID+"pathPrefix"))
             if data.get(NS_ANDROID+"mimeType") is not None:
               intentFilter.addData("mimeType:"+data.get(NS_ANDROID+"mimeType"))
-
         filterList.append(intentFilter)
-      
       self.filter_list[name] = filterList
-
-
 
   def fill_activities(self,application,sha256):
 
       for activity in application.findall("activity"):
-
         activityName = activity.get(NS_ANDROID+"name")
         enabled = activity.get(NS_ANDROID+"enabled")
         exported = activity.get(NS_ANDROID+"exported")
@@ -92,8 +79,71 @@ class Guava:
 
         activity_attribs = (sha256, activityName, enabled, exported,autoRemoveFromRecents, excludeFromRecents,noHistory,permission)
         self.application_database.update_activities(activity_attribs)
+  
+  def fill_activity_alias(self,application,sha256):
 
+      for activity_alias in application.findall("activity-alias"):
+          aliasname = activity_alias.get(NS_ANDROID+"name")
+          enabled = activity_alias.get(NS_ANDROID+"enabled")
+          exported = activity_alias.get(NS_ANDROID+"exported")
+          permission = activity_alias.get(NS_ANDROID+"permission")
+          targetActivity = activity_alias.get(NS_ANDROID+"targetActivity")
 
+          if len(activity_alias.findall("intent-filter")) > 0:
+            if  exported != 'false':
+              exported = "true (intent filter)"
+            filters = activity_alias.findall("intent-filter")
+            self.extractIntentFilters(filters, activity_alias)
+
+          activity_alias_attributes = (sha256, aliasname, enabled, exported,permission,targetActivity)
+          self.application_database.update_activity_alias(activity_alias_attributes)  
+
+  def fill_application_attributes(self,parsed_apk,sha256,application):
+    arsc = parsed_apk.get_android_resources()
+    app_attributes = (sha256,parsed_apk.get_app_name(),parsed_apk.get_package(),parsed_apk.get_androidversion_code(),parsed_apk.get_androidversion_name(),
+      parsed_apk.get_min_sdk_version(),parsed_apk.get_target_sdk_version(),parsed_apk.get_max_sdk_version(),'|'.join(parsed_apk.get_permissions()),
+      '|'.join(parsed_apk.get_libraries())) + (application.get(NS_ANDROID+"debuggable"), application.get(NS_ANDROID+"allowBackup"),parsed_apk.get_android_manifest_axml().get_xml(),arsc.get_string_resources(arsc.get_packages_names()[0]))
+
+    self.application_database.update_application(app_attributes)
+
+  def fill_permissions(self,parsed_apk, sha256):
+    app_permissions = parsed_apk.get_details_permissions()
+    for permission in app_permissions:
+      entry = (sha256,permission,)+tuple(app_permissions[permission])
+      self.application_database.update_permissions(entry)
+
+  def fill_providers(self,application,sha256):
+
+      for provider in application.findall("provider"):
+          providername = provider.get(NS_ANDROID+"name")
+          enabled = provider.get(NS_ANDROID+"enabled")
+          exported = provider.get(NS_ANDROID+"exported")
+          grantUriPermissions = provider.get(NS_ANDROID+"grantUriPermissions")
+          permission = provider.get(NS_ANDROID+"permission")
+          process = provider.get(NS_ANDROID+"process")
+          readPermission = provider.get(NS_ANDROID+"readPermission")
+          writePermission = provider.get(NS_ANDROID+"writePermission")
+          authorities = provider.get(NS_ANDROID+"authorities")
+          provider_attribs = (sha256, providername, enabled, exported,grantUriPermissions, permission,process,readPermission,writePermission,authorities)
+          self.application_database.update_providers(provider_attribs)  
+  
+  def fill_receivers(self,application,sha256):
+
+      for receiver in application.findall("receiver"):
+          receivername = receiver.get(NS_ANDROID+"name")
+          enabled = receiver.get(NS_ANDROID+"enabled")
+          exported = receiver.get(NS_ANDROID+"exported")
+          permission = receiver.get(NS_ANDROID+"permission")
+          process = receiver.get(NS_ANDROID+"process")
+
+          if len(receiver.findall("intent-filter")) > 0:
+            if exported != 'false':
+              exported = "true (intent filter)"
+            filters = receiver.findall("intent-filter")
+            self.extractIntentFilters(filters, receiver)
+
+          receiver_attribs = (sha256, receivername, enabled, exported,permission,process)
+          self.application_database.update_receivers(receiver_attribs)  
 
   def fill_services(self,application,sha256):
 
@@ -114,101 +164,17 @@ class Guava:
           service_attribs = (sha256, servicename, enabled, exported,foregroundServiceType, permission,process)
           self.application_database.update_services(service_attribs)
 
-
-  def fill_providers(self,application,sha256):
-
-      for provider in application.findall("provider"):
-          providername = provider.get(NS_ANDROID+"name")
-          enabled = provider.get(NS_ANDROID+"enabled")
-          exported = provider.get(NS_ANDROID+"exported")
-          grantUriPermissions = provider.get(NS_ANDROID+"grantUriPermissions")
-          permission = provider.get(NS_ANDROID+"permission")
-          process = provider.get(NS_ANDROID+"process")
-          readPermission = provider.get(NS_ANDROID+"readPermission")
-          writePermission = provider.get(NS_ANDROID+"writePermission")
-          authorities = provider.get(NS_ANDROID+"authorities")
-          provider_attribs = (sha256, providername, enabled, exported,grantUriPermissions, permission,process,readPermission,writePermission,authorities)
-          self.application_database.update_providers(provider_attribs)  
-
-  def fill_receivers(self,application,sha256):
-
-      for receiver in application.findall("receiver"):
-          receivername = receiver.get(NS_ANDROID+"name")
-          enabled = receiver.get(NS_ANDROID+"enabled")
-          exported = receiver.get(NS_ANDROID+"exported")
-          permission = receiver.get(NS_ANDROID+"permission")
-          process = receiver.get(NS_ANDROID+"process")
-
-          if len(receiver.findall("intent-filter")) > 0:
-            if exported != 'false':
-              exported = "true (intent filter)"
-            filters = receiver.findall("intent-filter")
-            self.extractIntentFilters(filters, receiver)
-
-          receiver_attribs = (sha256, receivername, enabled, exported,permission,process)
-          self.application_database.update_receivers(receiver_attribs)  
-
-  def fill_activity_alias(self,application,sha256):
-
-      for activity_alias in application.findall("activity-alias"):
-          aliasname = activity_alias.get(NS_ANDROID+"name")
-          enabled = activity_alias.get(NS_ANDROID+"enabled")
-          exported = activity_alias.get(NS_ANDROID+"exported")
-          permission = activity_alias.get(NS_ANDROID+"permission")
-          targetActivity = activity_alias.get(NS_ANDROID+"targetActivity")
-
-          if len(activity_alias.findall("intent-filter")) > 0:
-            if  exported != 'false':
-              exported = "true (intent filter)"
-            filters = activity_alias.findall("intent-filter")
-            self.extractIntentFilters(filters, activity_alias)
-
-          activity_alias_attributes = (sha256, aliasname, enabled, exported,permission,targetActivity)
-          self.application_database.update_activity_alias(activity_alias_attributes)  
-      
-              
-  def fill_intent_filters(self,sha256):
-
-      for filter in self.filter_list:
-          objlist = self.filter_list[filter]
-          for item in objlist:
-              filter_attribs = (sha256,filter,'|'.join(item.actionList),'|'.join(item.categoryList),'|'.join(item.dataList))
-              self.application_database.update_intent_filters(filter_attribs)
-
-
-  def fill_permissions(self,parsed_apk, sha256):
-
-    app_permissions = parsed_apk.get_details_permissions()
-    for permission in app_permissions:
-      entry = (sha256,permission,)+tuple(app_permissions[permission])
-      self.application_database.update_permissions(entry)
-
-
-  def fill_application_attributes(self,parsed_apk,sha256,application):
-    arsc = parsed_apk.get_android_resources()
-    app_attributes = (sha256,parsed_apk.get_app_name(),parsed_apk.get_package(),parsed_apk.get_androidversion_code(),parsed_apk.get_androidversion_name(),
-      parsed_apk.get_min_sdk_version(),parsed_apk.get_target_sdk_version(),parsed_apk.get_max_sdk_version(),'|'.join(parsed_apk.get_permissions()),
-      '|'.join(parsed_apk.get_libraries())) + (application.get(NS_ANDROID+"debuggable"), application.get(NS_ANDROID+"allowBackup"),parsed_apk.get_android_manifest_axml().get_xml(),arsc.get_string_resources(arsc.get_packages_names()[0]))
-
-    self.application_database.update_application(app_attributes)
-
-
-
   def full_analysis(self,apkfile):
 
     app_sha256 = self.sha256sum(apkfile)
 
     print("[+] Analyzing apk with SHA256:{}".format(app_sha256))
-
     apk_r = apk.APK(apkfile)
-    
     manifest = apk_r.get_android_manifest_axml().get_xml_obj()
     application = manifest.findall("application")[0]
 
-
     print("[+] Analysis finished.")
     print("[+] Filling up the database....")
-
     self.filter_list = {}
     self.fill_application_attributes(apk_r,app_sha256,application)
     self.fill_permissions(apk_r,app_sha256)
@@ -220,3 +186,10 @@ class Guava:
     self.fill_intent_filters(app_sha256)
 
     print("[+] Database Ready !")
+
+  def fill_intent_filters(self,sha256):
+      for filter in self.filter_list:
+          objlist = self.filter_list[filter]
+          for item in objlist:
+              filter_attribs = (sha256,filter,'|'.join(item.actionList),'|'.join(item.categoryList),'|'.join(item.dataList))
+              self.application_database.update_intent_filters(filter_attribs)

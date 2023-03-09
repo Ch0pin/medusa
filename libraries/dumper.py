@@ -16,22 +16,6 @@ logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(levelname)s %(message)s",
                     datefmt='%m-%d/%H:%M:%S')
 
-
-def get_all_process(device, pkgname):
-    return [process for process in device.enumerate_processes() if pkgname in process.name]
-
-
-def search(api, args=None):
-    """
-    """
-
-    matches = api.scandex()
-    for info in matches:
-        click.secho("[DEXDump] Found: DexAddr={}, DexSize={}"
-                    .format(info['addr'], hex(info['size'])), fg='green')
-    return matches
-
-
 def dump(pkg_name, api,mds=None):
     """
     """
@@ -60,7 +44,6 @@ def dump(pkg_name, api,mds=None):
                         .format(hex(info['size']), os.getcwd(), pkg_name, readable_hash), fg='green')
         except Exception as e:
             click.secho("[Except] - {}: {}".format(e, info), bg='yellow')
-
 
 def dump_pkg(pkg):
     try:
@@ -107,5 +90,14 @@ def dump_pkg(pkg):
     #path = path if path else "."
     script = session.create_script(open(path + "/../dexdump.js").read())
     script.load()
-
     dump(pkg_name, script.exports)
+
+def get_all_process(device, pkgname):
+    return [process for process in device.enumerate_processes() if pkgname in process.name]
+
+def search(api, args=None):
+    matches = api.scandex()
+    for info in matches:
+        click.secho("[DEXDump] Found: DexAddr={}, DexSize={}"
+                    .format(info['addr'], hex(info['size'])), fg='green')
+    return matches

@@ -42,6 +42,9 @@ class ModuleManager:
             code += mod.Code + '\n'
         return code
 
+    def findModule(self, pattern):
+        return [mod.Name for mod in self.available if pattern.casefold() in mod.Name.casefold()]
+
     def getModule(self, name):
         return [mod for mod in self.available if mod.Name == name][0]
 
@@ -71,8 +74,6 @@ class ModuleManager:
             if not "scratchpad" in moduleName and not wasThere:
                 print('Module {} not found!'.format(moduleName))
 
-
-
     def stage_verbadim(self,moduleName):
         if moduleName not in [mod.Name for mod in self.staged]:
             for mod in self.available:
@@ -96,5 +97,4 @@ class ModuleManager:
             return False
         return True
 
-    def findModule(self, pattern):
-        return [mod.Name for mod in self.available if pattern.casefold() in mod.Name.casefold()]
+

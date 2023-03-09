@@ -59,7 +59,7 @@ Please reffer to our [detailed wiki](https://github.com/Ch0pin/medusa/wiki) for 
 
 # **Using mango.py**
 
-Mango is medusa's twin brother. It can be used to:
+Mango is medusa's twin brother which can be used to:
 
 - Parse and analyse the Android manifest
 - Enumerate an application's attack entry points (exported activities, deeplinks, services etc.)

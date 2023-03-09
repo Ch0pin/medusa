@@ -68,7 +68,8 @@ Mango is medusa's twin brother which can be used to:
   - Patching 
   - Wrap adb commands 
   - Set/View/Reset the device's proxy configuration
-...and a lot more
+  
+...and many many more
 
 A [detailed WIKI](https://github.com/Ch0pin/medusa/wiki) is currently under construction.
 

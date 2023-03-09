@@ -55,7 +55,7 @@ The main idea behind MEDUSA is to be able to add or remove hooks for Java or Nat
    
 Furthermore you can intercept Java or Native methods that belong to 3rd party apps or create complex frida modules with just few simple commands. 
 
-Please reffer to our [detailed wiki](https://github.com/Ch0pin/medusa/wiki) for usage details. 
+Please reffer to our [wiki](https://github.com/Ch0pin/medusa/wiki) for usage details. 
 
 # **Using mango.py**
 
@@ -71,7 +71,7 @@ Mango is medusa's twin brother which can be used to:
   
 ...and many many more
 
-A [detailed WIKI](https://github.com/Ch0pin/medusa/wiki) is currently under construction.
+A [a WIKI](https://github.com/Ch0pin/medusa/wiki) is currently under construction.
 
 # **Updates**:
 

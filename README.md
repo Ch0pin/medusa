@@ -2,9 +2,9 @@
 
 # **Description**:
 
-**MEDUSA** is an Extensible and Modularized framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  
+**MEDUSA** is an extensible and modularized framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  
 
-> A detailed guide about the project is moving to our [wiki page](https://github.com/Ch0pin/medusa/wiki), so until we fully move there we are going to be a bit messy. 
+## Visit our [wiki page](https://github.com/Ch0pin/medusa/wiki) for usage details (wip). 
 
 # **Installation**
 
@@ -12,21 +12,23 @@
 $ pip install -r requirements.txt
 ```
 
-**Requirements:** 
+**Other requirements:** 
 
 - Linux or macOS (currently medusa doesn't support windows)
-- Python 3 (use the latest python release instead of the one shiped with MacOS to avoid issues with using libedit instead of GNU's readline)
-- Rooted device 
+- Python 3 (Use the latest python release and not the one shiped with MacOS to avoid issues with using libedit instead of GNU's readline)
+- Rooted device or emulator 
 - adb
 - FRIDA server (running on the mobile device)
 
-**How-to demos**
+**Demos:**
 
 - [MEDUSA | Android Penetration tool](https://www.youtube.com/watch?v=4hpjRuNJNDw) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))
 - [MEDUSA | Android Malware Analysis 101](https://www.youtube.com/watch?v=kUqucdkVtSU) (credits [@ByteTheories](https://www.youtube.com/@ByteTheories))
 - [Unpacking Android malware with Medusa](https://www.youtube.com/watch?v=D2-jREzCE9k) (credits [@cryptax](https://twitter.com/cryptax))
 - [Unpacking Android APKs with Medusa](https://www.youtube.com/watch?v=ffM5R2Wfl0A) (credits [@LaurieWired](https://twitter.com/LaurieWired))
 - [#Medusa - Extensible binary instrumentation framework based on #FRIDA for Android applications](https://www.youtube.com/watch?v=Hon7zETJawA) (credits [@AndroidAppSec](https://www.youtube.com/@AndroidAppSec))
+- [Memory inspection with Medusa](https://www.youtube.com/watch?v=odt21wiUugQ)
+- [Bypassing root detection](https://twitter.com/ch0pin/status/1381216805683924994)
 
 Medusa consists of two main scripts: **medusa.py** and **mango.py**:
 
@@ -63,6 +65,7 @@ Mango is medusa's twin brother which can be used to:
 
 - Parse and analyse the Android manifest
 - Enumerate an application's attack entry points (exported activities, deeplinks, services etc.)
+- Keep track of all your analysed applications
 - Automate boring processes like: 
   - Set up a MITM
   - Patching 
@@ -93,7 +96,6 @@ A [wiki page](https://github.com/Ch0pin/medusa/wiki) is currently under construc
 
 **Ethereum (ETH) Address**: 0x0951D1DD2C9F57a9401BfE7D972D0D5A65e71dA4
 
-
 # Screenshots
 
 #### - SSL Unpinning
@@ -111,11 +113,9 @@ A [wiki page](https://github.com/Ch0pin/medusa/wiki) is currently under construc
 ![Screenshot 2020-09-22 at 16 43 37](https://user-images.githubusercontent.com/4659186/93905699-25d21980-fcf3-11ea-85e0-fafd62ea7d28.png)
 
 
-
 #### - Native Libraries Enumeration
 
 ![Screenshot 2020-09-22 at 16 41 10](https://user-images.githubusercontent.com/4659186/151658663-6c77f2e3-6f42-4424-b593-d8cfe3d3bed3.png)
-
 
 
 #### - Memory READ/WRITE/SEARCH (interactive mode):

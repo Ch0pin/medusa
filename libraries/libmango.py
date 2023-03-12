@@ -570,7 +570,7 @@ $adb remount
                 self.print_proxy()
             elif 'reset' in command:
                 os.popen("adb -s {} shell settings put global http_proxy :0".format(self.device.id))  
-                os.popen("adb -s {} shell iptables -t nat -F".format(self.device.id))
+                os.popen("adb -s {} shell 'echo \"iptables -t nat -F\" | su'".format(self.device.id))
                 time.sleep(2) 
                 self.print_proxy()
             elif 'set' in command:
@@ -789,7 +789,7 @@ $adb remount
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
-                cmd = "adb -s {} shell 'am start -n {}/{}'".format(self.device.id,self.info[0][2],line.split(' ')[0])
+                cmd = "adb -s {} shell 'echo \"am start -n {}/{}\" | su'".format(self.device.id,self.info[0][2],line.split(' ')[0])
                 print("adb command: {}".format(cmd))
                 output=os.popen(cmd).read()
                 print(output)
@@ -806,7 +806,7 @@ $adb remount
         if self.current_app_sha256 == None:
             print(self.NO_APP_LOADED_MSG)
         else:
-            cmd = "adb -s {} shell 'am startservice -n {}/{}'".format(self.device.id,self.info[0][2],line.split(' ')[0])
+            cmd = "adb -s {} shell 'echo \"am startservice -n {}/{}\" | su'".format(self.device.id,self.info[0][2],line.split(' ')[0])
             print("adb command: {}".format(cmd))
             try:         
                 output=os.popen(cmd).read()
@@ -825,7 +825,7 @@ $adb remount
             print(self.NO_APP_LOADED_MSG)
         else:
             try:         
-                output=os.popen("adb -s {} shell 'am stopservice -n {}/{}'".format(self.device.id,self.info[0][2],line.split(' ')[0])).read()
+                output=os.popen("adb -s {} shell 'echo \"am stopservice -n {}/{}\" | su'".format(self.device.id,self.info[0][2],line.split(' ')[0])).read()
                 print(output)
             except Exception as e:
                 print(e)
@@ -1145,7 +1145,7 @@ $adb remount
         print (WHITE+"--------------Global proxy settings-----------------:"+RESET)
         print ('Current proxy: {}'.format(settings))
         print (WHITE+"--------------IP tables settings--------------------:"+RESET)
-        output = subprocess.run("adb -s {} shell iptables -t nat -L".format(self.device.id), shell=True)
+        output = subprocess.run("""adb -s {} shell 'echo "iptables -t nat -L" | su'""".format(self.device.id), shell=True)
         print(output)
 
     def print_receivers(self,all = True):
@@ -1346,7 +1346,7 @@ $adb remount
             print('[i] Pushing transproxy script !')
             os.popen("adb -s {} push {} /data/local/tmp/transproxy.sh".format(self.device.id,trasnproxy_path)).read() 
             print('[i] Executing script')
-            os.popen("adb -s {} shell 'chmod +x /data/local/tmp/transproxy.sh; /data/local/tmp/transproxy.sh {} {}; rm /data/local/tmp/transproxy.sh'".format(self.device.id,ip,port)).read()
+            os.popen("adb -s {} shell 'chmod +x /data/local/tmp/transproxy.sh; echo \"/data/local/tmp/transproxy.sh {} {}\" | su; rm /data/local/tmp/transproxy.sh'".format(self.device.id,ip,port)).read()
             self.print_proxy()
         except Exception as e:
             print(e)

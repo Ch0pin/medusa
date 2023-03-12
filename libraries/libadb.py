@@ -1,5 +1,5 @@
 from ast import For
-import subprocess
+import subprocess,os
 from colorama import Fore, Back, Style
 
 class android_device:
@@ -56,6 +56,15 @@ class android_device:
 
     def run_adb_command(self,cmd):
         self.run_command(["adb","-s",self.id,cmd])
+
+    def run_pseudo_adb_root_cmd(self,cmd):
+        cmdf = ["adb", "-s", "{}".format(self.id), "shell", "echo \"{}\" | su".format(cmd)]
+        proccess = subprocess.Popen(cmdf,stdout = subprocess.PIPE,stderr=subprocess.STDOUT)
+        #output, error = proccess.communicate()
+        line=""
+        for b in proccess.stdout:
+            line += b.decode("utf-8")
+        return line
     
     def run_command(self,cmd):
         proccess = subprocess.Popen(cmd,stdout = subprocess.PIPE,stderr=subprocess.PIPE)

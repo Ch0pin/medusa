@@ -74,14 +74,13 @@ Mango is medusa's twin brother which can be used to:
   
 ...and many many more
 
-A [wiki page](https://github.com/Ch0pin/medusa/wiki) is currently under construction.
+Please reffer to our [wiki](https://github.com/Ch0pin/medusa/wiki) for usage details. 
 
 # **Updates**:
 
 ### (12/2022) Using the translator script:
 1. Replace the default google_trans_new.py of you google_trans_new python package with the one from the utils/google_trans_new.py
 2. Import it with medusa>use helpers/tranlsator
-
 
 # **Contribute by:**
 
@@ -100,23 +99,25 @@ A [wiki page](https://github.com/Ch0pin/medusa/wiki) is currently under construc
 
 #### - SSL Unpinning
 
-![Screenshot 2020-09-22 at 16 41 10](https://user-images.githubusercontent.com/4659186/151658672-dc80f37c-f4fb-48b8-a355-1dc0bf2b172c.png)
+![ssl unpinning](https://user-images.githubusercontent.com/4659186/151658672-dc80f37c-f4fb-48b8-a355-1dc0bf2b172c.png)
 
 #### - Intent Monitoring 
 
-<img src="https://user-images.githubusercontent.com/4659186/151658670-2ddac205-4c77-418a-8edd-2035b233387e.png" alt="Screenshot 2020-09-22 at 16 41 10" style="zoom:100%;" />
+![Intent monitoring](https://user-images.githubusercontent.com/4659186/225246566-ad1e7de0-0c74-4da9-ae01-ba3fec9661a0.png)
 
-#### - Passive Monitoring of HTTP Requests
+#### - Webview Monitoring
 
-![Screenshot 2020-09-22 at 16 41 10](https://user-images.githubusercontent.com/4659186/93905749-34203580-fcf3-11ea-9f36-8138141c2302.png)
+![Webview monitoring](https://user-images.githubusercontent.com/4659186/225247047-f25fde47-671f-4e94-99d6-54996678e770.png)
 
-![Screenshot 2020-09-22 at 16 43 37](https://user-images.githubusercontent.com/4659186/93905699-25d21980-fcf3-11ea-85e0-fafd62ea7d28.png)
+
+#### - File/Content provider monitoring
+
+![File and content providers](https://user-images.githubusercontent.com/4659186/225247734-69a58b7a-1318-4f7c-a877-6c95cdf8b07d.png)
 
 
 #### - Native Libraries Enumeration
 
 ![Screenshot 2020-09-22 at 16 41 10](https://user-images.githubusercontent.com/4659186/151658663-6c77f2e3-6f42-4424-b593-d8cfe3d3bed3.png)
-
 
 #### - Memory READ/WRITE/SEARCH (interactive mode):
 
@@ -125,7 +126,6 @@ A [wiki page](https://github.com/Ch0pin/medusa/wiki) is currently under construc
 #### - Personal information exfiltration monitoring
 
 > Hooks api calls which found to be common for this kind of malware, including:
->
 > - Contact exfiltration 
 > - Call log exfiltration
 > - Camera usage
@@ -160,4 +160,5 @@ A [wiki page](https://github.com/Ch0pin/medusa/wiki) is currently under construc
 - https://github.com/shivsahni/APKEnum
 - https://github.com/0xdea/frida-scripts
 - https://github.com/Areizen/JNI-Frida-Hook
+
 

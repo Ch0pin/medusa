@@ -1,24 +1,30 @@
 <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.svg" width ="1835" height="508">
 
-# **Description**:
+# Description
 
 **MEDUSA** is an extensible and modularized framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  
 
-## Visit our [wiki page](https://github.com/Ch0pin/medusa/wiki) for usage details (wip). 
+# Installation
 
-# **Installation**
+1. Clone this repo
+2. Navigate to the medusa's directory
+3. Run the following command:
 
 ```
 $ pip install -r requirements.txt
 ```
 
-**Other requirements:** 
+**System requirements:** 
 
 - Linux or macOS (currently medusa doesn't support windows)
 - Python 3 (Use the latest python release and not the one shiped with MacOS to avoid issues with using libedit instead of GNU's readline)
 - Rooted device or emulator 
 - adb
 - FRIDA server (running on the mobile device)
+
+# Usage
+
+### Check our [wiki page](https://github.com/Ch0pin/medusa/wiki) for usage details. 
 
 **Demos:**
 
@@ -32,7 +38,7 @@ $ pip install -r requirements.txt
 
 Medusa consists of two main scripts: **medusa.py** and **mango.py**:
 
-# **Using medusa.py**
+## Using medusa.py
 
 The main idea behind MEDUSA is to be able to add or remove hooks for Java or Native methods in a large scale while keeping the process simple and effective. MEDUSA has **more than** **90** modules which can be combined, each one of them dedicated to a set of tasks. Indicatively, some of these tasks include:
 
@@ -57,9 +63,7 @@ The main idea behind MEDUSA is to be able to add or remove hooks for Java or Nat
    
 Furthermore you can intercept Java or Native methods that belong to 3rd party apps or create complex frida modules with just few simple commands. 
 
-Please reffer to our [wiki](https://github.com/Ch0pin/medusa/wiki) for usage details. 
-
-# **Using mango.py**
+## Using mango.py
 
 Mango is medusa's twin brother which can be used to:
 
@@ -74,15 +78,13 @@ Mango is medusa's twin brother which can be used to:
   
 ...and many many more
 
-Please reffer to our [wiki](https://github.com/Ch0pin/medusa/wiki) for usage details. 
-
-# **Updates**:
+# Updates:
 
 ### (12/2022) Using the translator script:
 1. Replace the default google_trans_new.py of you google_trans_new python package with the one from the utils/google_trans_new.py
 2. Import it with medusa>use helpers/tranlsator
 
-# **Contribute by:**
+# Contribute by:
 
 - Making a pull request
 - Creating a medusa module (see [how to](https://github.com/Ch0pin/medusa/wiki/Medusa#creating-a-medusa-module))

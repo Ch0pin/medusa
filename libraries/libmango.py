@@ -435,7 +435,6 @@ $adb remount
     def do_load(self,line):
         """Usage: load [package_name]
         Load an application which allready exists in the current (working) database."""
-
         self.real_load_app(line.split(':')[1])
         return
 
@@ -897,7 +896,18 @@ $adb remount
         return self.get_packages_starting_with(text)
 
     def complete_load(self, text, line, begidx, endidx):
-        return self.get_packages_starting_with(text)
+        res = self.database.query_db("SELECT packageName,sha256 from Application order by packagename asc;")
+        appSha256 = []
+        for entry in res:
+            appSha256.append(entry[0]+':'+entry[1])
+
+        if not text:
+            completions = appSha256[:]
+            appSha256 = []
+        else:
+            completions = [f for f in appSha256 if f.startswith(text)]
+            appSha256 = []
+        return completions
 
     def complete_logcat(self, text, line, begidx, endidx):
         return self.get_packages_starting_with(text)
@@ -1122,22 +1132,25 @@ $adb remount
             print(display_text)
 
     def print_providers(self,all = True):
-        display_text = ''
-        for attribs in self.providers:
-            display_text = attribs[1]
-            if attribs[2]:
-                display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
-            if attribs[3]:
-                display_text += Fore.GREEN + ' | exported = '+attribs[3]+' |' + Fore.RESET
-            if attribs[4]:
-                display_text += Fore.CYAN + ' | grandUriPermission = '+attribs[4] + Fore.RESET
-            if attribs[9]:
-                display_text += Fore.CYAN + ' | authorities = '+attribs[9] + Fore.RESET
-            if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
-                continue
-            else:
-                print(display_text)
-        print(Style.RESET_ALL)
+        try:
+            display_text = ''
+            for attribs in self.providers:
+                display_text = attribs[1]
+                if attribs[2]:
+                    display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
+                if attribs[3]:
+                    display_text += Fore.GREEN + ' | exported = '+attribs[3]+' |' + Fore.RESET
+                if attribs[4]:
+                    display_text += Fore.CYAN + ' | grandUriPermission = '+attribs[4] + Fore.RESET
+                if attribs[9]:
+                    display_text += Fore.CYAN + ' | authorities = '+attribs[9] + Fore.RESET
+                if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+                    continue
+                else:
+                    print(display_text)
+            print(Style.RESET_ALL)
+        except Exception as e:
+            print("An error occured")
 
     def print_proxy(self):
         
@@ -1149,35 +1162,41 @@ $adb remount
         print(output)
 
     def print_receivers(self,all = True):
-        display_text = ''
-        for attribs in self.receivers:
-            display_text = attribs[1]
-            if attribs[2]:
-                display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
-            if attribs[3]:
-                display_text += Fore.GREEN + ' | exported = '+attribs[3]+' |' + Fore.RESET
-            if attribs[4]:
-                display_text += Fore.CYAN + ' | permission = '+attribs[4] + Fore.RESET
+        try:
+            display_text = ''
+            for attribs in self.receivers:
+                display_text = attribs[1]
+                if attribs[2]:
+                    display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
+                if attribs[3]:
+                    display_text += Fore.GREEN + ' | exported = '+attribs[3]+' |' + Fore.RESET
+                if attribs[4]:
+                    display_text += Fore.CYAN + ' | permission = '+attribs[4] + Fore.RESET
 
-            if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
-                continue
-            else:
-                print(display_text)
-        print(Style.RESET_ALL)
+                if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+                    continue
+                else:
+                    print(display_text)
+            print(Style.RESET_ALL)
+        except Exception as e:
+            print("An error occured")
 
     def print_services(self,all = True):
-        display_text = ''
-        for attribs in self.services:
-            display_text = attribs[1]
-            if attribs[2]:
-                display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
-            if attribs[3]:
-                display_text += Fore.GREEN + ' | exported = '+attribs[3]+ Fore.RESET
-            if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
-                continue
-            else:
-                print(display_text)
-        print(Style.RESET_ALL)
+        try:
+            display_text = ''
+            for attribs in self.services:
+                display_text = attribs[1]
+                if attribs[2]:
+                    display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
+                if attribs[3]:
+                    display_text += Fore.GREEN + ' | exported = '+attribs[3]+ Fore.RESET
+                if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+                    continue
+                else:
+                    print(display_text)
+            print(Style.RESET_ALL)
+        except Exception as e:
+            print("An error occured")
     
     def print_strings(self):
         for string in self.strings.split('\n'):

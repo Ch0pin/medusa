@@ -1105,9 +1105,9 @@ class Parser(cmd2.Cmd):
         else:
             raise Exception('Attempted to open scratchpad in invalid mode {}'.format(mode))
         scratchpad.save()
-        if code != '':
-            self.modManager.stage('scratchpad')
-            self.modified = True
+        #if code != '':
+        self.modManager.stage('scratchpad')
+        self.modified = True
 
     def fill_app_info(self,data) -> None:
         self.app_info = json.loads(data)

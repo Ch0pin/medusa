@@ -551,8 +551,8 @@ $adb remount
     def do_playstore(self,line):
         """Usage: playstore package_name
         Search the playstore for the app with the given id."""
+        print(os.popen("adb -s {} shell am start -W -a android.intent.action.VIEW -d market://details?id={}".format(self.device.id,line.split(' ')[0])).read())
 
-        self.do_deeplink('market://details?id='+line.split(' ')[0])
 
     def do_proxy(self,line):
         """Usage: proxy [get | reset | set] [ip:port] 

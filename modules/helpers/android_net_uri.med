@@ -8,7 +8,7 @@ console.log('\\n----------URI parsing monitor by @ch0p1n------------');
 var Uri = Java.use('android.net.Uri'); 
 
 var currentUri = '';
-var targetWords = ['url','path','uri','page','attachment','file','dir'];
+var targetWords = ['url','path','uri','page','attachment','file','dir','http'];
 
 Uri.getQueryParameter.implementation = function(key)
 {

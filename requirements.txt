@@ -2,7 +2,7 @@ androguard
 click
 cmd2
 colorama
-frida
+frida==16.0.11
 requests
 urllib3
 google-trans-new

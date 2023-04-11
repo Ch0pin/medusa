@@ -11,7 +11,31 @@
 3. Run the following command:
 
 ```
-$ pip install -r requirements.txt
+$ pip install -r requirements.txt --upgrade
+```
+## Using docker
+
+You can find the docker file in the medusa/ directory. 
+
+1. Build with 
+
+```  
+$ docker build -t medusa:tag1 ./
+```
+2. Run with 
+
+```
+$ docker run --name medusa --net=host --rm -it medusa:tag1
+```
+3. Run adbd in tcp/ip mode in your physical device or emulator
+
+```
+$ adb tcpip 5555 
+```
+4. Connect to from the image to your device using:
+   
+```
+root@docker# adb connect device_ip:5555
 ```
 
 **System requirements:** 

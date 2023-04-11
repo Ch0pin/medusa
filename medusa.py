@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import subprocess, platform, os, sys, readline, time, argparse
+import subprocess, platform, os, sys, readline, time, argparse,requests,re
+from urllib.parse import urlparse
 import cmd2, click, frida
 from libraries.dumper import dump_pkg
 from google_trans_new import google_translator  
@@ -140,6 +141,70 @@ class Parser(cmd2.Cmd):
         """Usage: c [shell command]
         Run a shell command on the local host."""
         subprocess.run(line, shell=True)
+
+    def do_c2check(self, line) -> None:
+        """Usage: c2check [package name]
+        Searches the application's memory for C2 addresses"""      
+        try:
+            pkg = line.split(' ')[0]
+            click.secho('Starting app:'.format(pkg), fg = 'green')
+            os.popen("adb -s {} shell  monkey -p {} -c 'android.intent.category.LAUNCHER 1'".format(self.device.id,pkg)).read()
+            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+           
+            if pid == "":
+                click.secho("Can't find pid !",fg='red')
+                return
+            elif len(pid.split(' ')) > 1:
+                option, index = pick(pid.split(' '),"More than one processes found running with that name:",indicator="=>",default_index=0)
+                pid = option
+            else:
+                 click.secho('Process pid:{}'.format(pid),fg='green')
+
+            maps = os.popen("""adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().split('\n')
+            for linein in maps:
+                if 'dalvik-main space' in linein:
+                    range1 = int(linein.split(' ')[0].split('-')[0],16)
+                    range2 = int(linein.split(' ')[0].split('-')[1],16)
+                    sz = range2 - range1
+                    print('Starting addres: {}, size: {}'.format(hex(range1),range2-range1))
+                    self.native_handler = nativeHandler(self.device)
+                    self.native_handler.memraw(pkg + ' ' + pid + ' ' + hex(range1) + ' ' + str(sz),True)
+
+            hosts = []
+            output = []
+            all_strings=[]
+            script_path = os.path.abspath(__file__)
+            script_dir = os.getcwd()
+            dump_dir = script_dir+os.path.sep+'dump'+os.path.sep+pkg
+            for filename in os.listdir(dump_dir):
+                file_path = os.path.join(dump_dir, filename)
+                if os.path.isfile(file_path):
+                    cmd = "strings {}".format(file_path)
+                    result = subprocess.run(cmd,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    if result.returncode == 0:
+                        output = result.stdout.decode().strip().split('\n')
+                        for entry in output:
+                            all_strings.append(entry)
+                            if self.is_valid_url(entry):
+                               hosts.append(urlparse(entry).netloc)
+
+            hosts = list(dict.fromkeys(hosts))
+            whitelist = script_dir+os.path.sep+'whitelist.txt'
+            whitelist_urls = []
+            if os.path.isfile(whitelist):
+                with open(whitelist,'r') as file:
+                    whitelist_urls = file.readlines()
+
+            whitelist_urls_strip=[x.strip() for x in whitelist_urls]
+            hosts =[x for x in hosts if not any(y in x for y in whitelist_urls_strip)]
+
+            click.secho('Scanning for web addresses',fg='yellow')
+            self.check_using_vt(hosts,script_dir+os.path.sep+'vt.key')
+            click.secho('Scanning for secrets',fg='yellow')
+            self.scan_for_secrets(list(dict.fromkeys(all_strings)))
+            
+        except Exception as e:
+            print(e) 
 
     def do_cc(self, line) -> None:
         """
@@ -486,7 +551,6 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-
     def do_hook(self,line) -> None:
         """
         Hook a method or methods
@@ -730,7 +794,6 @@ class Parser(cmd2.Cmd):
         self.native_handler = nativeHandler(self.device)
         self.native_handler.memops(line)
 
-
     def do_memmap(self,line) -> None:
         """
         READ process memory
@@ -767,7 +830,6 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
             
-
     def do_pad(self, line) -> None:
         """
         Manualy edit scratchpad using vi
@@ -1013,12 +1075,13 @@ class Parser(cmd2.Cmd):
         self.show_mods()
         self.modified = True
         print()
-
-
-
+        
 ###################################################### do_ defs end ############################################################
 
 ###################################################### complete_ defs start ############################################################
+    def complete_c2check(self, text, line, begidx, endidx) -> list:
+        return self.complete_list(text, line, begidx, endidx)
+    
     def complete_dump(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
     
@@ -1065,8 +1128,7 @@ class Parser(cmd2.Cmd):
 
     def complete_use(self, text, line, begidx, endidx) -> list:
         return [mod.Name for mod in self.modManager.available if mod.Name.startswith(text)]
-
-    # Use and help are always in sync
+    
     def complete_info(self, text, line, begidx, endidx) -> list:
         return [mod.Name for mod in self.modManager.available if mod.Name.startswith(text)]
 
@@ -1074,28 +1136,35 @@ class Parser(cmd2.Cmd):
 
 ###################################################### implementations start ############################################################
 
-    def write_recipe(self,filename) -> None:
-        try:
-            data = ''
-            click.echo(click.style("[+] Loading a recipe....",bg='blue', fg='white'))
-            if os.path.exists(filename):
-                with open(filename, 'r') as file:
-                    for line in file:
-                        if line.startswith('MODULE'):
-                            module = line[7:-1]
-                            click.echo(click.style('\tLoading {}'.format(module), fg='yellow'))
-                            self.modManager.stage_verbadim(module)
-                        else:
-                            data += line
-                self.modified = True
-                if data != '':
-                    click.echo(click.style("[+] Writing to scratchpad...",bg='blue', fg='white'))
-                    self.edit_scratchpad(data)
+    def check_using_vt(self,hosts,vtkey):
+        vt_address = 'https://www.virustotal.com/api/v3/domains/'
+        if os.path.isfile(vtkey):
+            with open(vtkey,'r') as file:
+                key = file.read()
+        else:
+            click.secho("VT key was not found !", fg='red')
+            return
+        headers = {'x-apikey': key}
+        for host in hosts:
+           # click.secho("Checking {}".format(host),fg='green')
+            response = requests.get(vt_address+host, headers=headers)
+            if response.status_code == 200:
+                json_data = json.loads(response.text)
+                last_analysis_stats = json_data['data']['attributes']['last_analysis_stats']
+                malicious_count = last_analysis_stats['malicious']
+                if int(malicious_count) == 0: 
+                    click.secho("✅ {} ".format(host),fg='green')
+                    #click.secho("Clean".format(malicious_count),fg='yellow')
+                else:
+                    click.secho("❌ {} detected by {} vendors ❗".format(host,malicious_count),bg='white',fg='red')
+                    #click.secho(" Detected by {} vendors:".format(malicious_count),fg='red',bg='white')
+                    for key,value in json_data['data']['attributes']['last_analysis_results'].items():
+                        verdict = json_data['data']['attributes']['last_analysis_results'][key]['category']
+                        if verdict not in ['harmless','undetected']:
+                            print('[🚩] {} ({}) Ref:{}'.format(key,verdict.upper(),'https://www.virustotal.com/gui/domain/'+host))
             else:
-                click.echo(click.style("[!] Recipe not found !",bg='red', fg='white'))
-        except Exception as e:
-            print(e)
-        
+                click.secho("[?] {} return {}".format(host,response.status_code),fg='blue')
+
     def edit_scratchpad(self, code, mode='w') -> None:
         scratchpad = self.modManager.getModule('scratchpad')
         if mode == 'a':
@@ -1237,6 +1306,13 @@ catch (err) {
         for i in range(len(self.packages)):
             print('[{}] {}'.format(i, self.packages[i]))
 
+    def is_valid_url(self,url):
+        try:
+            result = urlparse(url)
+            return all([result.scheme, result.netloc])
+        except ValueError:
+            return False
+
     def load_snippet(self, snippet) -> None:
         try:
             with open(snippet) as file:
@@ -1374,7 +1450,6 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
             print(e)
         print(RESET)
         
-
     def print_list(self, listName, message) -> None:
         print(GREEN+message+RESET)
         for item in listName:
@@ -1427,6 +1502,51 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
         except Exception as e:
             print(e)
 
+    def scan_for_secrets(self,string_list):
+        try:
+            sigs={}
+            matches = []
+            results = []
+            sig_file = os.getcwd()+os.path.sep+'sigs.json'
+            print(f'Using signature file: {sig_file}')
+
+            if os.path.isfile(sig_file):
+                with open(sig_file,'r') as file:
+                    sigs = json.load(file)
+            
+            for key,pattern in sigs.items():
+                for entry in string_list:
+                    matches = re.findall(pattern,entry)
+                    if matches:
+                        for match in matches:
+                            results.append(f'{key}:{match}')
+            for result in list(dict.fromkeys(results)):
+                print(f'{result}')             
+        except Exception as e:
+            print(e)
+
+    def write_recipe(self,filename) -> None:
+        try:
+            data = ''
+            click.echo(click.style("[+] Loading a recipe....",bg='blue', fg='white'))
+            if os.path.exists(filename):
+                with open(filename, 'r') as file:
+                    for line in file:
+                        if line.startswith('MODULE'):
+                            module = line[7:-1]
+                            click.echo(click.style('\tLoading {}'.format(module), fg='yellow'))
+                            self.modManager.stage_verbadim(module)
+                        else:
+                            data += line
+                self.modified = True
+                if data != '':
+                    click.echo(click.style("[+] Writing to scratchpad...",bg='blue', fg='white'))
+                    self.edit_scratchpad(data)
+            else:
+                click.echo(click.style("[!] Recipe not found !",bg='red', fg='white'))
+        except Exception as e:
+            print(e)
+        
 if __name__ == '__main__':
     if 'libedit' in readline.__doc__:
         readline.parse_and_bind("bind ^I rl_complete")

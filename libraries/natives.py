@@ -42,7 +42,7 @@ class nativeHandler():
         """)
 
 #todo add force or attach
-    def dump(self,session,lib,free=False,base_address=None,size=None):
+    def dump(self,session,lib,free=False,base_address=None,size=None,package_name=''):
         try:
             path = '.'
             script = session.create_script(open(os.path.dirname(__file__)+"/memops.js").read())
@@ -53,12 +53,21 @@ class nativeHandler():
                 for area in dump_area:
                     bs = api.memorydump(area["addr"],area["size"])
             else:
-                bs = api.memorydump(base_address,size)
-            if not os.path.exists('dump'):
-                os.mkdir('dump')    
-            with open('./dump/'+lib + ".dat", 'wb') as out:
+                bs = api.memorydump(base_address,size)  
+            
+            if package_name == '':
+                print("package name empty")
+                filepath='./dump'+os.path.sep
+            else:
+                filepath='./dump'+os.path.sep+package_name+os.path.sep
+            
+            if not os.path.exists(filepath):
+                os.makedirs(filepath)  
+
+
+            with open(filepath+lib + ".dat", 'wb') as out:
                 out.write(bs)
-            click.secho('[+] dump saved to ./dump/{}.dat'.format(lib), fg='green')
+            click.secho('[+] dump saved to {}'.format(filepath+lib + ".dat"), fg='green')
 
         except Exception as e:
             click.secho("[Except] - {}:".format(e), bg='red')
@@ -133,7 +142,7 @@ class nativeHandler():
             print(e)
 
 ###-------------------meraw
-    def memraw(self,line):
+    def memraw(self,line,autodump=False):
         try:
 
             args = line.split(' ')
@@ -172,10 +181,13 @@ class nativeHandler():
             script = session.create_script(codejs)
             script.load()
             prompt = WHITE+'|' +GREEN+'(E)xit '+ WHITE+  '|'+GREEN+ 'r@offset ' +WHITE+'|'+GREEN+'dump ' +WHITE +'|:'
-            cmd = input(prompt) 
+            if autodump:
+                cmd = 'dump'
+            else:
+                cmd = input(prompt) 
             prev_cmd = 'e'
 
-            while( not cmd.lower().startswith('e')):
+            while(not cmd.lower().startswith('e')):
                 if cmd.startswith('r@'):
                     cmd = self.read_memory(cmd[2:],script,session,codejs,prolog,epilog,payload,prompt,True,size)
                     continue
@@ -206,21 +218,20 @@ class nativeHandler():
                         while int_size > 0:
                             if int_size - chunk > 0:
                                 print("dumping: {} to {}".format(base_addr,hex(int(base_addr,16)+chunk)))
-                                self.dump(session,base_addr+"_dump",True,int(base_addr,16),chunk)
+                                self.dump(session,base_addr+"_dump",True,int(base_addr,16),chunk,package)
                         
                             else:
                                 print("dumping: {} to {}".format(base_addr,hex(int(base_addr,16)+int_size)))
-                                self.dump(session,base_addr+"_dump",True,int(base_addr,16),int_size)
+                                self.dump(session,base_addr+"_dump",True,int(base_addr,16),int_size,package)
                                 break
                             int_size -= chunk
                             baddr = int(base_addr,16) + chunk
                             base_addr=hex(baddr)
 
-                            
-
                     else:
-                        self.dump(session,base_addr+"_dump",True,int(base_addr,16),int_size)
-
+                        self.dump(session,base_addr+"_dump",True,int(base_addr,16),int_size,package)
+                if autodump:
+                    return
                 cmd = input(prompt) 
 
             script.unload()

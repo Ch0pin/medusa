@@ -438,6 +438,28 @@ $adb remount
         self.real_load_app(line.split(':')[1])
         return
 
+    def do_loaddevice(self,line)->None:
+        """Usage: loaddevice
+        Start a new session using the selected device."""
+        try:
+            print(Fore.GREEN)
+            print("[i] Available devices:\n")
+            devices = frida.enumerate_devices()
+            i = 0
+
+            for dv in devices:
+                print('{}) {}'.format(i,dv))
+                i += 1
+            print(Fore.RESET)
+            j = int(Numeric('\nEnter the index of the device to use:', lbound=0,ubound=i-1).ask())
+            device = devices[int(j)] 
+            android_dev = android_device(device.id)
+            android_dev.print_dev_properties()
+            print(Fore.RESET)
+            self.device= device
+        except Exception as e:
+            print(e)
+
     def do_logcat(self,line):
         """Usage: logcat [package name]
         Wrapper for: adb logcat --pid=`adb shell pidof -s com.app.package`

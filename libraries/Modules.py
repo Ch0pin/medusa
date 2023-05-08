@@ -47,6 +47,9 @@ class ModuleManager:
 
     def getModule(self, name):
         return [mod for mod in self.available if mod.Name == name][0]
+    
+    def get_number_of_modules(self):
+        return len(self.available)
 
     def reset(self):
         self.staged = []

@@ -865,7 +865,7 @@ class Parser(cmd2.Cmd):
         if "-r" in line.split(' ')[0]:
             self.modManager.reset()
             self.write_recipe(line.split(' ')[1])
-        print("[i] Done....")
+        print(f"[i] Done....\n[i] Total modules available {self.modManager.get_number_of_modules()}")
 
     def do_rem(self, mod) -> None:
         """

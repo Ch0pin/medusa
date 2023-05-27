@@ -1548,7 +1548,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
             print(e)
         
 if __name__ == '__main__':
-    if 'libedit' in readline.__doc__:
+    if readline.__doc__ is not None and 'libedit' in readline.__doc__:
         readline.parse_and_bind("bind ^I rl_complete")
     else:
         readline.parse_and_bind("tab: complete")

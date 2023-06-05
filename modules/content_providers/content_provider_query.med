@@ -43,6 +43,28 @@ for (var i = 0; i < overloadCount111; i++) {
 }
 
 
+var overloadCount112 = hook234['openFile'].overloads.length;
+colorLog(\"Tracing \" +'openFile' + \" [\" + overloadCount112 + \" overload(s)]\",{ c: Color.Green });
+                                            
+for (var i = 0; i < overloadCount112; i++) {
+                    
+    hook234['openFile'].overloads[i].implementation = function() {
+        colorLog(\"Content Resolver openFile Detected: \" ,{ c: Color.Yellow });
+                    
+                    
+        if (arguments.length==2){
+            console.log(\"[+] Content URI: \"+arguments[0]);
+            console.log(\"    - Mode: \"+arguments[1]);
+        }
+        else if(arguments.length==3){
+            console.log(\"[+] Content URI: \"+arguments[0]);
+            console.log(\"    - Mode: \"+arguments[1]);
+        }
+        var retval = this['openFile'].apply(this, arguments); 
+        return retval;
+                    
+    }
+}
 
 var overloadCount111 = hook234['openFileDescriptor'].overloads.length;
 colorLog(\"Tracing \" +'openFileDescriptor' + \" [\" + overloadCount111 + \" overload(s)]\",{ c: Color.Green });

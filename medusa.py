@@ -50,7 +50,7 @@ class Parser(cmd2.Cmd):
 
     def refreshPackages(self):
         self.packages = []
-        for line in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
+        for line in os.popen('adb -s {} shell pm list packages'.format(self.device.id)):
             self.packages.append(line.split(':')[1].strip('\n'))
 
     def preloop(self):

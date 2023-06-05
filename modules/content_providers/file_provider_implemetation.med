@@ -5,6 +5,8 @@
     "Code": "
 console.log('\\n-----------File Provider impl Monitor by @chopin---------\\n');
 try {
+    traceClass('androidx.core.content.FileProvider');
+
     let hook_1672136330 = Java.use('androidx.core.content.FileProvider$SimplePathStrategy');
     let overloadCount_1672136330 = hook_1672136330['addRoot'].overloads.length;
 

@@ -1340,7 +1340,7 @@ $adb remount
             print(e)
     
     def init_packages(self):
-        for line1 in os.popen('adb -s {} shell pm list packages -3'.format(self.device.id)):
+        for line1 in os.popen('adb -s {} shell pm list packages'.format(self.device.id)):
             self.packages.append(line1.split(':')[1].strip('\n'))
 
     def load_or_remove_application(self):

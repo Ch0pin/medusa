@@ -837,6 +837,17 @@ function dumpIntent(intent, redump=true)
   intent.putExtra("marked_as_dumped","marked");
 }
 
+function waitForModule(moduleName) {
+  return new Promise(resolve => {
+      const interval = setInterval(() => {
+          const module = Process.findModuleByName(moduleName);
+          if (module != null) {
+              clearInterval(interval);
+              resolve(module);
+          }
+      }, 300);
+  });
+}
 
 //------------------------AGENT SCRIPT STARTS HERE----------------------------
 

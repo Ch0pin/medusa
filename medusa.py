@@ -255,7 +255,7 @@ class Parser(cmd2.Cmd):
             epilog = """}
     catch(error){
         colorLog("------------Error Log start-------------",{ c:Color.Red })
-        console.log(error);
+        console.log(error.stack);
         colorLog("------------Error Log EOF---------------",{ c:Color.Red })
      } });"""
             if delay != '':
@@ -318,7 +318,7 @@ class Parser(cmd2.Cmd):
     def do_enumerate(self, line) -> None:
         """
         Enumerates the exported functions of a native library.
-        Usage: exports com.foo.com libname.so
+        Usage: enumerate com.foo.com libname.so
         Using '--attach' will attach to the already running process (gives better results)
         """
         try:
@@ -1221,14 +1221,21 @@ class Parser(cmd2.Cmd):
         return frida_session
 
     def hook_native(self) -> None:
-        library = Open('Library name (e.g.: libnative.so):').ask()
-        type_ = Alternative('Imported or exported function?', 'i', 'e').ask()
-        function = Open('Function name or offset (e.g.: 0x1234):').ask()
-        number_of_args = Numeric('Number of function arguments (0 to disable trace):', lbound=0).ask()
-        backtraceEnable = Polar('Enable backtrace?', False).ask()
-        hexdumpEnable = Polar('Enable memory read?', False).ask()
+        library = Open('Library name (e.g. libnative.so):').ask()
+        type_ = Alternative('[(i)mported] / [(e)xported] / [(a)ny - requires the function\'s offset] function:', 'i', 'e','a').ask()
+        function = Open('Function name or offset (e.g. 0x1234):').ask()
+        number_of_args = Numeric('Number of arguments (enter 0 to disable logging):', lbound=0).ask()
+        backtraceEnable = Polar('Do you want to log the stack trace:', False).ask()
+        hexdumpEnable = Polar('Do you want to dump the address pointed by the return value:', False).ask()
 
-        header = ''
+        header = "console.log('[*][*] Waiting for "+library+" ...');\n"
+        header+="waitForModule('" +library+"').then((lib) => {"
+        header+="""
+            console.log(`[*][+] Found library at: ${ lib.base }`)
+            hook_any_native_func();
+        });\n
+        function hook_any_native_func(){
+        """
         argread = ''
 
 #         for i in range(int(number_of_args)):
@@ -1270,12 +1277,12 @@ catch (err) {
         else:
             tracejs = ''
 
-        if function.startswith('0x'):
-            header = "\nInterceptor.attach(Module.findBaseAddress('" + library + "').add(" + function + "), {"
+        if function.startswith('0x') or type_ == 'a':
+            header += "\nInterceptor.attach(Module.findBaseAddress('" + library + "').add(" + function + "), {"
         elif type_ == 'e':
-            header = "\nInterceptor.attach(Module.getExportByName('" + library + "', '" + function + "'), {"
+            header += "\nInterceptor.attach(Module.getExportByName('" + library + "', '" + function + "'), {"
         else:
-            header = "\nvar func = undefined;\n" + 'var imports = Module.enumerateImportsSync("' + library + '");\n'
+            header += "\nvar func = undefined;\n" + 'var imports = Module.enumerateImportsSync("' + library + '");\n'
             header += 'for(var i = 0; i < imports.length; i++){\nif (imports[i].name=="' + function + '") \n{ func = imports[i].address; break; } }'
             header += "Interceptor.attach(func, {\n"
         
@@ -1295,7 +1302,7 @@ catch (err) {
           console.log('Error:'+err);
       }
     }
-});
+}) };
 """
         self.edit_scratchpad(codejs, 'a')
         print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")

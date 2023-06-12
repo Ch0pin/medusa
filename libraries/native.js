@@ -56,6 +56,6 @@ function enumerateModules(){
   }
 
 Java.perform(function() {
-enumerateExportsJs('libsyncer-jni.so');
+enumerateExportsJs('libliger.so');
  
 });

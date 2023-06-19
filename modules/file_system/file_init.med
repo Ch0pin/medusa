@@ -1,0 +1,41 @@
+{
+    "Name": "file_system/file_class",
+    "Description": "Monitor File class calls",
+    "Help": "https://docs.oracle.com/javase/8/docs/api/java/io/File.html",
+    "Code": "
+console.log('\\n-----------File Write/init Motitor by @iddoeldor----------\\n');
+let hook_1687092551 = Java.use('java.io.File');
+                    let overloadCount_1687092551 = hook_1687092551['$init'].overloads.length;
+                    colorLog(\"Tracing \" +'the File() contstructor' + \" [\" + overloadCount_1687092551 + \" overload(s)]\",{ c: Color.Green });
+
+                        for (let i = 0; i < overloadCount_1687092551; i++) {
+                            hook_1687092551['$init'].overloads[i].implementation = function() {
+                            colorLog('[+] Entering java.io.File contstructor',{ c: Color.Cyan });
+
+                    if (arguments.length) console.log();
+                    for (let j = 0; j < arguments.length; j++) {
+                        console.log(\"arg[\" + j + \"]: \" + arguments[j]);
+                    }
+                    console.log('--------------------------------------------------')
+                    let retval = this['$init'].apply(this, arguments);
+                    return retval;
+                    }
+                    }
+
+    
+    hook_1687092551.exists.implementation = function(){
+    
+        colorLog(\"[File exists called for file]: \" +this.getAbsolutePath(),{c: Color.Red});
+
+        return this.exists()
+        
+    }
+
+
+"
+}
+
+
+
+
+

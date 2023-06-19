@@ -1,0 +1,29 @@
+{
+    "Name": "runtime/context",
+    "Description": "Logs calls of the ContextWrapper class",
+    "Help": "https://developer.android.com/reference/android/content/Context",
+    "Code": "
+console.log('\\n\\nContext Wrapper class  monitor  loaded-----------');
+
+let hook_1687091085 = Java.use('android.content.ContextWrapper');
+                    let overloadCount_1687091085 = hook_1687091085['createPackageContext'].overloads.length;
+                    colorLog(\"Tracing \" +'createPackageContext' + \" [\" + overloadCount_1687091085 + \" overload(s)]\",{ c: Color.Green });
+
+                        for (let i = 0; i < overloadCount_1687091085; i++) {
+                            hook_1687091085['createPackageContext'].overloads[i].implementation = function() {
+                            
+                            console.log('\\x1b[43m\\x1b[31mEntering createPackageContext for package: '+ arguments[0] + ' and flags: '+arguments[1]+'\\x1b[0m');
+
+                            //colorLog(\"*** Entering: \" +'createPackageContext for package:' + arguments[0] + ' and flags: '+arguments[1] ,{ c: Color.Yellow });
+
+                    let retval = this['createPackageContext'].apply(this, arguments);
+                    return retval;
+                    }
+                    }
+
+
+
+
+
+"
+}

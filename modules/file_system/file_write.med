@@ -3,8 +3,7 @@
     "Description": "Monitor File Write operations",
     "Help": "Intercepts from java.io.FileOutputStream the init and write functions. Original script https://github.com/iddoeldor/frida-snippets/blob/master/scripts/WIP_dump_dynamically_created_files.js:",
     "Code": "
-console.log('\\n-----------File Write Motior by @iddoeldor----------\\n');
-
+console.log('\\n-----------File Write/init Motitor by @iddoeldor----------\\n');
 
 var openedfile = \"\";
 var data = {
@@ -35,7 +34,7 @@ fos_construct_2.implementation = function(file) {
     var filename = file;
     if (openedfile != filename) {
 	openedfile = filename;
-	console.log(\"|File $init called|===============================>: \" + filename);
+	console.log(\"|FileOutputStream $init called|===============================>: \" + filename);
 	isOpen = true;
     }
     return fos_construct_2.call(this, file);
@@ -44,7 +43,7 @@ fos_construct_3.implementation = function(file) {
     var filename = file.getAbsolutePath();
     if (openedfile != filename) {
 	openedfile = filename;
-	console.log(\"|File $init called|===============================>: \" + filename);
+	console.log(\"|FileOutputStream $init called|===============================>: \" + filename);
 	isOpen = true;
     }
     return fos_construct_3.call(this, file);
@@ -53,7 +52,7 @@ fos_construct_4.implementation = function(file, true_false) {
     var filename = file;
     if (openedfile != filename) {
 	openedfile = filename;
-	console.log(\"|File $init called|===============================>: \" + filename);
+	console.log(\"|FileOutputStream $init called|===============================>: \" + filename);
 	isOpen = true;
     }
     return fos_construct_4.call(this, file, true_false);
@@ -62,7 +61,7 @@ fos_construct_5.implementation = function(file, true_false) {
     var filename = file.getAbsolutePath();
     if (openedfile != filename) {
 	openedfile = filename;
-	console.log(\"|File $init called|===============================>: \" + filename);
+	console.log(\"|FileOutputStream $init called|===============================>: \" + filename);
 	isOpen = true;
     }
     return fos_construct_5.call(this, file, true_false);

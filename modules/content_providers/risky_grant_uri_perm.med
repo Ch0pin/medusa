@@ -14,9 +14,9 @@ colorLog(\"Tracing \" +'grantUriPermission' + \" [\" + overloadCount9 + \" overl
 for (var i = 0; i < overloadCount9; i++) {
                     
     contex_wrapper['grantUriPermission'].overloads[i].implementation = function() {
-        colorLog(\"Risky api call detected: \" ,{ c: Color.Yellow });
                     
-                    
+        console.log('\\x1b[43m\\x1b[31mRisky api call detected: grantUriPermission '+'\\x1b[0m');
+
         if (arguments.length==3){
 
             console.log(\"[+] Allowed Package Name: \"+arguments[0]);

@@ -14,7 +14,6 @@ let hook_1687091085 = Java.use('android.content.ContextWrapper');
                             
                             console.log('\\x1b[43m\\x1b[31mEntering createPackageContext for package: '+ arguments[0] + ' and flags: '+arguments[1]+'\\x1b[0m');
 
-                            //colorLog(\"*** Entering: \" +'createPackageContext for package:' + arguments[0] + ' and flags: '+arguments[1] ,{ c: Color.Yellow });
 
                     let retval = this['createPackageContext'].apply(this, arguments);
                     return retval;

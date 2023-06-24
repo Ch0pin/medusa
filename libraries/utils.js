@@ -94,7 +94,7 @@ function traceMethod(targetClassMethod)
 			for (var j = 0; j < arguments.length; j++) {
 				console.log("\t\\_arg[" + j + "]: " + arguments[j]);
 			}
-      if (arguments.length) console.log();
+      //if (arguments.length) console.log();
 
 			var retval = this[targetMethod].apply(this, arguments); // rare crash (Frida bug?)
 			colorLog("\n[ ◀︎◀︎◀︎ ] Exiting " + targetClassMethod ,{c: Color.Purple});
@@ -103,6 +103,20 @@ function traceMethod(targetClassMethod)
 			return retval;
 		}
 	}
+
+  let overloadCount_1687337732 = hook['$init'].overloads.length;
+  colorLog("Tracing " + targetClass +'$init' + " [" + overloadCount_1687337732 + " overload(s)]",{ c: Color.Green });
+  for (let i = 0; i < overloadCount_1687337732; i++) {
+    hook['$init'].overloads[i].implementation = function() {
+    colorLog("\n[ ▶︎▶︎▶︎] Entering the constructor of "+targetClass,{c: Color.Green});
+    for (var j = 0; j < arguments.length; j++) {
+      console.log("\t\\_arg[" + j + "]: " + arguments[j]);
+    }
+    this['$init'].apply(this, arguments); // rare crash (Frida bug?)
+    colorLog("\n[ ◀︎◀︎◀︎ ] Exiting the constructor of "+targetClass ,{c: Color.Green});      
+    }
+  }
+
 }
 
 

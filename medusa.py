@@ -378,7 +378,10 @@ class Parser(cmd2.Cmd):
                 for mod in filter(lambda mod: mod.Name != 'scratchpad', self.modManager.staged):
                     file.write('MODULE ' + mod.Name + '\n')
                 file.write(self.modManager.getModule('scratchpad').Code)
-            print('Recipe exported to dir: {} as {}'.format(os.getcwd(), line))
+            if os.path.splitext(line)[1] == '.session':
+                print("Current session mod list saved as: {}, use loadsession to reload it".format(os.path.splitext(line)[0]))
+            else:
+                print('Recipe exported to dir: {} as {}'.format(os.getcwd(), line))
         except Exception as e:
             print(e) 
             print("[i] Usage: export filename")
@@ -783,7 +786,7 @@ class Parser(cmd2.Cmd):
         except:
             self.device = frida.get_remote_device()
         finally:
-            self.init_packages()
+            self.init_packages()    
 
     def do_memops(self,line) -> None:
         """
@@ -822,7 +825,7 @@ class Parser(cmd2.Cmd):
             range1 = int(option.split(' ')[0].split('-')[0],16)
             range2 = int(option.split(' ')[0].split('-')[1],16)
             sz = range2 - range1
-            print('Starting addres: {}, size: {}'.format(hex(range1),range2-range1))
+            print('Starting address: {}, size: {}'.format(hex(range1),range2-range1))
 
             self.native_handler = nativeHandler(self.device)
             self.native_handler.memraw(pkg + ' ' + pid + ' ' + hex(range1) + ' ' + str(sz))
@@ -961,9 +964,28 @@ class Parser(cmd2.Cmd):
             for match in matches:
                 print(match.replace(pattern, GREEN + pattern + RESET))
 
+    def do_session(self,line)->None:
+        """
+        Usage: session [--save 'name'] [--load] [--del]
+        --save 'name', saves the current module set 
+        --load loads a module set that was previously saved
+        --del deletes a module set
+        """
+        operation = line.split(' ')[0]
+
+        if operation == '--save':
+            self.save_session(line.split(' ')[1])
+        elif operation == '--load':
+            self.load_session()
+        elif operation == '--del':
+            self.del_session()
+        else:
+            print("Invalid session option")
+
+
     def do_shell(self, line) -> None:
         """
-        Get a tmp local shell
+        Get a local shell
         """
         shell = os.environ['SHELL']
         subprocess.run('{}'.format(shell), shell=True)
@@ -1165,6 +1187,25 @@ class Parser(cmd2.Cmd):
             else:
                 click.secho("[?] {} return {}".format(host,response.status_code),fg='blue')
 
+    def del_session(self)->None:
+        try:
+            session_files = ['Cancel']
+            for filename in os.listdir(self.base_directory):
+                if filename.endswith(".session"):
+                    session_files.append(os.path.splitext(filename)[0])
+            if len(session_files)==0:
+                print("No saved sessions found !")
+                return
+            option, index = pick(session_files,"Saved sessions:",indicator="=>",default_index=0)
+            if option=='Cancel':
+                return
+            print("Deleting: ")
+            click.echo(click.style(option,bg='red', fg='white'))
+            os.remove(option+'.session')
+
+        except Exception as e:
+            print("An error occurred:", str(e))    
+
     def edit_scratchpad(self, code, mode='w') -> None:
         scratchpad = self.modManager.getModule('scratchpad')
         if mode == 'a':
@@ -1319,6 +1360,24 @@ catch (err) {
             return all([result.scheme, result.netloc])
         except ValueError:
             return False
+
+    def load_session(self)->None:
+        try:
+            session_files = ['Cancel']
+            for filename in os.listdir(self.base_directory):
+                if filename.endswith(".session"):
+                    session_files.append(os.path.splitext(filename)[0])
+            if len(session_files)==0:
+                print("No saved sessions found !")
+                return
+            option, index = pick(session_files,"Saved sessions:",indicator="=>",default_index=0)
+            if option=='Cancel':
+                return
+            print("Restoring: ")
+            click.echo(click.style(option,bg='blue', fg='white'))
+            self.do_reload('-r {}.session'.format(option))
+        except Exception as e:
+            print("An error occurred:", str(e))
 
     def load_snippet(self, snippet) -> None:
         try:
@@ -1499,6 +1558,15 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
             print(f"{'Name': <{width}}Description")
             for name, description in zip([mod.Name for mod in mods], [mod.Description for mod in mods]):
                 print(GREEN + f"{name: <{width}}" + BLUE + f"{description}" + RESET)
+
+    def save_session(self,session_name):
+
+        if session_name == "":
+            print("Missing session name !")
+        else:
+            session_name+=".session"
+            self.do_export(session_name)
+        return
 
     def show_snippets(self) -> None:
         print("[i] Available snippets:")

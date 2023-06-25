@@ -379,7 +379,7 @@ class Parser(cmd2.Cmd):
                     file.write('MODULE ' + mod.Name + '\n')
                 file.write(self.modManager.getModule('scratchpad').Code)
             if os.path.splitext(line)[1] == '.session':
-                print("Current session mod list saved as: {}, use loadsession to reload it".format(os.path.splitext(line)[0]))
+                print("Current session mod list saved as: {}, use session --load to reload it".format(os.path.splitext(line)[0]))
             else:
                 print('Recipe exported to dir: {} as {}'.format(os.getcwd(), line))
         except Exception as e:
@@ -982,7 +982,6 @@ class Parser(cmd2.Cmd):
         else:
             print("Invalid session option")
 
-
     def do_shell(self, line) -> None:
         """
         Get a local shell
@@ -1189,20 +1188,13 @@ class Parser(cmd2.Cmd):
 
     def del_session(self)->None:
         try:
-            session_files = ['Cancel']
-            for filename in os.listdir(self.base_directory):
-                if filename.endswith(".session"):
-                    session_files.append(os.path.splitext(filename)[0])
-            if len(session_files)==0:
-                print("No saved sessions found !")
+            session = self.get_selected_session()
+            if session is not None:
+                print("Deleting: ")
+                click.echo(click.style(session,bg='red', fg='white'))
+                os.remove(session+'.session')
+            else:
                 return
-            option, index = pick(session_files,"Saved sessions:",indicator="=>",default_index=0)
-            if option=='Cancel':
-                return
-            print("Deleting: ")
-            click.echo(click.style(option,bg='red', fg='white'))
-            os.remove(option+'.session')
-
         except Exception as e:
             print("An error occurred:", str(e))    
 
@@ -1221,6 +1213,23 @@ class Parser(cmd2.Cmd):
 
     def fill_app_info(self,data) -> None:
         self.app_info = json.loads(data)
+
+    def get_selected_session(self)->str:
+        try:
+            session_files = ['Cancel']
+            for filename in os.listdir(self.base_directory):
+                if filename.endswith(".session"):
+                    session_files.append(os.path.splitext(filename)[0])
+            if len(session_files)==0:
+                print("No saved sessions found !")
+                return None
+            option, index = pick(session_files,"Saved sessions:",indicator="=>",default_index=0)
+            if option=='Cancel':
+                return None
+            return option  
+        except Exception as e:
+            print("An error occurred:", str(e))   
+            return None    
 
     def hookall(self, line) -> None:
         aclass = line.split(' ')[0]
@@ -1363,19 +1372,13 @@ catch (err) {
 
     def load_session(self)->None:
         try:
-            session_files = ['Cancel']
-            for filename in os.listdir(self.base_directory):
-                if filename.endswith(".session"):
-                    session_files.append(os.path.splitext(filename)[0])
-            if len(session_files)==0:
-                print("No saved sessions found !")
+            session = self.get_selected_session()
+            if session is not None:
+                print("Restoring: ")
+                click.echo(click.style(session,bg='blue', fg='white'))
+                self.do_reload('-r {}.session'.format(session))
+            else:
                 return
-            option, index = pick(session_files,"Saved sessions:",indicator="=>",default_index=0)
-            if option=='Cancel':
-                return
-            print("Restoring: ")
-            click.echo(click.style(option,bg='blue', fg='white'))
-            self.do_reload('-r {}.session'.format(option))
         except Exception as e:
             print("An error occurred:", str(e))
 
@@ -1560,14 +1563,24 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                 print(GREEN + f"{name: <{width}}" + BLUE + f"{description}" + RESET)
 
     def save_session(self,session_name):
+        try:
+            session_files = []
+            for filename in os.listdir(self.base_directory):
+                if filename.endswith(".session"):
+                    session_files.append(os.path.splitext(filename)[0])
 
-        if session_name == "":
-            print("Missing session name !")
-        else:
-            session_name+=".session"
-            self.do_export(session_name)
-        return
-
+            if session_name == "":
+                print("Missing session name !")
+            else:
+                if session_name in session_files:
+                    if not Polar("Session already exists, do you want to overwrite ?").ask():
+                        return
+                session_name+=".session"
+                self.do_export(session_name)
+            return
+        except Exception as e:
+            print("An error occurred:", str(e))   
+            
     def show_snippets(self) -> None:
         print("[i] Available snippets:")
         print('------------------------\n')

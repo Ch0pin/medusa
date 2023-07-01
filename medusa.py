@@ -559,14 +559,16 @@ class Parser(cmd2.Cmd):
         Hook a method or methods
         Usage:
         hook [options] where option can be one of the following:
-            -a [class name]: Set hooks for all the methods of the given class
-            -f              : Initiate a dialog for hooking a Java method
-            -n              : Initiate a dialog for hooking a native method
-            -r              : Reset the hooks setted so far
+            -a [class name] [--color] : Set hooks for all the methods of the given class.  
+                                        (optional) Use the --color option to set different color output 
+                                        (default is purple)
+            -f                        : Initiate a dialog for hooking a Java method
+            -n                        : Initiate a dialog for hooking a native method
+            -r                        : Reset the hooks setted so far
         """
         option = line.split(' ')[0]
         codejs = '\n'
-        if '-f' in option:
+        if option=='-f':
             className = input("Enter the full name of the method(s) class: ")
             uuid = str(int(time.time()))
 
@@ -610,16 +612,26 @@ class Parser(cmd2.Cmd):
                     print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
                     break
 
-        elif "-a" in option:
+        elif option=='-a':
             aclass = line.split(' ')[1].strip()
             if aclass == '':
                 print('[i] Usage hook -a class_name')
             else:
-                self.hookall(aclass)
-        elif '-r' in option:
+                if len(line.split(' ')) > 2:
+                    if line.split(' ')[2].strip()=='--color':
+                        collors = ['Blue','Cyan','Gray','Green','Purple','Red','Yellow']
+                        option, index = pick(collors,"Available colors:",indicator="=>",default_index=0)
+                        self.hookall(aclass,option)
+                    else:
+                        self.hookall(aclass)
+                else:
+                    self.hookall(aclass)
+        elif option=='-r':
             self.scratchreset()
-        elif '-n' in option:
+        elif option=='-n':
             self.hook_native()
+        else:
+            print("[i] Invalid option")
     
     def do_jtrace(self,line) -> None:
         """
@@ -661,7 +673,7 @@ class Parser(cmd2.Cmd):
         """
         Imports a script from a predefined directory and adds it to the scratchpad.
         Usage: 
-        import [tab] #pressing tab will show the availlable scripts.
+        import [tab] #pressing tab will show the available scripts.
         """
         try:
             with open(os.path.join(self.base_directory, 'snippets', line + '.js'), 'r') as file:
@@ -991,7 +1003,7 @@ class Parser(cmd2.Cmd):
 
     def do_show(self, what) -> None:
         """
-        Show availlable modules
+        Show available modules
         """
         try:
             if what == 'categories':
@@ -1231,15 +1243,19 @@ class Parser(cmd2.Cmd):
             print("An error occurred:", str(e))   
             return None    
 
-    def hookall(self, line) -> None:
-        aclass = line.split(' ')[0]
-        if  aclass == '':
-            print('[i] Usage: hookall [class name]')
-        else:
-            className = aclass
-            codejs = "traceClass('"+className+"');\n"
-            self.edit_scratchpad(codejs, 'a')
-            print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
+    def hookall(self, className, color='Purple') -> None:
+        codejs = "traceClass('"+className+"','"+color+"');\n"
+        self.edit_scratchpad(codejs, 'a')
+        print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
+
+        # aclass = line.split(' ')[0]
+        # if  aclass == '':
+        #     print('[i] Usage: hookall [class name]')
+        # else:
+        #     className = aclass
+        #     codejs = "traceClass('"+className+"');\n"
+        #     self.edit_scratchpad(codejs, 'a')
+        #     print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
     def frida_session_handler(self,con_device,force,pkg):
         time.sleep(1)
@@ -1439,7 +1455,7 @@ Code Cache Directory: {}
 Obb Directory: {}
 Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCacheDirectory,codeCacheDirectory,obbDir,packageCodePath)+RESET)
         else:
-            print("[!] No availlable info.")
+            print("[!] No available info.")
 
     def run_frida(self, force, detached, package_name, device)->None:
         in_session_menu = WHITE + '[in-session] |'+ GREEN + 'c:' + WHITE + 'clear |'  + GREEN + 'e:' + WHITE + 'exit |' + GREEN + 'r:' + WHITE + 'reload | \n' + '| '+ GREEN + 'rs:' + WHITE + 'reset scratchpad |' +  GREEN + 'i:' + WHITE + 'info |' + GREEN + 't:' + WHITE + 'trace  |' + GREEN +'?:'+WHITE +'help |:'+RESET

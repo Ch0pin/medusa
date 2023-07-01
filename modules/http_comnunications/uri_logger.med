@@ -3,7 +3,7 @@
     "Description": "Print URIs created by the application",
     "Help": "original script https://github.com/CreditTone/hooker/blob/master/js/url.js",
     "Code": " 
-console.log(\"\\n-----------------------https://github.com/CreditTone/hooker/blob/master/js/url.js-------------------------\\n\");
+console.log(\"\\n-----------------------https://github.com/CreditTone/hooker/blob/master/js/url.js-------------------------\");
 
 var url_g = ''
 var uriParseClz = Java.use('java.net.URI');

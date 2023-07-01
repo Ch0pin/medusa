@@ -36,7 +36,7 @@
 				SSLContext_init.call(this, keyManager, TrustManagers, secureRandom);
 			};
 		} catch (err) {
-			console.log('[-] TrustManager (Android < 7) pinner not found');
+			//console.log('[-] TrustManager (Android < 7) pinner not found');
 			//console.log(err);
 		}
 
@@ -53,7 +53,7 @@
 				return;
 			};
 		} catch (err) {
-			console.log('[-] OkHTTPv3 {1} pinner not found');
+			//console.log('[-] OkHTTPv3 {1} pinner not found');
 			//console.log(err);
 		}
 		try {
@@ -65,7 +65,7 @@
 				return;
 			};
 		} catch (err) {
-			console.log('[-] OkHTTPv3 {2} pinner not found');
+			//console.log('[-] OkHTTPv3 {2} pinner not found');
 			//console.log(err);
 		}
 		try {
@@ -76,7 +76,7 @@
 				return;
 			};
 		} catch(err) {
-			console.log('[-] OkHTTPv3 {3} pinner not found');
+			//console.log('[-] OkHTTPv3 {3} pinner not found');
 			//console.log(err);
 		}
 		try {
@@ -88,7 +88,7 @@
 				return;
 			};
 		} catch(err) {
-			console.log('[-] OkHTTPv3 {4} pinner not found');
+			//console.log('[-] OkHTTPv3 {4} pinner not found');
 			//console.log(err);
 		}
 
@@ -105,7 +105,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] Trustkit {1} pinner not found');
+			//console.log('[-] Trustkit {1} pinner not found');
 			//console.log(err);
 		}
 		try {
@@ -116,7 +116,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] Trustkit {2} pinner not found');
+			//console.log('[-] Trustkit {2} pinner not found');
 			//console.log(err);
 		}
 		try {
@@ -127,7 +127,7 @@
 				//return;
 			};
 		} catch (err) {
-			console.log('[-] Trustkit {3} pinner not found');
+			//console.log('[-] Trustkit {3} pinner not found');
 			//console.log(err);
 		}
 		
@@ -145,7 +145,7 @@
 				return array_list.$new();
 			};
 		} catch (err) {
-			console.log('[-] TrustManagerImpl (Android > 7) checkTrustedRecursive check not found');
+			//console.log('[-] TrustManagerImpl (Android > 7) checkTrustedRecursive check not found');
 			//console.log(err);
 		}  
 		try {
@@ -156,7 +156,7 @@
 				return untrustedChain;
 			};   
 		} catch (err) {
-			console.log('[-] TrustManagerImpl (Android > 7) verifyChain check not found');
+			//console.log('[-] TrustManagerImpl (Android > 7) verifyChain check not found');
 			//console.log(err);
 		}
 
@@ -173,7 +173,7 @@
 				return;
 			};
 		} catch (err) {
-			console.log('[-] Appcelerator PinningTrustManager pinner not found');
+			//console.log('[-] Appcelerator PinningTrustManager pinner not found');
 			//console.log(err);
 		}
 
@@ -189,7 +189,7 @@
 				return;
 			};
 		} catch (err) {
-			console.log('[-] Fabric PinningTrustManager pinner not found');
+			//console.log('[-] Fabric PinningTrustManager pinner not found');
 			//console.log(err);
 		}
 
@@ -204,7 +204,7 @@
 				console.log('[+] Bypassing OpenSSLSocketImpl Conscrypt {1}');
 			};
 		} catch (err) {
-			console.log('[-] OpenSSLSocketImpl Conscrypt {1} pinner not found');
+			//console.log('[-] OpenSSLSocketImpl Conscrypt {1} pinner not found');
 			//console.log(err);        
 		}
 		try {
@@ -213,7 +213,7 @@
 				console.log('[+] Bypassing OpenSSLSocketImpl Conscrypt {2}');
 			};
 		} catch (err) {
-			console.log('[-] OpenSSLSocketImpl Conscrypt {2} pinner not found');
+			//console.log('[-] OpenSSLSocketImpl Conscrypt {2} pinner not found');
 			//console.log(err);        
 		}
 
@@ -228,7 +228,7 @@
 				console.log('[+] Bypassing OpenSSLEngineSocketImpl Conscrypt: ' + b);
 			};
 		} catch (err) {
-			console.log('[-] OpenSSLEngineSocketImpl Conscrypt pinner not found');
+			//console.log('[-] OpenSSLEngineSocketImpl Conscrypt pinner not found');
 			//console.log(err);
 		}
 
@@ -243,7 +243,7 @@
 				console.log('[+] Bypassing OpenSSLSocketImpl Apache Harmony');
 			};
 		} catch (err) {
-			console.log('[-] OpenSSLSocketImpl Apache Harmony pinner not found');
+			//console.log('[-] OpenSSLSocketImpl Apache Harmony pinner not found');
 			//console.log(err);      
 		}
 
@@ -259,7 +259,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] PhoneGap sslCertificateChecker pinner not found');
+			//console.log('[-] PhoneGap sslCertificateChecker pinner not found');
 			//console.log(err);
 		}
 
@@ -276,7 +276,7 @@
 				return;
 			};
 			} catch (err) {
-			console.log('[-] IBM MobileFirst pinTrustedCertificatePublicKey {1} pinner not found');
+			//console.log('[-] IBM MobileFirst pinTrustedCertificatePublicKey {1} pinner not found');
 			//console.log(err);
 		}
 		try {
@@ -287,7 +287,7 @@
 				return;
 			};
 		} catch (err) {
-			console.log('[-] IBM MobileFirst pinTrustedCertificatePublicKey {2} pinner not found');
+			//console.log('[-] IBM MobileFirst pinTrustedCertificatePublicKey {2} pinner not found');
 			//console.log(err);
 		}
 
@@ -304,7 +304,7 @@
 				return;
 			};
 		} catch (err) {
-			console.log('[-] IBM WorkLight HostNameVerifierWithCertificatePinning {1} pinner not found');
+			//console.log('[-] IBM WorkLight HostNameVerifierWithCertificatePinning {1} pinner not found');
 			//console.log(err);
 		}
 		try {
@@ -315,7 +315,7 @@
 				return;
 			};
 		} catch (err) {
-			console.log('[-] IBM WorkLight HostNameVerifierWithCertificatePinning {2} pinner not found');
+			//console.log('[-] IBM WorkLight HostNameVerifierWithCertificatePinning {2} pinner not found');
 			//console.log(err);
 		}
 		try {
@@ -326,7 +326,7 @@
 				return;
 			};
 		} catch (err) {
-			console.log('[-] IBM WorkLight HostNameVerifierWithCertificatePinning {3} pinner not found');
+			//console.log('[-] IBM WorkLight HostNameVerifierWithCertificatePinning {3} pinner not found');
 			//console.log(err);
 		}
 		try {
@@ -337,7 +337,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] IBM WorkLight HostNameVerifierWithCertificatePinning {4} pinner not found');
+			//console.log('[-] IBM WorkLight HostNameVerifierWithCertificatePinning {4} pinner not found');
 			//console.log(err);
 		}
 
@@ -354,7 +354,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] Conscrypt CertPinManager pinner not found');
+			//console.log('[-] Conscrypt CertPinManager pinner not found');
 			//console.log(err);
 		}
 		
@@ -370,7 +370,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] Conscrypt CertPinManager (Legacy) pinner not found');
+			//console.log('[-] Conscrypt CertPinManager (Legacy) pinner not found');
 			//console.log(err);
 		}
 
@@ -386,7 +386,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] CWAC-Netsecurity CertPinManager pinner not found');
+			//console.log('[-] CWAC-Netsecurity CertPinManager pinner not found');
 			//console.log(err);
 		}
 
@@ -402,7 +402,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] Worklight Androidgap WLCertificatePinningPlugin pinner not found');
+			//console.log('[-] Worklight Androidgap WLCertificatePinningPlugin pinner not found');
 			//console.log(err);
 		}
 
@@ -419,7 +419,7 @@
 				console.log('[+] Bypassing Netty FingerprintTrustManagerFactory');
 			};
 		} catch (err) {
-			console.log('[-] Netty FingerprintTrustManagerFactory pinner not found');
+			//console.log('[-] Netty FingerprintTrustManagerFactory pinner not found');
 			//console.log(err);
 		}
 
@@ -436,7 +436,7 @@
 				return;
 			};
 		} catch (err) {
-			console.log('[-] Squareup CertificatePinner {1} pinner not found');
+			//console.log('[-] Squareup CertificatePinner {1} pinner not found');
 			//console.log(err);
 		}
 		try {
@@ -447,7 +447,7 @@
 				return;
 			};
 		} catch (err) {
-			console.log('[-] Squareup CertificatePinner {2} pinner not found');
+			//console.log('[-] Squareup CertificatePinner {2} pinner not found');
 			//console.log(err);
 		}
 
@@ -464,7 +464,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] Squareup OkHostnameVerifier check not found');
+			//console.log('[-] Squareup OkHostnameVerifier check not found');
 			//console.log(err);
 		}    
 		try {
@@ -475,7 +475,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] Squareup OkHostnameVerifier check not found');
+			//console.log('[-] Squareup OkHostnameVerifier check not found');
 			//console.log(err);
 		}
 
@@ -491,7 +491,7 @@
 				console.log('[+] Bypassing Android WebViewClient check {1}');
 			};
 		} catch (err) {
-			console.log('[-] Android WebViewClient {1} check not found');
+			//console.log('[-] Android WebViewClient {1} check not found');
 			//console.log(err)
 		}
 		try {
@@ -501,7 +501,7 @@
 				console.log('[+] Bypassing Android WebViewClient check {2}');
 			};
 		} catch (err) {
-			console.log('[-] Android WebViewClient {2} check not found');
+			//console.log('[-] Android WebViewClient {2} check not found');
 			//console.log(err)
 		}
 		try {
@@ -511,7 +511,7 @@
 				console.log('[+] Bypassing Android WebViewClient check {3}');
 			};
 		} catch (err) {
-			console.log('[-] Android WebViewClient {3} check not found');
+			//console.log('[-] Android WebViewClient {3} check not found');
 			//console.log(err)
 		}
 		try {
@@ -521,7 +521,7 @@
 				console.log('[+] Bypassing Android WebViewClient check {4}');
 			};
 		} catch (err) {
-			console.log('[-] Android WebViewClient {4} check not found');
+			//console.log('[-] Android WebViewClient {4} check not found');
 			//console.log(err)
 		}
 		
@@ -537,7 +537,7 @@
 				obj3.proceed();
 			};
 		} catch (err) {
-			console.log('[-] Apache Cordova WebViewClient check not found');
+			//console.log('[-] Apache Cordova WebViewClient check not found');
 			//console.log(err);
 		}
 
@@ -552,7 +552,7 @@
 				console.log('[+] Bypassing Boye AbstractVerifier check: ' + host);
 			};
 		} catch (err) {
-			console.log('[-] Boye AbstractVerifier check not found');
+			//console.log('[-] Boye AbstractVerifier check not found');
 			//console.log(err);
 		}
 
@@ -568,7 +568,7 @@
 				return;
 			};
 		} catch (err) {
-			console.log('[-] Apache AbstractVerifier check not found');
+			//console.log('[-] Apache AbstractVerifier check not found');
 			//console.log(err);
 		}
 
@@ -592,7 +592,7 @@
 				return cronet_obj_2;
 			};
 		} catch (err) {
-			console.log('[-] Chromium Cronet pinner not found')
+			//console.log('[-] Chromium Cronet pinner not found')
 			//console.log(err);
 		}
 
@@ -608,7 +608,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] Flutter HttpCertificatePinning pinner not found');
+			//console.log('[-] Flutter HttpCertificatePinning pinner not found');
 			//console.log(err);
 		}
 		try {
@@ -619,7 +619,7 @@
 				return true;
 			};
 		} catch (err) {
-			console.log('[-] Flutter SslPinningPlugin pinner not found');
+			//console.log('[-] Flutter SslPinningPlugin pinner not found');
 			//console.log(err);
 		}
 

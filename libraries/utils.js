@@ -8,6 +8,9 @@ var requestBody = "";
 var responseHeaders = "";
 var responseBody = "";
 
+function log(str) {
+  console.log(str);
+};
 const jni_struct_array = [
   "reserved0",
   "reserved1",
@@ -262,9 +265,30 @@ function enumerateModules(){
 function getApplicationContext(){
 	return Java.use('android.app.ActivityThread').currentApplication().getApplicationContext();
 }
+function countElements(arr) {
+  var counts = {};
+
+  // Iterate over the array elements
+  for (var i = 0; i < arr.length; i++) {
+    var element = arr[i];
+
+    // Check if the element is already a key in the counts object
+    if (counts[element]) {
+      // Increment the count for the element
+      counts[element]++;
+    } else {
+      // Initialize the count for the element
+      counts[element] = 1;
+    }
+  }
+
+  return counts;
+}
+
 function traceClass(targetClass,color='Purple')
 {
-  console.log("\n[?] Hooking methods of "+targetClass)
+
+  console.log('\x1b[43m\x1b[31m[?] Hooking methods of '+ targetClass +'\x1b[0m\n');
 	var hook = Java.use(targetClass);
 	var methods = hook.class.getDeclaredMethods();
 	hook.$dispose();
@@ -276,13 +300,21 @@ function traceClass(targetClass,color='Purple')
 		catch(err){}
 	});
 	var targets = uniqBy(parsedMethods, JSON.stringify);
-  console.log('Hooks: ('+parsedMethods.length+') => '+parsedMethods)
+  var result = '';
+
+  for (var key in parsedMethods){
+    result += parsedMethods[key] + " (" + key + ") ";
+  }
+
+  console.log('Hooks '+parsedMethods.length+', (method name, number of overloads) => '+result)
+
 	targets.forEach(function(targetMethod) {
 		try{
 			traceMethod(targetClass + "." + targetMethod,color);
 		}
 		catch(err){}
 	});
+  console.log();
 }
 function uniqBy(array, key){
         var seen = {};
@@ -607,9 +639,6 @@ var startTime = timestamp;
   str += ("------------endFlag:" + invokeId + ",usedtime:" + (new Date().getTime() - startTime) +"---------------\n");
 console.log(str);
 };
-function log(str) {
-  console.log(str);
-};
 function tryGetClass(className){
   var clz = undefined;
   try {
@@ -617,7 +646,6 @@ function tryGetClass(className){
   } catch(e) {}
   return clz;
 }
-
 function newMethodBeat(text, executor) {
   var threadClz = Java.use("java.lang.Thread");
   // var androidLogClz = Java.use("android.util.Log");
@@ -633,7 +661,6 @@ function newMethodBeat(text, executor) {
   //beat.stackInfo = androidLogClz.getStackTraceString(exceptionClz.$new()).substring(20);
   return beat;
 };
-
 function printBeat(beat) {
   colorLog(beat.text,{c:Color.Gray});
 };

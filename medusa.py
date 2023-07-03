@@ -47,7 +47,6 @@ class Parser(cmd2.Cmd):
             allow_cli_args=False
         )
 
-
     def refreshPackages(self):
         self.packages = []
         for line in os.popen('adb -s {} shell pm list packages'.format(self.device.id)):
@@ -120,7 +119,6 @@ class Parser(cmd2.Cmd):
 
  Type help for options\n\n""", fg=(204, 255, 204),bold=True)
         self.do_loaddevice("dummy")
-
 
 ###################################################### do_ defs start ############################################################
 

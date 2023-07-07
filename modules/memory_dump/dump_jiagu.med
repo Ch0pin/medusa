@@ -1,0 +1,100 @@
+{
+    "Name": "memory_dump/dump_jiagu",
+    "Description": "Unpacker (legu:libshella-2.8.so, 360:libjiagu.so )",
+    "Help": "original script: https://github.com/dstmath/frida-unpack",
+    "Code": "
+
+function get_self_process_name() {
+    var openPtr = Module.getExportByName('libc.so', 'open');
+    var open = new NativeFunction(openPtr, 'int', ['pointer', 'int']);
+
+    var readPtr = Module.getExportByName(\"libc.so\", \"read\");
+    var read = new NativeFunction(readPtr, \"int\", [\"int\", \"pointer\", \"int\"]);
+
+    var closePtr = Module.getExportByName('libc.so', 'close');
+    var close = new NativeFunction(closePtr, 'int', ['int']);
+
+    var path = Memory.allocUtf8String(\"/proc/self/cmdline\");
+    var fd = open(path, 0);
+    if (fd != -1) {
+        var buffer = Memory.alloc(0x1000);
+
+        var result = read(fd, buffer, 0x1000);
+        close(fd);
+        result = ptr(buffer).readCString();
+        return result;
+    }
+
+    return \"-1\";
+}
+
+
+function mkdir(path) {
+    var mkdirPtr = Module.getExportByName('libc.so', 'mkdir');
+    var mkdir = new NativeFunction(mkdirPtr, 'int', ['pointer', 'int']);
+
+
+
+    var opendirPtr = Module.getExportByName('libc.so', 'opendir');
+    var opendir = new NativeFunction(opendirPtr, 'pointer', ['pointer']);
+
+    var closedirPtr = Module.getExportByName('libc.so', 'closedir');
+    var closedir = new NativeFunction(closedirPtr, 'int', ['pointer']);
+
+    var cPath = Memory.allocUtf8String(path);
+    var dir = opendir(cPath);
+    if (dir != 0) {
+        closedir(dir);
+        return 0;
+    }
+    mkdir(cPath, 755);
+    chmod(path);
+}
+
+function chmod(path) {
+    var chmodPtr = Module.getExportByName('libc.so', 'chmod');
+    var chmod = new NativeFunction(chmodPtr, 'int', ['pointer', 'int']);
+    var cPath = Memory.allocUtf8String(path);
+    chmod(cPath, 755);
+}
+
+function dump_jiagu(){
+    Interceptor.attach(Module.findExportByName('libdexfile.so', '_ZN3art13DexFileLoader10OpenCommonEPKhjS2_jRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPKNS_10OatDexFileEbbPS9_NS3_10unique_ptrINS_16DexFileContainerENS3_14default_deleteISH_EEEEPNS0_12VerifyResultE'), {
+        onEnter: function (args) {
+
+            var begin = args[1]
+            
+            console.log('magic : ' + Memory.readUtf8String(begin))
+        
+            var address = parseInt(begin,16) + 0x20
+
+            var dex_size = Memory.readInt(ptr(address))
+
+            console.log('dex_size :' + dex_size)
+            var process_name = get_self_process_name();
+
+            if (process_name != \"-1\") {
+                var dex_dir_path = \"/data/data/\" + process_name + \"/files/dump_dex_\" + process_name;
+                mkdir(dex_dir_path);
+                var file = new File(dex_dir_path + \"/\" + dex_size + \".dex\", \"wb\")
+                file.write(Memory.readByteArray(begin, dex_size))
+                file.flush()
+                file.close()
+            }
+            console.log('Base: '+parseInt(begin,16));
+            console.log('Size: '+dex_size);
+        },
+        onLeave: function (retval) {
+            if (retval.toInt32() > 0) {
+            }
+        }
+    });
+}
+
+waitForModules('libdexfile.so').then((lib) => {
+    logger(`[*][+] Found ${lib.name} at: ${lib.base}`)
+    dump_jiagu();
+
+});
+"
+}

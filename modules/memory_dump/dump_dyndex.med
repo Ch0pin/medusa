@@ -1,5 +1,5 @@
 {
-    "Name": "code_loading/dump_dyndex",
+    "Name": "memory_dump/dump_dyndex",
     "Description": "Dumps DEX files loaded via DexClassLoader/PathClassLoader/DelegateLastClassLoader/InMemoryDexClassLoader. The other dump_dex script will dump any DEX in memory including the current DEX. Malicious payloads are usually rather loaded dynamically",
     "Help": "original script: https://github.com/cryptax/misc-code/blob/master/frida_hooks/dex-dump.js",
     "Code": 

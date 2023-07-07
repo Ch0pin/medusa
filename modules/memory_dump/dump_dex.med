@@ -1,5 +1,5 @@
 {
-    "Name": "code_loading/dump_dex",
+    "Name": "memory_dump/dump_dex",
     "Description": "use this module to dump the dex files from the application's memory",
     "Help": "original script: https://github.com/CreditTone/hooker/blob/master/js/dump_dex.js",
     "Code": "

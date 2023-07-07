@@ -91,7 +91,7 @@ function dump_jiagu(){
     });
 }
 
-waitForModules('libdexfile.so').then((lib) => {
+waitForModule('libdexfile.so').then((lib) => {
     logger(`[*][+] Found ${lib.name} at: ${lib.base}`)
     dump_jiagu();
 

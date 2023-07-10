@@ -793,10 +793,13 @@ class Parser(cmd2.Cmd):
                 self.init_packages()
             elif options == 1 and line.split()[0] not in ['-a','-s','-3']:
                 package = line.split()[0]
-                dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
-                print('- package info -')
-                for ln in dumpsys:
-                    print(ln,end='')
+                if package in self.packages:
+                    dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
+                    print('- package info -')
+                    for ln in dumpsys:
+                        print(ln,end='')
+                else:
+                    print('Invalid package')
             elif options == 2 and line.split()[1] == 'path':
                 package = line.split()[0]
                 dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
@@ -816,20 +819,6 @@ class Parser(cmd2.Cmd):
             else:
                 print("Invalid option, use 'help list for options'")
 
-
-        # else:
-        #     try:    
-        #         package = line.split()[0]
-        #         option = line.split()[1]
-        #         dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
-        #         if option == "path":
-        #             print('-'*20+package+' '+"paths"+'-'*20)
-        #             for ln in dumpsys:
-        #                 for keyword in ["resourcePath","codePath","legacyNativeLibraryDir","primaryCpuAbi"]:
-        #                     if keyword in ln:
-        #                         print(ln,end='')
-
-        #         print("-"*31+'EOF'+'-'*len(package)+'-'*12)
         except Exception as e:
             print(e)
 

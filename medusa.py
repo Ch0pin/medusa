@@ -41,15 +41,31 @@ class Parser(cmd2.Cmd):
     currentPackage = None
     libname = None
     modManager = ModuleManager()
+    package_range = ''
 
     def __init__(self):
         super().__init__(
             allow_cli_args=False
         )
 
-    def refreshPackages(self):
+    def refreshPackages(self, option=""):
+
+    #   -a: all known packages (but excluding APEXes)
+    #   -s: filter to only show system packages
+    #   -3: filter to only show third party packages
+
+        if option == '-a':
+            self.package_range = ' all known packages (but excluding APEXes) '
+        elif option == '-s':
+            self.package_range = ' system packages '
+        elif option == '-3':
+            self.package_range = ' third party packages '
+        else:
+            self.package_range = ' all known packages (including APEXes) '
+
+
         self.packages = []
-        for line in os.popen('adb -s {} shell pm list packages'.format(self.device.id)):
+        for line in os.popen('adb -s {} shell pm list packages {}'.format(self.device.id,option)):
             self.packages.append(line.split(':')[1].strip('\n'))
 
     def preloop(self):
@@ -531,7 +547,7 @@ class Parser(cmd2.Cmd):
                         - shell                     : Open an interactive shell
                 ----------------------------------------------------------------------------------------------------
                         - dump [package_name]       : Dump the requested package name (works for most unpackers)
-                        - list                      : List 3rd party packages
+                        - list [-a, -s, -3]         : List all, system or 3rd party packages
                         - list 'package_name' path  : List data/app paths of 3rd party packages
                         - loaddevice                : Load or reload a device
                         - reload [-r recipe]        : Reload the modules. Use -r to load a recipe (see export command)
@@ -568,6 +584,7 @@ class Parser(cmd2.Cmd):
         codejs = '\n'
         if option=='-f':
             className = input("Enter the full name of the method(s) class: ")
+            class_uuid = str(int(time.time()))
             uuid = str(int(time.time()))
 
             codejs = """let hook_"""+uuid+""" = Java.use('""" + className + """');"""
@@ -576,12 +593,13 @@ class Parser(cmd2.Cmd):
 
             while (True):
                 try:
+                    
                     codejs += """
-                    let overloadCount_"""+uuid+""" = hook_"""+uuid+"""['""" + functionName + """'].overloads.length;
-                    colorLog("Tracing " +'""" + functionName + """' + " [" + overloadCount_"""+uuid+""" + " overload(s)]",{ c: Color.Green });
+                    let overloadCount_"""+uuid+""" = hook_"""+class_uuid+"""['""" + functionName + """'].overloads.length;
+                    colorLog("\\nTracing " +'""" + functionName + """' + " [" + overloadCount_"""+uuid+""" + " overload(s)]",{ c: Color.Green });
                         
                         for (let i = 0; i < overloadCount_"""+uuid+"""; i++) {
-                            hook_"""+uuid+"""['""" + functionName + """'].overloads[i].implementation = function() {
+                            hook_"""+class_uuid+"""['""" + functionName + """'].overloads[i].implementation = function() {
                             colorLog("*** entered " +'""" + functionName + """',{ c: Color.Green });"""
                     if enable_backtrace:
                         codejs+="""
@@ -604,6 +622,8 @@ class Parser(cmd2.Cmd):
                     """
                     print('[+] Method: {} hook added !'.format(functionName))
                     functionName = input("Enter a method name (CTRL+C to Exit): ")
+                    enable_backtrace =  Polar('Enable backtrace?', False).ask()
+                    uuid = str(int(time.time()))
 
                 except KeyboardInterrupt:
                     self.edit_scratchpad(codejs, 'a')
@@ -748,25 +768,72 @@ class Parser(cmd2.Cmd):
 
     def do_list(self,line) -> None:
         """
-        List installed 3rd party applications of the android device 
-        """
-        if len(line.split()) == 0:
-            self.init_packages()
-        else:
-            try:    
-                package = line.split()[0]
-                option = line.split()[1]
-                dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
-                if option == "path":
-                    print('-'*20+package+' '+"paths"+'-'*20)
-                    for ln in dumpsys:
-                        for keyword in ["resourcePath","codePath","legacyNativeLibraryDir","primaryCpuAbi"]:
-                            if keyword in ln:
-                                print(ln,end='')
+        Set the currently working package set / get infor about an installed package
+        list [opt]
+        Where opt:
+            -a: all known packages (but excluding APEXes)
+            -s: filter to only show system packages
+            -3: filter to only show third party packages
+        
+        Get info about a package:
 
-                print("-"*31+'EOF'+'-'*len(package)+'-'*12)
-            except Exception as e:
-                print(e)
+        list package_name [path]
+        - Use the option path argument to return the application's installation path
+
+        Examples:
+
+        list com.example.app
+        list com.example.app path
+        list -3
+
+        """
+
+        try:
+            options = len(line.split()) 
+            
+            if options == 0:
+                self.init_packages()
+            elif options == 1 and line.split()[0] not in ['-a','-s','-3']:
+                package = line.split()[0]
+                dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
+                print('- package info -')
+                for ln in dumpsys:
+                    print(ln,end='')
+            elif options == 2 and line.split()[1] == 'path':
+                package = line.split()[0]
+                dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
+                print('-'*20+package+' '+"paths"+'-'*20)
+                for ln in dumpsys:
+                    for keyword in ["resourcePath","codePath","legacyNativeLibraryDir","primaryCpuAbi"]:
+                        if keyword in ln:
+                            print(ln,end='')
+            elif options == 1:
+                opt = line.split()[0]
+                if opt == '-a':
+                    self.init_packages('-a')
+                elif opt == '-s':
+                    self.init_packages('-s')
+                elif opt == '-3':
+                    self.init_packages('-3')
+            else:
+                print("Invalid option, use 'help list for options'")
+
+
+        # else:
+        #     try:    
+        #         package = line.split()[0]
+        #         option = line.split()[1]
+        #         dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
+        #         if option == "path":
+        #             print('-'*20+package+' '+"paths"+'-'*20)
+        #             for ln in dumpsys:
+        #                 for keyword in ["resourcePath","codePath","legacyNativeLibraryDir","primaryCpuAbi"]:
+        #                     if keyword in ln:
+        #                         print(ln,end='')
+
+        #         print("-"*31+'EOF'+'-'*len(package)+'-'*12)
+        except Exception as e:
+            print(e)
 
     def do_load(self,line) -> None:
         """
@@ -796,6 +863,7 @@ class Parser(cmd2.Cmd):
         except:
             self.device = frida.get_remote_device()
         finally:
+            #lets start by loading all packages and let the user to filter them out 
             self.init_packages()    
 
     def do_memops(self,line) -> None:
@@ -1371,9 +1439,9 @@ catch (err) {
         self.edit_scratchpad(codejs, 'a')
         print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
-    def init_packages(self) -> None:
-        self.refreshPackages()
-        print('\nInstalled packages:\n')
+    def init_packages(self,option="") -> None:
+        self.refreshPackages(option)
+        click.secho(f'\n{self.package_range}:\n',fg='green')
         for i in range(len(self.packages)):
             print('[{}] {}'.format(i, self.packages[i]))
 

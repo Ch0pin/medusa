@@ -623,6 +623,8 @@ $adb remount
             print("Extracting: "+base_apk)
             output = os.popen("adb -s {} pull {}".format(self.device.id,base_apk,package)).read()
             print(output)
+            if Polar('Do you want to import the application?').ask():
+                self.do_import('base.apk')
         except Exception as e:
             print(e)
 

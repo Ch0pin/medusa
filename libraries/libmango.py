@@ -37,7 +37,7 @@ REVERSE = "\033[;7m"
 BUSSY_BOX_URL = "https://busybox.net/downloads/binaries/1.31.0-defconfig-multiarch-musl/"
 
 HELP_MESSAGE ="\nSYNOPSIS:"+"""
-    mango>[command] <parameters> <flags> """ +"""
+    mango➤[command] <parameters> <flags> """ +"""
 
 DESCRIPTION """+"""
 
@@ -165,7 +165,7 @@ class parser(cmd2.Cmd):
     NO_APP_LOADED_MSG = "[i] No application is loaded, type 'import /path/to/foo.apk' to load one"
     
     base_directory = os.path.dirname(__file__)
-    prompt = Fore.BLUE +Style.BRIGHT +'mango> '+Fore.RESET+Style.RESET_ALL
+    prompt = Fore.BLUE +Style.BRIGHT +'mango➤'+Fore.RESET+Style.RESET_ALL
     current_app_sha256 = None
     database =None
     guava = None

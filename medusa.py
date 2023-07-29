@@ -950,24 +950,38 @@ class Parser(cmd2.Cmd):
 
         Options:
 
-        run [package name]      : Initiate a Frida session and attach to the selected package
-        run -f [package name]   : Initiate a Frida session and spawn the selected package
-        run -n [package number] : Initiate a Frida session and spawn the 3rd party package using its index returned by the 'list' command
+        run [package name]       : Initiate a Frida session and attach to the selected package
+             -f [package name]   : Initiate a Frida session and spawn the selected package
+             -n [package number] : Initiate a Frida session and spawn the 3rd party package using its index returned by the 'list' command
+             -p [pid]            : Initiate a Frida session using a process id
         """
         try:
             if self.modified:
                 if Polar('Module list has been modified, do you want to recompile?').ask():
                     self.do_compile(line)
- 
             flags = line.split(' ')
             length = len(flags)
+
             if length == 1:
-                self.run_frida(False, False, line, self.device)
+                if flags[0] == '-p':
+                    runing_processes = os.popen("""adb -s {} shell 'echo "ps -A" | su'""".format(self.device.id)).read().strip().split('\n')
+                    title = "Running processes: "
+                    option, index = pick(runing_processes,title,indicator="=>",default_index=0)
+                    click.echo(click.style(option,bg='blue', fg='white'))
+                    pattern = r'\b\d+\b'
+                    get_pid = re.findall(pattern, option)
+
+                    self.run_frida(False,False,'',self.device,get_pid[0])
+
+                   
+                else: 
+                    self.run_frida(False, False, line, self.device)
+            
             elif length == 2:
                 
-                if '-f' in flags[0]:
+                if flags[0] == '-f':
                     self.run_frida(True, False, flags[1], self.device)
-                elif '-n' in flags[0]:
+                elif flags[0] == '-n':
                     try:
                         if len(self.packages) == 0:
                             self.refreshPackages()
@@ -977,7 +991,8 @@ class Parser(cmd2.Cmd):
                         self.run_frida(True, False, package_name, self.device)
                     except (IndexError, TypeError) as error:
                         print('Invalid package number')
-
+                elif flags[0] == '-p':
+                    self.run_frida(False,False,'',self.device,flags[1])
                 else:
                     print('Invalid flag given!')
 
@@ -1292,10 +1307,13 @@ class Parser(cmd2.Cmd):
         #     self.edit_scratchpad(codejs, 'a')
         #     print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
-    def frida_session_handler(self,con_device,force,pkg):
+    def frida_session_handler(self,con_device,force,pkg,pid=-1):
         time.sleep(1)
         if force == False:
-            self.pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+            if pid == -1:
+                self.pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+            else:
+                self.pid = pid
             #pid = con_device.attach(self.pid) 
             if self.pid == '':
                 print("[+] Could not find process with this name.")
@@ -1492,11 +1510,11 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
         else:
             print("[!] No available info.")
 
-    def run_frida(self, force, detached, package_name, device)->None:
+    def run_frida(self, force, detached, package_name, device,pid=-1)->None:
         in_session_menu = WHITE + '[in-session] |'+ GREEN + 'c:' + WHITE + 'clear |'  + GREEN + 'e:' + WHITE + 'exit |' + GREEN + 'r:' + WHITE + 'reload | \n' + '| '+ GREEN + 'rs:' + WHITE + 'reset scratchpad |' +  GREEN + 'i:' + WHITE + 'info |' + GREEN + 't:' + WHITE + 'trace  |' + GREEN +'?:'+WHITE +'help |:'+RESET
         creation_time = modified_time = None
         self.detached = False
-        session = self.frida_session_handler(device,force,package_name)
+        session = self.frida_session_handler(device,force,package_name,pid)
         try:
             creation_time = self.modification_time(os.path.join(self.base_directory, "agent.js"))
             with open(os.path.join(self.base_directory, "agent.js")) as f:

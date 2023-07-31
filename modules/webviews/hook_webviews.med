@@ -74,8 +74,8 @@ function dumpWebview(wv){
     highlight('     Allows Content Access: ',wv.getSettings().getAllowContentAccess());
     highlight('     Allows Javascript execution: ',wv.getSettings().getJavaScriptEnabled());
     highlight('     Allows File Access: ',wv.getSettings().getAllowFileAccess());
-    highlight('     Allows File Access From URLs: ',wv.getSettings().getAllowFileAccessFromFileURLs());
-    highlight('     Allows Universal Access from file URLs: ',wv.getSettings().getAllowUniversalAccessFromFileURLs());
+    highlight('     Allows File Access From File URLs: ',wv.getSettings().getAllowFileAccessFromFileURLs());
+    highlight('     Allows Universal Access from File URLs: ',wv.getSettings().getAllowUniversalAccessFromFileURLs());
     colorLog('[i] -------- Dumping webview settings EOF -------',{c:Color.Blue});
 
 }

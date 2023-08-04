@@ -7,3 +7,4 @@ requests
 urllib3
 google-trans-new
 pick
+PyYAML

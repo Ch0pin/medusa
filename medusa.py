@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import subprocess, platform, os, sys, readline, time, argparse,requests,re
 from urllib.parse import urlparse
-import cmd2, click, frida,random
+import cmd2, click, frida,random,yaml
 from libraries.dumper import dump_pkg
 from google_trans_new import google_translator  
 from libraries.natives import *
@@ -136,70 +136,6 @@ class Parser(cmd2.Cmd):
         """Usage: c [shell command]
         Run a shell command on the local host."""
         subprocess.run(line, shell=True)
-
-    def do_c2check(self, line) -> None:
-        """Usage: c2check [package name]
-        Searches the application's memory for C2 addresses"""      
-        try:
-            pkg = line.split(' ')[0]
-            click.secho('Starting app:'.format(pkg), fg = 'green')
-            os.popen("adb -s {} shell  monkey -p {} -c 'android.intent.category.LAUNCHER 1'".format(self.device.id,pkg)).read()
-            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
-           
-            if pid == "":
-                click.secho("Can't find pid !",fg='red')
-                return
-            elif len(pid.split(' ')) > 1:
-                option, index = pick(pid.split(' '),"More than one processes found running with that name:",indicator="=>",default_index=0)
-                pid = option
-            else:
-                 click.secho('Process pid:{}'.format(pid),fg='green')
-
-            maps = os.popen("""adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().split('\n')
-            for linein in maps:
-                if 'dalvik-main space' in linein:
-                    range1 = int(linein.split(' ')[0].split('-')[0],16)
-                    range2 = int(linein.split(' ')[0].split('-')[1],16)
-                    sz = range2 - range1
-                    print('Starting addres: {}, size: {}'.format(hex(range1),range2-range1))
-                    self.native_handler = nativeHandler(self.device)
-                    self.native_handler.memraw(pkg + ' ' + pid + ' ' + hex(range1) + ' ' + str(sz),True)
-
-            hosts = []
-            output = []
-            all_strings=[]
-            script_path = os.path.abspath(__file__)
-            script_dir = os.getcwd()
-            dump_dir = script_dir+os.path.sep+'dump'+os.path.sep+pkg
-            for filename in os.listdir(dump_dir):
-                file_path = os.path.join(dump_dir, filename)
-                if os.path.isfile(file_path):
-                    cmd = "strings {}".format(file_path)
-                    result = subprocess.run(cmd,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    if result.returncode == 0:
-                        output = result.stdout.decode().strip().split('\n')
-                        for entry in output:
-                            all_strings.append(entry)
-                            if self.is_valid_url(entry):
-                               hosts.append(urlparse(entry).netloc)
-
-            hosts = list(dict.fromkeys(hosts))
-            whitelist = script_dir+os.path.sep+'whitelist.txt'
-            whitelist_urls = []
-            if os.path.isfile(whitelist):
-                with open(whitelist,'r') as file:
-                    whitelist_urls = file.readlines()
-
-            whitelist_urls_strip=[x.strip() for x in whitelist_urls]
-            hosts =[x for x in hosts if not any(y in x for y in whitelist_urls_strip)]
-
-            click.secho('Scanning for web addresses',fg='yellow')
-            self.check_using_vt(hosts,script_dir+os.path.sep+'vt.key')
-            click.secho('Scanning for secrets',fg='yellow')
-            self.scan_for_secrets(list(dict.fromkeys(all_strings)))
-            
-        except Exception as e:
-            print(e) 
 
     def do_cc(self, line) -> None:
         """
@@ -844,6 +780,105 @@ class Parser(cmd2.Cmd):
         self.native_handler = nativeHandler(self.device)
         self.native_handler.memops(line)
 
+    def do_memscan(self,line) ->None:
+        """Usage: memscan [option] package_name [nuclei template(s) (file or path)]
+        Where option:
+        -c2                                         scan the application's memory for c2 addresses using virus total database (need vt api key)
+        -s                                          scan for secrets using regex entries from /medusa/sigs.json
+        -nt  package_name /path/to/template(s)      scan for secrets using a nuclei template
+        -a                                          perform all scans
+        """
+        try:
+
+            if len(line.split(' ')) < 2:
+                print("Invalid parameters given, type 'help memscan' for options")
+                return
+            
+            if line.split(' ')[0] not in ['-c2','-s','-nt','-a']:
+                print(f"No such an optiion {line.split(' ')[0]}. Type 'help memscan for help")
+                return
+            
+            pkg = line.split(' ')[1]
+            click.secho('Starting the app:'.format(pkg), fg = 'green')
+            os.popen("adb -s {} shell  monkey -p {} -c 'android.intent.category.LAUNCHER 1'".format(self.device.id,pkg)).read()
+            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+           
+            if pid == "":
+                click.secho("Can't find pid !",fg='red')
+                return
+            elif len(pid.split(' ')) > 1:
+                option, index = pick(pid.split(' '),"More than one processes found running with that name:",indicator="=>",default_index=0)
+                pid = option
+            else:
+                 click.secho('Process pid:{}'.format(pid),fg='green')
+
+            maps = os.popen("""adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().split('\n')
+            for linein in maps:
+                if 'dalvik-main space' in linein:
+                    range1 = int(linein.split(' ')[0].split('-')[0],16)
+                    range2 = int(linein.split(' ')[0].split('-')[1],16)
+                    sz = range2 - range1
+                    print('Starting addres: {}, size: {}'.format(hex(range1),range2-range1))
+                    self.native_handler = nativeHandler(self.device)
+                    self.native_handler.memraw(pkg + ' ' + pid + ' ' + hex(range1) + ' ' + str(sz),True)
+
+            hosts = []
+            output = []
+            all_strings=[]
+            script_path = os.path.abspath(__file__)
+            script_dir = os.getcwd()
+            dump_dir = script_dir+os.path.sep+'dump'+os.path.sep+pkg
+            for filename in os.listdir(dump_dir):
+                file_path = os.path.join(dump_dir, filename)
+                if os.path.isfile(file_path):
+                    cmd = "strings {}".format(file_path)
+                    result = subprocess.run(cmd,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    if result.returncode == 0:
+                        output = result.stdout.decode().strip().split('\n')
+                        for entry in output:
+                            all_strings.append(entry)
+                            if self.is_valid_url(entry):
+                               hosts.append(urlparse(entry).netloc)
+
+            hosts = list(dict.fromkeys(hosts))
+            whitelist = script_dir+os.path.sep+'whitelist.txt'
+            whitelist_urls = []
+            if os.path.isfile(whitelist):
+                with open(whitelist,'r') as file:
+                    whitelist_urls = file.readlines()
+
+            whitelist_urls_strip=[x.strip() for x in whitelist_urls]
+            hosts =[x for x in hosts if not any(y in x for y in whitelist_urls_strip)]
+
+            opt = line.split(' ')[0] 
+
+            if opt == '-c2':
+                click.secho('Scanning for web addresses',fg='yellow')
+                self.check_using_vt(hosts,script_dir+os.path.sep+'vt.key')
+            elif opt == '-s':
+                click.secho('Scanning for secrets',fg='yellow')
+                self.scan_for_secrets(list(dict.fromkeys(all_strings)))
+            elif opt == '-nt':
+                if len(line.split(' ')) != 3:
+                    print('This option requires a path to the template(s)')
+                    return
+                self.scan_using_nuclei_template(list(dict.fromkeys(all_strings)),line.split(' ')[2])
+            elif opt == '-a':
+                click.secho('Performing all availlable scans...',fg='yellow')
+                click.secho('Scanning for web addresses',fg='yellow')
+                self.check_using_vt(hosts,script_dir+os.path.sep+'vt.key')
+                click.secho('Scanning for secrets',fg='yellow')
+                self.scan_for_secrets(list(dict.fromkeys(all_strings)))
+            else:
+                print("No such option...")
+                return
+
+            
+        except Exception as e:
+            print(e) 
+
+        return
+
     def do_memmap(self,line) -> None:
         """
         READ process memory
@@ -1162,7 +1197,7 @@ class Parser(cmd2.Cmd):
 ###################################################### do_ defs end ############################################################
 
 ###################################################### complete_ defs start ############################################################
-    def complete_c2check(self, text, line, begidx, endidx) -> list:
+    def complete_memscan(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
     
     def complete_dump(self, text, line, begidx, endidx) -> list:
@@ -1681,6 +1716,65 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                 print(f'{result}')             
         except Exception as e:
             print(e)
+
+    def scan_using_nuclei_template(self,string_list,path_to_templates):
+        found = False
+        if os.path.isfile(path_to_templates):
+            entries =json.loads(self.yaml_to_json(path_to_templates))
+            found = self.scan_do_scan(string_list,entries)
+
+        elif os.path.isdir(path_to_templates):
+          
+            for root, dirs, files in os.walk(path_to_templates):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    #print(f'- Checking: {file_path}')
+                    if os.path.isfile(file_path):
+                        entries = json.loads(self.yaml_to_json(file_path))
+                        found = self.scan_do_scan(string_list,entries)
+        else:
+            print(f"{path_to_templates} is neither a file nor a directory.")
+            return
+        
+        if not found:
+            click.secho("[!] No matches found.")
+
+
+    def scan_do_scan(self,string_list,entries):
+        found = False
+        try:
+            id_value = entries['id']
+            severity_value = entries['info']['severity']
+            regexes = entries['file'][0]['extractors'][0]['regex']
+            for regex in regexes:
+                for entry in string_list:
+                    matches = re.findall(regex,entry)
+                    if matches:
+                        found = True
+                        for match in matches:
+                            click.secho(f'[+] Match found for {id_value}',fg='white',bg='red')
+                            click.secho(f'  \_[+] Severity: {severity_value}',fg='red')
+                            click.secho(f'  \_[+] Match value: {id_value}: {match}',fg='red')
+            return found              
+        except Exception as e:
+            print(f'Error while parsing the json data:{e}')
+            return found
+
+    def yaml_to_json(self,yaml_file):
+        # Read the YAML file
+        try:
+            with open(yaml_file, 'r') as file:
+                yaml_data = file.read()
+
+            # Load the YAML data
+            data = yaml.safe_load(yaml_data)
+
+            # Convert it to JSON
+            json_data = json.dumps(data, indent=2)
+            return json_data
+        except Exception as e:
+            print(f"Error converting YAML to JSON: {e}")
+            return None
 
     def write_recipe(self,filename) -> None:
         try:

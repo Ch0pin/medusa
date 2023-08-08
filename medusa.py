@@ -799,10 +799,13 @@ class Parser(cmd2.Cmd):
                 return
             
             pkg = line.split(' ')[1]
-            click.secho('Starting the app:'.format(pkg), fg = 'green')
-            os.popen("adb -s {} shell  monkey -p {} -c 'android.intent.category.LAUNCHER 1'".format(self.device.id,pkg)).read()
             pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
-           
+
+            if pid == "":
+                click.secho('Trying to start the app:'.format(pkg), fg = 'green')
+                os.popen("adb -s {} shell  monkey -p {} -c 'android.intent.category.LAUNCHER 1'".format(self.device.id,pkg)).read()
+                pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+
             if pid == "":
                 click.secho("Can't find pid !",fg='red')
                 return

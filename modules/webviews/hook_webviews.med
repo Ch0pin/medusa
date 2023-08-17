@@ -9,6 +9,20 @@
 var webView = Java.use('android.webkit.WebView');
 var webSettings = Java.use('android.webkit.WebSettings');
 
+let overloadCount_1691770814 = webView['$init'].overloads.length;
+  colorLog('\\nTracing ' +'$init' + ' [' + overloadCount_1691770814 + 'overload(s)]',{ c: Color.Green });
+
+    for (let i = 0; i < overloadCount_1691770814; i++) {
+      webView['$init'].overloads[i].implementation = function() {
+      colorLog('[i] Entering Webview.' +'$init',{ c: Color.Green });
+        this.setWebContentsDebuggingEnabled(true);
+        if (arguments.length) console.log();
+        
+        let retval = this['$init'].apply(this, arguments);
+        colorLog('[i] exiting Webview.' + '$init',{ c: Color.Green });
+        return retval;
+  }
+}
 
 webSettings.setAllowContentAccess.implementation = function(allow){
     console.log('[+] Content Access set to:' + allow);
@@ -36,9 +50,6 @@ webSettings.setJavaScriptEnabled.implementation = function(allow){
     return this.setJavaScriptEnabled(allow);
 
 }
-
-
-
 
 webView.setVisibility.implementation = function(a){
     if(a == 2){
@@ -113,17 +124,12 @@ webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,
 webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
     console.log('[i] Loading URL: ' + url);
     dumpWebview(this);
-    this.setWebContentsDebuggingEnabled(true);
-
     this.loadUrl(url,additionalHttpHeaders);
 }
-
 
 webView.loadUrl.overload('java.lang.String').implementation = function(url){
     console.log('[i] Loading URL:' + url);
     dumpWebview(this);
-    this.setWebContentsDebuggingEnabled(true);
-
     this.loadUrl(url);
 }
 

@@ -1384,14 +1384,14 @@ class Parser(cmd2.Cmd):
         number_of_args = Numeric('Number of arguments (enter 0 to disable logging):', lbound=0).ask()
         backtraceEnable = Polar('Do you want to log the stack trace:', False).ask()
         hexdumpEnable = Polar('Do you want to dump the address pointed by the return value:', False).ask()
-
+        uuid = str(int(time.time()))
         header = "console.log('[*][*] Waiting for "+library+" ...');\n"
         header+="waitForModule('" +library+"').then((lib) => {"
         header+="""
             console.log(`[*][+] Found library at: ${ lib.base }`)
-            hook_any_native_func();
+            hook_any_native_func_"""+uuid+"""();
         });\n
-        function hook_any_native_func(){
+        function hook_any_native_func()"""+uuid+"""{
         """
         argread = ''
 
@@ -1734,7 +1734,8 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                     #print(f'- Checking: {file_path}')
                     if os.path.isfile(file_path):
                         entries = json.loads(self.yaml_to_json(file_path))
-                        found = self.scan_do_scan(string_list,entries)
+                        if self.scan_do_scan(string_list,entries):
+                            found = True
         else:
             print(f"{path_to_templates} is neither a file nor a directory.")
             return

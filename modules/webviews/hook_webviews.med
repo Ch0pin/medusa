@@ -71,6 +71,7 @@ webView.addJavascriptInterface.implementation = function(object, name){
 
 
 webView.evaluateJavascript.implementation = function(script, resultCallback){
+    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
     console.log('[i] evaluateJavascript called with the following script: '+script);
     this.evaluateJavascript(script,resultCallback);
 }
@@ -106,12 +107,14 @@ webView.getUrl.implementation = function(){
 }
 
 webView.loadData.implementation = function(data,mimeType, encoding){
+    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
     console.log('[i] Load data called with the following parameters:\\n' + 'Data:' + data + '\\nMime type: '+mimeType+'\\nEncoding: '+ encoding);
     dumpWebview(this);
     this.loadData(data,mimeType,encoding);
 }
 
 webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,  encoding,  historyUrl){
+    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
     console.log('[i] loadDataWithBaseURL call detected, having the following parameters:'+
     '\\nBaseUrl: ' + baseUrl +
     '\\nData: ' + data+
@@ -122,19 +125,21 @@ webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,
 }
 
 webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
+    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
     console.log('[i] Loading URL: ' + url);
     dumpWebview(this);
     this.loadUrl(url,additionalHttpHeaders);
 }
 
 webView.loadUrl.overload('java.lang.String').implementation = function(url){
+    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
     console.log('[i] Loading URL:' + url);
     dumpWebview(this);
     this.loadUrl(url);
 }
 
 webView.postUrl.implementation = function (url,postData){
-            
+    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
     var buffer = Java.array('byte', postData);
     var result = \"\";
 
@@ -150,10 +155,15 @@ webView.removeJavascriptInterface.implementation = function(name){
     console.log('The ' + name + ' Javascript interface removed');
     this.removeJavascriptInterface(name);
 }
+/*
+webView.setWebChromeClient.implementation = function(client){
+    colorLog('WebChromeClient: ' + client.$className + flag,{c:Color.Cyan});
+    this.setWebChromeClient(client);
+}
 
 webView.setWebViewClient.implementation = function(client){
-    console.log('Webview client: ' + client.$className);
+    colorLog('WebviewClient: ' + client.$className + flag,{c:Color.Cyan});
     this.setWebViewClient(client);
-}
+}*/
 "
 }

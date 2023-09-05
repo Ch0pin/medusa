@@ -1391,7 +1391,7 @@ class Parser(cmd2.Cmd):
             console.log(`[*][+] Found library at: ${ lib.base }`)
             hook_any_native_func_"""+uuid+"""();
         });\n
-        function hook_any_native_func()"""+uuid+"""{
+        function hook_any_native_func_"""+uuid+"""(){
         """
         argread = ''
 

@@ -106,6 +106,11 @@ webView.getUrl.implementation = function(){
     return this.getUrl();
 }
 
+webView.setWebContentsDebuggingEnabled.implementation=function(tf){
+    colorLog('[i] setWebContentsDebuggingEnabled(' + tf + ') -> setting webview debuggable to true.',{c:Color.Blue});
+    this.setWebContentsDebuggingEnabled(true);
+}
+
 webView.loadData.implementation = function(data,mimeType, encoding){
     colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
     console.log('[i] Load data called with the following parameters:\\n' + 'Data:' + data + '\\nMime type: '+mimeType+'\\nEncoding: '+ encoding);

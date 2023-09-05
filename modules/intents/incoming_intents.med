@@ -73,68 +73,68 @@ intent1.hasExtra.implementation = function(name){
 
 intent1.getSerializableExtra.overload('java.lang.String').implementation = function(name){
     let ret = this.getSerializableExtra(name);
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
     console.log('\t\\\\__Serializable Extra, name: '+ name + ' ,'+JSON.stringify(ret));
     return this.getSerializableExtra(name);
 }
 if(Java.androidVersion > 12)
     intent1.getSerializableExtra.overload('java.lang.String', 'java.lang.Class').implementation = function(name, clazz){
         let ret = this.getSerializableExtra(name,clazz);
-        colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
         console.log('\t\\\\__Serializable Extra (name,class), name: '+ name + ' ,'+JSON.stringify(ret));
         return ret;
     }
 
 intent1.getParcelableExtra.overload('java.lang.String').implementation = function(name){
     let ret = this.getParcelableExtra(name);
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
     console.log('\t\\\\__Parcelable Extra (name), name: '+ name+' ,'+JSON.stringify(ret));
     return ret;
 }
 if(Java.androidVersion > 12)
     intent1.getParcelableExtra.overload('java.lang.String', 'java.lang.Class').implementation = function(name,clazz){
         let ret = this.getParcelableExtra (name,clazz);
-        colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
         console.log('\t\\\\__Parcelable Extra(name,class), name: '+ name + ' ,'+JSON.stringify(ret));
         return ret;
     }
 
 intent1.getBooleanExtra.implementation = function(name,value){
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
     console.log('\t\\\\__Boolean Extra, name: '+ name + ', value:'+value);
     return this.getBooleanExtra(name,value);
 }
 
 intent1.getBundleExtra.implementation = function(bundlename){
     let ret = this.getBundleExtra(bundlename);
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
-    console.log('\t\\\\__Bundle Extra, name: '+ bundlename +' ,'+JSON.stringify(ret));
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+    console.log('\t\\\\__Bundle Extra, name: '+ bundlename +' ,'+JSON.stringify(ret.toString()));
     return ret;
 }
 
 intent1.getByteArrayExtra.implementation = function(name){
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
     console.log('\t\\\\__Byte Array Extra, name: '+ name);
     return this.getByteArrayExtra(name);
 }
 
 intent1.getByteExtra.implementation = function(name,value){
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
     console.log('\t\\\\__Byte Extra, name: '+ name + ', value:'+value);
     return this.getByteExtra(name,value);
 }
 
 intent1.getCharArrayExtra.implementation = function(name){
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
     console.log('\t\\\\__Char Array Extra, name: '+ name);
     return this.getCharArrayExtra(name);
 }
 
 intent1.getCharExtra.implementation = function(name,value){
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
     var ret =  this.getCharExtra(name,value);
     console.log('\t\\\\__Char Extra, name: '+ name, ', '+ret);
@@ -142,7 +142,7 @@ intent1.getCharExtra.implementation = function(name,value){
 }
 
 intent1.getData.implementation = function(){
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
     var ret = this.getData();
     console.log('\t\\\\__ Data URI:'+ret);
@@ -151,7 +151,7 @@ intent1.getData.implementation = function(){
 }
 
 intent1.getDataString.implementation = function(){
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
     var ret = this.getDataString();
     console.log('\t\\\\__ data URI:'+ret);
@@ -160,13 +160,13 @@ intent1.getDataString.implementation = function(){
 }
 
 intent1.getDoubleArrayExtra.implementation = function(name){
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
     console.log('\t\\\\__ Double Array Extra, name: '+ name);
     return this.getDoubleArrayExtra(name);
 }
 intent1.getDoubleExtra.implementation = function(name,value){
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
     var ret =  this.getDoubleExtra(name,value);
     console.log('\t\\\\__ Double Extra, name: '+ name, ', '+ret);
@@ -174,7 +174,7 @@ intent1.getDoubleExtra.implementation = function(name,value){
 }
 
 intent1.getStringExtra.implementation = function(name){
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
     var ret =  this.getStringExtra(name);
     console.log('\t\\\\__ String Extra, name: '+ name, ', '+ret);
@@ -182,7 +182,7 @@ intent1.getStringExtra.implementation = function(name){
 }
 
 intent1.getPackage.implementation = function(){
-    colorLog('[+] INCOMING INNTENT: '+this,{c:Color.Green});
+    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
     var ret =  this.getPackage();
     console.log('\t\\\\__ intent package origin:'+ret);

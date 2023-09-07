@@ -1,0 +1,56 @@
+{
+    "Name": "fragments/fragment_hook_basics",
+    "Description": "Basic hooks for fragment class calls",
+    "Help": "https://developer.android.com/reference/android/app/Fragment",
+    "Code": "
+				console.log('\\n--------Fragments Get Init Arguments--------------');
+				console.log('----------twiter:@Ch0pin-------------------');
+
+
+                let hook_1694084398 = Java.use('androidx.fragment.app.Fragment');
+
+                hook_1694084398.getArguments.implementation = function(){
+
+                    let retval = this['getArguments'].apply(this, arguments);
+                    colorLog('[+] '+this.getActivity()+'.Fragment getArguments called:',{c: Color.Blue });
+                    console.log('\t\\\\__ Returns:' + retval);
+                    return retval;
+
+                }
+
+                let overloadCount_1694088233 = hook_1694084398['startActivity'].overloads.length;
+
+                for (let i = 0; i < overloadCount_1694088233; i++) {
+                        hook_1694084398['startActivity'].overloads[i].implementation = function() {
+                            colorLog('[+] '+this.getActivity()+'.Fragment startActivity called:',{ c: Color.Blue });
+                        for (let j = 0; j < arguments.length; j++) {
+                            console.log('\targ[' + j + ']: ' + arguments[j]);
+                        }
+                        dumpIntent(arguments[0]);
+                        let retval = this['startActivity'].apply(this, arguments);
+            
+                        return retval;
+                    }
+
+                }
+
+
+                let overloadCount_1694088234 = hook_1694084398['startActivityForResult'].overloads.length;
+
+                for (let i = 0; i < overloadCount_1694088234; i++) {
+                        hook_1694084398['startActivityForResult'].overloads[i].implementation = function() {
+                        colorLog('[+] '+this.getActivity()+'.Fragment startActivityForResult called:',{ c: Color.Blue });
+                        for (let j = 0; j < arguments.length; j++) {
+                            console.log('\targ[' + j + ']: ' + arguments[j]);
+                        }
+                        dumpIntent(arguments[0]);
+
+                        let retval = this['startActivityForResult'].apply(this, arguments);
+            
+                        return retval;
+                    }
+                
+
+                }
+
+"}

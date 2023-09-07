@@ -7,6 +7,8 @@ var requestHeaders = "";
 var requestBody = "";
 var responseHeaders = "";
 var responseBody = "";
+var filterKeyWords = ['destin','url','path','uri','page','attachment','file','dir','http'];
+
 
 function log(str) {
   console.log(str);
@@ -780,8 +782,13 @@ function dumpIntent(intent, redump=true)
       else type = 'undefined'
     
       var t = type.substring(type.lastIndexOf('.')+1,type.length)
-      if(currentKey!='marked_as_dumped')
-        console.log( '\t\t('+t+ ') '+ currentKey + ' = ' + currentValue);
+      if(currentKey!='marked_as_dumped'){
+        if(filterKeyWords.some(word => currentKey.toString().toLowerCase().includes(word)))
+          colorLog('\t\t('+t+ ') '+ currentKey + ' = ' + currentValue, {c: Color.Red});
+        else
+          console.log('\t\t('+t+ ') '+ currentKey + ' = ' + currentValue);
+      }
+        //console.log( '\t\t('+t+ ') '+ currentKey + ' = ' + currentValue);
     }
   }
   intent.putExtra("marked_as_dumped","marked");

@@ -117,6 +117,7 @@ class Parser(cmd2.Cmd):
  🪼 Type help for options 🪼 \n\n""", fg=randomized_fg(),bold=True)
         self.do_loaddevice("dummy")
 
+
 ###################################################### do_ defs start ############################################################
 
     def do_add(self, mod) -> None:
@@ -196,8 +197,8 @@ class Parser(cmd2.Cmd):
                 hooks.append(epilog)
 
             with open(os.path.join(self.base_directory, 'agent.js'), 'w') as agent:
-                for line in hooks:
-                    agent.write('%s\n' % line)
+                for hook_line in hooks:
+                    agent.write('%s\n' % hook_line)
             if rs:
                 print("\nScript has been reset\n")
             else:
@@ -287,13 +288,17 @@ class Parser(cmd2.Cmd):
         """
         Exit MEDUSA
         """
-        with open(os.path.join(self.base_directory, 'agent.js'), 'r') as agent:
-            agent.seek(0)
-            if agent.read(1):
-                if Polar('Do you want to reset the agent script?').ask():
+        agent_path = os.path.join(self.base_directory, 'agent.js')
+        scratchpad_path = os.path.join(self.base_directory, 'modules/scratchpad.med')
+
+        if os.path.getsize(agent_path) != 0:
+            if Polar('Do you want to reset the agent script?').ask():
                     open(os.path.join(self.base_directory, 'agent.js'), 'w').close()
-    
-        self.scratchreset()
+
+        if os.path.getsize(scratchpad_path) != 119:
+            if Polar('Do you want to reset the scratchpad?').ask():
+                    self.edit_scratchpad('')
+
         print('Bye!!')
         sys.exit()
 
@@ -500,7 +505,7 @@ class Parser(cmd2.Cmd):
         option = line.split(' ')[0]
         codejs = '\n'
         if option=='-f':
-            className = input("Enter the full name of the method(s) class: ")
+            className = input("Enter the full name of the method(s)'s class: ")
             class_uuid = str(int(time.time()))
             uuid = str(int(time.time()))
 
@@ -955,7 +960,7 @@ class Parser(cmd2.Cmd):
             self.write_recipe(line.split(' ')[1])
         print(f"[i] Done....\n[i] Total modules available {self.modManager.get_number_of_modules()}")
 
-    def do_rem(self, mod) -> None:
+    def do_rem(self, mod, redirect_output=False) -> None:
         """
         Remove one or more staged modules
         rem [module]
@@ -965,10 +970,16 @@ class Parser(cmd2.Cmd):
         """
         try:
             if self.modManager.unstage(mod):
-                print("\nRemoved module(s) starting with : {}".format(mod) )
+                if redirect_output:
+                    sys.stderr.write("\nRemoved module(s) starting with : {}".format(mod))
+                else:
+                    print("\nRemoved module(s) starting with : {}".format(mod))
                 self.modified = True
             else:
-                print("Module(s) is not active.")
+                if redirect_output:
+                    sys.stderr.write("\nModule(s) is not active.")
+                else:
+                    print("Module(s) is not active.")
             print()  
         except Exception as e:
             print(e)
@@ -1051,7 +1062,7 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-    def do_search(self, pattern) -> None:
+    def do_search(self, pattern,redirect_output=False) -> None:
         """
         Search for modules related to a given keyword
         Usage:
@@ -1059,10 +1070,16 @@ class Parser(cmd2.Cmd):
         """
         matches = self.modManager.findModule(pattern)
         if not matches:
-            print('No modules found containing: {}!'.format(pattern))
+            if redirect_output:
+                sys.stderr.write('\nNo modules found containing: {}!'.format(pattern))
+            else:
+                print('No modules found containing: {}!'.format(pattern))
         else:
             for match in matches:
-                print(match.replace(pattern, GREEN + pattern + RESET))
+                if redirect_output:
+                    sys.stderr.write(match.replace(pattern, GREEN + pattern + RESET)+'\n')
+                else:
+                    print(match.replace(pattern, GREEN + pattern + RESET))
 
     def do_session(self,line)->None:
         """
@@ -1184,7 +1201,7 @@ class Parser(cmd2.Cmd):
         """
         os.popen("adb -s {} shell input text {}".format(self.device.id,text))
 
-    def do_use(self, mod) -> None:
+    def do_use(self, mod, redirect_output=False) -> None:
         """
         Stage a module or modules
         Usage:
@@ -1193,7 +1210,7 @@ class Parser(cmd2.Cmd):
         Example: use http_communications/ , will load all the modules starting with "http_communications/"
         """
         self.modManager.stage(mod)
-        self.show_mods()
+        self.show_mods(redirect_output)
         self.modified = True
         print()
         
@@ -1549,7 +1566,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
             print("[!] No available info.")
 
     def run_frida(self, force, detached, package_name, device,pid=-1)->None:
-        in_session_menu = WHITE + '[in-session] |'+ GREEN + 'c:' + WHITE + 'clear |'  + GREEN + 'e:' + WHITE + 'exit |' + GREEN + 'r:' + WHITE + 'reload | \n' + '| '+ GREEN + 'rs:' + WHITE + 'reset scratchpad |' +  GREEN + 'i:' + WHITE + 'info |' + GREEN + 't:' + WHITE + 'trace  |' + GREEN +'?:'+WHITE +'help |:'+RESET
+        in_session_menu = WHITE + '(in-session)'+GREEN+' type '+YELLOW+'?'+GREEN+' for options'+WHITE+':➤'+RESET
         creation_time = modified_time = None
         self.detached = False
         session = self.frida_session_handler(device,force,package_name,pid)
@@ -1584,14 +1601,15 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                     else:
                          print(GREEN + "Script unchanged, nothing to reload ...." + RESET)
                 elif s == '?':
-                    print(RESET+"""\nHelp: 
-    'c'  (c)lear the sreen 
-    'e'  (e)xit the session
-    'r'  (r)eload the script in case it changed
-    'rs' (r)e(s)et the scratchpad
-    'i'  print (i)nformation about the application
-    't'  (t)race a method and print the stack trace (e.g. t com.foo.bar.func)
-    '?'  print this help message\n"""+RESET)
+                    print(RESET+"""\nAvailable commands: 
+    'c'     clear the sreen 
+    'e'     exit the session
+    'r'     reload the script in case it changed
+    'rs'    reset the scratchpad
+    'sus'   suspend the output 
+    'i'     print information about the application
+    't'     trace a method and print the stack trace (e.g. t com.foo.bar.func)
+    '?'     print this help message\n"""+RESET)
                 elif s == 'i':
                     self.print_app_info()
                 elif s == 'c':
@@ -1600,7 +1618,48 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                     self.scratchreset()
                     self.do_compile('')
                     self.reload_script(session)
+                elif s == 'sus':
+                    original_stdout = sys.stdout
+                    from io import StringIO
+                    temp_stdout = StringIO()
+                    sys.stdout = temp_stdout
+                    in_mute_cmd = ''
 
+                    while True:
+                        mod = False
+                        sys.stderr.write("(muted-mode) type ? for options:➤")
+                        in_mute_cmd = input()
+                        if in_mute_cmd == '?':
+                            sys.stderr.write("""\nAvailable commands:
+    'use module_name'   add an additional module
+    'rm  module_name'   remove a module
+    'show mods'         show active modules
+    'search keyword'    search for a module using a keyword
+    'con'               continue the session
+    '?'                 print this message\n""")
+                        elif in_mute_cmd.startswith('use '):
+                            self.do_use(in_mute_cmd.split(' ')[1],True)
+                            mod = True
+                        elif in_mute_cmd.startswith('rm '):
+                            self.do_rem(in_mute_cmd.split(' ')[1],True)
+                            mod = True
+                        elif in_mute_cmd == 'show mods':
+                            self.show_mods(True)
+                        elif in_mute_cmd.startswith('search '):
+                            self.do_search(in_mute_cmd.split(' ')[1],True)
+                        elif in_mute_cmd == 'con':
+                            break
+                        if mod:
+                            sys.stderr.write("\nCompiling....\n")
+                            self.do_compile('')
+                            sys.stderr.write("Reloading....\n")
+                            self.reload_script(session)
+
+
+                    sys.stdout = original_stdout
+                    print("-"*10+"Here is what you missed while suspended"+"-"*10+"\n"+temp_stdout.getvalue())
+
+                         
                 elif s.split(' ')[0] == 't':
                     try:
                       
@@ -1653,10 +1712,16 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
             print(category)
         print()
 
-    def show_mods(self) -> None:
-        print("\nCurrent Mods:")
+    def show_mods(self, redirect_output=False) -> None:
         for i in range(len(self.modManager.staged)):
-            print('{}) {}'.format(i, self.modManager.staged[i].Name))
+            if redirect_output:
+                if i == 0:
+                    sys.stderr.write('\nCurrent Mods:\n')
+                sys.stderr.write('{}) {}\n'.format(i, self.modManager.staged[i].Name))
+            else:
+                if i == 0: 
+                    print("\nCurrent Mods:")
+                print('{}) {}'.format(i, self.modManager.staged[i].Name))
         print()
 
     def show_mods_by_category(self, category) -> None:
@@ -1742,7 +1807,6 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
         
         if not found:
             click.secho("[!] No matches found.")
-
 
     def scan_do_scan(self,string_list,entries):
         found = False

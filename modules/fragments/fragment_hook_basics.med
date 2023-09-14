@@ -12,7 +12,7 @@
                 hook_1694084398.getArguments.implementation = function(){
 
                     let retval = this['getArguments'].apply(this, arguments);
-                    colorLog('[+] '+this.getActivity()+'.Fragment getArguments called:',{c: Color.Blue });
+                    colorLog('[+] '+this.getActivity()+'/'+this+' getArguments called:',{c: Color.Blue });
                     console.log('\t\\\\__ Returns:' + retval);
                     return retval;
 
@@ -22,7 +22,7 @@
 
                 for (let i = 0; i < overloadCount_1694088233; i++) {
                         hook_1694084398['startActivity'].overloads[i].implementation = function() {
-                            colorLog('[+] '+this.getActivity()+'.Fragment startActivity called:',{ c: Color.Blue });
+                            colorLog('[+] '+this.getActivity()+'/'+this+' startActivity called:',{ c: Color.Blue });
                         for (let j = 0; j < arguments.length; j++) {
                             console.log('\targ[' + j + ']: ' + arguments[j]);
                         }
@@ -39,7 +39,7 @@
 
                 for (let i = 0; i < overloadCount_1694088234; i++) {
                         hook_1694084398['startActivityForResult'].overloads[i].implementation = function() {
-                        colorLog('[+] '+this.getActivity()+'.Fragment startActivityForResult called:',{ c: Color.Blue });
+                            colorLog('[+] '+this.getActivity()+'/'+this+' startActivityForResult called:',{ c: Color.Blue });
                         for (let j = 0; j < arguments.length; j++) {
                             console.log('\targ[' + j + ']: ' + arguments[j]);
                         }

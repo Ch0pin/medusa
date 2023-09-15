@@ -1,0 +1,38 @@
+{
+    "Name": "ipc/bundle_trace_get_methods",
+    "Description": "Hook get methods of the android.os.Bundle class",
+    "Help": "Ref: https://developer.android.com/reference/android/os/Bundle#getBinder(java.lang.String)",
+    "Code": "
+console.log('\\n--------Setting hooks: android.os.Bundle.get* Methods--------------');
+
+let hook_1694772606 = Java.use('android.os.Bundle');
+
+const declaredMethods = hook_1694772606.class.getDeclaredMethods();
+for(const method of declaredMethods)
+{
+  const methodName = method.getName();
+  if(methodName.startsWith('get'))
+  {
+      let overloadCount_1694772606 = hook_1694772606[methodName].overloads.length;
+      colorLog('Tracing ' +methodName + ' [' + overloadCount_1694772606 + ' overload(s)]',{ c: Color.Green });
+                          
+    for (let i = 0; i < overloadCount_1694772606; i++) 
+    {
+      hook_1694772606[methodName].overloads[i].implementation = function() {
+        colorLog('[+] android.os.Bundle.' +methodName+ ' called:',{ c: Color.Green });
+          if (arguments.length)
+            for (let j = 0; j < arguments.length; j++) {
+              console.log('\\t\\\\_arg[' + j + ']: ' + arguments[j]);
+            }
+        let retval = this[methodName].apply(this, arguments); 
+        console.log('\\t\\\\_retval: ' + retval);
+        return retval;
+      }
+    }
+
+  }
+}
+
+
+"
+}

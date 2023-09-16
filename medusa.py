@@ -55,13 +55,13 @@ class Parser(cmd2.Cmd):
     #   -3: filter to only show third party packages
 
         if option == '-a':
-            self.package_range = ' all known packages (but excluding APEXes) '
+            self.package_range = '- Installed applications (all, excluding APEXs)'
         elif option == '-s':
-            self.package_range = ' system packages '
+            self.package_range = '- System / Preinstalled applicatons'
         elif option == '-3':
-            self.package_range = ' third party packages '
+            self.package_range = '- 3rd party installed applications'
         else:
-            self.package_range = ' all known packages (including APEXes) '
+            self.package_range = '- All installed applicatons'
 
 
         self.packages = []
@@ -750,7 +750,7 @@ class Parser(cmd2.Cmd):
             self.device = frida.get_remote_device()
         finally:
             #lets start by loading all packages and let the user to filter them out 
-            self.init_packages()    
+            self.init_packages('-3')    
 
     def do_memops(self,line) -> None:
         """
@@ -1459,7 +1459,8 @@ catch (err) {
 
     def init_packages(self,option="") -> None:
         self.refreshPackages(option)
-        click.secho(f'\n{self.package_range}:\n',fg='green')
+        click.secho(f'\n{self.package_range}:',fg='green',bg='blue')
+        print()
         for i in range(len(self.packages)):
             print('[{}] {}'.format(i, self.packages[i]))
 

@@ -63,7 +63,7 @@ pefile==2023.2.7
 pexpect==4.8.0
 pick==2.2.0
 pickleshare==0.7.5
-Pillow==9.2.0
+Pillow==9.3.0
 plumbum==1.8.1
 ply==3.11
 prompt-toolkit==3.0.36

@@ -451,7 +451,7 @@ $adb remount
                 print('{}) {}'.format(i,dv))
                 i += 1
             print(Fore.RESET)
-            j = int(Numeric('\nEnter the index of the device to use:', lbound=0,ubound=i-1).ask())
+            j = int(Numeric('\nEnter the index of the device you want to use:', lbound=0,ubound=i-1).ask())
             device = devices[int(j)] 
             android_dev = android_device(device.id)
             android_dev.print_dev_properties()

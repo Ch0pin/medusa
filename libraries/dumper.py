@@ -54,7 +54,7 @@ def dump_pkg(pkg):
         for dv in devices:
             print('{}) {}'.format(i,dv))
             i += 1
-        j = input('Enter the index of the device to use:')
+        j = input('Enter the index of the device you want to use:')
         device = devices[int(j)] 
     except:
         device = frida.get_remote_device()

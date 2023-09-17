@@ -1,0 +1,24 @@
+{
+    "Name": "react_native/get_loaded_modules",
+    "Description": "beta",
+    "Help": "beta",
+    "Code": "
+
+    console.log('\\n-----------------------get_loaded_modules by ch0pin--------------\\n');
+
+    let hook_1694936490 = Java.use('com.facebook.react.ReactInstanceManagerBuilder');
+    let overloadCount_1694936490 = hook_1694936490['addPackage'].overloads.length;
+
+    for (let i = 0; i < overloadCount_1694936490; i++) {
+    hook_1694936490['addPackage'].overloads[i].implementation = function() {
+    for (let j = 0; j < arguments.length; j++) {
+        console.log('\\x1b[33mReact_native_loading:\\x1b[0m' + arguments[j].$className);
+    }
+    let retval = this['addPackage'].apply(this, arguments);
+    return retval;
+    }
+    }
+
+
+"
+}

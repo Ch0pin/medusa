@@ -10,7 +10,7 @@ console.log('\\n-----------set_cookie by @chopin---------\\n');
 let hook_1694935146 = Java.use('android.webkit.CookieManager');
 
 let overloadCount_1694935146 = hook_1694935146['setCookie'].overloads.length;
-colorLog('\nTracing ' +'setCookie' + ' [' + overloadCount_1694935146 + ' overload(s)]',{ c: Color.Green });
+colorLog('\\nTracing ' +'setCookie' + ' [' + overloadCount_1694935146 + ' overload(s)]',{ c: Color.Green });
 
 for (let i = 0; i < overloadCount_1694935146; i++) {
         hook_1694935146['setCookie'].overloads[i].implementation = function() {
@@ -22,7 +22,7 @@ for (let i = 0; i < overloadCount_1694935146; i++) {
 }
 
 let overloadCount_1694935194 = hook_1694935146['getCookie'].overloads.length;
-colorLog('\nTracing ' +'getCookie' + ' [' + overloadCount_1694935194 + ' overload(s)]',{ c: Color.Green });
+colorLog('\\nTracing ' +'getCookie' + ' [' + overloadCount_1694935194 + ' overload(s)]',{ c: Color.Green });
 
 for (let i = 0; i < overloadCount_1694935194; i++) {
     hook_1694935146['getCookie'].overloads[i].implementation = function() {

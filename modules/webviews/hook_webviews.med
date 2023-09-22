@@ -82,13 +82,15 @@ webView.getOriginalUrl.implementation = function(){
 }
 
 function dumpWebview(wv){
-    console.log('[i] -------- Dumping webview settings-----------:');
+    colorLog('[i] ---------------- Dumping webview settings -------------------:',{c:Color.Yellow});
+    colorLog('=====> Class Name: '+wv.$className,{c:Color.Gray});
+    colorLog('=====> WebView Client: '+wv.getWebViewClient(),{c:Color.Gray});
     highlight('     Allows Content Access: ',wv.getSettings().getAllowContentAccess());
     highlight('     Allows Javascript execution: ',wv.getSettings().getJavaScriptEnabled());
     highlight('     Allows File Access: ',wv.getSettings().getAllowFileAccess());
     highlight('     Allows File Access From File URLs: ',wv.getSettings().getAllowFileAccessFromFileURLs());
     highlight('     Allows Universal Access from File URLs: ',wv.getSettings().getAllowUniversalAccessFromFileURLs());
-    colorLog('[i] -------- Dumping webview settings EOF -------',{c:Color.Blue});
+    colorLog('[i] ---------------- Dumping webview settings EOF ---------------].',{c:Color.Yellow});
 
 }
 
@@ -101,8 +103,8 @@ function highlight(tag, flag){
 }
 
 webView.getUrl.implementation = function(){
-    colorLog('[i] Current Loaded url:' + this.getUrl(),{c:Color.Blue});
     dumpWebview(this);
+    colorLog('[i] Current Loaded url:' + this.getUrl(),{c:Color.Blue});
     return this.getUrl();
 }
 
@@ -112,42 +114,37 @@ webView.setWebContentsDebuggingEnabled.implementation=function(tf){
 }
 
 webView.loadData.implementation = function(data,mimeType, encoding){
-    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
-    console.log('[i] Load data called with the following parameters:\\n' + 'Data:' + data + '\\nMime type: '+mimeType+'\\nEncoding: '+ encoding);
     dumpWebview(this);
+    console.log('[i] Load data called with the following parameters:\\n' + 'Data:' + data + '\\nMime type: '+mimeType+'\\nEncoding: '+ encoding);
     this.loadData(data,mimeType,encoding);
 }
 
 webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,  encoding,  historyUrl){
-    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
+    dumpWebview(this);
     console.log('[i] loadDataWithBaseURL call detected, having the following parameters:'+
     '\\nBaseUrl: ' + baseUrl +
     '\\nData: ' + data+
     '\\nmimeType: ' + mimeType+
     '\\nhistory URL' + historyUrl);
-    dumpWebview(this);
     this.loadDataWithBaseURL(baseUrl,data,mimeType,encoding,historyUrl);
 }
 
 webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
-    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
-    console.log('[i] Loading URL: ' + url);
     dumpWebview(this);
+    console.log('[i] Loading URL: ' + url);
     this.loadUrl(url,additionalHttpHeaders);
 }
 
 webView.loadUrl.overload('java.lang.String').implementation = function(url){
-    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
-    console.log('[i] Loading URL:' + url);
     dumpWebview(this);
+    console.log('[i] Loading URL:' + url);
     this.loadUrl(url);
 }
 
 webView.postUrl.implementation = function (url,postData){
-    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
+    dumpWebview(this);
     var buffer = Java.array('byte', postData);
     var result = \"\";
-
     for(var i = 0; i < buffer.length; ++i){
         result+= (String.fromCharCode(buffer[i]));
     }

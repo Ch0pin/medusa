@@ -1,0 +1,84 @@
+{
+    "Name": "react_native/trace_java_methods",
+    "Description": "beta",
+    "Help": "If you want to exclude methods from tracing, add the full name including the \\nclass name , function name, to the \"except\" arrary in the hook_print function.",
+    "Code": "
+
+    console.log('\\n-----------------------trace_java_methods by ch0pin--------------\\n');
+
+    let hook_1694938082 = Java.use('com.facebook.react.bridge.JavaMethodWrapper');
+
+    function traceMethodLocal(fullname,targetClassMethod,color)
+    {
+      var delim = targetClassMethod.lastIndexOf('.');
+      if (delim === -1) return;
+      var targetClass = targetClassMethod.slice(0, delim)
+      var targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length)
+      var hook = Java.use(targetClass);
+      var overloadCount12 = hook[targetMethod].overloads.length;
+    
+      for (var i = 0; i < overloadCount12; i++) {
+    
+        hook[targetMethod].overloads[i].implementation = function() {
+          colorLog('\\n[ ▶︎▶︎▶︎] Entering: ' + fullname,{c: Color[color]});
+          for (var j = 0; j < arguments.length; j++) {
+            var output = '|\\t\\\\_arg[' + j + ']: '+ arguments[j];
+            console.log(output);
+          }
+          var retval = this[targetMethod].apply(this, arguments); // rare crash (Frida bug?)
+          colorLog('[ ◀︎◀︎◀︎ ] Exiting ' + targetClassMethod ,{c: Color[color]});
+          
+          console.log('\\t\\\\Returns: '+retval+'\\n');
+          return retval;
+        }
+      }
+    }
+    function findLastSpaceBeforeClosingParenthesis(inputString) {
+      const closingParenthesisIndex = inputString.lastIndexOf(')');
+
+      if (closingParenthesisIndex !== -1) {
+        // Find the last space before the closing parenthesis
+        const lastSpaceIndex = inputString.lastIndexOf(' ', closingParenthesisIndex);
+    
+        if (lastSpaceIndex !== -1) {
+          return lastSpaceIndex;
+        }
+      }
+    
+      // Return -1 if no space before ')'
+      return -1;
+    }
+
+    function arrayContainsStringWithPrefix(arr, prefix) {
+        for (const str of arr) {
+          if (prefix.startsWith(str)) {
+            return true;
+          }
+        }
+        return false;
+      }
+      
+  
+      function hook_print(str)
+      {
+        var except = [];
+        var str2str = str.toString();
+        var tryfndName = str2str.substring(findLastSpaceBeforeClosingParenthesis(str2str)+1,str2str.lastIndexOf('('))  
+        if (!arrayContainsStringWithPrefix(except,tryfndName))      
+            traceMethodLocal(str2str,tryfndName,'Grey')
+      }
+
+    let overloadCount_1694938082 = hook_1694938082['$init'].overloads.length;
+
+        for (let i = 0; i < overloadCount_1694938082; i++) {
+            hook_1694938082['$init'].overloads[i].implementation = function() {
+            //console.log('Method:' + arguments[1]);
+            let retval = this['$init'].apply(this, arguments);
+            hook_print(arguments[1]);
+            
+            return retval;
+        }
+    }
+
+"
+}

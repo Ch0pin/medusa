@@ -341,7 +341,7 @@ function traceMethod(targetClassMethod,color)
 			for (var j = 0; j < arguments.length; j++) {
 				console.log("|\t\\_arg[" + j + "]: " + arguments[j]);
 			}
-			var retval = this[targetMethod].apply(this, arguments); // rare crash (Frida bug?)
+			var retval = this[targetMethod].apply(this, arguments); 
 			colorLog("[ ◀︎◀︎◀︎ ] Exiting " + targetClassMethod ,{c: Color[color]});
       
       console.log('\t\\_Returns: '+retval+'\n');

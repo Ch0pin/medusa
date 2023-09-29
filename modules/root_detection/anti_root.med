@@ -1,6 +1,6 @@
 {
-    "Name": "helpers/anti_debug",
-    "Description": "Bypass root, debug detection",
+    "Name": "root_detection/universal_root_detection_bypass",
+    "Description": "Universal bypass root, debug detection",
     "Help": "https://codeshare.frida.re/@dzonerzy/fridantiroot/\n- Overwrite: isDebuggerConnected",
     "Code": "    
     console.log('\\n---------LOADING ANTI ROOT DETECTION SCRIPT-------------------');
@@ -13,8 +13,6 @@
         console.log('[!] overwriting isTaskRoot');
         return true;
     }
-
-
 
 var hook = Java.use('android.provider.Settings$Secure');
 

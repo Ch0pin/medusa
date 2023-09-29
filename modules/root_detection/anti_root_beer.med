@@ -1,0 +1,31 @@
+
+{
+    "Name": "root_detection/rootbeer_detection_bypass",
+    "Description": "Bypass root, debug detection",
+    "Help": "https://codeshare.frida.re/@dzonerzy/fridantiroot/\n- Overwrite: isDebuggerConnected",
+    "Code": "    
+    console.log('\\n---------LOADING ANTI ROOT DETECTION SCRIPT-------------------');
+
+
+try {
+    var targetClass = Java.use('com.scottyab.rootbeer.b');
+
+    // Get all declared methods in the class
+    var methods = targetClass.class.getDeclaredMethods();
+
+    methods.forEach(function (method) {
+        // Check if the return type of the method is boolean
+        if (method.getReturnType().getName() === 'boolean') {
+            // Hook the method and change its return value to false
+            targetClass[method.getName()].implementation = function () {
+                console.log('Hooked method: ' + method.getName());
+                return false; // Change the return value to false
+            };
+        }
+    });
+} catch (error) {
+    console.error('Error: ' + error);
+}
+
+"
+}

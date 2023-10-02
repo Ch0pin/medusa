@@ -7,3 +7,4 @@ pick==2.2.0
 PyYAML==6.0.1
 requests==2.25.1
 urllib3==1.26.8
+google_trans_new

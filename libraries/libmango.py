@@ -320,15 +320,41 @@ class parser(cmd2.Cmd):
         sys.exit()
 
     def do_import(self,line):
-        """Usage: import /full/path/to/foo.apk
+        """Usage: 
+        import /full/path/to/foo.apk
+        import /full/path/to/apks/ --mass 
         Imports an apk file for analysis and saves the results to 
-        the current session's database. """
+        the current session's database. Adding --mass will import 
+        all the apks under a directory and its subdirectories."""
 
-        apkfile = line.split(' ')[0]
-        if os.path.exists(apkfile):
-            self.real_import(apkfile)
+        num_of_options = len(line.split(' '))
+        if num_of_options == 1:
+            apkfile = line.split(' ')[0]
+            if os.path.exists(apkfile):
+                self.real_import(apkfile)
+            else:
+                print(Fore.RED+"[!] Error: can't find: {} ".format(apkfile)+Fore.RESET)
+        elif num_of_options == 2 and line.split(' ')[1]== '--mass':
+            try:
+                apk_files=[]
+                for root, dirs, files in os.walk(line.split(' ')[0]):
+                    for file in files:
+                        if file.endswith(".apk"):
+                            apk_files.append(os.path.join(root, file))
+                
+                if len(apk_files) == 0:
+                    print("[x] Nothing to import!")
+                else:
+                    i = 1
+                    for apk in apk_files:
+                        print(GREEN+f"[{i}] Importing: {apk}"+RESET)
+                        self.real_import(apk,False)
+                        i+=1
+            except Exception as e:
+                print(e)
         else:
-            print(Fore.RED+"[!] Error: can't find: {} ".format(apkfile)+Fore.RESET)
+            print("[!] Invalid option")
+
 
     def do_install(self,line):
         """Usage: install /full/path/to/foobar.apk
@@ -812,7 +838,7 @@ $adb remount
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
-                cmd = "adb -s {} shell 'echo \"am start -n {}/{}\" | su'".format(self.device.id,self.info[0][2],line.split(' ')[0])
+                cmd = "adb -s {} shell 'su -c \"am start -n {}/{}\"'".format(self.device.id,self.info[0][2],line.split(' ')[0])
                 print("adb command: {}".format(cmd))
                 output=os.popen(cmd).read()
                 print(output)
@@ -949,7 +975,7 @@ $adb remount
 
     def complete_show(self, text, line, begidx, endidx):
         if self.current_app_sha256 == None:
-            components = ['database']
+            components = ['database','applications']
         else:
             components = sorted(['exposure', 'applications','activityAlias','info','permissions', 'activities', 'services', 'receivers', 'intentFilters','providers', 'deeplinks','strings','database','manifest'])
         if not text:
@@ -1228,16 +1254,21 @@ $adb remount
 
 ###################################################### real defs start ############################################################
 
-    def real_import(self,apk_file):
+    def real_import(self,apk_file, print_application_info=True):
         try:
             sha256 = self.guava.sha256sum(apk_file)
             if self.guava.sha256Exists(sha256):
                 print("[i] Application has already being analysed !")
             else:
                 self.guava.full_analysis(apk_file)
-                self.init_application_info(self.database,self.guava.sha256sum(apk_file))
+                if print_application_info:
+                    self.init_application_info(self.database,self.guava.sha256sum(apk_file))
+                else:
+                    self.info = self.database.get_app_info(self.guava.sha256sum(apk_file))  
+                    print(f"Package Name: {self.info[0][2]}")
         except Exception as e:
             print(e)
+            print(RED+f"There was an error loading {apk_file}"+RESET)
 
     def real_load_app(self,chosen_sha256):
         self.init_application_info(self.database,chosen_sha256)

@@ -12,14 +12,11 @@ class apk_db():
             self.create_db(self.connection)
 
     def create_db(self,cursor):
-        self.cursor.execute("""CREATE TABLE Application(sha256 TEXT, name TEXT, packageName TEXT, versionCode TEXT, 
-                        versionName TEXT, minSdkVersion TEXT, targetSdkVersion TEXT, maxSdkVersion TEXT,
-                        permissions TEXT, libraries TEXT, debuggable TEXT, allowbackup TEXT, androidManifest TEXT, stringResources TEXT)""")
+        self.cursor.execute("""CREATE TABLE Application(sha256 TEXT, name TEXT, packageName TEXT, versionCode TEXT, versionName TEXT, minSdkVersion TEXT, targetSdkVersion TEXT, maxSdkVersion TEXT,permissions TEXT, libraries TEXT, debuggable TEXT, allowbackup TEXT, androidManifest TEXT, stringResources TEXT, original_filename TEXT)""")
 
         self.cursor.execute("""CREATE TABLE Permissions(app_sha256 TEXT, permission TEXT, type TEXT, shortDescription TEXT, fullDescription TEXT)""")
 
-        self.cursor.execute("""CREATE TABLE Activities(app_sha256 TEXT, name TEXT, enabled TEXT, exported TEXT, autoRemoveFromRecents TEXT, 
-                        excludeFromRecents TRUE, noHistory TEXT, permission TEXT)""")
+        self.cursor.execute("""CREATE TABLE Activities(app_sha256 TEXT, name TEXT, enabled TEXT, exported TEXT, autoRemoveFromRecents TEXT, excludeFromRecents TRUE, noHistory TEXT, permission TEXT)""")
 
         self.cursor.execute("""CREATE TABLE Services(app_sha256 TEXT, name TEXT, enabled TEXT, exported TEXT, foregroundServiceType TEXT, permission TEXT, process TEXT)""")
 
@@ -30,6 +27,9 @@ class apk_db():
         self.cursor.execute("""CREATE TABLE ActivityAlias(app_sha256 TEXT, name TEXT, enabled TEXT, exported TEXT, permission TEXT, targetActivity TEXT)""")
 
         self.cursor.execute("""CREATE TABLE IntentFilters(app_sha256 TEXT, componentName TEXT, actionList TEXT, categoryList TEXT, dataList TEXT)""")
+        
+        self.cursor.execute("""CREATE TABLE "Comments" ("index"	INTEGER NOT NULL UNIQUE, "app_sha256"	TEXT NOT NULL, "comment"	TEXT, PRIMARY KEY("index" AUTOINCREMENT));""")
+
 
 
     def delete_application(self,sha256):
@@ -41,6 +41,7 @@ class apk_db():
         sql6 = "DELETE FROM Receivers WHERE app_sha256 = '{}'".format(sha256)
         sql7 = "DELETE FROM ActivityAlias WHERE app_sha256 = '{}'".format(sha256)
         sql8 = "DELETE FROM IntentFilters WHERE app_sha256 = '{}'".format(sha256)
+        sql9 = "DELETE FROM Comments WHERE app_sha256 = '{}'".format(sha256)
 
         self.cursor.execute(sql1)
         self.cursor.execute(sql2)
@@ -50,6 +51,7 @@ class apk_db():
         self.cursor.execute(sql6)
         self.cursor.execute(sql7)
         self.cursor.execute(sql8)
+        self.cursor.execute(sql9)
 
         self.connection.commit()
         return
@@ -137,7 +139,7 @@ class apk_db():
 
     def update_application(self,attribs):
         sql = """INSERT INTO Application(sha256,name,packageName,versionCode,versionName,minSdkVersion,
-        targetSdkVersion,maxSdkVersion,permissions,libraries, debuggable, allowbackup,androidManifest,stringResources) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
+        targetSdkVersion,maxSdkVersion,permissions,libraries, debuggable, allowbackup,androidManifest,stringResources,original_filename) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
         self.execute_update(sql,attribs)
 
     def update_intent_filters(self,attribs):
@@ -161,3 +163,22 @@ class apk_db():
         sql = """INSERT INTO Services(app_sha256, name, enabled, exported, foregroundServiceType, 
                         permission, process) values(?,?,?,?,?,?,?)"""
         self.execute_update(sql,attribs)
+    
+    def insert_comment(self,attribs):
+        sql = """INSERT INTO Comments(app_sha256, comment) values(?,?)"""
+        self.execute_update(sql,attribs)
+    
+    def delete_comment(self,index):
+        sql = f"""DELETE FROM "Comments" WHERE _rowid_ IN ({index});"""
+        self.cursor.execute(sql)
+        self.connection.commit()
+    
+    def update_comment(self,index,comment):
+        sql = f"""UPDATE "main"."Comments" SET "comment"="{comment}" WHERE "_rowid_"={index}"""
+        self.cursor.execute(sql)
+        self.connection.commit()
+    
+    def get_all_comments(self,sha256):
+        sql = """SELECT * from Comments WHERE app_sha256='{}'""".format(sha256)
+        self.cursor.execute(sql) 
+        return self.cursor.fetchall()

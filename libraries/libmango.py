@@ -167,6 +167,7 @@ class parser(cmd2.Cmd):
     base_directory = os.path.dirname(__file__)
     prompt = Fore.BLUE +Style.BRIGHT +'mango➤'+Fore.RESET+Style.RESET_ALL
     current_app_sha256 = None
+    comments = None
     database =None
     guava = None
     INSTALL = False
@@ -214,7 +215,6 @@ class parser(cmd2.Cmd):
                 if frombs == True:
                     return
             cmd = input(GREEN+'{}:adb:'.format(self.device.id)+RESET)
-
     #mark for tests
     def do_box(self,line):
         """Starts a busybox interactive shell. """
@@ -273,6 +273,34 @@ class parser(cmd2.Cmd):
     def do_clear(self,line):
         """Clear the screen"""
         os.system('clear')
+
+    def do_comment(self,line):
+        """Usage: comment [add|show|del|update]
+        Sends an intent which will start the given deeplink. 
+        When used with --poc it will create an html link to the given deeplink."""
+        try:
+            comment_option = line.split()[0]
+            if comment_option == 'add':
+                comment = input("Comment (press enter to commit): ")
+                self.guava.insert_comment(self.current_app_sha256,comment)
+                print("Comment added.")
+            elif comment_option == 'show':
+                comments = self.database.get_all_comments(self.current_app_sha256)
+                for index,sha256,cmt in comments:
+                    print(f'{index}) {cmt}')
+            elif comment_option == 'del':
+                index = input("Enter the index of the comment you want to delete:")
+                self.guava.delete_comment(int(index))
+            elif comment_option == 'update':
+                index = input("Enter the index of the comment you want to update:")
+                comment = input("Comment (press enter to commit): ")
+                self.guava.update_comment(index,comment)
+                print("Comment updated")
+            else:
+                print("[!] Invalid option !")
+                return
+        except Exception as e:
+            print(e)
 
     def do_deeplink(self,line):
         """Usage: deeplink [deeplink] [--poc]
@@ -354,7 +382,6 @@ class parser(cmd2.Cmd):
                 print(e)
         else:
             print("[!] Invalid option")
-
 
     def do_install(self,line):
         """Usage: install /full/path/to/foobar.apk
@@ -537,7 +564,6 @@ $adb remount
                 print("[!] Medusa Agent must be installed and running on the device, type 'installagent' to install it.")
         except Exception as e:
             print(e)
-
     #mark for tests
     def do_patch(self,line):
         """Usage: patch /full/path/to/foo.apk
@@ -601,7 +627,6 @@ $adb remount
         Search the playstore for the app with the given id."""
         print(os.popen("adb -s {} shell am start -W -a android.intent.action.VIEW -d market://details?id={}".format(self.device.id,line.split(' ')[0])).read())
 
-
     def do_proxy(self,line):
         """Usage: proxy [get | reset | set] [ip:port] 
         Modifies the proxy configuration of the connected device:
@@ -636,7 +661,6 @@ $adb remount
                 print('[!] Usage: proxy [set,get,reset] [<ip>:<port>] [-t]')
         except Exception as e:
             print(e)
-
 
     def do_pull(self, line):
         """Usage: pull com.foo.bar
@@ -927,10 +951,20 @@ $adb remount
         except Exception as e:
             print(e)
             
-
 ###################################################### complete defs start ############################################################
     
     #mark for tests, improve completes
+    def complete_comment(self, text, line, begidx, endidx):
+        if self.current_app_sha256 == None:
+            components = []
+        else:
+            components = sorted(['add','del','show','update'])
+        if not text:
+            completions = components[:]
+        else:
+            completions = [f for f in components if f.startswith(text)]
+        return completions
+
 
     def complete_deeplink(self, text, line, begidx, endidx):
         if not text:
@@ -1057,6 +1091,7 @@ $adb remount
     def print_application_info(self,info):
         print(Back.BLACK+Fore.RED+Style.BRIGHT+"""
 [------------------------------------Package Details---------------------------------------]:
+|    Original Filename :{}
 |    Application Name  :{}
 |    Package Name      :{}
 |    Version code      :{}
@@ -1070,8 +1105,12 @@ $adb remount
 [------------------------------------------------------------------------------------------]
 |                          Type 'help' or 'man' for a list of commands                     |
 [------------------------------------------------------------------------------------------]
-        """.format(info[0][1],info[0][2],info[0][3],info[0][4],
-            info[0][5],info[0][6],info[0][7],info[0][0],info[0][10],info[0][11]) +Style.RESET_ALL)   
+        """.format(info[0][14],info[0][1],info[0][2],info[0][3],info[0][4],
+            info[0][5],info[0][6],info[0][7],info[0][0],info[0][10],info[0][11]) +Style.RESET_ALL)
+        print(BLUE+"[i] Comments:"+RESET)   
+        comments = self.database.get_all_comments(info[0][0])
+        for index,sha256,cmt in comments:
+            print(f'{index}) {cmt}')
 
     def print_database_structure(self):
         res = self.database.query_db("SELECT name FROM sqlite_master WHERE type='table';")
@@ -1258,7 +1297,9 @@ $adb remount
         try:
             sha256 = self.guava.sha256sum(apk_file)
             if self.guava.sha256Exists(sha256):
-                print("[i] Application has already being analysed !")
+                print("[i] The application has already being analysed !")
+                self.info = self.database.get_app_info(sha256)
+                self.print_application_info(self.info)
             else:
                 if print_application_info:
                     self.guava.full_analysis(apk_file)
@@ -1351,7 +1392,6 @@ $adb remount
             return ''    
 
     def init_application_info(self,application_database,app_sha256):
-
         try:
             self.info = application_database.get_app_info(app_sha256)
             self.print_application_info(self.info)
@@ -1368,6 +1408,7 @@ $adb remount
             self.strings = application_database.query_db("SELECT stringResources FROM Application WHERE sha256='{}';".format(app_sha256))[0][0].decode('utf-8')
             self.total_deep_links = []
             self.deeplinks = application_database.get_deeplinks(app_sha256)
+            self.comments = application_database.get_all_comments(app_sha256)
             self.print_deeplinks(True) #propagate the deeplink lists
             self.current_app_sha256 = app_sha256
         except Exception as e:

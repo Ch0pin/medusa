@@ -98,11 +98,9 @@ class Guava:
           activity_alias_attributes = (sha256, aliasname, enabled, exported,permission,targetActivity)
           self.application_database.update_activity_alias(activity_alias_attributes)  
 
-  def fill_application_attributes(self,parsed_apk,sha256,application):
+  def fill_application_attributes(self,parsed_apk,sha256,application,original_filename):
     arsc = parsed_apk.get_android_resources()
-    app_attributes = (sha256,parsed_apk.get_app_name(),parsed_apk.get_package(),parsed_apk.get_androidversion_code(),parsed_apk.get_androidversion_name(),
-      parsed_apk.get_min_sdk_version(),parsed_apk.get_target_sdk_version(),parsed_apk.get_max_sdk_version(),'|'.join(parsed_apk.get_permissions()),
-      '|'.join(parsed_apk.get_libraries())) + (application.get(NS_ANDROID+"debuggable"), application.get(NS_ANDROID+"allowBackup"),parsed_apk.get_android_manifest_axml().get_xml(),arsc.get_string_resources(arsc.get_packages_names()[0]))
+    app_attributes = (sha256,parsed_apk.get_app_name(),parsed_apk.get_package(),parsed_apk.get_androidversion_code(),parsed_apk.get_androidversion_name(),parsed_apk.get_min_sdk_version(),parsed_apk.get_target_sdk_version(),parsed_apk.get_max_sdk_version(),'|'.join(parsed_apk.get_permissions()),'|'.join(parsed_apk.get_libraries())) + (application.get(NS_ANDROID+"debuggable"), application.get(NS_ANDROID+"allowBackup"),parsed_apk.get_android_manifest_axml().get_xml(),arsc.get_string_resources(arsc.get_packages_names()[0]),original_filename)
 
     self.application_database.update_application(app_attributes)
 
@@ -176,7 +174,7 @@ class Guava:
       print("[+] Analysis finished.")
       print("[+] Filling up the database....")
     self.filter_list = {}
-    self.fill_application_attributes(apk_r,app_sha256,application)
+    self.fill_application_attributes(apk_r,app_sha256,application,apkfile)
     self.fill_permissions(apk_r,app_sha256)
     self.fill_activities(application,app_sha256)
     self.fill_services(application,app_sha256)
@@ -193,3 +191,14 @@ class Guava:
           for item in objlist:
               filter_attribs = (sha256,filter,'|'.join(item.actionList),'|'.join(item.categoryList),'|'.join(item.dataList))
               self.application_database.update_intent_filters(filter_attribs)
+
+  def insert_comment(self,sha256,comment):
+     comment = (sha256,comment)
+     self.application_database.insert_comment(comment)
+  
+  def update_comment(self,index,comment):
+     self.application_database.update_comment(index,comment)
+  
+  def delete_comment(self,index):
+     self.application_database.delete_comment(index)
+  

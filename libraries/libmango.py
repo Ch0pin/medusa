@@ -1260,10 +1260,11 @@ $adb remount
             if self.guava.sha256Exists(sha256):
                 print("[i] Application has already being analysed !")
             else:
-                self.guava.full_analysis(apk_file)
                 if print_application_info:
+                    self.guava.full_analysis(apk_file)
                     self.init_application_info(self.database,self.guava.sha256sum(apk_file))
                 else:
+                    self.guava.full_analysis(apk_file,False)
                     self.info = self.database.get_app_info(self.guava.sha256sum(apk_file))  
                     print(f"Package Name: {self.info[0][2]}")
         except Exception as e:

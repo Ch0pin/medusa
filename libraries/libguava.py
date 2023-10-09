@@ -164,7 +164,7 @@ class Guava:
           service_attribs = (sha256, servicename, enabled, exported,foregroundServiceType, permission,process)
           self.application_database.update_services(service_attribs)
 
-  def full_analysis(self,apkfile):
+  def full_analysis(self,apkfile,print_info=True):
 
     app_sha256 = self.sha256sum(apkfile)
 
@@ -172,9 +172,9 @@ class Guava:
     apk_r = apk.APK(apkfile)
     manifest = apk_r.get_android_manifest_axml().get_xml_obj()
     application = manifest.findall("application")[0]
-
-    print("[+] Analysis finished.")
-    print("[+] Filling up the database....")
+    if print_info:
+      print("[+] Analysis finished.")
+      print("[+] Filling up the database....")
     self.filter_list = {}
     self.fill_application_attributes(apk_r,app_sha256,application)
     self.fill_permissions(apk_r,app_sha256)
@@ -184,8 +184,8 @@ class Guava:
     self.fill_receivers(application, app_sha256)
     self.fill_activity_alias(application, app_sha256)
     self.fill_intent_filters(app_sha256)
-
-    print("[+] Database Ready !")
+    if print_info:
+      print("[+] Database Ready !")
 
   def fill_intent_filters(self,sha256):
       for filter in self.filter_list:

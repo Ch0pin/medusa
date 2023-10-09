@@ -192,13 +192,13 @@ class Guava:
               filter_attribs = (sha256,filter,'|'.join(item.actionList),'|'.join(item.categoryList),'|'.join(item.dataList))
               self.application_database.update_intent_filters(filter_attribs)
 
-  def insert_comment(self,sha256,comment):
-     comment = (sha256,comment)
-     self.application_database.insert_comment(comment)
+  def insert_note(self,sha256,note):
+     note = (sha256,note)
+     self.application_database.insert_note(note)
   
-  def update_comment(self,index,comment):
-     self.application_database.update_comment(index,comment)
+  def update_note(self,index,note):
+     self.application_database.update_note(index,note)
   
-  def delete_comment(self,index):
-     self.application_database.delete_comment(index)
+  def delete_note(self,index):
+     self.application_database.delete_note(index)
   

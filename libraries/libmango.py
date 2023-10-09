@@ -167,7 +167,7 @@ class parser(cmd2.Cmd):
     base_directory = os.path.dirname(__file__)
     prompt = Fore.BLUE +Style.BRIGHT +'mango➤'+Fore.RESET+Style.RESET_ALL
     current_app_sha256 = None
-    comments = None
+    notes = None
     database =None
     guava = None
     INSTALL = False
@@ -274,28 +274,28 @@ class parser(cmd2.Cmd):
         """Clear the screen"""
         os.system('clear')
 
-    def do_comment(self,line):
-        """Usage: comment [add|show|del|update]
+    def do_note(self,line):
+        """Usage: note [add|show|del|update]
         Sends an intent which will start the given deeplink. 
         When used with --poc it will create an html link to the given deeplink."""
         try:
-            comment_option = line.split()[0]
-            if comment_option == 'add':
-                comment = input("Comment (press enter to commit): ")
-                self.guava.insert_comment(self.current_app_sha256,comment)
-                print("Comment added.")
-            elif comment_option == 'show':
-                comments = self.database.get_all_comments(self.current_app_sha256)
-                for index,sha256,cmt in comments:
+            note_option = line.split()[0]
+            if note_option == 'add':
+                note = input("Note (press enter to commit): ")
+                self.guava.insert_note(self.current_app_sha256,note)
+                print("Note added.")
+            elif note_option == 'show':
+                notes = self.database.get_all_notes(self.current_app_sha256)
+                for index,sha256,cmt in notes:
                     print(f'{index}) {cmt}')
-            elif comment_option == 'del':
-                index = input("Enter the index of the comment you want to delete:")
-                self.guava.delete_comment(int(index))
-            elif comment_option == 'update':
-                index = input("Enter the index of the comment you want to update:")
-                comment = input("Comment (press enter to commit): ")
-                self.guava.update_comment(index,comment)
-                print("Comment updated")
+            elif note_option == 'del':
+                index = input("Enter the index of the note you want to delete:")
+                self.guava.delete_note(int(index))
+            elif note_option == 'update':
+                index = input("Enter the index of the note you want to update:")
+                note = input("Note (press enter to commit): ")
+                self.guava.update_note(index,note)
+                print("Note updated")
             else:
                 print("[!] Invalid option !")
                 return
@@ -954,7 +954,7 @@ $adb remount
 ###################################################### complete defs start ############################################################
     
     #mark for tests, improve completes
-    def complete_comment(self, text, line, begidx, endidx):
+    def complete_note(self, text, line, begidx, endidx):
         if self.current_app_sha256 == None:
             components = []
         else:
@@ -1107,10 +1107,13 @@ $adb remount
 [------------------------------------------------------------------------------------------]
         """.format(info[0][14],info[0][1],info[0][2],info[0][3],info[0][4],
             info[0][5],info[0][6],info[0][7],info[0][0],info[0][10],info[0][11]) +Style.RESET_ALL)
-        print(BLUE+"[i] Comments:"+RESET)   
-        comments = self.database.get_all_comments(info[0][0])
-        for index,sha256,cmt in comments:
-            print(f'{index}) {cmt}')
+        print(BLUE+"[i] Notes:"+RESET)   
+        notes = self.database.get_all_notes(info[0][0])
+        if len(notes)==0:
+            print("No notes found!")
+        else:
+            for index,sha256,cmt in notes:
+                print(f'{index}) {cmt}')
 
     def print_database_structure(self):
         res = self.database.query_db("SELECT name FROM sqlite_master WHERE type='table';")
@@ -1408,7 +1411,7 @@ $adb remount
             self.strings = application_database.query_db("SELECT stringResources FROM Application WHERE sha256='{}';".format(app_sha256))[0][0].decode('utf-8')
             self.total_deep_links = []
             self.deeplinks = application_database.get_deeplinks(app_sha256)
-            self.comments = application_database.get_all_comments(app_sha256)
+            self.notes = application_database.get_all_notes(app_sha256)
             self.print_deeplinks(True) #propagate the deeplink lists
             self.current_app_sha256 = app_sha256
         except Exception as e:

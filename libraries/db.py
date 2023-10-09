@@ -28,7 +28,7 @@ class apk_db():
 
         self.cursor.execute("""CREATE TABLE IntentFilters(app_sha256 TEXT, componentName TEXT, actionList TEXT, categoryList TEXT, dataList TEXT)""")
         
-        self.cursor.execute("""CREATE TABLE "Comments" ("index"	INTEGER NOT NULL UNIQUE, "app_sha256"	TEXT NOT NULL, "comment"	TEXT, PRIMARY KEY("index" AUTOINCREMENT));""")
+        self.cursor.execute("""CREATE TABLE "Notes" ("index"	INTEGER NOT NULL UNIQUE, "app_sha256"	TEXT NOT NULL, "note"	TEXT, PRIMARY KEY("index" AUTOINCREMENT));""")
 
 
 
@@ -164,21 +164,21 @@ class apk_db():
                         permission, process) values(?,?,?,?,?,?,?)"""
         self.execute_update(sql,attribs)
     
-    def insert_comment(self,attribs):
-        sql = """INSERT INTO Comments(app_sha256, comment) values(?,?)"""
+    def insert_note(self,attribs):
+        sql = """INSERT INTO Notes(app_sha256, note) values(?,?)"""
         self.execute_update(sql,attribs)
     
-    def delete_comment(self,index):
-        sql = f"""DELETE FROM "Comments" WHERE _rowid_ IN ({index});"""
+    def delete_note(self,index):
+        sql = f"""DELETE FROM "Notes" WHERE _rowid_ IN ({index});"""
         self.cursor.execute(sql)
         self.connection.commit()
     
-    def update_comment(self,index,comment):
-        sql = f"""UPDATE "main"."Comments" SET "comment"="{comment}" WHERE "_rowid_"={index}"""
+    def update_note(self,index,note):
+        sql = f"""UPDATE "main"."Notes" SET "note"="{note}" WHERE "_rowid_"={index}"""
         self.cursor.execute(sql)
         self.connection.commit()
     
-    def get_all_comments(self,sha256):
-        sql = """SELECT * from Comments WHERE app_sha256='{}'""".format(sha256)
+    def get_all_notes(self,sha256):
+        sql = """SELECT * from Notes WHERE app_sha256='{}'""".format(sha256)
         self.cursor.execute(sql) 
         return self.cursor.fetchall()

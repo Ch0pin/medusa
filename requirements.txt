@@ -2,7 +2,8 @@ androguard==3.3.5
 click==8.0.3
 cmd2==2.3.3
 colorama==0.4.5
-frida==16.0.2
+frida==16.1.4
+frida-tools==13.2.0
 pick==2.2.0
 PyYAML==6.0.1
 requests==2.25.1

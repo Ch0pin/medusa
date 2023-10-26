@@ -88,7 +88,7 @@ class Parser(cmd2.Cmd):
     ██╔████╔██║█████╗  ██║  ██║██║   ██║███████╗███████║
     ██║╚██╔╝██║██╔══╝  ██║  ██║██║   ██║╚════██║██╔══██║
     ██║ ╚═╝ ██║███████╗██████╔╝╚██████╔╝███████║██║  ██║
-    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ Version: 1.2 (dev)  
+    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (Android) Version: 1.2 (dev)  
                                     
  🪼 Type help for options 🪼 \n\n""", fg=randomized_fg(),bold=True)
         self.do_loaddevice("dummy")
@@ -666,7 +666,7 @@ class Parser(cmd2.Cmd):
 
     def do_list(self,line) -> None:
         """
-        Set the currently working package set / get infor about an installed package
+        Set the currently working package set / get information about an installed package
         list [opt]
         Where opt:
             -a: all known packages (but excluding APEXes)

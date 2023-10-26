@@ -1,11 +1,19 @@
 #!/bin/sh
 
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}";)" &> /dev/null && pwd 2> /dev/null)"
 
-
-
-if [ "$#" -eq 2 ]; then
-    python3 $SCRIPT_DIR/medusa.py $1 $2
+if [ "$#" -eq 0 ]; then
+    python3 "$SCRIPT_DIR/medusa.py"
+elif [ "$#" -eq 1 ]; then
+    if [ "$1" == "--ios" ]; then
+        python3 "$SCRIPT_DIR/medusa_ios.py"
+    else
+        echo "Invalid argument. Use '--ios' to run medusa for iOS."
+    fi
+elif [ "$#" -eq 3 ] && [ "$1" == "-r" ] && [ "$3" == "--ios" ]; then
+    python3 "$SCRIPT_DIR/medusa_ios.py" -r "$2"
+elif [ "$#" -eq 2 ] && [ "$1" == "-r" ]; then
+    python3 "$SCRIPT_DIR/medusa.py" -r "$2"
 else
-    python3 $SCRIPT_DIR/medusa.py
+    echo "Usage: $0 [-r filename] [--ios]"
 fi

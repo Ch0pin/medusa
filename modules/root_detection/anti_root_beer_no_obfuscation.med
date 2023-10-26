@@ -1,0 +1,38 @@
+
+{
+    "Name": "root_detection/rootbeer_detection_bypass_no_obfuscation",
+    "Description": "Bypass rootbeer checks",
+    "Help": "",
+    "Code": "    
+    console.log('\\n---------LOADING ANTI ROOT DETECTION SCRIPT-------------------');
+
+
+try {
+    var targetClass12 = Java.use('com.scottyab.rootbeer.RootBeer');
+
+    // Get all declared methods in the class
+    var methods = targetClass12.class.getDeclaredMethods();
+    
+    methods.forEach(function (method) {
+        var methodName = method.getName();
+    
+        // Check if the return type of the method is boolean
+        if (method.getReturnType().getName() === 'boolean') {
+            console.log('Hooking method: ' + methodName);
+    
+            // Create hooks for all overloads of the method
+            var overloads = targetClass12[methodName].overloads;
+            overloads.forEach(function (overload) {
+                overload.implementation = function () {
+                    console.log('Hooked method: ' + methodName);
+                    return false; // Change the return value to false
+                };
+            });
+        }
+    });
+} catch (error) {
+    console.error('Error: ' + error);
+}
+
+"
+}

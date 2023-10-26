@@ -2,7 +2,7 @@
 
 # Description
 
-**MEDUSA** is an extensible and modularized framework that automates processes and techniques practiced during the **dynamic analysis** **of Android Applications**.  
+**MEDUSA** is an extensible and modularized framework that automates processes and techniques practiced during the **dynamic analysis** **of Android and iOS Applications**.  
 
 # Installation
 

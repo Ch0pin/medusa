@@ -164,6 +164,41 @@ class Parser(cmd2.Cmd):
             print(e) 
             print("[i] Usage: export filename")
 
+
+
+        except Exception as e:
+            print(e)
+
+    def do_hook(self,line) -> None:
+        """
+        Hook a method or methods
+        Usage:
+        hook [options] where option can be one of the following:
+            -a [class name] [--color] : Set hooks for all the methods of the given class.  
+                                        (optional) Use the --color option to set different color output 
+                                        (default is purple)
+        """
+        option = line.split(' ')[0]
+        if option=='-a':
+            aclass = line.split(' ')[1].strip()
+            if aclass == '':
+                print('[i] Usage hook -a class_name')
+            else:
+                if len(line.split(' ')) > 2:
+                    if line.split(' ')[2].strip()=='--color':
+                        collors = ['Blue','Cyan','Gray','Green','Purple','Red','Yellow']
+                        option, index = pick(collors,"Available colors:",indicator="=>",default_index=0)
+                        self.hookall(aclass,option)
+                    else:
+                        self.hookall(aclass)
+                else:
+                    self.hookall(aclass)
+        elif option=='-r':
+            self.scratchreset()
+        else:
+            print("[i] Invalid option")
+
+
     def do_info(self, mod) -> None:
         """
         Provides information about a module.
@@ -518,18 +553,9 @@ class Parser(cmd2.Cmd):
             return None    
 
     def hookall(self, className, color='Purple') -> None:
-        codejs = "traceClass('"+className+"','"+color+"');\n"
+        codejs = "setImmediate(ios_run_hook_all_methods_of_specific_ios_class('"+className+"','"+color+"'));\n"
         self.edit_scratchpad(codejs, 'a')
         print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
-
-        # aclass = line.split(' ')[0]
-        # if  aclass == '':
-        #     print('[i] Usage: hookall [class name]')
-        # else:
-        #     className = aclass
-        #     codejs = "traceClass('"+className+"');\n"
-        #     self.edit_scratchpad(codejs, 'a')
-        #     print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
     def frida_session_handler(self,con_device,force,pkg,pid=-1):
         time.sleep(1)

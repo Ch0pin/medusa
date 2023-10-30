@@ -1,0 +1,28 @@
+{
+    "Name": "helpers/nslogs",
+    "Description": "Script to intercept NSLog and NSLogv calls",
+    "Help": "This interception does not print the string interpolation (or formatting) values such as %s, %ld, %f, %a. Still working on a fix. https://twitter.com/xploresec,https://github.com/interference-security",
+    "Code": "    
+    console.log('\\n---------Loading nslogs interceptor------------------');
+
+
+Interceptor.attach(Module.findExportByName('Foundation', 'NSLog'), {
+	onEnter: function(args) {
+		console.log('[*] NSLog was called')
+		console.log(ObjC.Object(ptr(args[0])))
+		//console.log((ObjC.Object(ptr(args[0]))).toString())
+		//console.log((ObjC.Object(args[0])).toString())
+	}
+});
+
+
+Interceptor.attach(Module.findExportByName('Foundation', 'NSLogv'), {
+	onEnter: function(args) {
+		console.log('[*] NSLogv was called')
+		console.log(ObjC.Object(ptr(args[0])))
+	}
+});
+
+
+"
+}

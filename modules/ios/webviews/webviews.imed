@@ -6,16 +6,24 @@
     console.log('\\n---------Webviews hook script for ios by ch0pin------------------');
 
 
-var dumpWebviewSettings = function(wk){
-
+    function dumpWebviewSettings(wv,url){
+      colorLog('[i] ------------------------- Dumping webview settings start --------------------:',{c:Color.Yellow});
+      colorLog('=====> Class Name: '+wv.$className,{c:Color.Yellow});
+      highlight('     JavaScriptEnabled: ',wv.configuration().preferences().javaScriptEnabled().toString());
+      highlight('     HasOnlySecureContent: ',wv.hasOnlySecureContent().toString());
+      highlight('     AllowFileAccessFromFileURLs: ',wv.configuration().preferences().valueForKey_('allowFileAccessFromFileURLs').toString());
+      highlight('     AllowUniversalAccessFromFileURLs: ',wv.configuration().valueForKey_('allowUniversalAccessFromFileURLs').toString());
+      colorLog('[i] Currently Loaded '+url, {c: Color.Gray});
+      colorLog('[i] ------------------------- Dumping webview settings end ----------------------.',{c:Color.Yellow});
+  }
   
-  colorLog('JavaScriptEnabled: '+ wk.configuration().preferences().javaScriptEnabled(), {c:Color.Blue});
-  colorLog('HasOnlySecureContent: '+ wk.hasOnlySecureContent().toString(), {c:Color.Blue});
-  colorLog('AllowFileAccessFromFileURLs: '+wk.configuration().preferences().valueForKey_('allowFileAccessFromFileURLs').toString(), {c:Color.Blue});
-  colorLog('AllowUniversalAccessFromFileURLs: '+  wk.configuration().valueForKey_('allowUniversalAccessFromFileURLs').toString(), {c:Color.Blue});
-  colorLog('[i]--------------End Of Webview Settings Dump---------------------', {c: Color.Green});
-
-}
+  function highlight(tag, flag){
+    if(flag=='true')
+      colorLog(tag + flag.toString(),{c:Color.Red});
+    else 
+      console.log(tag+flag.toString());
+  
+  }
 
 
 var WKWebView = ObjC.classes['WKWebView'];
@@ -26,9 +34,7 @@ Interceptor.attach(WKWebView['- loadRequest:'].implementation, {
     let self = new ObjC.Object(ptr(args[0]));
     let myJSURL = (new ObjC.Object(ptr(args[2]))).toString();
     let url = myJSURL.substring(myJSURL.indexOf('URL:'), myJSURL.length-1);
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    colorLog('[i] Launching '+url, {c: Color.Red});
-    dumpWebviewSettings(self);
+    dumpWebviewSettings(self,url);
   }
 });
 
@@ -39,10 +45,7 @@ Interceptor.attach(WKWebView['- loadHTMLString:baseURL:'].implementation, {
     let htmlCode = (new ObjC.Object(ptr(args[2]))).toString();
     let myJSURL = (new ObjC.Object(ptr(args[3]))).toString();
     let url = myJSURL.substring(myJSURL.indexOf('URL:'), myJSURL.length-1);
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    colorLog('[i] loadHTMLString '+htmlCode + '\\n Base :'+url, {c: Color.Red});
-
-    dumpWebviewSettings(self);
+    dumpWebviewSettings(self,'loadHTMLString '+htmlCode + '\\n Base :'+url);
 
   }
 });
@@ -53,9 +56,7 @@ Interceptor.attach(WKWebView['- loadFileURL:allowingReadAccessToURL:'].implement
     let self = new ObjC.Object(ptr(args[0]));
     let myJSURL = (new ObjC.Object(ptr(args[2]))).toString();
     let url = myJSURL.substring(myJSURL.indexOf('URL:'), myJSURL.length-1);
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    colorLog('[i] Launching '+url, {c: Color.Red});
-    dumpWebviewSettings(self);
+    dumpWebviewSettings(self, 'URL: '+url);
 
   }
 });
@@ -66,10 +67,7 @@ Interceptor.attach(WKWebView['- _evaluateJavaScript:asAsyncFunction:withSourceUR
 
     let self = new ObjC.Object(ptr(args[0]));
     let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    console.log('[i] Javascript: '+javascript);
-
-    dumpWebviewSettings(self);
+    dumpWebviewSettings(self, 'Javascript: '+javascript);
 
   }
 });
@@ -79,10 +77,8 @@ Interceptor.attach(WKWebView['- _evaluateJavaScript:asAsyncFunction:withSourceUR
 
     let self = new ObjC.Object(ptr(args[0]));
     let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    console.log('[i] Javascript: '+javascript);
 
-    dumpWebviewSettings(self);
+    dumpWebviewSettings(self, 'Javascript: '+javascript);
 
   }
 });
@@ -92,10 +88,8 @@ Interceptor.attach(WKWebView['- evaluateJavaScript:completionHandler:'].implemen
 
     let self = new ObjC.Object(ptr(args[0]));
     let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    console.log('[i] Javascript: '+javascript);
 
-    dumpWebviewSettings(self);
+    dumpWebviewSettings(self, 'Javascript: '+javascript);
 
   }
 });
@@ -105,10 +99,8 @@ Interceptor.attach(WKWebView['- evaluateJavaScript:inFrame:inContentWorld:comple
 
     let self = new ObjC.Object(ptr(args[0]));
     let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    console.log('[i] Javascript: '+javascript);
 
-    dumpWebviewSettings(self);
+    dumpWebviewSettings(self, 'Javascript: '+javascript);
 
   }
 });
@@ -118,10 +110,8 @@ Interceptor.attach(WKWebView['- _evaluateJavaScriptWithoutUserGesture:completion
 
     let self = new ObjC.Object(ptr(args[0]));
     let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    console.log('[i] Javascript: '+javascript);
-
-    dumpWebviewSettings(self);
+    
+    dumpWebviewSettings(self, 'Javascript: '+javascript);
 
   }
 });
@@ -131,10 +121,8 @@ Interceptor.attach(WKWebView['- _evaluateJavaScript:inFrame:inContentWorld:compl
 
     let self = new ObjC.Object(ptr(args[0]));
     let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    console.log('[i] Javascript: '+javascript);
-
-    dumpWebviewSettings(self);
+    
+    dumpWebviewSettings(self, 'Javascript: '+javascript);
 
   }
 });
@@ -144,10 +132,8 @@ Interceptor.attach(WKWebView['- _evaluateJavaScript:withSourceURL:inFrame:inCont
 
     let self = new ObjC.Object(ptr(args[0]));
     let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    console.log('[i] Javascript: '+javascript);
-
-    dumpWebviewSettings(self);
+    
+    dumpWebviewSettings(self, 'Javascript: '+javascript);
 
   }
 });
@@ -157,10 +143,8 @@ Interceptor.attach(WKWebView['- _callAsyncJavaScript:arguments:inFrame:inContent
 
     let self = new ObjC.Object(ptr(args[0]));
     let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    console.log('[i] Javascript: '+javascript);
-
-    dumpWebviewSettings(self);
+    
+    dumpWebviewSettings(self, 'Javascript: '+javascript);
 
   }
 });
@@ -170,10 +154,8 @@ Interceptor.attach(WKWebView['- callAsyncJavaScript:arguments:inFrame:inContentW
 
     let self = new ObjC.Object(ptr(args[0]));
     let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-    colorLog('\\n[i]--------------Dumping Webview Settings:-----------------------:', {c: Color.Green});
-    console.log('[i] Javascript: '+javascript);
-
-    dumpWebviewSettings(self);
+    
+    dumpWebviewSettings(self, 'Javascript: '+javascript);
 
   }
 });

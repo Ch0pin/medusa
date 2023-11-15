@@ -7,7 +7,7 @@ var requestHeaders = "";
 var requestBody = "";
 var responseHeaders = "";
 var responseBody = "";
-var filterKeyWords = ['destin','url','path','uri','page','attachment','file','dir','http','navigat'];
+var filterKeyWords = ['destin','url','path','uri','page','attachment','file','dir','http','navigat','link','redir','web'];
 
 
 function log(str) {

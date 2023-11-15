@@ -276,8 +276,7 @@ class parser(cmd2.Cmd):
 
     def do_note(self,line):
         """Usage: note [add|show|del|update]
-        Sends an intent which will start the given deeplink. 
-        When used with --poc it will create an html link to the given deeplink."""
+        """
         try:
             note_option = line.split()[0]
             if note_option == 'add':

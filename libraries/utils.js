@@ -539,6 +539,11 @@ var normalizeKey = function(cert_or_key){
     return "non-SecretKeySpec: " + cert_or_key.toString() + ", encoded: " + byteArraytoHexString(cert_or_key.getEncoded()) + ", object: " + JSON.stringify(cert_or_key);
   }
 }
+var stringToByteArray = function(input){
+  const msgString = Java.use('java.lang.String').$new(input);
+  const result = msgString.getBytes();
+  return result;
+}
 var byteArrayToString = function(input){
   var buffer = Java.array('byte', input);
   var result = "";

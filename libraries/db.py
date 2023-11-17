@@ -41,7 +41,7 @@ class apk_db():
         sql6 = "DELETE FROM Receivers WHERE app_sha256 = '{}'".format(sha256)
         sql7 = "DELETE FROM ActivityAlias WHERE app_sha256 = '{}'".format(sha256)
         sql8 = "DELETE FROM IntentFilters WHERE app_sha256 = '{}'".format(sha256)
-        sql9 = "DELETE FROM Comments WHERE app_sha256 = '{}'".format(sha256)
+        sql9 = "DELETE FROM Notes WHERE app_sha256 = '{}'".format(sha256)
 
         self.cursor.execute(sql1)
         self.cursor.execute(sql2)

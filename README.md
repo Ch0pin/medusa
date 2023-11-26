@@ -13,6 +13,20 @@
 ```
 $ pip install -r requirements.txt --upgrade
 ```
+## Known issues
+
+In MacOS installation you may encounter the following issue:
+
+>Readline features including tab completion have been disabled because
+no supported version of readline was found. To resolve this, install
+pyreadline3 on Windows or gnureadline on Linux/Mac.
+
+You can resolve this by installing python's gnureadline:
+
+```
+pip install gnureadline
+```
+
 ## Using docker
 
 You can find the docker file in the medusa/ directory. 

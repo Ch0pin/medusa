@@ -12,7 +12,7 @@ class apk_db():
             self.create_db(self.connection)
 
     def create_db(self,cursor):
-        self.cursor.execute("""CREATE TABLE Application(sha256 TEXT, name TEXT, packageName TEXT, versionCode TEXT, versionName TEXT, minSdkVersion TEXT, targetSdkVersion TEXT, maxSdkVersion TEXT,permissions TEXT, libraries TEXT, debuggable TEXT, allowbackup TEXT, androidManifest TEXT, stringResources TEXT, original_filename TEXT)""")
+        self.cursor.execute("""CREATE TABLE Application(sha256 TEXT, name TEXT, packageName TEXT, versionCode TEXT, versionName TEXT, minSdkVersion TEXT, targetSdkVersion TEXT, maxSdkVersion TEXT,permissions TEXT, libraries TEXT, debuggable TEXT, allowbackup TEXT, androidManifest TEXT, stringResources TEXT, original_filename TEXT, tampered TEXT)""")
 
         self.cursor.execute("""CREATE TABLE Permissions(app_sha256 TEXT, permission TEXT, type TEXT, shortDescription TEXT, fullDescription TEXT)""")
 
@@ -139,7 +139,7 @@ class apk_db():
 
     def update_application(self,attribs):
         sql = """INSERT INTO Application(sha256,name,packageName,versionCode,versionName,minSdkVersion,
-        targetSdkVersion,maxSdkVersion,permissions,libraries, debuggable, allowbackup,androidManifest,stringResources,original_filename) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
+        targetSdkVersion,maxSdkVersion,permissions,libraries, debuggable, allowbackup,androidManifest,stringResources,original_filename,tampered) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
         self.execute_update(sql,attribs)
 
     def update_intent_filters(self,attribs):

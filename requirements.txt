@@ -1,4 +1,4 @@
-androguard==3.3.5
+androguard @ git+https://github.com/androguard/androguard.git@335f1d4744b28b6b5cfb2d79bb5c2c6d780ec10e
 click==8.0.3
 cmd2==2.3.3
 colorama==0.4.5

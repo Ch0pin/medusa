@@ -1,13 +1,7 @@
-from androguard.misc import AnalyzeAPK
-from androguard.core.bytecodes import apk
-from colorama import Fore, Back, Style
-from libraries.IntentFilter import *
 from libraries.libmango import *
-from libraries.db import *
 from libraries.Questions import *
 from libraries.libguava import *
 from libraries.libadb import *
-import hashlib
 import sys, os.path
 
 

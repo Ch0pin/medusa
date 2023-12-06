@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import subprocess, frida, shutil
 import cmd2, os, sys, platform,requests
-import readline, logging, time, rlcompleter
+import time
+# import readline, logging, time, rlcompleter
 from libraries.Questions import Polar
 from libraries.libadb import android_device
 from libraries.libguava import *

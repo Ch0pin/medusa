@@ -763,7 +763,8 @@ $adb remount
         - info: prints information about the loaded application
         - manifest_entry: prints information about the loaded application's manifest entries, including:
           activities, services, activityAlias, receivers, deeplinks, providers and intentFilters.
-          Adding the '-e' option the command will print only exported components."""
+          Adding the '-e' option the command will print only exported components.
+        - receivers -d: prints dynamically registered receivers"""
   
         what = line.split(' ')[0]
         if len(line.split(' '))>1:
@@ -803,6 +804,8 @@ $adb remount
                 elif 'receivers' in what:
                     if '-e' in flag:
                         self.print_receivers(False)
+                    elif '-d' in flag:
+                        self.print_receivers(True,'-d')
                     else:
                         self.print_receivers()
 
@@ -1253,8 +1256,13 @@ $adb remount
         output = subprocess.run("""adb -s {} shell 'echo "iptables -t nat -L" | su'""".format(self.device.id), shell=True)
         print(output)
 
-    def print_receivers(self,all = True):
+    def print_receivers(self,all = True,flag=None):
         try:
+            if flag=='-d':
+                p = subprocess.Popen((["adb","-s",self.device.id,"shell","dumpsys", "activity","broadcasts",self.package]), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                for line in p.stdout:
+                    print(line.decode("utf-8").rstrip())
+                return
             display_text = ''
             for attribs in self.receivers:
                 display_text = attribs[1]
@@ -1410,6 +1418,7 @@ $adb remount
             self.manifest = application_database.query_db("SELECT androidManifest FROM Application WHERE sha256='{}';".format(app_sha256))
             self.strings = application_database.query_db("SELECT stringResources FROM Application WHERE sha256='{}';".format(app_sha256))[0][0].decode('utf-8')
             self.total_deep_links = []
+            self.package=self.info[0][2]
             self.deeplinks = application_database.get_deeplinks(app_sha256)
             self.notes = application_database.get_all_notes(app_sha256)
             self.print_deeplinks(True) #propagate the deeplink lists

@@ -1,6 +1,7 @@
 import io
 
 from androguard.core import apk
+from androguard import util
 from apkInspector.indicators import apk_tampering_check
 
 from libraries.IntentFilter import *
@@ -9,6 +10,9 @@ import hashlib
 
 NS_ANDROID_URI = "http://schemas.android.com/apk/res/android"
 NS_ANDROID = '{http://schemas.android.com/apk/res/android}'
+
+# Silence Loguru from Androguard
+util.set_log("ERROR")
 
 class Guava:
   filter_list = {}

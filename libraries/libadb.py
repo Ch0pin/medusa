@@ -1,5 +1,5 @@
 from ast import For
-import subprocess,os
+import subprocess,os,time
 from colorama import Fore, Back, Style
 
 class android_device:
@@ -15,7 +15,22 @@ class android_device:
         self.properties = list(str(self.run_command(["adb","-s",self.id,"shell","getprop"])).split('\\n'))
 
     def get_process_pid_by_package_name(self, package_name):
+        pid = None
+        while pid is None:
+            try:
+                pid_output = subprocess.check_output(["adb", "-s", self.id, "shell", "pidof", package_name], text=True)
+                pid = pid_output.strip()
+                if pid:
+                    print(f"App '{package_name}' PID: {pid}")
+                else:
+                    print(f"App '{package_name}' is not running yet. Retrying in {2} seconds...")
+                    time.sleep(2)
+            except subprocess.CalledProcessError:
+                print(f"App '{package_name}' is not running yet. Retrying in {2} seconds...")
+                time.sleep(2)
         return self.run_command(["adb","-s",self.id,"shell", "pidof", "-s", "{}".format(package_name)])
+    
+
 
     def print_dev_properties(self):
         print('\nDevice properties:\n')
@@ -48,8 +63,9 @@ class android_device:
         # print(self.run_command(["adb","-s",self.id,"logcat","--pid={}".format(pid)]))
     
     def print_runtime_logs(self,package_name):
-        pid = self.get_process_pid_by_package_name(package_name).decode('utf-8').rstrip()
 
+        pid = self.get_process_pid_by_package_name(package_name).decode('utf-8').rstrip()
+        
         p = subprocess.Popen((["adb","-s",self.id,"logcat","--pid={}".format(pid)]), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         for line in p.stdout:
             print(line.decode("utf-8").rstrip())

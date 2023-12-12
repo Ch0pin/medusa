@@ -762,6 +762,13 @@ function dumpIntent(intent, redump=true)
   var action = intent.getAction();
 
   colorLog(intent, {c:Color.Cyan});
+  var exported = isActivityExported(intent);
+  var str = "(The intent is targeting";
+  if(exported)
+    colorLog(str+ " an EXPORTED component)", {c:Color.Red});
+  else
+    colorLog(str+ " a NON EXPORTED component)", {c:Color.Green});
+
   var type = null;
   if(data != null)
   {
@@ -809,6 +816,19 @@ function waitForModule(moduleName) {
       }, 300);
   });
 }
+
+function isActivityExported(intent){
+  try{
+    const context = getApplicationContext();
+    const packageManager = context.getPackageManager();  
+    let resolveInfo = packageManager.resolveActivity(intent, 0);
+    return resolveInfo.activityInfo.value.exported.value;
+  }
+    catch(error){
+    console.log(error)
+  }
+}
+
 //------------------------iOS specific methods START- must start with ios_----------------------------
 
 

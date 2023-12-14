@@ -1,4 +1,4 @@
-androguard==3.3.5
+androguard @ git+https://github.com/androguard/androguard.git@0ea2a60ddebaf1c6e4d11aa84668d64c90f6b25f
 click==8.0.3
 cmd2==2.3.3
 colorama==0.4.5
@@ -9,3 +9,4 @@ PyYAML==6.0.1
 requests==2.25.1
 urllib3==1.26.8
 google_trans_new
+apkInspector

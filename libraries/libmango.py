@@ -1091,8 +1091,8 @@ $adb remount
                 print(display_text)
         print(Style.RESET_ALL)
 
-    def print_application_info(self,info):
-        print(Back.BLACK+Fore.RED+Style.BRIGHT+"""
+    def print_application_info(self, info):
+        print(Back.BLACK + Fore.RED + Style.BRIGHT + """
 [------------------------------------Package Details---------------------------------------]:
 |    Original Filename :{}
 |    Application Name  :{}
@@ -1104,18 +1104,20 @@ $adb remount
 |    Max SDK           :{}
 |    Sha256            :{}
 |    Debuggable        :{}
-|    Allow Backup      :{} 
+|    Allow Backup      :{}
+|    Evasion Tactics   :{}
 [------------------------------------------------------------------------------------------]
 |                          Type 'help' or 'man' for a list of commands                     |
 [------------------------------------------------------------------------------------------]
-        """.format(info[0][14],info[0][1],info[0][2],info[0][3],info[0][4],
-            info[0][5],info[0][6],info[0][7],info[0][0],info[0][10],info[0][11]) +Style.RESET_ALL)
-        print(BLUE+"[i] Notes:"+RESET)   
+        """.format(info[0][14], info[0][1], info[0][2], info[0][3], info[0][4],
+                   info[0][5], info[0][6], info[0][7], info[0][0], info[0][10], info[0][11],
+                   info[0][15]) + Style.RESET_ALL)
+        print(BLUE + "[i] Notes:" + RESET)
         notes = self.database.get_all_notes(info[0][0])
-        if len(notes)==0:
+        if len(notes) == 0:
             print("No notes found!")
         else:
-            for index,sha256,cmt in notes:
+            for index, sha256, cmt in notes:
                 print(f'{index}) {cmt}')
 
     def print_database_structure(self):

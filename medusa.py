@@ -88,7 +88,7 @@ class Parser(cmd2.Cmd):
     ██╔████╔██║█████╗  ██║  ██║██║   ██║███████╗███████║
     ██║╚██╔╝██║██╔══╝  ██║  ██║██║   ██║╚════██║██╔══██║
     ██║ ╚═╝ ██║███████╗██████╔╝╚██████╔╝███████║██║  ██║
-    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (Android) Version: 2.0   
+    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (Android) Version: 2.0  
                                     
  🪼 Type help for options 🪼 \n\n""", fg=randomized_fg(),bold=True)
         self.do_loaddevice("dummy")
@@ -741,9 +741,7 @@ class Parser(cmd2.Cmd):
 
             for i in range(len(devices)):
                 print('{}) {}'.format(i, devices[i]))
-
             self.device = devices[int(Numeric('\nEnter the index of the device to use:', lbound=0,ubound=len(devices)-1).ask())] 
- 
             android_dev = android_device(self.device.id)
             android_dev.print_dev_properties()
         except:
@@ -979,15 +977,27 @@ class Parser(cmd2.Cmd):
              -f [package name]   : Initiate a Frida session and spawn the selected package
              -n [package number] : Initiate a Frida session and spawn the 3rd party package using its index returned by the 'list' command
              -p [pid]            : Initiate a Frida session using a process id
+             add --host ip:port   to specify the IP address and port of the remote Frida server to connect to. 
         """
         try:
             if self.modified:
                 if Polar('Module list has been modified, do you want to recompile?').ask():
                     self.do_compile(line)
+            
             flags = line.split(' ')
-            length = len(flags)
+            # Extracting host and port if present
+            if '--host' in flags:
+                host_index = flags.index('--host')
+                if host_index + 1 < len(flags):
+                    host, port = flags[host_index + 1].split(':')
+                    # Remove host and port from flags
+                    del flags[host_index:host_index + 2]
+                else:
+                    host, port = '', ''
+            else:
+                host, port = '', ''
 
-            if length == 1:
+            if len(flags) == 1:
                 if flags[0] == '-p':
                     runing_processes = os.popen("""adb -s {} shell 'echo "ps -A" | su'""".format(self.device.id)).read().strip().split('\n')
                     title = "Running processes: "
@@ -995,36 +1005,33 @@ class Parser(cmd2.Cmd):
                     click.echo(click.style(option,bg='blue', fg='white'))
                     pattern = r'\b\d+\b'
                     get_pid = re.findall(pattern, option)
-
-                    self.run_frida(False,False,'',self.device,get_pid[0])
-
-                   
+                    self.run_frida(False,False,'',self.device,get_pid[0],host,port)
                 else: 
-                    self.run_frida(False, False, line, self.device)
-            
-            elif length == 2:
-                
+                    self.run_frida(False, False, line, self.device,-1,host,port)
+                    
+            elif len(flags) == 2:
                 if flags[0] == '-f':
-                    self.run_frida(True, False, flags[1], self.device)
+                    self.run_frida(True, False, flags[1], self.device,-1,host,port)
                 elif flags[0] == '-n':
                     try:
                         if len(self.packages) == 0:
                             self.refreshPackages()
-                        #print(flags[1])
                         package_name = self.packages[int(flags[1])]
-                        #print("package name: ", package_name)
-                        self.run_frida(True, False, package_name, self.device)
+                        self.run_frida(True, False, package_name, self.device,-1,host,port)
                     except (IndexError, TypeError) as error:
                         print('Invalid package number')
+
                 elif flags[0] == '-p':
-                    self.run_frida(False,False,'',self.device,flags[1])
+                    self.run_frida(False,False,'',self.device,flags[1],host,port)
+                    pass
                 else:
                     print('Invalid flag given!')
 
             else:
-                pass
+                print("Invalid arguments.")
+
         except Exception as e:
-            print(e)
+            print(f"An error occurred: {e}")
 
     def do_snippet(self, line) -> None:
         """
@@ -1342,18 +1349,16 @@ class Parser(cmd2.Cmd):
         time.sleep(1)
         if force == False:
             if pid == -1:
-                self.pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+                self.pid = os.popen("adb -s {} shell pidof {}".format(con_device.id,pkg)).read().strip()
             else:
                 self.pid = pid
-            #pid = con_device.attach(self.pid) 
+    
             if self.pid == '':
                 print("[+] Could not find process with this name.")
                 return None
             frida_session = con_device.attach(int(self.pid))   
-            #frida_session = con_device.attach(int(self.pid))
             if frida_session:
                 print(WHITE+"Attaching frida session to PID - {0}".format(frida_session._impl.pid))
-                
             else:
                 print("Could not attach the requested process"+RESET)
         elif force == True:
@@ -1361,7 +1366,6 @@ class Parser(cmd2.Cmd):
             if self.pid:
                 frida_session = con_device.attach(self.pid)
                 print(WHITE+"Spawned package : {0} on pid {1}".format(pkg,frida_session._impl.pid))
-                    # resume app after spawning
                 #con_device.resume(pid)
             else:
                 print(RED+"Could not spawn the requested package")
@@ -1542,7 +1546,12 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
         else:
             print("[!] No available info.")
 
-    def run_frida(self, force, detached, package_name, device,pid=-1)->None:
+    def run_frida(self, force, detached, package_name, device,pid=-1,host = '', port = '')->None:
+        if host !='' and port !='':
+            device = frida.get_device_manager() \
+                        .add_remote_device(f'{host}:{port}')
+            print(f'Using device:{device}')
+
         in_session_menu = WHITE + '(in-session)'+GREEN+' type '+YELLOW+'?'+GREEN+' for options'+WHITE+':➤'+RESET
         creation_time = modified_time = None
         self.detached = False

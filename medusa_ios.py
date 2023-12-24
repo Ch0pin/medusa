@@ -198,7 +198,6 @@ class Parser(cmd2.Cmd):
         else:
             print("[i] Invalid option")
 
-
     def do_info(self, mod) -> None:
         """
         Provides information about a module.
@@ -244,8 +243,6 @@ class Parser(cmd2.Cmd):
             for i in range(len(devices)):
                 print('{}) {}'.format(i, devices[i]))
             self.device = devices[int(Numeric('\nEnter the index of the device to use:', lbound=0,ubound=len(devices)-1).ask())] 
-            
-            #print(self.device.DeviceType)
             print(f"Using device: {self.device}")
  
         except:

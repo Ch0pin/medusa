@@ -45,7 +45,7 @@ class nativeHandler():
     def dump(self,session,lib,free=False,base_address=None,size=None,package_name=''):
         try:
             path = '.'
-            script = session.create_script(open(os.path.dirname(__file__)+"/memops.js").read())
+            script = session.create_script(open(os.path.dirname(__file__)+"/js/memops.js").read())
             script.load()
             api = script.exports
             if not free:
@@ -102,7 +102,7 @@ class nativeHandler():
 
             print("PID:{}".format(pid))
             session = self.device.attach(pid)
-            script = session.create_script(open(os.path.join(self.base_directory, "native.js")).read())
+            script = session.create_script(open(os.path.join(self.base_directory, "js", "native.js")).read())
             script.on('message', self.on_message)
             script.load()
             self.device.resume(pid)

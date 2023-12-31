@@ -56,6 +56,5 @@ function enumerateModules(){
   }
 
 Java.perform(function() {
-enumerateExportsJs('libliger.so');
- 
+enumerateModules(); 
 });

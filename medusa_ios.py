@@ -89,9 +89,19 @@ class Parser(cmd2.Cmd):
         """
         try:
             hooks = []
-            with open(os.path.join(self.base_directory, 'libraries', 'utils.js'), 'r') as file:
-                header = file.read()
-            hooks.append(header)
+            jni_prolog_added = False
+            # with open(os.path.join(self.base_directory, 'libraries', js'utils.js'), 'r') as file:
+            #     header = file.read()
+            js_directory = os.path.join(self.base_directory, 'libraries', 'js')
+            js_files=['globals.js','beautifiers.js','utils.js','ios_core.js']
+            for filename in js_files:
+                js_file_path = os.path.join(js_directory, filename)
+                
+                # Check if the file exists before attempting to read it
+                if os.path.isfile(js_file_path):
+                    with open(js_file_path, 'r') as file:
+                        header = file.read()
+                        hooks.append(header)
             #add delay
             delay = ''
             options = len(line.split())
@@ -741,7 +751,7 @@ catch (err) {
     def prepare_native(self, operation) -> None:
         with open(os.path.join(self.base_directory, 'libraries/native.med'), 'r') as file:
             script = file.read() + 'Java.perform(function() {\n' + operation + ' \n});'
-        with open(os.path.join(self.base_directory, 'libraries/native.js'), 'w') as file:
+        with open(os.path.join(self.base_directory, 'libraries/js/native.js'), 'w') as file:
             file.write(script)
 
     def print_app_info(self) -> None:

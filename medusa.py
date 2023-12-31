@@ -134,9 +134,18 @@ class Parser(cmd2.Cmd):
         try:
             hooks = []
             jni_prolog_added = False
-            with open(os.path.join(self.base_directory, 'libraries', 'utils.js'), 'r') as file:
-                header = file.read()
-            hooks.append(header)
+            # with open(os.path.join(self.base_directory, 'libraries', js'utils.js'), 'r') as file:
+            #     header = file.read()
+            js_directory = os.path.join(self.base_directory, 'libraries', 'js')
+            js_files=['globals.js','beautifiers.js','utils.js','android_core.js']
+            for filename in js_files:
+                js_file_path = os.path.join(js_directory, filename)
+                
+                # Check if the file exists before attempting to read it
+                if os.path.isfile(js_file_path):
+                    with open(js_file_path, 'r') as file:
+                        header = file.read()
+                        hooks.append(header)
 
             #add delay
             delay = ''
@@ -1156,7 +1165,7 @@ class Parser(cmd2.Cmd):
         session = self.frida_session_handler(self.device,True,line.split(' ')[0])
         try:
 
-            with open(os.path.join(self.base_directory, 'libraries', 'strace.js'), 'r') as file:
+            with open(os.path.join(self.base_directory, 'libraries', 'js','strace.js'), 'r') as file:
                 self.script = session.create_script(file.read())
        
             session.on('detached',self.on_detached)
@@ -1524,7 +1533,7 @@ catch (err) {
     def prepare_native(self, operation) -> None:
         with open(os.path.join(self.base_directory, 'libraries/native.med'), 'r') as file:
             script = file.read() + 'Java.perform(function() {\n' + operation + ' \n});'
-        with open(os.path.join(self.base_directory, 'libraries/native.js'), 'w') as file:
+        with open(os.path.join(self.base_directory, 'libraries/js/native.js'), 'w') as file:
             file.write(script)
 
     def print_app_info(self) -> None:

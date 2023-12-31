@@ -20,4 +20,27 @@ const jni_struct_array = ["reserved0","reserved1","reserved2","reserved3","GetVe
     }
 }
 
+const StyleLogCollorset = {
+  red: [255, 0, 0],
+  green: [0, 255, 0],
+  blue: [0, 0, 255],
+  yellow: [255, 255, 0],
+  magenta: [255, 0, 255],
+  cyan: [0, 255, 255],
+  white: [255, 255, 255],
+  black: [0, 0, 0],
+  orange: [255, 165, 0],
+  purple: [128, 0, 128],
+  pink: [255, 192, 203],
+  gold: [255, 215, 0],
+  teal: [0, 128, 128],
+  lime: [0, 255, 0],
+  maroon: [128, 0, 0],
+  navy: [0, 0, 128],
+  olive: [128, 128, 0],
+  silver: [192, 192, 192],
+  gray: [128, 128, 128],
+  brown: [165, 42, 42],
+};
+
 //----------------------end of globals.js-------------------------------------

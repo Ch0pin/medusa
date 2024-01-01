@@ -15,7 +15,7 @@ $ pip install -r requirements.txt --upgrade
 ```
 ## Known issues
 
-In MacOS installation you may encounter the following issue:
+In macOS installation you may encounter the following issue:
 
 >Readline features including tab completion have been disabled because
 no supported version of readline was found. To resolve this, install
@@ -55,7 +55,7 @@ root@docker# adb connect device_ip:5555
 **System requirements:** 
 
 - Linux or macOS (currently medusa doesn't support windows)
-- Python 3 (Use the latest python release and not the one shiped with MacOS to avoid issues with using libedit instead of GNU's readline)
+- Python 3 (Use the latest python release and not the one shipped with macOS to avoid issues with using libedit instead of GNU's readline)
 - Rooted device or emulator 
 - adb
 - FRIDA server (running on the mobile device)
@@ -99,7 +99,7 @@ The main idea behind MEDUSA is to be able to add or remove hooks for Java or Nat
    -  Toll Fraud
    -  Sms Fraud
    
-Furthermore you can intercept Java or Native methods that belong to 3rd party apps or create complex frida modules with just few simple commands. 
+Furthermore, you can intercept Java or Native methods that belong to 3rd party apps or create complex frida modules with just few simple commands.
 
 ## Using mango.py
 
@@ -120,7 +120,7 @@ Mango is medusa's twin brother which can be used to:
 
 ### (12/2022) Using the translator script:
 1. Replace the default google_trans_new.py of you google_trans_new python package with the one from the utils/google_trans_new.py
-2. Import it with medusa>use helpers/tranlsator
+2. Import it with medusa>use helpers/translator
 
 # Contribute by:
 

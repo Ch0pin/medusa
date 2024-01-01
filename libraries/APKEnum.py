@@ -2,12 +2,10 @@
 import os
 import sys
 import ntpath
-import time
 import re
 # import urlparse, urllib2
 import hashlib
 from threading import Thread
-import traceback
 import requests
 
 class bcolors:

@@ -3,7 +3,6 @@
 # CreatedTime: 2020/1/7 20:57
 
 import os
-import sys
 import hashlib
 
 import click

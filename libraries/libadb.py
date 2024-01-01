@@ -1,6 +1,6 @@
-from ast import For
-import subprocess,os,time
-from colorama import Fore, Back, Style
+import subprocess
+import time
+from colorama import Fore
 
 class android_device:
     id=None

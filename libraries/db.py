@@ -1,4 +1,3 @@
-import sys,os
 import sqlite3
 
 class apk_db():

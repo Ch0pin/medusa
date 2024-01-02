@@ -2,7 +2,6 @@
 import subprocess, platform, os, sys, readline, time, argparse,requests,re,json
 from urllib.parse import urlparse
 import cmd2, click, frida,random,yaml
-from libraries.dumper import dump_pkg
 from libraries.natives import *
 from libraries.libadb import *
 from libraries.Questions import *

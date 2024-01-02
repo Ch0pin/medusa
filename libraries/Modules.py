@@ -1,6 +1,4 @@
 import json
-import os
-import glob
 
 class Module:
     def __init__(self, fullPath, name, description, useCase, code):

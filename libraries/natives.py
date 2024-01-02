@@ -1,7 +1,4 @@
-
-import frida
 import time
-import sys
 import click
 import os 
 

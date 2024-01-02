@@ -1,4 +1,3 @@
-import os
 import xml.etree.ElementTree as tree
 
 RED   = "\033[1;31m"  

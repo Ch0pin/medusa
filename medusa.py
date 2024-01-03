@@ -21,6 +21,7 @@ BOLD    = "\033[;1m"
 REVERSE = "\033[;7m"
 #readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
 
+
 class Parser(cmd2.Cmd):
     base_directory = os.path.dirname(__file__)
     snippets = []
@@ -863,8 +864,6 @@ class Parser(cmd2.Cmd):
             else:
                 print("No such option...")
                 return
-
-            
         except Exception as e:
             print(e) 
 
@@ -1654,7 +1653,6 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                     sys.stdout = original_stdout
                     print("-"*10+"Here is what you missed while suspended"+"-"*10+"\n"+temp_stdout.getvalue())
 
-                         
                 elif s.split(' ')[0] == 't':
                     try:
                       
@@ -1671,8 +1669,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                         self.reload_script(session)
                     except Exception as e:
                         pass
-                                 
-            
+
             if self.script:
                 self.script.unload()
 
@@ -1860,7 +1857,8 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                 click.echo(click.style("[!] Recipe not found !",bg='red', fg='white'))
         except Exception as e:
             print(e)
-        
+
+
 if __name__ == '__main__':
     if 'libedit' in readline.__doc__:
         readline.parse_and_bind("bind ^I rl_complete")

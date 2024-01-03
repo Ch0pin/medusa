@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-
 file1_b = bytearray(open(sys.argv[1], 'rb').read())
-
 
 # Set the length to be the smaller one
 offset = 9128

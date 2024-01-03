@@ -565,7 +565,7 @@ class Parser(cmd2.Cmd):
 
     def frida_session_handler(self,con_device,force,pkg,pid=-1):
         time.sleep(1)
-        if force == False:
+        if not force:
             if pid == -1:
                 apps = self.device.enumerate_applications(scope="full")
                 for app in apps:
@@ -586,7 +586,7 @@ class Parser(cmd2.Cmd):
                 print(WHITE+"Attaching frida session to PID - {0}".format(frida_session._impl.pid))
             else:
                 print("Could not attach the requested process"+RESET)
-        elif force == True:
+        elif force:
             self.pid = con_device.spawn(pkg)
             if self.pid:
                 frida_session = con_device.attach(self.pid)

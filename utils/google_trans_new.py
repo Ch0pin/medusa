@@ -338,18 +338,18 @@ class google_translator:
                                 sentences = response[0][5]
                             else: ## only url
                                 sentences = response[0][0]
-                                if pronounce == False:
+                                if not pronounce:
                                     return sentences
-                                elif pronounce == True:
+                                elif pronounce:
                                     return [sentences,None,None]
                             translate_text = ""
                             for sentence in sentences:
                                 sentence = sentence[0]
                                 translate_text += sentence.strip() + ' '
                             translate_text = translate_text
-                            if pronounce == False:
+                            if not pronounce:
                                 return translate_text
-                            elif pronounce == True:
+                            elif pronounce:
                                 pronounce_src = (response_[0][0])
                                 pronounce_tgt = (response_[1][0][0][1])
                                 return [translate_text, pronounce_src, pronounce_tgt]
@@ -357,9 +357,9 @@ class google_translator:
                             sentences = []
                             for i in response:
                                 sentences.append(i[0])
-                            if pronounce == False:
+                            if not pronounce:
                                 return sentences
-                            elif pronounce == True:
+                            elif pronounce:
                                 pronounce_src = (response_[0][0])
                                 pronounce_tgt = (response_[1][0][0][1])
                                 return [sentences, pronounce_src, pronounce_tgt]

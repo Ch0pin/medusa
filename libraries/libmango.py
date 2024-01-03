@@ -206,14 +206,14 @@ class parser(cmd2.Cmd):
     def do_adb(self,line,cmd=None,frombs=False):
         """Start an interactive adb prompt."""
 
-        if cmd == None:
+        if cmd is None:
             print("[i] Type 'exit' to return ") 
-            cmd =  input(GREEN+'{}:adb:'.format(self.device.id)+RESET)
+            cmd = input(GREEN+'{}:adb:'.format(self.device.id)+RESET)
 
         while cmd != 'exit':  
             if cmd != 'exit':
                 subprocess.run('adb -s {} {}'.format(self.device.id,cmd), shell=True)
-                if frombs == True:
+                if frombs:
                     return
             cmd = input(GREEN+'{}:adb:'.format(self.device.id)+RESET)
     #mark for tests
@@ -307,7 +307,7 @@ class parser(cmd2.Cmd):
         Sends an intent which will start the given deeplink. 
         When used with --poc it will create an html link to the given deeplink."""
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
@@ -362,7 +362,7 @@ class parser(cmd2.Cmd):
                 self.real_import(apkfile)
             else:
                 print(Fore.RED+"[!] Error: can't find: {} ".format(apkfile)+Fore.RESET)
-        elif num_of_options == 2 and line.split(' ')[1]== '--mass':
+        elif num_of_options == 2 and line.split(' ')[1] == '--mass':
             try:
                 apk_files=[]
                 for root, dirs, files in os.walk(line.split(' ')[0]):

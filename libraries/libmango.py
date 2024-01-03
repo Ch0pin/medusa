@@ -923,7 +923,7 @@ $adb remount
                 opsys = platform.system()
                 script = self.create_script(opsys,line)
 
-                if not 'Error' in script:
+                if 'Error' not in script:
                     if 'Darwin' in opsys:
                         subprocess.run("""osascript -e 'tell application "Terminal" to do script "{}" ' """.format(script), shell=True)
                     elif 'Linux' in opsys:
@@ -1068,7 +1068,7 @@ $adb remount
                 display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
             if attribs[3]:
                 display_text += Fore.GREEN + ' | exported = '+attribs[3]+Fore.RESET
-            if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+            if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                 continue
             else:
                 print(display_text)
@@ -1085,7 +1085,7 @@ $adb remount
             if attribs[5]:
                 display_text += Fore.CYAN + ' | Target = '+attribs[5] + Fore.RESET
 
-            if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+            if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                 continue
             else:
                 print(display_text)
@@ -1241,7 +1241,7 @@ $adb remount
                     display_text += Fore.CYAN + ' | grandUriPermission = '+attribs[4] + Fore.RESET
                 if attribs[9]:
                     display_text += Fore.CYAN + ' | authorities = '+attribs[9] + Fore.RESET
-                if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+                if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
                     print(display_text)
@@ -1275,7 +1275,7 @@ $adb remount
                 if attribs[4]:
                     display_text += Fore.CYAN + ' | permission = '+attribs[4] + Fore.RESET
 
-                if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+                if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
                     print(display_text)
@@ -1292,7 +1292,7 @@ $adb remount
                     display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
                 if attribs[3]:
                     display_text += Fore.GREEN + ' | exported = '+attribs[3]+ Fore.RESET
-                if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+                if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
                     print(display_text)

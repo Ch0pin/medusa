@@ -12,7 +12,7 @@ RESET = "\033[0;0m"
 BOLD    = "\033[;1m"
 REVERSE = "\033[;7m"
 
-class nativeHandler():
+class nativeHandler:
     base_directory = os.path.dirname(__file__)
     modules = []
     device = None

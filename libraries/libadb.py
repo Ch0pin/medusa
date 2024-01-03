@@ -29,8 +29,6 @@ class android_device:
                 print(f"App '{package_name}' is not running yet. Retrying in {2} seconds...")
                 time.sleep(2)
         return self.run_command(["adb","-s",self.id,"shell", "pidof", "-s", "{}".format(package_name)])
-    
-
 
     def print_dev_properties(self):
         print('\nDevice properties:\n')

@@ -569,7 +569,7 @@ class Parser(cmd2.Cmd):
             if pid == -1:
                 apps = self.device.enumerate_applications(scope="full")
                 for app in apps:
-                    if app.identifier == pkg and app.pid != None:
+                    if app.identifier == pkg and app.pid is not None:
                         self.pid = str(app.pid)
                         break
                     else:

@@ -316,7 +316,7 @@ class google_translator:
                                     headers=headers,
                                     )
         try:
-            if self.proxies == None or type(self.proxies) != dict:
+            if self.proxies is None or not isinstance(self.proxies, dict):
                 self.proxies = {}
             with requests.Session() as s:
                 s.proxies = self.proxies
@@ -395,7 +395,7 @@ class google_translator:
                                     data=freq,
                                     headers=headers)
         try:
-            if self.proxies == None or type(self.proxies) != dict:
+            if self.proxies is None or not isinstance(self.proxies, dict):
                 self.proxies = {}
             with requests.Session() as s:
                 s.proxies = self.proxies

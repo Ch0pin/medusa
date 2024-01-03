@@ -716,7 +716,7 @@ $adb remount
         Adding an apk file as a third parameter, it will use this (instead
         of the currently loaded app) using aapt2 (supports regular expressions)"""
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
@@ -777,7 +777,7 @@ $adb remount
         elif 'applications' in what:
             self.load_or_remove_application()
         else:
-            if self.current_app_sha256 == None:
+            if self.current_app_sha256 is None:
                 print(self.NO_APP_LOADED_MSG)
             else:
                 if 'permissions' in what:
@@ -861,7 +861,7 @@ $adb remount
         Plase note that for not exported activities, adb must run with root 
         privileges (adb root).""" 
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
@@ -879,7 +879,7 @@ $adb remount
         Plase note that for not exported activities, adb must run with root 
         privileges (adb root).""" 
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             cmd = "adb -s {} shell 'echo \"am startservice -n {}/{}\" | su'".format(self.device.id,self.info[0][2],line.split(' ')[0])
@@ -897,7 +897,7 @@ $adb remount
         Plase note that for not exported services, adb must run with root 
         privileges (adb root).""" 
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             try:         
@@ -915,7 +915,7 @@ $adb remount
         Starts a new frida-trace instance with the given options (it opens a new window)
         """
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
@@ -958,7 +958,7 @@ $adb remount
     
     #mark for tests, improve completes
     def complete_note(self, text, line, begidx, endidx):
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             components = []
         else:
             components = sorted(['add','del','show','update'])
@@ -1011,7 +1011,7 @@ $adb remount
         return self.get_packages_starting_with(text)
 
     def complete_show(self, text, line, begidx, endidx):
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             components = ['database','applications']
         else:
             components = sorted(['exposure', 'applications','activityAlias','info','permissions', 'activities', 'services', 'receivers', 'intentFilters','providers', 'deeplinks','strings','database','manifest'])

@@ -92,7 +92,7 @@ class nativeHandler():
                 print("[i] Starting process {} [pid:{}]".format(package,pid))
             else:
                 pid = int(os.popen("adb -s {} shell pidof {}".format(self.device.id,package)).read().strip())
-                if pid == None:
+                if pid is None:
                         print("[+] Could not find process with this name {}.".format(pid_s))
                         return 
                 print("[i] Attaching to process {} [pid:{}]".format(package,pid))
@@ -345,7 +345,7 @@ class nativeHandler():
                     arithemetic_offset = hex(int(arithemetic_offset,16) + int(offset_in,16))
 
                 
-                if size != None:
+                if size is not None:
                     #print("current arithetic offset:{}".format(int(arithemetic_offset,16)))
                     if int(arithemetic_offset,16) > int(size) - 296:
                         arithemetic_offset=hex(0)
@@ -354,7 +354,7 @@ class nativeHandler():
 
                 payload += '\nvar address = p_foo.add('+str(arithemetic_offset)+');'
                 payload += "var baseAddress = parseInt(p_foo,16);"
-                if(free):
+                if free:
                     payload+="var endAddress = baseAddress + size;"
                 else:
                     payload+="var endAddress = baseAddress + module.size;"
@@ -364,7 +364,7 @@ class nativeHandler():
                 if(buf){
                     console.log('Address Range:'+p_foo+' --> '+endAddress.toString(16));
                     """
-                if(free):
+                if free:
                     payload+= "console.log('Module Size:' + size+' Dumping at:'+address);"
                 else:
                     payload+= "console.log('Module Size:' + module.size+' Dumping at:'+address);"

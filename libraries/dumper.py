@@ -16,8 +16,6 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%m-%d/%H:%M:%S')
 
 def dump(pkg_name, api,mds=None):
-    """
-    """
     if mds is None:
         mds = []
     matches = api.scandex()

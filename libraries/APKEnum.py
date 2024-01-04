@@ -30,10 +30,7 @@ apkFileName=""
 apkHash=""
 scopeMode=False
 
-
 scopeList=[]
-
-
 authorityList=[]
 inScopeAuthorityList=[]
 publicIpList=[]
@@ -56,63 +53,61 @@ gMapsAPI="(AIzaSy[\w-]{33})"
 
 
 def myPrint(text, type):
-	if(type=="INFO"):
+	if type == "INFO":
 		print(bcolors.INFO+bcolors.BOLD+text+bcolors.ENDC)
 		return
-	if(type=="INFO_WS"):
-		print (bcolors.INFO+bcolors.BOLD+text+bcolors.ENDC)
+	if type == "INFO_WS":
+		print(bcolors.INFO+bcolors.BOLD+text+bcolors.ENDC)
 		return
-	if(type=="PLAIN_OUTPUT_WS"):
-		print (bcolors.INFO+text+bcolors.ENDC)
+	if type == "PLAIN_OUTPUT_WS":
+		print(bcolors.INFO+text+bcolors.ENDC)
 		return
-	if(type=="ERROR"):
-		print (bcolors.BGRED+bcolors.FGWHITE+bcolors.BOLD+text+bcolors.ENDC)
+	if type == "ERROR":
+		print(bcolors.BGRED+bcolors.FGWHITE+bcolors.BOLD+text+bcolors.ENDC)
 		return
-	if(type=="MESSAGE_WS"):
-		print (bcolors.TITLE+bcolors.BOLD+text+bcolors.ENDC)
+	if type == "MESSAGE_WS":
+		print(bcolors.TITLE+bcolors.BOLD+text+bcolors.ENDC)
 		return
-	if(type=="MESSAGE"):
-		print (bcolors.TITLE+bcolors.BOLD+text+bcolors.ENDC)
+	if type == "MESSAGE":
+		print(bcolors.TITLE+bcolors.BOLD+text+bcolors.ENDC)
 		return
-	if(type=="INSECURE"):
-		print (bcolors.OKRED+bcolors.BOLD+text+bcolors.ENDC)
+	if type == "INSECURE":
+		print(bcolors.OKRED+bcolors.BOLD+text+bcolors.ENDC)
 		return
-	if(type=="INSECURE_WS"):
-		print (bcolors.OKRED+bcolors.BOLD+text+bcolors.ENDC)
+	if type == "INSECURE_WS":
+		print(bcolors.OKRED+bcolors.BOLD+text+bcolors.ENDC)
 		return
-	if(type=="OUTPUT"):
-		print (bcolors.OKBLUE+bcolors.BOLD+text+bcolors.ENDC)
+	if type == "OUTPUT":
+		print(bcolors.OKBLUE+bcolors.BOLD+text+bcolors.ENDC)
 		return
-	if(type=="OUTPUT_WS"):
-		print (bcolors.OKBLUE+bcolors.BOLD+text+bcolors.ENDC)
+	if type == "OUTPUT_WS":
+		print(bcolors.OKBLUE+bcolors.BOLD+text+bcolors.ENDC)
 		return
-	if(type=="SECURE_WS"):
-		print (bcolors.OKGREEN+bcolors.BOLD+text+bcolors.ENDC)
+	if type == "SECURE_WS":
+		print(bcolors.OKGREEN+bcolors.BOLD+text+bcolors.ENDC)
 		return
-	if(type=="SECURE"):
-		print (bcolors.OKGREEN+bcolors.BOLD+text+bcolors.ENDC)
+	if type == "SECURE":
+		print(bcolors.OKGREEN+bcolors.BOLD+text+bcolors.ENDC)
 		return
 
 
 def isNewInstallation():
-	if (os.path.exists(rootDir)==False):
-		myPrint("Thank you for installing APKEnum", "OUTPUT_WS")
-		os.mkdir(rootDir)
-		return True
-	else:
+	if os.path.exists(rootDir):
 		return False
-
+	myPrint("Thank you for installing APKEnum", "OUTPUT_WS")
+	os.mkdir(rootDir)
+	return True
 
 def isValidPath(apkFilePath):
 	global apkFileName
 	myPrint("I: Checking if the APK file path is valid.", "INFO_WS")
-	if (os.path.exists(apkFilePath)==False):
+
+	if not os.path.exists(apkFilePath):
 		myPrint("E: Incorrect APK file path found. Please try again with correct file name.", "ERROR")
-		print
 		exit(1)
 	else:
 		myPrint("I: APK File Found.", "INFO_WS")
-		apkFileName=ntpath.basename(apkFilePath)
+		apkFileName = ntpath.basename(apkFilePath)
 
 
 def printList(lst):
@@ -127,41 +122,40 @@ def reverseEngineerApplication(apkFileName):
 	global projectDir
 	myPrint("I: Initiating APK decompilation process", "INFO_WS")
 	projectDir=rootDir+apkFileName+"_"+hashlib.md5().hexdigest()
-	if (os.path.exists(projectDir)==True):
+
+	if os.path.exists(projectDir):
 		myPrint("I: The APK is already decompiled. Skipping decompilation and proceeding with scanning the application.", "INFO_WS")
 		return projectDir
+
 	os.mkdir(projectDir)
 	myPrint("I: Decompiling the APK file using APKtool.", "INFO_WS")
 	result=os.system("java -jar "+apktoolPath+" d "+"--output "+'"'+projectDir+"/apktool/"+'"'+' "'+apkFilePath+'"'+'>/dev/null')
-	if (result!=0):
+	if result:
 		myPrint("E: Apktool failed with exit status "+str(result)+". Please try updating the APKTool binary.", "ERROR")
-		print
 		exit(1)
 	myPrint("I: Successfully decompiled the application. Proceeding with scanning code.", "INFO_WS")
 
 
 def findS3Bucket(line):
-	temp=re.findall(s3Regex1,line)
-	if (len(temp)!=0):
+	temp=re.findall(s3Regex1, line)
+	if temp:
 		for element in temp:
 			s3List.append(element)
 
-
-	temp=re.findall(s3Regex2,line)
-	if (len(temp)!=0):
+	temp=re.findall(s3Regex2, line)
+	if temp:
 		for element in temp:
 			s3List.append(element)
 
-
-	temp=re.findall(s3Regex3,line)
-	if (len(temp)!=0):
+	temp=re.findall(s3Regex3, line)
+	if temp:
 		for element in temp:
 			s3List.append(element)
 
 
 def findGoogleAPIKeys(line):
-	temp=re.findall(gMapsAPI,line)
-	if (len(temp)!=0):
+	temp=re.findall(gMapsAPI, line)
+	if temp:
 		for element in temp:
 			gmapKeys.append(element)
 
@@ -181,30 +175,30 @@ def findGoogleAPIKeys(line):
 
 
 def findS3Website(line):
-	temp=re.findall(s3Website1,line)
-	if (len(temp)!=0):
+	temp=re.findall(s3Website1, line)
+	if temp:
 		for element in temp:
 			s3WebsiteList.append(element)
 
-	temp=re.findall(s3Website2,line)
-	if (len(temp)!=0):
+	temp=re.findall(s3Website2, line)
+	if temp:
 		for element in temp:
 			s3WebsiteList.append(element)
 
 
 def findUrls(line):
-	temp=re.findall(urlRegex,line)
-	if (len(temp)!=0):
+	temp=re.findall(urlRegex, line)
+	if temp:
 		for element in temp:
 			authorityList.append(element[0]+"://"+element[1])
-			if(scopeMode):
+			if scopeMode:
 				for scope in scopeList:
 					if scope in element[1]:
 						inScopeAuthorityList.append(element[0]+"://"+element[1])
 
 def findPublicIPs(line):
-	temp=re.findall(publicIp,line)
-	if (len(temp)!=0):
+	temp=re.findall(publicIp, line)
+	if temp:
 		for element in temp:
 			publicIpList.append(element[0])
 
@@ -265,38 +259,37 @@ def displayResults():
 	gmapKeys=list(set(gmapKeys))
 	unrestrictedGmapKeys=list(set(unrestrictedGmapKeys))
 
-
-	if (len(authorityList)==0):
+	if not authorityList:
 		myPrint("\nNo URL found", "INSECURE")
 	else:
 		myPrint("\nList of URLs found in the application", "SECURE")
 		printList(authorityList)
 		
-	if(scopeMode and len(inScopeAuthorityList)==0):
+	if scopeMode and not inScopeAuthorityList:
 		myPrint("\nNo in-scope URL found", "INSECURE")
 	elif scopeMode:
 		myPrint("\nList of in scope URLs found in the application", "SECURE")
 		printList(inScopeAuthorityList)
 
-	if (len(s3List)==0):
+	if not s3List:
 		myPrint("\nNo S3 buckets found", "INSECURE")
 	else:
 		myPrint("\nList of in S3 buckets found in the application", "SECURE")
 		printList(s3List)
 
-	if (len(s3WebsiteList)==0):
+	if not s3WebsiteList:
 		myPrint("\nNo S3 websites found", "INSECURE")
 	else:
 		myPrint("\nList of in S3 websites found in the application", "SECURE")
 		printList(s3WebsiteList)
 
-	if (len(publicIpList)==0):
+	if not publicIpList:
 		myPrint("\nNo IPs found", "INSECURE")
 	else:
 		myPrint("\nList of IPs found in the application", "SECURE")
 		printList(publicIpList)
 
-	if (len(gmapKeys)==0):
+	if not gmapKeys:
 		myPrint("\nNo Google MAPS API Keys found", "INSECURE")
 	else:
 		myPrint("\nList of Google Map API Keys found in the application", "SECURE")

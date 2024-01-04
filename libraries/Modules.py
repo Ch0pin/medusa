@@ -75,7 +75,7 @@ class ModuleManager:
         if added: 
             return
         else:
-            if not "scratchpad" in moduleName and not alread_added:
+            if "scratchpad" not in moduleName and not alread_added:
                 print('Module {} not found!'.format(moduleName))
 
     def stage_verbadim(self,moduleName):

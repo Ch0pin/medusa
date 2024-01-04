@@ -206,14 +206,14 @@ class parser(cmd2.Cmd):
     def do_adb(self,line,cmd=None,frombs=False):
         """Start an interactive adb prompt."""
 
-        if cmd == None:
+        if cmd is None:
             print("[i] Type 'exit' to return ") 
-            cmd =  input(GREEN+'{}:adb:'.format(self.device.id)+RESET)
+            cmd = input(GREEN+'{}:adb:'.format(self.device.id)+RESET)
 
         while cmd != 'exit':  
             if cmd != 'exit':
                 subprocess.run('adb -s {} {}'.format(self.device.id,cmd), shell=True)
-                if frombs == True:
+                if frombs:
                     return
             cmd = input(GREEN+'{}:adb:'.format(self.device.id)+RESET)
     #mark for tests
@@ -307,7 +307,7 @@ class parser(cmd2.Cmd):
         Sends an intent which will start the given deeplink. 
         When used with --poc it will create an html link to the given deeplink."""
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
@@ -362,7 +362,7 @@ class parser(cmd2.Cmd):
                 self.real_import(apkfile)
             else:
                 print(Fore.RED+"[!] Error: can't find: {} ".format(apkfile)+Fore.RESET)
-        elif num_of_options == 2 and line.split(' ')[1]== '--mass':
+        elif num_of_options == 2 and line.split(' ')[1] == '--mass':
             try:
                 apk_files=[]
                 for root, dirs, files in os.walk(line.split(' ')[0]):
@@ -716,7 +716,7 @@ $adb remount
         Adding an apk file as a third parameter, it will use this (instead
         of the currently loaded app) using aapt2 (supports regular expressions)"""
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
@@ -777,7 +777,7 @@ $adb remount
         elif 'applications' in what:
             self.load_or_remove_application()
         else:
-            if self.current_app_sha256 == None:
+            if self.current_app_sha256 is None:
                 print(self.NO_APP_LOADED_MSG)
             else:
                 if 'permissions' in what:
@@ -861,7 +861,7 @@ $adb remount
         Plase note that for not exported activities, adb must run with root 
         privileges (adb root).""" 
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
@@ -879,7 +879,7 @@ $adb remount
         Plase note that for not exported activities, adb must run with root 
         privileges (adb root).""" 
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             cmd = "adb -s {} shell 'echo \"am startservice -n {}/{}\" | su'".format(self.device.id,self.info[0][2],line.split(' ')[0])
@@ -897,7 +897,7 @@ $adb remount
         Plase note that for not exported services, adb must run with root 
         privileges (adb root).""" 
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             try:         
@@ -915,7 +915,7 @@ $adb remount
         Starts a new frida-trace instance with the given options (it opens a new window)
         """
 
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
@@ -923,7 +923,7 @@ $adb remount
                 opsys = platform.system()
                 script = self.create_script(opsys,line)
 
-                if not 'Error' in script:
+                if 'Error' not in script:
                     if 'Darwin' in opsys:
                         subprocess.run("""osascript -e 'tell application "Terminal" to do script "{}" ' """.format(script), shell=True)
                     elif 'Linux' in opsys:
@@ -958,7 +958,7 @@ $adb remount
     
     #mark for tests, improve completes
     def complete_note(self, text, line, begidx, endidx):
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             components = []
         else:
             components = sorted(['add','del','show','update'])
@@ -1011,7 +1011,7 @@ $adb remount
         return self.get_packages_starting_with(text)
 
     def complete_show(self, text, line, begidx, endidx):
-        if self.current_app_sha256 == None:
+        if self.current_app_sha256 is None:
             components = ['database','applications']
         else:
             components = sorted(['exposure', 'applications','activityAlias','info','permissions', 'activities', 'services', 'receivers', 'intentFilters','providers', 'deeplinks','strings','database','manifest'])
@@ -1068,7 +1068,7 @@ $adb remount
                 display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
             if attribs[3]:
                 display_text += Fore.GREEN + ' | exported = '+attribs[3]+Fore.RESET
-            if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+            if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                 continue
             else:
                 print(display_text)
@@ -1085,7 +1085,7 @@ $adb remount
             if attribs[5]:
                 display_text += Fore.CYAN + ' | Target = '+attribs[5] + Fore.RESET
 
-            if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+            if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                 continue
             else:
                 print(display_text)
@@ -1241,7 +1241,7 @@ $adb remount
                     display_text += Fore.CYAN + ' | grandUriPermission = '+attribs[4] + Fore.RESET
                 if attribs[9]:
                     display_text += Fore.CYAN + ' | authorities = '+attribs[9] + Fore.RESET
-                if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+                if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
                     print(display_text)
@@ -1275,7 +1275,7 @@ $adb remount
                 if attribs[4]:
                     display_text += Fore.CYAN + ' | permission = '+attribs[4] + Fore.RESET
 
-                if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+                if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
                     print(display_text)
@@ -1292,7 +1292,7 @@ $adb remount
                     display_text += Fore.RED + ' | enabled = '+attribs[2]+' |' + Fore.RESET
                 if attribs[3]:
                     display_text += Fore.GREEN + ' | exported = '+attribs[3]+ Fore.RESET
-                if (not all) and (not attribs[3] or (not 'true' in attribs[3])):
+                if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
                     print(display_text)

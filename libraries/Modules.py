@@ -1,5 +1,6 @@
 import json
 
+
 class Module:
     def __init__(self, fullPath, name, description, useCase, code):
         self.path = fullPath
@@ -17,6 +18,7 @@ class Module:
         if len(category) == 2:
             return category[0]
         return 'uncategorized'
+
 
 class ModuleManager:
     def __init__(self):
@@ -73,7 +75,7 @@ class ModuleManager:
         if added: 
             return
         else:
-            if not "scratchpad" in moduleName and not alread_added:
+            if "scratchpad" not in moduleName and not alread_added:
                 print('Module {} not found!'.format(moduleName))
 
     def stage_verbadim(self,moduleName):
@@ -98,5 +100,3 @@ class ModuleManager:
         if tmp == len(self.staged):
             return False
         return True
-
-

@@ -21,6 +21,7 @@ BOLD    = "\033[;1m"
 REVERSE = "\033[;7m"
 #readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
 
+
 class Parser(cmd2.Cmd):
     base_directory = os.path.dirname(__file__)
     snippets = []
@@ -863,8 +864,6 @@ class Parser(cmd2.Cmd):
             else:
                 print("No such option...")
                 return
-
-            
         except Exception as e:
             print(e) 
 
@@ -1356,7 +1355,7 @@ class Parser(cmd2.Cmd):
 
     def frida_session_handler(self,con_device,force,pkg,pid=-1):
         time.sleep(1)
-        if force == False:
+        if not force:
             if pid == -1:
                 self.pid = os.popen("adb -s {} shell pidof {}".format(con_device.id,pkg)).read().strip()
             else:
@@ -1370,7 +1369,7 @@ class Parser(cmd2.Cmd):
                 print(WHITE+"Attaching frida session to PID - {0}".format(frida_session._impl.pid))
             else:
                 print("Could not attach the requested process"+RESET)
-        elif force == True:
+        elif force:
             self.pid = con_device.spawn(pkg)
             if self.pid:
                 frida_session = con_device.attach(self.pid)
@@ -1654,7 +1653,6 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                     sys.stdout = original_stdout
                     print("-"*10+"Here is what you missed while suspended"+"-"*10+"\n"+temp_stdout.getvalue())
 
-                         
                 elif s.split(' ')[0] == 't':
                     try:
                       
@@ -1671,8 +1669,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                         self.reload_script(session)
                     except Exception as e:
                         pass
-                                 
-            
+
             if self.script:
                 self.script.unload()
 
@@ -1860,7 +1857,8 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                 click.echo(click.style("[!] Recipe not found !",bg='red', fg='white'))
         except Exception as e:
             print(e)
-        
+
+
 if __name__ == '__main__':
     if 'libedit' in readline.__doc__:
         readline.parse_and_bind("bind ^I rl_complete")

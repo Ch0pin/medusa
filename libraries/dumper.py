@@ -16,8 +16,6 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%m-%d/%H:%M:%S')
 
 def dump(pkg_name, api,mds=None):
-    """
-    """
     if mds is None:
         mds = []
     matches = api.scandex()
@@ -43,6 +41,7 @@ def dump(pkg_name, api,mds=None):
                         .format(hex(info['size']), os.getcwd(), pkg_name, readable_hash), fg='green')
         except Exception as e:
             click.secho("[Except] - {}: {}".format(e, info), bg='yellow')
+
 
 def dump_pkg(pkg):
     try:
@@ -91,8 +90,10 @@ def dump_pkg(pkg):
     script.load()
     dump(pkg_name, script.exports)
 
+
 def get_all_process(device, pkgname):
     return [process for process in device.enumerate_processes() if pkgname in process.name]
+
 
 def search(api, args=None):
     matches = api.scandex()

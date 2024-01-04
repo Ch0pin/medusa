@@ -29,6 +29,7 @@ class Numeric:
 		except ValueError:
 			return self.ask()
 
+
 class Polar:
 	def __init__(self, message, default=True):
 		self.message = message

@@ -29,8 +29,6 @@ class apk_db:
         
         self.cursor.execute("""CREATE TABLE "Notes" ("index"	INTEGER NOT NULL UNIQUE, "app_sha256"	TEXT NOT NULL, "note"	TEXT, PRIMARY KEY("index" AUTOINCREMENT));""")
 
-
-
     def delete_application(self,sha256):
         sql1 = "DELETE FROM Application WHERE sha256 = '{}'".format(sha256)
         sql2 = "DELETE FROM Permissions WHERE app_sha256 = '{}'".format(sha256)

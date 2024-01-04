@@ -135,7 +135,7 @@ class Parser(cmd2.Cmd):
             print(e)
         self.modified = False
 
-    def do_exit(self,line) -> None:
+    def do_exit(self, line) -> None:
         """
         Exit MEDUSA
         """
@@ -178,7 +178,7 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-    def do_hook(self,line) -> None:
+    def do_hook(self, line) -> None:
         """
         Hook a method or methods
         Usage:
@@ -218,7 +218,7 @@ class Parser(cmd2.Cmd):
                 print(m.Help)
         return
 
-    def do_list(self,line) -> None:
+    def do_list(self, line) -> None:
         """
         List available packages 
         Use list <identifier> to print info about an installed application
@@ -241,7 +241,7 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-    def do_loaddevice(self,line) -> None:
+    def do_loaddevice(self, line) -> None:
         """
         Load a device in order to interact.
         Use with app identifier
@@ -273,7 +273,7 @@ class Parser(cmd2.Cmd):
         self.edit_scratchpad(code)
    
     #partially_finished --> implement -r
-    def do_reload(self,line) -> None:    
+    def do_reload(self, line) -> None:
         """
         Reload the medusa modules (in case of a module edit)
         Use the -r filename option to load a saved session or recipe 
@@ -314,7 +314,7 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
     
-    def do_reset(self,line) -> None:
+    def do_reset(self, line) -> None:
         """
         Empty the staged module list
         """
@@ -379,7 +379,7 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-    def do_search(self, pattern,redirect_output=False) -> None:
+    def do_search(self, pattern, redirect_output=False) -> None:
         """
         Search for modules related to a given keyword
         Usage:
@@ -484,7 +484,7 @@ class Parser(cmd2.Cmd):
 
 ###################################################### implementations start ############################################################
 
-    def check_using_vt(self,hosts,vtkey):
+    def check_using_vt(self, hosts, vtkey):
         vt_address = 'https://www.virustotal.com/api/v3/domains/'
         if os.path.isfile(vtkey):
             with open(vtkey,'r') as file:
@@ -513,7 +513,7 @@ class Parser(cmd2.Cmd):
             else:
                 click.secho("[?] {} return {}".format(host,response.status_code),fg='blue')
 
-    def del_session(self)->None:
+    def del_session(self) -> None:
         try:
             session = self.get_selected_session()
             if session is not None:
@@ -538,10 +538,10 @@ class Parser(cmd2.Cmd):
             self.modManager.stage('scratchpad')
         self.modified = True
 
-    def fill_app_info(self,data) -> None:
+    def fill_app_info(self, data) -> None:
         self.app_info = data
 
-    def get_selected_session(self)->str:
+    def get_selected_session(self) -> str:
         try:
             session_files = ['Cancel']
             for filename in os.listdir(self.base_directory):
@@ -687,21 +687,21 @@ catch (err) {
         self.edit_scratchpad(codejs, 'a')
         print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
-    def init_packages(self,option="") -> None:
+    def init_packages(self, option="") -> None:
         self.refreshPackages(option)
         click.secho(f'\n{self.package_range}:',fg='green',bg='blue')
         print()
         for i in range(len(self.packages)):
             print('[{}] {}'.format(i, self.packages[i].identifier))
 
-    def is_valid_url(self,url):
+    def is_valid_url(self, url):
         try:
             result = urlparse(url)
             return all([result.scheme, result.netloc])
         except ValueError:
             return False
 
-    def load_session(self)->None:
+    def load_session(self) -> None:
         try:
             session = self.get_selected_session()
             if session is not None:
@@ -764,7 +764,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n"""+RESET)
         else:
             print("[!] No available info.")
 
-    def run_frida(self, force, detached, package_name, device,pid=-1)->None:
+    def run_frida(self, force, detached, package_name, device, pid=-1) -> None:
         in_session_menu = WHITE + '(in-session)'+GREEN+' type '+YELLOW+'?'+GREEN+' for options'+WHITE+':➤'+RESET
         creation_time = modified_time = None
         self.detached = False
@@ -888,7 +888,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n"""+RESET)
         for item in listName:
             print("""       {}""".format(item))
 
-    def reload_script(self,session) -> None:
+    def reload_script(self, session) -> None:
         self.script.unload()
         with open(os.path.join(self.base_directory, "agent_ios.js")) as f:
             self.script = session.create_script(f.read())
@@ -932,7 +932,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n"""+RESET)
             for name, description in zip([mod.Name for mod in mods], [mod.Description for mod in mods]):
                 print(GREEN + f"{name: <{width}}" + BLUE + f"{description}" + RESET)
 
-    def save_session(self,session_name):
+    def save_session(self, session_name):
         try:
             session_files = []
             for filename in os.listdir(self.base_directory):
@@ -951,7 +951,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n"""+RESET)
         except Exception as e:
             print("An error occurred:", str(e))   
 
-    def scan_for_secrets(self,string_list):
+    def scan_for_secrets(self, string_list):
         try:
             sigs={}
             matches = []
@@ -974,7 +974,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n"""+RESET)
         except Exception as e:
             print(e)
 
-    def scan_using_nuclei_template(self,string_list,path_to_templates):
+    def scan_using_nuclei_template(self, string_list, path_to_templates):
         found = False
         if os.path.isfile(path_to_templates):
             entries =json.loads(self.yaml_to_json(path_to_templates))
@@ -997,7 +997,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n"""+RESET)
         if not found:
             click.secho("[!] No matches found.")
 
-    def scan_do_scan(self,string_list,entries):
+    def scan_do_scan(self, string_list, entries):
         found = False
         try:
             id_value = entries['id']
@@ -1017,7 +1017,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n"""+RESET)
             print(f'Error while parsing the json data:{e}')
             return found
 
-    def yaml_to_json(self,yaml_file):
+    def yaml_to_json(self, yaml_file):
         # Read the YAML file
         try:
             with open(yaml_file, 'r') as file:
@@ -1033,7 +1033,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n"""+RESET)
             print(f"Error converting YAML to JSON: {e}")
             return None
 
-    def write_recipe(self,filename) -> None:
+    def write_recipe(self, filename) -> None:
         try:
             data = ''
             click.echo(click.style("[+] Loading a recipe....",bg='blue', fg='white'))

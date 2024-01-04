@@ -42,7 +42,7 @@ def get_device_or_emulator_id():
     print(e)
     return None
 
-def start_session(db_session,existing = False):
+def start_session(db_session, existing = False):
   application_database = apk_db(db_session)
   guava = Guava(application_database)
   p = parser()   

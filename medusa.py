@@ -194,7 +194,7 @@ class Parser(cmd2.Cmd):
             print(e)
         self.modified = False
 
-    def do_describe_java_class(self,line) -> None:
+    def do_describe_java_class(self, line) -> None:
         """
         Adds relevant code to scratchpad which will print details about a class. 
         Usage:
@@ -208,7 +208,7 @@ class Parser(cmd2.Cmd):
         self.edit_scratchpad(codejs, 'a')
         print("Stack trace have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
-    def do_dexload(self,line) -> None:
+    def do_dexload(self, line) -> None:
         """
         Force the android application to load a dex file
         Usage:
@@ -269,7 +269,7 @@ class Parser(cmd2.Cmd):
             print(e)
             print("[i] Usage: enumerate package library [--attach]")
 
-    def do_exit(self,line) -> None:
+    def do_exit(self, line) -> None:
         """
         Exit MEDUSA
         """
@@ -307,7 +307,7 @@ class Parser(cmd2.Cmd):
             print(e) 
             print("[i] Usage: export filename")
     
-    def do_get(self,line):
+    def do_get(self, line):
         """
         Print the current value of a fields of a class instance
         Usage: get package_name full.path.to.class.field
@@ -360,7 +360,7 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-    def do_man(self,line) -> None:
+    def do_man(self, line) -> None:
         """
         Display the manual 
         """
@@ -475,7 +475,7 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-    def do_hook(self,line) -> None:
+    def do_hook(self, line) -> None:
         """
         Hook a method or methods
         Usage:
@@ -558,7 +558,7 @@ class Parser(cmd2.Cmd):
         else:
             print("[i] Invalid option")
     
-    def do_jtrace(self,line) -> None:
+    def do_jtrace(self, line) -> None:
         """
         Prints the stacktrace of a specified function
         Usage: 
@@ -673,7 +673,7 @@ class Parser(cmd2.Cmd):
             print(e)
             print('[i] Usage: libs [option] package [--attach]')
 
-    def do_list(self,line) -> None:
+    def do_list(self, line) -> None:
         """
         Set the currently working package set / get information about an installed package
         list [opt]
@@ -730,7 +730,7 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-    def do_load(self,line) -> None:
+    def do_load(self, line) -> None:
         """
         Force the application to manually load a library in order to explore using memops. 
         Usage:
@@ -740,7 +740,7 @@ class Parser(cmd2.Cmd):
         self.native_handler = nativeHandler(self.device)
         self.native_handler.loadLibrary(line.split()[0],line.split()[1])
 
-    def do_loaddevice(self,line) -> None:
+    def do_loaddevice(self, line) -> None:
         """
         Load a device in order to interact
         """
@@ -759,7 +759,7 @@ class Parser(cmd2.Cmd):
             #lets start by loading all packages and let the user to filter them out 
             self.init_packages('-3')    
 
-    def do_memops(self,line) -> None:
+    def do_memops(self, line) -> None:
         """
         READ/WRITE/SEARCH process memory
         Usage:
@@ -768,7 +768,7 @@ class Parser(cmd2.Cmd):
         self.native_handler = nativeHandler(self.device)
         self.native_handler.memops(line)
 
-    def do_memscan(self,line) ->None:
+    def do_memscan(self, line) -> None:
         """Usage: memscan [option] package_name [nuclei template(s) (file or path)]
         Where option:
         -c2                                         scan the application's memory for c2 addresses using virus total database (need vt api key)
@@ -870,7 +870,7 @@ class Parser(cmd2.Cmd):
 
         return
 
-    def do_memmap(self,line) -> None:
+    def do_memmap(self, line) -> None:
         """
         READ process memory
         Usage:
@@ -918,7 +918,7 @@ class Parser(cmd2.Cmd):
             code = draft.read()
         self.edit_scratchpad(code)
 
-    def do_reload(self,line) -> None:
+    def do_reload(self, line) -> None:
         """
         Reload the medusa modules (in case of a module edit)
         Use the -r filename option to load a saved session or recipe 
@@ -967,7 +967,7 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-    def do_reset(self,line) -> None:
+    def do_reset(self, line) -> None:
         """
         Empty the staged module list
         """
@@ -1054,7 +1054,7 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-    def do_search(self, pattern,redirect_output=False) -> None:
+    def do_search(self, pattern, redirect_output=False) -> None:
         """
         Search for modules related to a given keyword
         Usage:
@@ -1073,7 +1073,7 @@ class Parser(cmd2.Cmd):
                 else:
                     print(match.replace(pattern, GREEN + pattern + RESET))
 
-    def do_session(self,line)->None:
+    def do_session(self, line)-> None:
         """
         Usage: session [--save 'name'] [--load] [--del]
         --save 'name', saves the current module set 
@@ -1138,7 +1138,7 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-    def do_status(self,line) -> None:
+    def do_status(self, line) -> None:
         """
         Prints the loaded device id, libraries, native functions of the last loaded package.
         """
@@ -1185,7 +1185,7 @@ class Parser(cmd2.Cmd):
             print(e)
         print(RESET)
 
-    def do_type(self,text) -> None:
+    def do_type(self, text) -> None:
         """
         Send keystrokes to the device
         Usage:
@@ -1266,7 +1266,7 @@ class Parser(cmd2.Cmd):
 
 ###################################################### implementations start ############################################################
 
-    def check_using_vt(self,hosts,vtkey):
+    def check_using_vt(self, hosts, vtkey):
         vt_address = 'https://www.virustotal.com/api/v3/domains/'
         if os.path.isfile(vtkey):
             with open(vtkey,'r') as file:
@@ -1295,7 +1295,7 @@ class Parser(cmd2.Cmd):
             else:
                 click.secho("[?] {} return {}".format(host,response.status_code),fg='blue')
 
-    def del_session(self)->None:
+    def del_session(self) -> None:
         try:
             session = self.get_selected_session()
             if session is not None:
@@ -1320,10 +1320,10 @@ class Parser(cmd2.Cmd):
             self.modManager.stage('scratchpad')
         self.modified = True
 
-    def fill_app_info(self,data) -> None:
+    def fill_app_info(self, data) -> None:
         self.app_info = json.loads(data)
 
-    def get_selected_session(self)->str:
+    def get_selected_session(self) -> str:
         try:
             session_files = ['Cancel']
             for filename in os.listdir(self.base_directory):
@@ -1354,7 +1354,7 @@ class Parser(cmd2.Cmd):
         #     self.edit_scratchpad(codejs, 'a')
         #     print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
-    def frida_session_handler(self,con_device,force,pkg,pid=-1):
+    def frida_session_handler(self, con_device, force, pkg, pid=-1):
         time.sleep(1)
         if force == False:
             if pid == -1:
@@ -1470,21 +1470,21 @@ catch (err) {
         self.edit_scratchpad(codejs, 'a')
         print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
-    def init_packages(self,option="") -> None:
+    def init_packages(self, option="") -> None:
         self.refreshPackages(option)
         click.secho(f'\n{self.package_range}:',fg='green',bg='blue')
         print()
         for i in range(len(self.packages)):
             print('[{}] {}'.format(i, self.packages[i]))
 
-    def is_valid_url(self,url):
+    def is_valid_url(self, url):
         try:
             result = urlparse(url)
             return all([result.scheme, result.netloc])
         except ValueError:
             return False
 
-    def load_session(self)->None:
+    def load_session(self) -> None:
         try:
             session = self.get_selected_session()
             if session is not None:
@@ -1685,7 +1685,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
         for item in listName:
             print("""       {}""".format(item))
 
-    def reload_script(self,session) -> None:
+    def reload_script(self, session) -> None:
         self.script.unload()
         with open(os.path.join(self.base_directory, "agent.js")) as f:
             self.script = session.create_script(f.read())
@@ -1729,7 +1729,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
             for name, description in zip([mod.Name for mod in mods], [mod.Description for mod in mods]):
                 print(GREEN + f"{name: <{width}}" + BLUE + f"{description}" + RESET)
 
-    def save_session(self,session_name):
+    def save_session(self, session_name):
         try:
             session_files = []
             for filename in os.listdir(self.base_directory):
@@ -1757,7 +1757,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
         except Exception as e:
             print(e)
 
-    def scan_for_secrets(self,string_list):
+    def scan_for_secrets(self, string_list):
         try:
             sigs={}
             matches = []
@@ -1803,7 +1803,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
         if not found:
             click.secho("[!] No matches found.")
 
-    def scan_do_scan(self,string_list,entries):
+    def scan_do_scan(self, string_list, entries):
         found = False
         try:
             id_value = entries['id']
@@ -1823,7 +1823,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
             print(f'Error while parsing the json data:{e}')
             return found
 
-    def yaml_to_json(self,yaml_file):
+    def yaml_to_json(self, yaml_file):
         # Read the YAML file
         try:
             with open(yaml_file, 'r') as file:
@@ -1839,7 +1839,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
             print(f"Error converting YAML to JSON: {e}")
             return None
 
-    def write_recipe(self,filename) -> None:
+    def write_recipe(self, filename) -> None:
         try:
             data = ''
             click.echo(click.style("[+] Loading a recipe....",bg='blue', fg='white'))

@@ -10,7 +10,7 @@ class Module:
 
     def save(self):
         with open(self.path, 'w') as mod:
-            mod.write(json.dumps({ field : value for field, value in self.__dict__.items() if field != 'path' }, indent=4))
+            mod.write(json.dumps({field: value for field, value in self.__dict__.items() if field != 'path'}, indent=4))
 
     def getCategory(self):
         category = self.Name.split('/')
@@ -76,7 +76,7 @@ class ModuleManager:
             if not "scratchpad" in moduleName and not alread_added:
                 print('Module {} not found!'.format(moduleName))
 
-    def stage_verbadim(self,moduleName):
+    def stage_verbadim(self, moduleName):
         if moduleName not in [mod.Name for mod in self.staged]:
             for mod in self.available:
                 if mod.Name == moduleName:

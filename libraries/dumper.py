@@ -9,13 +9,15 @@ import click
 import frida
 import logging
 import hashlib
+
 md5 = lambda bs: hashlib.md5(bs).hexdigest()
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(levelname)s %(message)s",
                     datefmt='%m-%d/%H:%M:%S')
 
-def dump(pkg_name, api,mds=None):
+
+def dump(pkg_name, api, mds=None):
     """
     """
     if mds is None:
@@ -44,6 +46,7 @@ def dump(pkg_name, api,mds=None):
         except Exception as e:
             click.secho("[Except] - {}: {}".format(e, info), bg='yellow')
 
+
 def dump_pkg(pkg):
     try:
         print('Available devices:')
@@ -51,19 +54,19 @@ def dump_pkg(pkg):
         i = 0
 
         for dv in devices:
-            print('{}) {}'.format(i,dv))
+            print('{}) {}'.format(i, dv))
             i += 1
         j = input('Enter the index of the device you want to use:')
-        device = devices[int(j)] 
+        device = devices[int(j)]
     except:
         device = frida.get_remote_device()
 
     bring_to_front = input('Bring the application you want to dump to the front and press enter.....\n')
 
     target = device.get_frontmost_application()
-    
-    pkg_name = pkg#target.identifier
-    print('[+] Dumping: '+pkg)
+
+    pkg_name = pkg  # target.identifier
+    print('[+] Dumping: ' + pkg)
     # processes = get_all_process(device, pkg_name)
     # if len(processes) == 1:
     #     target = processes[0]
@@ -86,13 +89,15 @@ def dump_pkg(pkg):
     logging.info("[DEXDump]: found target [{}] {}".format(target.pid, pkg_name))
     session = device.attach(target.pid)
     path = os.path.dirname(__file__)
-    #path = path if path else "."
+    # path = path if path else "."
     script = session.create_script(open(path + "/../dexdump.js").read())
     script.load()
     dump(pkg_name, script.exports)
 
+
 def get_all_process(device, pkgname):
     return [process for process in device.enumerate_processes() if pkgname in process.name]
+
 
 def search(api, args=None):
     matches = api.scandex()

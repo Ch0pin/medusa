@@ -21,6 +21,7 @@ def print_logo():
                                     Y8b d88P         
                                     "Y88P"           """+Style.RESET_ALL+RESET)    
 
+
 def get_device_or_emulator_id():
   try:
       print(Fore.GREEN)
@@ -41,6 +42,7 @@ def get_device_or_emulator_id():
   except Exception as e:
     print(e)
     return None
+
 
 def start_session(db_session,existing = False):
   application_database = apk_db(db_session)
@@ -97,15 +99,3 @@ if __name__ == "__main__":
         sys.exit()
       else: 
         print("[!] Unknown Option Selected!")
- 
-
-
-
-
-
-
-   
-
-
-
-  

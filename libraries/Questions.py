@@ -9,6 +9,7 @@ class Alternative():
 			return self.ask()
 		return answer
 
+
 class Numeric():
 	def __init__(self, message, base=10, lbound=None, ubound=None):
 		self.message = message
@@ -29,6 +30,7 @@ class Numeric():
 		except ValueError:
 			return self.ask()
 
+
 class Polar():
 	def __init__(self, message, default=True):
 		self.message = message
@@ -44,6 +46,7 @@ class Polar():
 			return True if self.default else False
 		else:
 			return self.ask()
+
 
 class Open():
 	def __init__(self, message):

@@ -8,6 +8,7 @@ import hashlib
 from threading import Thread
 import requests
 
+
 class bcolors:
     TITLE = '\033[95m'
     OKBLUE = '\033[94m'
@@ -20,7 +21,6 @@ class bcolors:
     UNDERLINE = '\033[4m'
     FGWHITE = '\033[37m'
     FAIL = '\033[95m'
-
 
 
 rootDir=os.path.expanduser("~")+"/.APKEnum/" #ConfigFolder ~/.SourceCodeAnalyzer/
@@ -102,6 +102,7 @@ def isNewInstallation():
 	else:
 		return False
 
+
 def isValidPath(apkFilePath):
 	global apkFileName
 	myPrint("I: Checking if the APK file path is valid.", "INFO_WS")
@@ -113,12 +114,14 @@ def isValidPath(apkFilePath):
 		myPrint("I: APK File Found.", "INFO_WS")
 		apkFileName=ntpath.basename(apkFilePath)
 
+
 def printList(lst):
 	counter=0
 	for item in lst:
 		counter=counter+1
 		entry=str(counter)+". "+item
 		myPrint(entry, "PLAIN_OUTPUT_WS")
+
 
 def reverseEngineerApplication(apkFileName):
 	global projectDir
@@ -135,6 +138,7 @@ def reverseEngineerApplication(apkFileName):
 		print
 		exit(1)
 	myPrint("I: Successfully decompiled the application. Proceeding with scanning code.", "INFO_WS")
+
 
 def findS3Bucket(line):
 	temp=re.findall(s3Regex1,line)
@@ -174,6 +178,7 @@ def findGoogleAPIKeys(line):
 # 		if response.status_code == 200:
 # 				unrestrictedGmapKeys.append(key)
 # 		continue
+
 
 def findS3Website(line):
 	temp=re.findall(s3Website1,line)
@@ -248,6 +253,7 @@ def performRecon(line):
 	if exceptions_occured:
 		print('[E] Some exceptions occured and were ommited !')
 	displayResults()
+
 
 def displayResults():
 	global inScopeAuthorityList, authorityList, s3List, s3WebsiteList, publicIpList, gmapKeys, unrestrictedGmapKeys

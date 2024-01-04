@@ -10,6 +10,7 @@ REVERSE = "\033[;7m"
 
 # etree.register_namespace('android', 'http://schemas.android.com/apk/res/android')
 
+
 def get_deeplinks(xmlDoc):
     deeplinksTree = {}
     activityNodes = xmlDoc.getElementsByTagName('activity')
@@ -76,6 +77,7 @@ def get_deeplinks(xmlDoc):
 
     return deeplinksTree
 
+
 def get_element_list(xmlDoc,node,attrib):
     elements = []
     nod = xmlDoc.getElementsByTagName(node)
@@ -85,10 +87,12 @@ def get_element_list(xmlDoc,node,attrib):
             print(RED + '{:18}'.format(node)+'{:80}'.format(atr.getAttribute(attrib)) + CYAN+' is exported')
     return elements
 
+
 def get_elements(xmlDoc,node,attrib):
     node = xmlDoc.getElementsByTagName(node)
     for  atr in node:
         return atr.getAttribute(attrib)
+
 
 def get_elements_sub(xmlDoc):
     manifest = tree.parse(xmlDoc)
@@ -99,6 +103,7 @@ def get_elements_sub(xmlDoc):
             for action in child:
                 broadcasts.append( action.get("{http://schemas.android.com/apk/res/android}name"))
     return broadcasts
+
 
 def parse_strings_xml(xmlDoc):
     try:

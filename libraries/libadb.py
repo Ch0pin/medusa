@@ -2,6 +2,7 @@ import subprocess
 import time
 from colorama import Fore
 
+
 class android_device:
     id=None
     properties = []

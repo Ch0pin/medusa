@@ -17,5 +17,3 @@ else:
         print(array1)
     except Exception as e:
         print(e)
-
-

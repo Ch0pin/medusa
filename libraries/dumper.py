@@ -42,6 +42,7 @@ def dump(pkg_name, api,mds=None):
         except Exception as e:
             click.secho("[Except] - {}: {}".format(e, info), bg='yellow')
 
+
 def dump_pkg(pkg):
     try:
         print('Available devices:')
@@ -89,8 +90,10 @@ def dump_pkg(pkg):
     script.load()
     dump(pkg_name, script.exports)
 
+
 def get_all_process(device, pkgname):
     return [process for process in device.enumerate_processes() if pkgname in process.name]
+
 
 def search(api, args=None):
     matches = api.scandex()

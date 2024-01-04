@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
-import subprocess, platform, os, sys, readline, time, argparse,requests,re
+import subprocess, platform, os, sys, readline, time, argparse, requests, re
 from urllib.parse import urlparse
-import cmd2, click, frida,random,yaml
+import cmd2, click, frida, random, yaml
 from libraries.dumper import dump_pkg
-from google_trans_new import google_translator  
+from google_trans_new import google_translator
 from libraries.natives import *
 from libraries.libadb import *
 from libraries.Questions import *
 from libraries.Modules import *
 from pick import pick
 
-RED     = "\033[1;31m"
-BLUE    = "\033[1;34m"
-CYAN    = "\033[1;36m"
-WHITE   = "\033[1;37m"
-YELLOW  = "\033[1;33m"
-GREEN   = "\033[0;32m"
-RESET   = "\033[0;0m"
-BOLD    = "\033[;1m"
+RED = "\033[1;31m"
+BLUE = "\033[1;34m"
+CYAN = "\033[1;36m"
+WHITE = "\033[1;37m"
+YELLOW = "\033[1;33m"
+GREEN = "\033[0;32m"
+RESET = "\033[0;0m"
+BOLD = "\033[;1m"
 REVERSE = "\033[;7m"
-#readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
+
+
+# readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
 
 class Parser(cmd2.Cmd):
     base_directory = os.path.dirname(__file__)
@@ -32,7 +34,7 @@ class Parser(cmd2.Cmd):
     prompt = BLUE + 'medusa➤' + RESET
     device = None
     modified = False
-    translator = google_translator()  
+    translator = google_translator()
     script = None
     detached = True
     pid = None
@@ -50,9 +52,9 @@ class Parser(cmd2.Cmd):
 
     def refreshPackages(self, option=""):
 
-    #   -a: all known packages (but excluding APEXes)
-    #   -s: filter to only show system packages
-    #   -3: filter to only show third party packages
+        #   -a: all known packages (but excluding APEXes)
+        #   -s: filter to only show system packages
+        #   -3: filter to only show third party packages
 
         if option == '-a':
             self.package_range = '- Installed applications (all, excluding APEXs)'
@@ -63,25 +65,24 @@ class Parser(cmd2.Cmd):
         else:
             self.package_range = '- All installed applicatons'
 
-
         self.packages = []
-        for line in os.popen('adb -s {} shell pm list packages {}'.format(self.device.id,option)):
+        for line in os.popen('adb -s {} shell pm list packages {}'.format(self.device.id, option)):
             self.packages.append(line.split(':')[1].strip('\n'))
 
     def preloop(self):
         self.do_reload("dummy")
-    
+
         parser = argparse.ArgumentParser(
-                            prog = 'Medusa',
-                            description = 'An extensible and modularized framework that automates processes and techniques practiced during the dynamic analysis of Android Applications.')
-        parser.add_argument('-r','--recipe', help='Use this option to load a session/recipe')
+            prog='Medusa',
+            description='An extensible and modularized framework that automates processes and techniques practiced during the dynamic analysis of Android Applications.')
+        parser.add_argument('-r', '--recipe', help='Use this option to load a session/recipe')
         args = parser.parse_args()
 
         if args.recipe:
             self.write_recipe(args.recipe)
-                        
+
         randomized_fg = lambda: tuple(random.randint(0, 255) for _ in range(3))
-                     
+
         click.secho("""                                                                                                                      
     ███╗   ███╗███████╗██████╗ ██╗   ██╗███████╗ █████╗ 
     ████╗ ████║██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗    
@@ -90,11 +91,10 @@ class Parser(cmd2.Cmd):
     ██║ ╚═╝ ██║███████╗██████╔╝╚██████╔╝███████║██║  ██║
     ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (Android) Version: 2.0  
                                     
- 🪼 Type help for options 🪼 \n\n""", fg=randomized_fg(),bold=True)
+ 🪼 Type help for options 🪼 \n\n""", fg=randomized_fg(), bold=True)
         self.do_loaddevice("dummy")
 
-
-###################################################### do_ defs start ############################################################
+    ###################################################### do_ defs start ############################################################
 
     def do_add(self, mod) -> None:
         """
@@ -137,20 +137,20 @@ class Parser(cmd2.Cmd):
             # with open(os.path.join(self.base_directory, 'libraries', js'utils.js'), 'r') as file:
             #     header = file.read()
             js_directory = os.path.join(self.base_directory, 'libraries', 'js')
-            js_files=['globals.js','beautifiers.js','utils.js','android_core.js']
+            js_files = ['globals.js', 'beautifiers.js', 'utils.js', 'android_core.js']
             for filename in js_files:
                 js_file_path = os.path.join(js_directory, filename)
-                
+
                 # Check if the file exists before attempting to read it
                 if os.path.isfile(js_file_path):
                     with open(js_file_path, 'r') as file:
                         header = file.read()
                         hooks.append(header)
 
-            #add delay
+            # add delay
             delay = ''
             options = len(line.split())
-            if options == 2 and ('-t' in line.split()[0]):             
+            if options == 2 and ('-t' in line.split()[0]):
                 delay = line.split()[1]
                 hooks.append("\n\nsetTimeout(function() {\n")
 
@@ -202,11 +202,12 @@ class Parser(cmd2.Cmd):
         """
         class_path = line.split(' ')[0]
         codejs = '\n'
-        codejs += """console.log("-----------dumping:'"""+class_path+"""'-------------------");\n"""
-        codejs += "console.log(describeJavaClass('"+class_path+"'));\n"
-        codejs += """console.log("-----------End of dumping:'"""+class_path+"""'------------");"""
+        codejs += """console.log("-----------dumping:'""" + class_path + """'-------------------");\n"""
+        codejs += "console.log(describeJavaClass('" + class_path + "'));\n"
+        codejs += """console.log("-----------End of dumping:'""" + class_path + """'------------");"""
         self.edit_scratchpad(codejs, 'a')
-        print("Stack trace have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
+        print(
+            "Stack trace have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
     def do_dexload(self, line) -> None:
         """
@@ -215,11 +216,11 @@ class Parser(cmd2.Cmd):
         dexload /device/path/to/dex
         """
         try:
-            codejs = '\n\nJava.openClassFile("'+line.split(' ')[0]+'").load();'
-            self.edit_scratchpad(codejs,'a')
+            codejs = '\n\nJava.openClassFile("' + line.split(' ')[0] + '").load();'
+            self.edit_scratchpad(codejs, 'a')
         except Exception as e:
             print(e)
-    
+
     def do_dump(self, line) -> None:
         """
         Dump the memory of a package name 
@@ -246,24 +247,24 @@ class Parser(cmd2.Cmd):
             if libname == '' or package == '':
                 print('[i] Usage: exports com.foo.com libname.so')
             else:
-                self.prepare_native("enumerateExportsJs('"+libname+"');\n")
+                self.prepare_native("enumerateExportsJs('" + libname + "');\n")
 
             self.native_functions = []
             self.native_handler = nativeHandler(self.device)
-            #self.native_handler.device = self.device
+            # self.native_handler.device = self.device
 
             if len(line.split(' ')) > 2:
                 if '--attach' in line.split(' ')[2]:
-                    modules = self.native_handler.getModules(package,False)
+                    modules = self.native_handler.getModules(package, False)
                 else:
                     print("[i] Usage: enumerate package library [--attach]")
             else:
-                modules = self.native_handler.getModules(package,True)
+                modules = self.native_handler.getModules(package, True)
 
             for function in modules:
                 self.native_functions.append(function)
             self.native_functions.sort()
-            self.print_list(self.native_functions,"[i] Printing lib's: "+libname+" exported functions:")
+            self.print_list(self.native_functions, "[i] Printing lib's: " + libname + " exported functions:")
 
         except Exception as e:
             print(e)
@@ -278,11 +279,11 @@ class Parser(cmd2.Cmd):
 
         if os.path.getsize(agent_path) != 0:
             if Polar('Do you want to reset the agent script?').ask():
-                    open(os.path.join(self.base_directory, 'agent.js'), 'w').close()
+                open(os.path.join(self.base_directory, 'agent.js'), 'w').close()
 
         if os.path.getsize(scratchpad_path) != 119:
             if Polar('Do you want to reset the scratchpad?').ask():
-                    self.edit_scratchpad('')
+                self.edit_scratchpad('')
 
         print('Bye!!')
         sys.exit()
@@ -300,13 +301,14 @@ class Parser(cmd2.Cmd):
                     file.write('MODULE ' + mod.Name + '\n')
                 file.write(self.modManager.getModule('scratchpad').Code)
             if os.path.splitext(line)[1] == '.session':
-                print("Current session mod list saved as: {}, use session --load to reload it".format(os.path.splitext(line)[0]))
+                print("Current session mod list saved as: {}, use session --load to reload it".format(
+                    os.path.splitext(line)[0]))
             else:
                 print('Recipe exported to dir: {} as {}'.format(os.getcwd(), line))
         except Exception as e:
-            print(e) 
+            print(e)
             print("[i] Usage: export filename")
-    
+
     def do_get(self, line):
         """
         Print the current value of a fields of a class instance
@@ -321,11 +323,11 @@ class Parser(cmd2.Cmd):
                 codeJs = """
                 Java.perform(function() { 
                     try {
-                        var jClass = Java.use('"""+clazz+"""');
+                        var jClass = Java.use('""" + clazz + """');
                         var _fields = jClass.class.getFields().map(f => {
                         return f.toString()
                         })  
-                        Java.choose('"""+clazz+"""', {
+                        Java.choose('""" + clazz + """', {
                         onMatch: function(instance) {
                             for(var i = 0; i < _fields.length; i++){
                             var field = _fields[i].substring(_fields[i].lastIndexOf(".") + 1);                
@@ -338,21 +340,21 @@ class Parser(cmd2.Cmd):
                         catch(e){console.log(e)}
                     });
                     """
-        
+
             else:
-                codeJs = "Java.perform(function() { try { Java.choose('"+clazz+"',{"
-                codeJs+="onMatch: function(instance) {"
-                codeJs+= "console.log('Current field value of '+instance+ ' is:'+JSON.stringify(instance."+field+'.value))'
-                codeJs+="}, onComplete: function() { }});} catch (e){console.log(e)}})"
-        
+                codeJs = "Java.perform(function() { try { Java.choose('" + clazz + "',{"
+                codeJs += "onMatch: function(instance) {"
+                codeJs += "console.log('Current field value of '+instance+ ' is:'+JSON.stringify(instance." + field + '.value))'
+                codeJs += "}, onComplete: function() { }});} catch (e){console.log(e)}})"
+
             self.detached = False
 
-            session = self.frida_session_handler(self.device,False,package_name)
+            session = self.frida_session_handler(self.device, False, package_name)
             if session is None:
                 print("[!] Can't create session for the given package name. Is it running ?")
 
             script = session.create_script(codeJs)
-            session.on('detached',self.on_detached)
+            session.on('detached', self.on_detached)
             script.load()
             input()
             if script:
@@ -365,7 +367,7 @@ class Parser(cmd2.Cmd):
         Display the manual 
         """
         try:
-            print(BOLD+"""
+            print(BOLD + """
                 Module Stashing / Un-Stashing:
 
                         - add [fullpath]            : Adds the module, specified by the "fullpath" option, to a 
@@ -470,7 +472,7 @@ class Parser(cmd2.Cmd):
                         
                           (-) To load this file when starting medusa, add the -r option followed by the filename
                           (-) To load this file while running medusa, type 'reload -r filename'                                      
-"""+RESET)
+""" + RESET)
 
         except Exception as e:
             print(e)
@@ -489,32 +491,32 @@ class Parser(cmd2.Cmd):
         """
         option = line.split(' ')[0]
         codejs = '\n'
-        if option=='-f':
+        if option == '-f':
             className = input("Enter the full name of the method(s)'s class: ")
             class_uuid = str(int(time.time()))
             uuid = str(int(time.time()))
 
-            codejs = """let hook_"""+uuid+""" = Java.use('""" + className + """');"""
+            codejs = """let hook_""" + uuid + """ = Java.use('""" + className + """');"""
             functionName = input("Enter a method name (CTRL+C to Exit): ")
-            enable_backtrace =  Polar('Enable backtrace?', False).ask()
+            enable_backtrace = Polar('Enable backtrace?', False).ask()
 
             while (True):
                 try:
-                    
+
                     codejs += """
-                    let overloadCount_"""+uuid+""" = hook_"""+class_uuid+"""['""" + functionName + """'].overloads.length;
-                    colorLog("\\nTracing " +'""" + functionName + """' + " [" + overloadCount_"""+uuid+""" + " overload(s)]",{ c: Color.Green });
+                    let overloadCount_""" + uuid + """ = hook_""" + class_uuid + """['""" + functionName + """'].overloads.length;
+                    colorLog("\\nTracing " +'""" + functionName + """' + " [" + overloadCount_""" + uuid + """ + " overload(s)]",{ c: Color.Green });
                         
-                        for (let i = 0; i < overloadCount_"""+uuid+"""; i++) {
-                            hook_"""+class_uuid+"""['""" + functionName + """'].overloads[i].implementation = function() {
+                        for (let i = 0; i < overloadCount_""" + uuid + """; i++) {
+                            hook_""" + class_uuid + """['""" + functionName + """'].overloads[i].implementation = function() {
                             colorLog("*** entered " +'""" + functionName + """',{ c: Color.Green });"""
                     if enable_backtrace:
-                        codejs+="""
+                        codejs += """
                     Java.perform(function() {
                         let bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
                             console.log("Backtrace:" + bt);
                     });   """
-                    codejs +="""
+                    codejs += """
 
                     if (arguments.length) console.log();
                     for (let j = 0; j < arguments.length; j++) {
@@ -529,35 +531,36 @@ class Parser(cmd2.Cmd):
                     """
                     print('[+] Method: {} hook added !'.format(functionName))
                     functionName = input("Enter a method name (CTRL+C to Exit): ")
-                    enable_backtrace =  Polar('Enable backtrace?', False).ask()
+                    enable_backtrace = Polar('Enable backtrace?', False).ask()
                     uuid = str(int(time.time()))
 
                 except KeyboardInterrupt:
                     self.edit_scratchpad(codejs, 'a')
-                    print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
+                    print(
+                        "\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
                     break
 
-        elif option=='-a':
+        elif option == '-a':
             aclass = line.split(' ')[1].strip()
             if aclass == '':
                 print('[i] Usage hook -a class_name')
             else:
                 if len(line.split(' ')) > 2:
-                    if line.split(' ')[2].strip()=='--color':
-                        collors = ['Blue','Cyan','Gray','Green','Purple','Red','Yellow']
-                        option, index = pick(collors,"Available colors:",indicator="=>",default_index=0)
-                        self.hookall(aclass,option)
+                    if line.split(' ')[2].strip() == '--color':
+                        collors = ['Blue', 'Cyan', 'Gray', 'Green', 'Purple', 'Red', 'Yellow']
+                        option, index = pick(collors, "Available colors:", indicator="=>", default_index=0)
+                        self.hookall(aclass, option)
                     else:
                         self.hookall(aclass)
                 else:
                     self.hookall(aclass)
-        elif option=='-r':
+        elif option == '-r':
             self.scratchreset()
-        elif option=='-n':
+        elif option == '-n':
             self.hook_native()
         else:
             print("[i] Invalid option")
-    
+
     def do_jtrace(self, line) -> None:
         """
         Prints the stacktrace of a specified function
@@ -566,7 +569,7 @@ class Parser(cmd2.Cmd):
         """
         function_path = line.split(' ')[0]
         class_name = '.'.join(function_path.split('.')[:-1])
-        function_name = function_path.split('.')[-1]       
+        function_name = function_path.split('.')[-1]
         codejs = '\n'
         codejs += """var hook = Java.use('""" + class_name + """');"""
 
@@ -592,7 +595,8 @@ class Parser(cmd2.Cmd):
     }
 """
         self.edit_scratchpad(codejs, 'a')
-        print("Stack trace have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
+        print(
+            "Stack trace have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
     def do_import(self, line) -> None:
         """
@@ -605,10 +609,11 @@ class Parser(cmd2.Cmd):
                 data = file.read()
             self.edit_scratchpad(data, 'a')
 
-            print("\nSnippet has been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script or 'pad' to edit it")
+            print(
+                "\nSnippet has been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script or 'pad' to edit it")
         except Exception as e:
             print(e)
-    
+
     def do_info(self, mod) -> None:
         """
         Provides information about a module.
@@ -639,7 +644,7 @@ class Parser(cmd2.Cmd):
 
             option = line.split(' ')[0]
             self.native_handler = nativeHandler(self.device)
-            #self.native_handler.device = self.device
+            # self.native_handler.device = self.device
             package = line.split(' ')[1].strip()
             self.currentPackage = package
 
@@ -650,7 +655,7 @@ class Parser(cmd2.Cmd):
                     print("[i] Usage: libs [option] package [--attach]")
             else:
                 modules = self.native_handler.getModules(package, True)
-               
+
             for library in modules:
                 if library.startswith('/data/app'):
                     self.app_libraries.append(library)
@@ -660,15 +665,15 @@ class Parser(cmd2.Cmd):
             self.app_libraries.sort()
             self.system_libraries.sort()
             if '-a' in option:
-                self.print_list(self.system_libraries,"[i] Printing system loaded modules:")
-                self.print_list(self.app_libraries,"[i] Printing Application modules:")
+                self.print_list(self.system_libraries, "[i] Printing system loaded modules:")
+                self.print_list(self.app_libraries, "[i] Printing Application modules:")
             elif '-s' in option:
                 self.print_list(self.system_libraries, "[i] Printing system loaded modules:")
             elif '-j' in option:
-                self.print_list(self.app_libraries,"[i] Printing Application modules:")
+                self.print_list(self.app_libraries, "[i] Printing Application modules:")
             else:
                 print('[i] Command was not understood.')
-            
+
         except Exception as e:
             print(e)
             print('[i] Usage: libs [option] package [--attach]')
@@ -695,27 +700,27 @@ class Parser(cmd2.Cmd):
         """
 
         try:
-            options = len(line.split()) 
-            
+            options = len(line.split())
+
             if options == 0:
                 self.init_packages()
-            elif options == 1 and line.split()[0] not in ['-a','-s','-3']:
+            elif options == 1 and line.split()[0] not in ['-a', '-s', '-3']:
                 package = line.split()[0]
                 if package in self.packages:
-                    dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
+                    dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id, package))
                     print('- package info -')
                     for ln in dumpsys:
-                        print(ln,end='')
+                        print(ln, end='')
                 else:
                     print('Invalid package')
             elif options == 2 and line.split()[1] == 'path':
                 package = line.split()[0]
-                dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
-                print('-'*20+package+' '+"paths"+'-'*20)
+                dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id, package))
+                print('-' * 20 + package + ' ' + "paths" + '-' * 20)
                 for ln in dumpsys:
-                    for keyword in ["resourcePath","codePath","legacyNativeLibraryDir","primaryCpuAbi"]:
+                    for keyword in ["resourcePath", "codePath", "legacyNativeLibraryDir", "primaryCpuAbi"]:
                         if keyword in ln:
-                            print(ln,end='')
+                            print(ln, end='')
             elif options == 1:
                 opt = line.split()[0]
                 if opt == '-a':
@@ -738,7 +743,7 @@ class Parser(cmd2.Cmd):
         Tip: run "list package_name path" to get the application's directories
         """
         self.native_handler = nativeHandler(self.device)
-        self.native_handler.loadLibrary(line.split()[0],line.split()[1])
+        self.native_handler.loadLibrary(line.split()[0], line.split()[1])
 
     def do_loaddevice(self, line) -> None:
         """
@@ -750,14 +755,15 @@ class Parser(cmd2.Cmd):
 
             for i in range(len(devices)):
                 print('{}) {}'.format(i, devices[i]))
-            self.device = devices[int(Numeric('\nEnter the index of the device to use:', lbound=0,ubound=len(devices)-1).ask())] 
+            self.device = devices[
+                int(Numeric('\nEnter the index of the device to use:', lbound=0, ubound=len(devices) - 1).ask())]
             android_dev = android_device(self.device.id)
             android_dev.print_dev_properties()
         except:
             self.device = frida.get_remote_device()
         finally:
-            #lets start by loading all packages and let the user to filter them out 
-            self.init_packages('-3')    
+            # lets start by loading all packages and let the user to filter them out
+            self.init_packages('-3')
 
     def do_memops(self, line) -> None:
         """
@@ -781,92 +787,95 @@ class Parser(cmd2.Cmd):
             if len(line.split(' ')) < 2:
                 print("Invalid parameters given, type 'help memscan' for options")
                 return
-            
-            if line.split(' ')[0] not in ['-c2','-s','-nt','-a']:
+
+            if line.split(' ')[0] not in ['-c2', '-s', '-nt', '-a']:
                 print(f"No such an optiion {line.split(' ')[0]}. Type 'help memscan for help")
                 return
-            
+
             pkg = line.split(' ')[1]
-            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id, pkg)).read().strip()
 
             if pid == "":
-                click.secho('Trying to start the app:'.format(pkg), fg = 'green')
-                os.popen("adb -s {} shell  monkey -p {} -c 'android.intent.category.LAUNCHER 1'".format(self.device.id,pkg)).read()
-                pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+                click.secho('Trying to start the app:'.format(pkg), fg='green')
+                os.popen("adb -s {} shell  monkey -p {} -c 'android.intent.category.LAUNCHER 1'".format(self.device.id,
+                                                                                                        pkg)).read()
+                pid = os.popen("adb -s {} shell pidof {}".format(self.device.id, pkg)).read().strip()
 
             if pid == "":
-                click.secho("Can't find pid !",fg='red')
+                click.secho("Can't find pid !", fg='red')
                 return
             elif len(pid.split(' ')) > 1:
-                option, index = pick(pid.split(' '),"More than one processes found running with that name:",indicator="=>",default_index=0)
+                option, index = pick(pid.split(' '), "More than one processes found running with that name:",
+                                     indicator="=>", default_index=0)
                 pid = option
             else:
-                 click.secho('Process pid:{}'.format(pid),fg='green')
+                click.secho('Process pid:{}'.format(pid), fg='green')
 
-            maps = os.popen("""adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().split('\n')
+            maps = os.popen(
+                """adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().split('\n')
             for linein in maps:
                 if 'dalvik-main space' in linein:
-                    range1 = int(linein.split(' ')[0].split('-')[0],16)
-                    range2 = int(linein.split(' ')[0].split('-')[1],16)
+                    range1 = int(linein.split(' ')[0].split('-')[0], 16)
+                    range2 = int(linein.split(' ')[0].split('-')[1], 16)
                     sz = range2 - range1
-                    print('Starting addres: {}, size: {}'.format(hex(range1),range2-range1))
+                    print('Starting addres: {}, size: {}'.format(hex(range1), range2 - range1))
                     self.native_handler = nativeHandler(self.device)
-                    self.native_handler.memraw(pkg + ' ' + pid + ' ' + hex(range1) + ' ' + str(sz),True)
+                    self.native_handler.memraw(pkg + ' ' + pid + ' ' + hex(range1) + ' ' + str(sz), True)
 
             hosts = []
             output = []
-            all_strings=[]
+            all_strings = []
             script_path = os.path.abspath(__file__)
             script_dir = os.getcwd()
-            dump_dir = script_dir+os.path.sep+'dump'+os.path.sep+pkg
+            dump_dir = script_dir + os.path.sep + 'dump' + os.path.sep + pkg
             for filename in os.listdir(dump_dir):
                 file_path = os.path.join(dump_dir, filename)
                 if os.path.isfile(file_path):
                     cmd = "strings {}".format(file_path)
-                    result = subprocess.run(cmd,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     if result.returncode == 0:
                         output = result.stdout.decode().strip().split('\n')
                         for entry in output:
                             all_strings.append(entry)
                             if self.is_valid_url(entry):
-                               hosts.append(urlparse(entry).netloc)
+                                hosts.append(urlparse(entry).netloc)
 
             hosts = list(dict.fromkeys(hosts))
-            whitelist = script_dir+os.path.sep+'whitelist.txt'
+            whitelist = script_dir + os.path.sep + 'whitelist.txt'
             whitelist_urls = []
             if os.path.isfile(whitelist):
-                with open(whitelist,'r') as file:
+                with open(whitelist, 'r') as file:
                     whitelist_urls = file.readlines()
 
-            whitelist_urls_strip=[x.strip() for x in whitelist_urls]
-            hosts =[x for x in hosts if not any(y in x for y in whitelist_urls_strip)]
+            whitelist_urls_strip = [x.strip() for x in whitelist_urls]
+            hosts = [x for x in hosts if not any(y in x for y in whitelist_urls_strip)]
 
-            opt = line.split(' ')[0] 
+            opt = line.split(' ')[0]
 
             if opt == '-c2':
-                click.secho('Scanning for web addresses',fg='yellow')
-                self.check_using_vt(hosts,script_dir+os.path.sep+'vt.key')
+                click.secho('Scanning for web addresses', fg='yellow')
+                self.check_using_vt(hosts, script_dir + os.path.sep + 'vt.key')
             elif opt == '-s':
-                click.secho('Scanning for secrets',fg='yellow')
+                click.secho('Scanning for secrets', fg='yellow')
                 self.scan_for_secrets(list(dict.fromkeys(all_strings)))
             elif opt == '-nt':
                 if len(line.split(' ')) != 3:
                     print('This option requires a path to the template(s)')
                     return
-                self.scan_using_nuclei_template(list(dict.fromkeys(all_strings)),line.split(' ')[2])
+                self.scan_using_nuclei_template(list(dict.fromkeys(all_strings)), line.split(' ')[2])
             elif opt == '-a':
-                click.secho('Performing all availlable scans...',fg='yellow')
-                click.secho('Scanning for web addresses',fg='yellow')
-                self.check_using_vt(hosts,script_dir+os.path.sep+'vt.key')
-                click.secho('Scanning for secrets',fg='yellow')
+                click.secho('Performing all availlable scans...', fg='yellow')
+                click.secho('Scanning for web addresses', fg='yellow')
+                self.check_using_vt(hosts, script_dir + os.path.sep + 'vt.key')
+                click.secho('Scanning for secrets', fg='yellow')
                 self.scan_for_secrets(list(dict.fromkeys(all_strings)))
             else:
                 print("No such option...")
                 return
 
-            
+
         except Exception as e:
-            print(e) 
+            print(e)
 
         return
 
@@ -880,32 +889,35 @@ class Parser(cmd2.Cmd):
         try:
 
             pkg = line.split(' ')[0]
-            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id, pkg)).read().strip()
 
             if pid == "":
                 print("Can't find  pid. Is the application running ?")
                 return
             elif len(pid.split(' ')) > 1:
-                option, index = pick(pid.split(' '),"More than one processes found running with that name:",indicator="=>",default_index=0)
+                option, index = pick(pid.split(' '), "More than one processes found running with that name:",
+                                     indicator="=>", default_index=0)
                 pid = option
 
-            maps = os.popen("""adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().strip().split('\n')
+            maps = os.popen(
+                """adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().strip().split(
+                '\n')
             title = "Please choose a memory address range: "
-            option, index = pick(maps,title,indicator="=>",default_index=0)
+            option, index = pick(maps, title, indicator="=>", default_index=0)
             print("Selected:")
-            click.echo(click.style(option,bg='blue', fg='white'))
+            click.echo(click.style(option, bg='blue', fg='white'))
 
-            range1 = int(option.split(' ')[0].split('-')[0],16)
-            range2 = int(option.split(' ')[0].split('-')[1],16)
+            range1 = int(option.split(' ')[0].split('-')[0], 16)
+            range2 = int(option.split(' ')[0].split('-')[1], 16)
             sz = range2 - range1
-            print('Starting address: {}, size: {}'.format(hex(range1),range2-range1))
+            print('Starting address: {}, size: {}'.format(hex(range1), range2 - range1))
 
             self.native_handler = nativeHandler(self.device)
             self.native_handler.memraw(pkg + ' ' + pid + ' ' + hex(range1) + ' ' + str(sz))
-            
+
         except Exception as e:
             print(e)
-            
+
     def do_pad(self, line) -> None:
         """
         Manualy edit scratchpad using vi
@@ -936,8 +948,7 @@ class Parser(cmd2.Cmd):
                 if filename.endswith('.js'):
                     filepath = os.path.join(root, filename)
                     self.snippets.append(filepath.split(os.path.sep)[-1].split('.')[0])
-    
-             
+
         if "-r" in line.split(' ')[0]:
             self.modManager.reset()
             self.write_recipe(line.split(' ')[1])
@@ -963,7 +974,7 @@ class Parser(cmd2.Cmd):
                     sys.stderr.write("\nModule(s) is not active.")
                 else:
                     print("Module(s) is not active.")
-            print()  
+            print()
         except Exception as e:
             print(e)
 
@@ -973,7 +984,7 @@ class Parser(cmd2.Cmd):
         """
         self.modManager.reset()
         self.modified = False
-        self.do_compile('',True)
+        self.do_compile('', True)
         self.scratchreset()
 
     def do_run(self, line) -> None:
@@ -992,7 +1003,7 @@ class Parser(cmd2.Cmd):
             if self.modified:
                 if Polar('Module list has been modified, do you want to recompile?').ask():
                     self.do_compile(line)
-            
+
             flags = line.split(' ')
             # Extracting host and port if present
             if '--host' in flags:
@@ -1008,30 +1019,31 @@ class Parser(cmd2.Cmd):
 
             if len(flags) == 1:
                 if flags[0] == '-p':
-                    runing_processes = os.popen("""adb -s {} shell 'echo "ps -A" | su'""".format(self.device.id)).read().strip().split('\n')
+                    runing_processes = os.popen(
+                        """adb -s {} shell 'echo "ps -A" | su'""".format(self.device.id)).read().strip().split('\n')
                     title = "Running processes: "
-                    option, index = pick(runing_processes,title,indicator="=>",default_index=0)
-                    click.echo(click.style(option,bg='blue', fg='white'))
+                    option, index = pick(runing_processes, title, indicator="=>", default_index=0)
+                    click.echo(click.style(option, bg='blue', fg='white'))
                     pattern = r'\b\d+\b'
                     get_pid = re.findall(pattern, option)
-                    self.run_frida(False,False,'',self.device,get_pid[0],host,port)
-                else: 
-                    self.run_frida(False, False, line, self.device,-1,host,port)
-                    
+                    self.run_frida(False, False, '', self.device, get_pid[0], host, port)
+                else:
+                    self.run_frida(False, False, line, self.device, -1, host, port)
+
             elif len(flags) == 2:
                 if flags[0] == '-f':
-                    self.run_frida(True, False, flags[1], self.device,-1,host,port)
+                    self.run_frida(True, False, flags[1], self.device, -1, host, port)
                 elif flags[0] == '-n':
                     try:
                         if len(self.packages) == 0:
                             self.refreshPackages()
                         package_name = self.packages[int(flags[1])]
-                        self.run_frida(True, False, package_name, self.device,-1,host,port)
+                        self.run_frida(True, False, package_name, self.device, -1, host, port)
                     except (IndexError, TypeError) as error:
                         print('Invalid package number')
 
                 elif flags[0] == '-p':
-                    self.run_frida(False,False,'',self.device,flags[1],host,port)
+                    self.run_frida(False, False, '', self.device, flags[1], host, port)
                     pass
                 else:
                     print('Invalid flag given!')
@@ -1069,11 +1081,11 @@ class Parser(cmd2.Cmd):
         else:
             for match in matches:
                 if redirect_output:
-                    sys.stderr.write(match.replace(pattern, GREEN + pattern + RESET)+'\n')
+                    sys.stderr.write(match.replace(pattern, GREEN + pattern + RESET) + '\n')
                 else:
                     print(match.replace(pattern, GREEN + pattern + RESET))
 
-    def do_session(self, line)-> None:
+    def do_session(self, line) -> None:
         """
         Usage: session [--save 'name'] [--load] [--del]
         --save 'name', saves the current module set 
@@ -1130,10 +1142,11 @@ class Parser(cmd2.Cmd):
         try:
             old_index = int(line.split(' ')[0])
             new_index = int(line.split(' ')[1])
-            self.modManager.staged[old_index], self.modManager.staged[new_index] = self.modManager.staged[new_index], self.modManager.staged[old_index]
+            self.modManager.staged[old_index], self.modManager.staged[new_index] = self.modManager.staged[new_index], \
+            self.modManager.staged[old_index]
             print('New arrangement:')
             self.show_mods()
-        
+
             self.modified = True
         except Exception as e:
             print(e)
@@ -1143,41 +1156,41 @@ class Parser(cmd2.Cmd):
         Prints the loaded device id, libraries, native functions of the last loaded package.
         """
         print('[+] Dumping processed data:')
-        if(self.device):
-            print('   --> Current Device:'+self.device.id)
-        if(self.currentPackage):
-            print('   --> Current Package:'+self.currentPackage)
-        if(self.app_libraries):
-            self.print_list(self.app_libraries,"   --> Application Libraries:")
-        if(self.libname):
-            print('   --> Current Library:'+self.libname)
-        if(self.native_functions):
-            self.print_list(self.native_functions,'   --> Current Native Functions:')
-    
+        if (self.device):
+            print('   --> Current Device:' + self.device.id)
+        if (self.currentPackage):
+            print('   --> Current Package:' + self.currentPackage)
+        if (self.app_libraries):
+            self.print_list(self.app_libraries, "   --> Application Libraries:")
+        if (self.libname):
+            print('   --> Current Library:' + self.libname)
+        if (self.native_functions):
+            self.print_list(self.native_functions, '   --> Current Native Functions:')
+
     def do_strace(self, line) -> None:
         """
         Pseudo strace implemented via a frida script
         Usage:
         strace package_name
         """
-        
+
         self.detached = False
-        session = self.frida_session_handler(self.device,True,line.split(' ')[0])
+        session = self.frida_session_handler(self.device, True, line.split(' ')[0])
         try:
 
-            with open(os.path.join(self.base_directory, 'libraries', 'js','strace.js'), 'r') as file:
+            with open(os.path.join(self.base_directory, 'libraries', 'js', 'strace.js'), 'r') as file:
                 self.script = session.create_script(file.read())
-       
-            session.on('detached',self.on_detached)
-            self.script.on("message",self.my_message_handler)  # register the message handler
-            self.script.load()  
+
+            session.on('detached', self.on_detached)
+            self.script.on("message", self.my_message_handler)  # register the message handler
+            self.script.load()
             self.device.resume(self.pid)
             s = ""
-            print(RED+"----- Credits @FrenchYeti -----")
-            print("[i] Type 'e' to exit the strace "+RESET)
-            while (s!='e') and (not self.detached):
-                s = input("Type 'e' to exit:")          
-            
+            print(RED + "----- Credits @FrenchYeti -----")
+            print("[i] Type 'e' to exit the strace " + RESET)
+            while (s != 'e') and (not self.detached):
+                s = input("Type 'e' to exit:")
+
             if self.script:
                 self.script.unload()
 
@@ -1191,7 +1204,7 @@ class Parser(cmd2.Cmd):
         Usage:
         type 'text to send to the device'
         """
-        os.popen("adb -s {} shell input text {}".format(self.device.id,text))
+        os.popen("adb -s {} shell input text {}".format(self.device.id, text))
 
     def do_use(self, mod, redirect_output=False) -> None:
         """
@@ -1205,16 +1218,16 @@ class Parser(cmd2.Cmd):
         self.show_mods(redirect_output)
         self.modified = True
         print()
-        
-###################################################### do_ defs end ############################################################
 
-###################################################### complete_ defs start ############################################################
+    ###################################################### do_ defs end ############################################################
+
+    ###################################################### complete_ defs start ############################################################
     def complete_memscan(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
-    
+
     def complete_dump(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
-    
+
     def complete_get(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
 
@@ -1236,7 +1249,7 @@ class Parser(cmd2.Cmd):
 
     def complete_memops(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
-    
+
     def complete_memmap(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
 
@@ -1258,54 +1271,55 @@ class Parser(cmd2.Cmd):
 
     def complete_use(self, text, line, begidx, endidx) -> list:
         return [mod.Name for mod in self.modManager.available if mod.Name.startswith(text)]
-    
+
     def complete_info(self, text, line, begidx, endidx) -> list:
         return [mod.Name for mod in self.modManager.available if mod.Name.startswith(text)]
 
-###################################################### complete_ defs end ############################################################
+    ###################################################### complete_ defs end ############################################################
 
-###################################################### implementations start ############################################################
+    ###################################################### implementations start ############################################################
 
     def check_using_vt(self, hosts, vtkey):
         vt_address = 'https://www.virustotal.com/api/v3/domains/'
         if os.path.isfile(vtkey):
-            with open(vtkey,'r') as file:
+            with open(vtkey, 'r') as file:
                 key = file.read()
         else:
             click.secho("VT key was not found !", fg='red')
             return
         headers = {'x-apikey': key}
         for host in hosts:
-           # click.secho("Checking {}".format(host),fg='green')
-            response = requests.get(vt_address+host, headers=headers)
+            # click.secho("Checking {}".format(host),fg='green')
+            response = requests.get(vt_address + host, headers=headers)
             if response.status_code == 200:
                 json_data = json.loads(response.text)
                 last_analysis_stats = json_data['data']['attributes']['last_analysis_stats']
                 malicious_count = last_analysis_stats['malicious']
-                if int(malicious_count) == 0: 
-                    click.secho("✅ {} ".format(host),fg='green')
-                    #click.secho("Clean".format(malicious_count),fg='yellow')
+                if int(malicious_count) == 0:
+                    click.secho("✅ {} ".format(host), fg='green')
+                    # click.secho("Clean".format(malicious_count),fg='yellow')
                 else:
-                    click.secho("❌ {} detected by {} vendors ❗".format(host,malicious_count),bg='white',fg='red')
-                    #click.secho(" Detected by {} vendors:".format(malicious_count),fg='red',bg='white')
-                    for key,value in json_data['data']['attributes']['last_analysis_results'].items():
+                    click.secho("❌ {} detected by {} vendors ❗".format(host, malicious_count), bg='white', fg='red')
+                    # click.secho(" Detected by {} vendors:".format(malicious_count),fg='red',bg='white')
+                    for key, value in json_data['data']['attributes']['last_analysis_results'].items():
                         verdict = json_data['data']['attributes']['last_analysis_results'][key]['category']
-                        if verdict not in ['harmless','undetected']:
-                            print('[🚩] {} ({}) Ref:{}'.format(key,verdict.upper(),'https://www.virustotal.com/gui/domain/'+host))
+                        if verdict not in ['harmless', 'undetected']:
+                            print('[🚩] {} ({}) Ref:{}'.format(key, verdict.upper(),
+                                                              'https://www.virustotal.com/gui/domain/' + host))
             else:
-                click.secho("[?] {} return {}".format(host,response.status_code),fg='blue')
+                click.secho("[?] {} return {}".format(host, response.status_code), fg='blue')
 
     def del_session(self) -> None:
         try:
             session = self.get_selected_session()
             if session is not None:
                 print("Deleting: ")
-                click.echo(click.style(session,bg='red', fg='white'))
-                os.remove(session+'.session')
+                click.echo(click.style(session, bg='red', fg='white'))
+                os.remove(session + '.session')
             else:
                 return
         except Exception as e:
-            print("An error occurred:", str(e))    
+            print("An error occurred:", str(e))
 
     def edit_scratchpad(self, code, mode='w') -> None:
         scratchpad = self.modManager.getModule('scratchpad')
@@ -1329,21 +1343,22 @@ class Parser(cmd2.Cmd):
             for filename in os.listdir(self.base_directory):
                 if filename.endswith(".session"):
                     session_files.append(os.path.splitext(filename)[0])
-            if len(session_files)==0:
+            if len(session_files) == 0:
                 print("No saved sessions found !")
                 return None
-            option, index = pick(session_files,"Saved sessions:",indicator="=>",default_index=0)
-            if option=='Cancel':
+            option, index = pick(session_files, "Saved sessions:", indicator="=>", default_index=0)
+            if option == 'Cancel':
                 return None
-            return option  
+            return option
         except Exception as e:
-            print("An error occurred:", str(e))   
-            return None    
+            print("An error occurred:", str(e))
+            return None
 
     def hookall(self, className, color='Purple') -> None:
-        codejs = "traceClass('"+className+"','"+color+"');\n"
+        codejs = "traceClass('" + className + "','" + color + "');\n"
         self.edit_scratchpad(codejs, 'a')
-        print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
+        print(
+            "\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
         # aclass = line.split(' ')[0]
         # if  aclass == '':
@@ -1358,26 +1373,26 @@ class Parser(cmd2.Cmd):
         time.sleep(1)
         if force == False:
             if pid == -1:
-                self.pid = os.popen("adb -s {} shell pidof {}".format(con_device.id,pkg)).read().strip()
+                self.pid = os.popen("adb -s {} shell pidof {}".format(con_device.id, pkg)).read().strip()
             else:
                 self.pid = pid
-    
+
             if self.pid == '':
                 print("[+] Could not find process with this name.")
                 return None
-            frida_session = con_device.attach(int(self.pid))   
+            frida_session = con_device.attach(int(self.pid))
             if frida_session:
-                print(WHITE+"Attaching frida session to PID - {0}".format(frida_session._impl.pid))
+                print(WHITE + "Attaching frida session to PID - {0}".format(frida_session._impl.pid))
             else:
-                print("Could not attach the requested process"+RESET)
+                print("Could not attach the requested process" + RESET)
         elif force == True:
             self.pid = con_device.spawn(pkg)
             if self.pid:
                 frida_session = con_device.attach(self.pid)
-                print(WHITE+"Spawned package : {0} on pid {1}".format(pkg,frida_session._impl.pid))
-                #con_device.resume(pid)
+                print(WHITE + "Spawned package : {0} on pid {1}".format(pkg, frida_session._impl.pid))
+                # con_device.resume(pid)
             else:
-                print(RED+"Could not spawn the requested package")
+                print(RED + "Could not spawn the requested package")
                 return None
         else:
             return None
@@ -1385,33 +1400,36 @@ class Parser(cmd2.Cmd):
 
     def hook_native(self) -> None:
         library = Open('Library name (e.g. libnative.so):').ask()
-        type_ = Alternative('[(i)mported] / [(e)xported] / [(a)ny - requires the function\'s offset] function:', 'i', 'e','a').ask()
+        type_ = Alternative('[(i)mported] / [(e)xported] / [(a)ny - requires the function\'s offset] function:', 'i',
+                            'e', 'a').ask()
         function = Open('Function name or offset (e.g. 0x1234):').ask()
         number_of_args = Numeric('Number of arguments (enter 0 to disable logging):', lbound=0).ask()
         backtraceEnable = Polar('Do you want to log the stack trace:', False).ask()
         hexdumpEnable = Polar('Do you want to dump the address pointed by the return value:', False).ask()
         uuid = str(int(time.time()))
-        header = "console.log('[*][*] Waiting for "+library+" ...');\n"
-        header+="waitForModule('" +library+"').then((lib) => {"
-        header+="""
+        header = "console.log('[*][*] Waiting for " + library + " ...');\n"
+        header += "waitForModule('" + library + "').then((lib) => {"
+        header += """
             console.log(`[*][+] Found library at: ${ lib.base }`)
-            hook_any_native_func_"""+uuid+"""();
+            hook_any_native_func_""" + uuid + """();
         });\n
-        function hook_any_native_func_"""+uuid+"""(){
+        function hook_any_native_func_""" + uuid + """(){
         """
         argread = ''
 
-#         for i in range(int(number_of_args)):
-#             argread += '\n\n try { var arg'+str(i)+" = Memory.readUtf8String(ptr(args["+str(i)+"]));\n"+"""console.log('Arg("""+str(i)+"""):'+arg"""+str(i)+""");\n } 
-# catch (err) {
-#     console.log('Error:'+err);
-# }""" 
+        #         for i in range(int(number_of_args)):
+        #             argread += '\n\n try { var arg'+str(i)+" = Memory.readUtf8String(ptr(args["+str(i)+"]));\n"+"""console.log('Arg("""+str(i)+"""):'+arg"""+str(i)+""");\n }
+        # catch (err) {
+        #     console.log('Error:'+err);
+        # }"""
 
         for i in range(number_of_args):
-            argread += '\n\n try { var arg'+str(i)+" = Memory.readByteArray(ptr(args["+str(i)+"]),128);\n"+"""console.log('------ Arg("""+str(i)+""") memory dump: ------');"""+"""\nconsole.log(hexdump(arg"""+str(i)+""",{ offset: 0, length: 128, header: false, ansi: false}));\n } 
+            argread += '\n\n try { var arg' + str(i) + " = Memory.readByteArray(ptr(args[" + str(
+                i) + "]),128);\n" + """console.log('------ Arg(""" + str(
+                i) + """) memory dump: ------');""" + """\nconsole.log(hexdump(arg""" + str(i) + """,{ offset: 0, length: 128, header: false, ansi: false}));\n } 
 catch (err) {
     console.log('Error:'+err);
-}""" 
+}"""
 
         if hexdumpEnable:
             buffersize = Numeric('Read Buffer size (0-1024):').ask()
@@ -1422,7 +1440,7 @@ catch (err) {
                     length: """ + str(buffersize) + """, 
                     header: true,
                     ansi: false
-                }));""" 
+                }));"""
         else:
             hexdump = ''
 
@@ -1448,7 +1466,7 @@ catch (err) {
             header += "\nvar func = undefined;\n" + 'var imports = Module.enumerateImportsSync("' + library + '");\n'
             header += 'for(var i = 0; i < imports.length; i++){\nif (imports[i].name=="' + function + '") \n{ func = imports[i].address; break; } }'
             header += "Interceptor.attach(func, {\n"
-        
+
         codejs = header + """
     onEnter: function(args) {
       console.log();
@@ -1468,11 +1486,12 @@ catch (err) {
 }) };
 """
         self.edit_scratchpad(codejs, 'a')
-        print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
+        print(
+            "\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
     def init_packages(self, option="") -> None:
         self.refreshPackages(option)
-        click.secho(f'\n{self.package_range}:',fg='green',bg='blue')
+        click.secho(f'\n{self.package_range}:', fg='green', bg='blue')
         print()
         for i in range(len(self.packages)):
             print('[{}] {}'.format(i, self.packages[i]))
@@ -1489,7 +1508,7 @@ catch (err) {
             session = self.get_selected_session()
             if session is not None:
                 print("Restoring: ")
-                click.echo(click.style(session,bg='blue', fg='white'))
+                click.echo(click.style(session, bg='blue', fg='white'))
                 self.do_reload('-r {}.session'.format(session))
             else:
                 return
@@ -1500,7 +1519,7 @@ catch (err) {
         try:
             with open(snippet) as file:
                 data = file.read()
-            click.secho(data, fg = 'green')
+            click.secho(data, fg='green')
         except Exception as e:
             print(e)
 
@@ -1508,7 +1527,7 @@ catch (err) {
         if platform.system() == 'Windows':
             return os.path.getmtime(path_to_file)
         else:
-            stat = time.ctime(os.path.getmtime(path_to_file)) #os.stat(path_to_file)
+            stat = time.ctime(os.path.getmtime(path_to_file))  # os.stat(path_to_file)
             try:
                 return stat
             except AttributeError:
@@ -1518,11 +1537,11 @@ catch (err) {
 
     def my_message_handler(self, message, payload) -> None:
         if message["type"] == "send":
-            
+
             data = message["payload"].split(":")[0].strip()
             if "trscrpt|" in data:
                 result = self.translator.translate(data[data.index("trscrpt|") + len("trscrpt|"):])
-                self.script.post({"my_data": result}) 
+                self.script.post({"my_data": result})
             else:
                 self.fill_app_info(message["payload"])
 
@@ -1545,42 +1564,43 @@ catch (err) {
             codeCacheDirectory = self.app_info["codeCacheDirectory"]
             obbDir = self.app_info["obbDir"]
             packageCodePath = self.app_info["packageCodePath"]
-            print(RESET+"""\nApplication Name: {}
+            print(RESET + """\nApplication Name: {}
 Data Directory: {}
 Cache Directory: {}
 External Cache Directory: {}
 Code Cache Directory: {}
 Obb Directory: {}
-Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCacheDirectory,codeCacheDirectory,obbDir,packageCodePath)+RESET)
+Apk Directory: {}\n""".format(appname, filesDirectory, cacheDirectory, externalCacheDirectory, codeCacheDirectory,
+                              obbDir, packageCodePath) + RESET)
         else:
             print("[!] No available info.")
 
-    def run_frida(self, force, detached, package_name, device,pid=-1,host = '', port = '')->None:
-        if host !='' and port !='':
+    def run_frida(self, force, detached, package_name, device, pid=-1, host='', port='') -> None:
+        if host != '' and port != '':
             device = frida.get_device_manager() \
-                        .add_remote_device(f'{host}:{port}')
+                .add_remote_device(f'{host}:{port}')
             print(f'Using device:{device}')
 
-        in_session_menu = WHITE + '(in-session)'+GREEN+' type '+YELLOW+'?'+GREEN+' for options'+WHITE+':➤'+RESET
+        in_session_menu = WHITE + '(in-session)' + GREEN + ' type ' + YELLOW + '?' + GREEN + ' for options' + WHITE + ':➤' + RESET
         creation_time = modified_time = None
         self.detached = False
-        session = self.frida_session_handler(device,force,package_name,pid)
+        session = self.frida_session_handler(device, force, package_name, pid)
         try:
             creation_time = self.modification_time(os.path.join(self.base_directory, "agent.js"))
             with open(os.path.join(self.base_directory, "agent.js")) as f:
                 self.script = session.create_script(f.read())
-            
-            session.on('detached',self.on_detached)
-            self.script.on("message",self.my_message_handler)  # register the message handler
-            self.script.load()  
+
+            session.on('detached', self.on_detached)
+            self.script.on("message", self.my_message_handler)  # register the message handler
+            self.script.load()
             if force:
                 device.resume(self.pid)
             s = ""
-            
-            while (s!='e') and (not self.detached):
+
+            while (s != 'e') and (not self.detached):
                 s = input(in_session_menu)
                 if s == 'r':
-                    #handle changes during runtime
+                    # handle changes during runtime
 
                     modified_time = self.modification_time(os.path.join(self.base_directory, "agent.js"))
                     if modified_time != creation_time:
@@ -1594,9 +1614,9 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                         # self.script.on("message",self.my_message_handler)  # register the message handler
                         # self.script.load()  
                     else:
-                         print(GREEN + "Script unchanged, nothing to reload ...." + RESET)
+                        print(GREEN + "Script unchanged, nothing to reload ...." + RESET)
                 elif s == '?':
-                    print(RESET+"""\nAvailable commands: 
+                    print(RESET + """\nAvailable commands: 
     'c'     clear the sreen 
     'e'     exit the session
     'r'     reload the script in case it changed
@@ -1604,7 +1624,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
     'sus'   suspend the output 
     'i'     print information about the application
     't'     trace a method and print the stack trace (e.g. t com.foo.bar.func)
-    '?'     print this help message\n"""+RESET)
+    '?'     print this help message\n""" + RESET)
                 elif s == 'i':
                     self.print_app_info()
                 elif s == 'c':
@@ -1633,15 +1653,15 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
     'con'               continue the session
     '?'                 print this message\n""")
                         elif in_mute_cmd.startswith('use '):
-                            self.do_use(in_mute_cmd.split(' ')[1],True)
+                            self.do_use(in_mute_cmd.split(' ')[1], True)
                             mod = True
                         elif in_mute_cmd.startswith('rm '):
-                            self.do_rem(in_mute_cmd.split(' ')[1],True)
+                            self.do_rem(in_mute_cmd.split(' ')[1], True)
                             mod = True
                         elif in_mute_cmd == 'show mods':
                             self.show_mods(True)
                         elif in_mute_cmd.startswith('search '):
-                            self.do_search(in_mute_cmd.split(' ')[1],True)
+                            self.do_search(in_mute_cmd.split(' ')[1], True)
                         elif in_mute_cmd == 'con':
                             break
                         if mod:
@@ -1650,14 +1670,14 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                             sys.stderr.write("Reloading....\n")
                             self.reload_script(session)
 
-
                     sys.stdout = original_stdout
-                    print("-"*10+"Here is what you missed while suspended"+"-"*10+"\n"+temp_stdout.getvalue())
+                    print(
+                        "-" * 10 + "Here is what you missed while suspended" + "-" * 10 + "\n" + temp_stdout.getvalue())
 
-                         
+
                 elif s.split(' ')[0] == 't':
                     try:
-                      
+
                         self.do_jtrace(s.split(' ')[1])
                         self.do_compile('')
                         self.reload_script(session)
@@ -1665,23 +1685,22 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                         pass
 
                 elif s.split(' ')[0] == 'dc':
-                    try: 
+                    try:
                         self.do_describe_java_class(s.split(' ')[1])
                         self.do_compile('')
                         self.reload_script(session)
                     except Exception as e:
                         pass
-                                 
-            
+
             if self.script:
                 self.script.unload()
 
         except Exception as e:
             print(e)
         print(RESET)
-        
+
     def print_list(self, listName, message) -> None:
-        print(GREEN+message+RESET)
+        print(GREEN + message + RESET)
         for item in listName:
             print("""       {}""".format(item))
 
@@ -1689,9 +1708,9 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
         self.script.unload()
         with open(os.path.join(self.base_directory, "agent.js")) as f:
             self.script = session.create_script(f.read())
-            session.on('detached',self.on_detached)
-            self.script.on("message",self.my_message_handler)  # register the message handler
-            self.script.load()  
+            session.on('detached', self.on_detached)
+            self.script.on("message", self.my_message_handler)  # register the message handler
+            self.script.load()
 
     def scratchreset(self) -> None:
         if Polar('Do you want to reset the scratchpad?').ask():
@@ -1714,7 +1733,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                     sys.stderr.write('\nCurrent Mods:\n')
                 sys.stderr.write('{}) {}\n'.format(i, self.modManager.staged[i].Name))
             else:
-                if i == 0: 
+                if i == 0:
                     print("\nCurrent Mods:")
                 print('{}) {}'.format(i, self.modManager.staged[i].Name))
         print()
@@ -1742,12 +1761,12 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                 if session_name in session_files:
                     if not Polar("Session already exists, do you want to overwrite ?").ask():
                         return
-                session_name+=".session"
+                session_name += ".session"
                 self.do_export(session_name)
             return
         except Exception as e:
-            print("An error occurred:", str(e))   
-            
+            print("An error occurred:", str(e))
+
     def show_snippets(self) -> None:
         print("[i] Available snippets:")
         print('------------------------\n')
@@ -1759,47 +1778,47 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
 
     def scan_for_secrets(self, string_list):
         try:
-            sigs={}
+            sigs = {}
             matches = []
             results = []
-            sig_file = os.getcwd()+os.path.sep+'sigs.json'
+            sig_file = os.getcwd() + os.path.sep + 'sigs.json'
             print(f'Using signature file: {sig_file}')
 
             if os.path.isfile(sig_file):
-                with open(sig_file,'r') as file:
+                with open(sig_file, 'r') as file:
                     sigs = json.load(file)
-            
-            for key,pattern in sigs.items():
+
+            for key, pattern in sigs.items():
                 for entry in string_list:
-                    matches = re.findall(pattern,entry)
+                    matches = re.findall(pattern, entry)
                     if matches:
                         for match in matches:
                             results.append(f'{key}:{match}')
             for result in list(dict.fromkeys(results)):
-                print(f'{result}')             
+                print(f'{result}')
         except Exception as e:
             print(e)
 
-    def scan_using_nuclei_template(self,string_list,path_to_templates):
+    def scan_using_nuclei_template(self, string_list, path_to_templates):
         found = False
         if os.path.isfile(path_to_templates):
-            entries =json.loads(self.yaml_to_json(path_to_templates))
-            found = self.scan_do_scan(string_list,entries)
+            entries = json.loads(self.yaml_to_json(path_to_templates))
+            found = self.scan_do_scan(string_list, entries)
 
         elif os.path.isdir(path_to_templates):
-          
+
             for root, dirs, files in os.walk(path_to_templates):
                 for file in files:
                     file_path = os.path.join(root, file)
-                    #print(f'- Checking: {file_path}')
+                    # print(f'- Checking: {file_path}')
                     if os.path.isfile(file_path):
                         entries = json.loads(self.yaml_to_json(file_path))
-                        if self.scan_do_scan(string_list,entries):
+                        if self.scan_do_scan(string_list, entries):
                             found = True
         else:
             print(f"{path_to_templates} is neither a file nor a directory.")
             return
-        
+
         if not found:
             click.secho("[!] No matches found.")
 
@@ -1811,14 +1830,14 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
             regexes = entries['file'][0]['extractors'][0]['regex']
             for regex in regexes:
                 for entry in string_list:
-                    matches = re.findall(regex,entry)
+                    matches = re.findall(regex, entry)
                     if matches:
                         found = True
                         for match in matches:
-                            click.secho(f'[+] Match found for {id_value}',fg='white',bg='red')
-                            click.secho(f'  \_[+] Severity: {severity_value}',fg='red')
-                            click.secho(f'  \_[+] Match value: {id_value}: {match}',fg='red')
-            return found              
+                            click.secho(f'[+] Match found for {id_value}', fg='white', bg='red')
+                            click.secho(f'  \_[+] Severity: {severity_value}', fg='red')
+                            click.secho(f'  \_[+] Match value: {id_value}: {match}', fg='red')
+            return found
         except Exception as e:
             print(f'Error while parsing the json data:{e}')
             return found
@@ -1842,7 +1861,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
     def write_recipe(self, filename) -> None:
         try:
             data = ''
-            click.echo(click.style("[+] Loading a recipe....",bg='blue', fg='white'))
+            click.echo(click.style("[+] Loading a recipe....", bg='blue', fg='white'))
             if os.path.exists(filename):
                 with open(filename, 'r') as file:
                     for line in file:
@@ -1854,13 +1873,14 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                             data += line
                 self.modified = True
                 if data != '':
-                    click.echo(click.style("[+] Writing to scratchpad...",bg='blue', fg='white'))
+                    click.echo(click.style("[+] Writing to scratchpad...", bg='blue', fg='white'))
                     self.edit_scratchpad(data)
             else:
-                click.echo(click.style("[!] Recipe not found !",bg='red', fg='white'))
+                click.echo(click.style("[!] Recipe not found !", bg='red', fg='white'))
         except Exception as e:
             print(e)
-        
+
+
 if __name__ == '__main__':
     if 'libedit' in readline.__doc__:
         readline.parse_and_bind("bind ^I rl_complete")

@@ -70,13 +70,13 @@ class ModuleManager:
                     added = True
                 else:
                     if moduleName != 'scratchpad':
-                        print('Module {} already added !'.format(mod.Name))
+                        print(f'Module {mod.Name} already added !')
                         alread_added = True                   
         if added: 
             return
         else:
             if "scratchpad" not in moduleName and not alread_added:
-                print('Module {} not found!'.format(moduleName))
+                print(f'Module {moduleName} not found!')
 
     def stage_verbadim(self,moduleName):
         if moduleName not in [mod.Name for mod in self.staged]:
@@ -84,7 +84,7 @@ class ModuleManager:
                 if mod.Name == moduleName:
                     self.staged.append(mod)
                     return
-            print('Module {} not found!'.format(moduleName))
+            print(f'Module {moduleName} not found!')
 
     def unstage(self, moduleName):
         

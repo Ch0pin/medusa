@@ -30,7 +30,7 @@ def get_device_or_emulator_id():
       i = 0
 
       for dv in devices:
-          print('{}) {}'.format(i,dv))
+          print(f'{i}) {dv}')
           i += 1
       print(Fore.RESET)
       j = int(Numeric('\nEnter the index of the device you want to use:', lbound=0,ubound=i-1).ask())
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     if os.path.exists(session):
       start_session(session, True)
     else:
-        print(Fore.RED+"[!] Fatal: can't find: {} ".format(session)+Fore.RESET)
+        print(Fore.RED+f"[!] Fatal: can't find: {session} "+Fore.RESET)
         sys.exit()
   else:
     menu = {}
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         if os.path.exists(session):
           start_session(session, True)
         else:
-          print(Fore.RED+"[!] Fatal: can't find: {} ".format(session)+Fore.RESET)
+          print(Fore.RED+f"[!] Fatal: can't find: {session} "+Fore.RESET)
           sys.exit()
         break
       elif selection == '3':

@@ -55,19 +55,15 @@ class android_device:
         p = subprocess.Popen((["adb","-s",self.id,"logcat","-s","libc,DEBUG"]), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         for line in p.stdout:
             print(line.decode("utf-8").rstrip())
-        #p.wait()
-        #status = p.poll()
-        #print("process terminate with code: %s" % status)
-        # pid = self.get_process_pid_by_package_name(package_name).decode('utf-8').replace('\n','')
-        # print(self.run_command(["adb","-s",self.id,"logcat","--pid={}".format(pid)]))
     
     def print_runtime_logs(self,package_name):
-
-        pid = self.get_process_pid_by_package_name(package_name).decode('utf-8').rstrip()
-        
-        p = subprocess.Popen((["adb","-s",self.id,"logcat","--pid={}".format(pid)]), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        for line in p.stdout:
-            print(line.decode("utf-8").rstrip())
+        try:
+            pid = self.get_process_pid_by_package_name(package_name).decode('utf-8').rstrip()
+            p = subprocess.Popen(["adb", "-s", self.id, "logcat", f"--pid={pid}"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            for line in p.stdout:
+                print(line.decode("utf-8").rstrip())
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
     def run_adb_command(self,cmd):
         self.run_command(["adb","-s",self.id,cmd])

@@ -12,8 +12,8 @@ from colorama import Fore, Back, Style
 
 BASE = os.path.dirname(__file__) 
 
-APKTOOL_URL = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.6.0.jar"
-MEDUSA_AGENT_URL = "https://github.com/Ch0pin/mango/raw/main/agent.apk"
+APKTOOL_URL = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.1.jar"
+MEDUSA_AGENT_URL = "https://github.com/Ch0pin/medusa/files/13833921/agent.zip"
 
 APKTOOL = os.path.abspath(os.path.join(BASE,'../dependencies/apktool.jar'))
 MEDUSA_AGENT = os.path.abspath(os.path.join(BASE,'../dependencies/agent.apk'))
@@ -394,7 +394,7 @@ class parser(cmd2.Cmd):
                 if os.path.exists(apk_file):
                     self.do_adb('adb','install {}'.format(apk_file),True)
                 else:
-                    print(Fore.RED+"[!] Error: can't find: {} ".format(apkfile)+Fore.RESET)
+                    print(Fore.RED+"[!] Error: can't find: {} ".format(apk_file)+Fore.RESET)
         except Exception as e:
             print(e)
 
@@ -409,8 +409,7 @@ class parser(cmd2.Cmd):
                     self.download_file(MEDUSA_AGENT_URL, MEDUSA_AGENT)
                 else:
                     return
-            else:
-                subprocess.run('adb -s {} install -g {}'.format(self.device.id,MEDUSA_AGENT),shell=True)
+            subprocess.run('adb -s {} install -g {}'.format(self.device.id,MEDUSA_AGENT),shell=True)
         except Exception as e:
             print(e)
 

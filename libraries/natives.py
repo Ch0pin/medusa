@@ -70,7 +70,7 @@ class nativeHandler:
             click.secho(f"[Except] - {e}:", bg='red')
 
     def form_bytes(self, bytes):
-        return f'[%s]' % ','.join(["0x%02x" % int(x, 16) for x in bytes.split(' ')])
+        return '[%s]' % ','.join(["0x%02x" % int(x, 16) for x in bytes.split(' ')])
 
     def form_scan_input(self, scan_str):
         ret = ''

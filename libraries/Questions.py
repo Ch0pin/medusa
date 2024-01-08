@@ -38,9 +38,9 @@ class Polar:
 
 	def ask(self):
 		answer = input(self.message + (' (Y/n) ' if self.default else ' (y/N) ')).strip()
-		if answer.lower() == 'y' or answer.lower() == 'yes':
+		if answer.lower() in ['y', 'yes']:
 			return True
-		elif answer.lower() == 'n' or answer.lower() == 'no':
+		elif answer.lower() in ['n', 'no']:
 			return False
 		elif answer == '':
 			return True if self.default else False

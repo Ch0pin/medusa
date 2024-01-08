@@ -73,17 +73,17 @@ class android_device:
 
     def run_pseudo_adb_root_cmd(self, cmd):
         cmdf = ["adb", "-s", f"{self.id}", "shell", f"echo \"{cmd}\" | su"]
-        proccess = subprocess.Popen(cmdf, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        # output, error = proccess.communicate()
+        process = subprocess.Popen(cmdf, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        # output, error = process.communicate()
         line = ""
-        for b in proccess.stdout:
+        for b in process.stdout:
             line += b.decode("utf-8")
         return line
 
     def run_command(self, cmd):
-        proccess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, error = proccess.communicate()
-        if proccess.returncode != 0:
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, error = process.communicate()
+        if process.returncode != 0:
             return error
         else:
             return output

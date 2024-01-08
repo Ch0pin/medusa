@@ -131,7 +131,14 @@ webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,
 
 webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
     dumpWebview(this);
+    var iterator = additionalHttpHeaders.entrySet().iterator();
+    console.log('=======Aditional headers contents:=========');
+    while(iterator.hasNext()) {
+        var entry = Java.cast(iterator.next(), Java.use('java.util.Map$Entry'));
+        console.log(entry.getKey() + ': ' + entry.getValue());
+    }
     console.log('[i] Loading URL: ' + url);
+    console.log('===========================================');
     this.loadUrl(url,additionalHttpHeaders);
 }
 

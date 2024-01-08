@@ -202,7 +202,7 @@ function isActivityExported(intent){
       return resolveInfo.activityInfo.value.exported.value;
     }
       catch(error){
-      console.log(error)
+      //console.log(error)
     }
 }
 

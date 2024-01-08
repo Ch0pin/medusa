@@ -8,7 +8,7 @@ offset = 9128
 key = 180
 size = len(file1_b) 
 
-print("size: {}".format(size))
+print(f"size: {size}")
 
 xord_byte_array = bytearray(size) 
 

@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(levelname)s %(message)s",
                     datefmt='%m-%d/%H:%M:%S')
 
+
 def dump(pkg_name, api,mds=None):
     if mds is None:
         mds = []
@@ -26,7 +27,7 @@ def dump(pkg_name, api,mds=None):
             bs = api.memorydump(info['addr'], info['size'])
             md = md5(bs)
             if md in mds:
-                click.secho("[DEXDump]: Skip duplicate dex {}<{}>".format(info['addr'], md), fg="blue")
+                click.secho(f"[DEXDump]: Skip duplicate dex {info['addr']}<{md}>", fg="blue")
                 continue
             mds.append(md)
 
@@ -37,10 +38,9 @@ def dump(pkg_name, api,mds=None):
             readable_hash = hashlib.sha256(bs).hexdigest();
             with open(pkg_name + "/" + readable_hash + ".dex", 'wb') as out:
                 out.write(bs)
-            click.secho("[DEXDump]: DexSize={}, SavePath={}/{}/{}.dex"
-                        .format(hex(info['size']), os.getcwd(), pkg_name, readable_hash), fg='green')
+            click.secho(f"[DEXDump]: DexSize={hex(info['size'])}, SavePath={os.getcwd()}/{pkg_name}/{readable_hash}.dex", fg='green')
         except Exception as e:
-            click.secho("[Except] - {}: {}".format(e, info), bg='yellow')
+            click.secho(f"[Except] - {e}: {info}", bg='yellow')
 
 
 def dump_pkg(pkg):
@@ -50,7 +50,7 @@ def dump_pkg(pkg):
         i = 0
 
         for dv in devices:
-            print('{}) {}'.format(i,dv))
+            print(f'{i}) {dv}')
             i += 1
         j = input('Enter the index of the device you want to use:')
         device = devices[int(j)] 
@@ -82,7 +82,7 @@ def dump_pkg(pkg):
     #     except:
     #         pass
 
-    logging.info("[DEXDump]: found target [{}] {}".format(target.pid, pkg_name))
+    logging.info(f"[DEXDump]: found target [{target.pid}] {pkg_name}")
     session = device.attach(target.pid)
     path = os.path.dirname(__file__)
     #path = path if path else "."
@@ -98,6 +98,5 @@ def get_all_process(device, pkgname):
 def search(api, args=None):
     matches = api.scandex()
     for info in matches:
-        click.secho("[DEXDump] Found: DexAddr={}, DexSize={}"
-                    .format(info['addr'], hex(info['size'])), fg='green')
+        click.secho(f"[DEXDump] Found: DexAddr={info['addr']}, DexSize={hex(info['size'])}", fg='green')
     return matches

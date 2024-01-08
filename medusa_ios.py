@@ -166,9 +166,9 @@ class Parser(cmd2.Cmd):
                     file.write('MODULE ' + mod.Name + '\n')
                 file.write(self.modManager.getModule('scratchpad').Code)
             if os.path.splitext(line)[1] == '.session':
-                print("Current session mod list saved as: {}, use session --load to reload it".format(os.path.splitext(line)[0]))
+                print(f"Current session mod list saved as: {os.path.splitext(line)[0]}, use session --load to reload it")
             else:
-                print('Recipe exported to dir: {} as {}'.format(os.getcwd(), line))
+                print(f'Recipe exported to dir: {os.getcwd()} as {line}')
         except Exception as e:
             print(e) 
             print("[i] Usage: export filename")
@@ -250,7 +250,7 @@ class Parser(cmd2.Cmd):
             print('Available devices:\n')
             devices = frida.enumerate_devices()
             for i in range(len(devices)):
-                print('{}) {}'.format(i, devices[i]))
+                print(f'{i}) {devices[i]}')
             self.device = devices[int(Numeric('\nEnter the index of the device to use:', lbound=0,ubound=len(devices)-1).ask())] 
             print(f"Using device: {self.device}")
  
@@ -301,9 +301,9 @@ class Parser(cmd2.Cmd):
         try:
             if self.modManager.unstage(mod):
                 if redirect_output:
-                    sys.stderr.write("\nRemoved module(s) starting with : {}".format(mod))
+                    sys.stderr.write(f"\nRemoved module(s) starting with : {mod}")
                 else:
-                    print("\nRemoved module(s) starting with : {}".format(mod))
+                    print(f"\nRemoved module(s) starting with : {mod}")
                 self.modified = True
             else:
                 if redirect_output:
@@ -388,9 +388,9 @@ class Parser(cmd2.Cmd):
         matches = self.modManager.findModule(pattern)
         if not matches:
             if redirect_output:
-                sys.stderr.write('\nNo modules found containing: {}!'.format(pattern))
+                sys.stderr.write(f'\nNo modules found containing: {pattern}!')
             else:
-                print('No modules found containing: {}!'.format(pattern))
+                print(f'No modules found containing: {pattern}!')
         else:
             for match in matches:
                 if redirect_output:
@@ -403,7 +403,7 @@ class Parser(cmd2.Cmd):
         Get a local shell
         """
         shell = os.environ['SHELL']
-        subprocess.run('{}'.format(shell), shell=True)
+        subprocess.run(f'{shell}', shell=True)
 
     def do_show(self, what) -> None:
         """
@@ -501,17 +501,17 @@ class Parser(cmd2.Cmd):
                 last_analysis_stats = json_data['data']['attributes']['last_analysis_stats']
                 malicious_count = last_analysis_stats['malicious']
                 if int(malicious_count) == 0: 
-                    click.secho("✅ {} ".format(host),fg='green')
-                    #click.secho("Clean".format(malicious_count),fg='yellow')
+                    click.secho(f"✅ {host} ",fg='green')
+                    #click.secho("Clean",fg='yellow')
                 else:
-                    click.secho("❌ {} detected by {} vendors ❗".format(host,malicious_count),bg='white',fg='red')
-                    #click.secho(" Detected by {} vendors:".format(malicious_count),fg='red',bg='white')
+                    click.secho(f"❌ {host} detected by {malicious_count} vendors ❗",bg='white',fg='red')
+                    #click.secho(f" Detected by {malicious_count} vendors:",fg='red',bg='white')
                     for key,value in json_data['data']['attributes']['last_analysis_results'].items():
                         verdict = json_data['data']['attributes']['last_analysis_results'][key]['category']
                         if verdict not in ['harmless','undetected']:
-                            print('[🚩] {} ({}) Ref:{}'.format(key,verdict.upper(),'https://www.virustotal.com/gui/domain/'+host))
+                            print(f"[🚩] {key} ({verdict.upper()}) Ref:{'https://www.virustotal.com/gui/domain/' + host}")
             else:
-                click.secho("[?] {} return {}".format(host,response.status_code),fg='blue')
+                click.secho(f"[?] {host} return {response.status_code}",fg='blue')
 
     def del_session(self)->None:
         try:
@@ -532,7 +532,7 @@ class Parser(cmd2.Cmd):
         elif mode == 'w':
             scratchpad.Code = code
         else:
-            raise Exception('Attempted to open scratchpad in invalid mode {}'.format(mode))
+            raise Exception(f'Attempted to open scratchpad in invalid mode {mode}')
         scratchpad.save()
         if code != '':
             self.modManager.stage('scratchpad')
@@ -692,7 +692,7 @@ catch (err) {
         click.secho(f'\n{self.package_range}:',fg='green',bg='blue')
         print()
         for i in range(len(self.packages)):
-            print('[{}] {}'.format(i, self.packages[i].identifier))
+            print(f'[{i}] {self.packages[i].identifier}')
 
     def is_valid_url(self,url):
         try:
@@ -707,7 +707,7 @@ catch (err) {
             if session is not None:
                 print("Restoring: ")
                 click.echo(click.style(session,bg='blue', fg='white'))
-                self.do_reload('-r {}.session'.format(session))
+                self.do_reload(f'-r {session}.session')
             else:
                 return
         except Exception as e:
@@ -886,7 +886,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n"""+RESET)
     def print_list(self, listName, message) -> None:
         print(GREEN+message+RESET)
         for item in listName:
-            print("""       {}""".format(item))
+            print(f"""       {item}""")
 
     def reload_script(self,session) -> None:
         self.script.unload()
@@ -915,11 +915,11 @@ Data container: {self.app_info.parameters['containers']['data']}\n"""+RESET)
             if redirect_output:
                 if i == 0:
                     sys.stderr.write('\nCurrent Mods:\n')
-                sys.stderr.write('{}) {}\n'.format(i, self.modManager.staged[i].Name))
+                sys.stderr.write(f'{i}) {self.modManager.staged[i].Name}\n')
             else:
                 if i == 0: 
                     print("\nCurrent Mods:")
-                print('{}) {}'.format(i, self.modManager.staged[i].Name))
+                print(f'{i}) {self.modManager.staged[i].Name}')
         print()
 
     def show_mods_by_category(self, category) -> None:
@@ -1042,7 +1042,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n"""+RESET)
                     for line in file:
                         if line.startswith('MODULE'):
                             module = line[7:-1]
-                            click.echo(click.style('\tLoading {}'.format(module), fg='yellow'))
+                            click.echo(click.style(f'\tLoading {module}', fg='yellow'))
                             self.modManager.stage_verbadim(module)
                         else:
                             data += line

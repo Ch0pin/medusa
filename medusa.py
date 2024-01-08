@@ -66,7 +66,7 @@ class Parser(cmd2.Cmd):
 
 
         self.packages = []
-        for line in os.popen('adb -s {} shell pm list packages {}'.format(self.device.id,option)):
+        for line in os.popen(f'adb -s {self.device.id} shell pm list packages {option}'):
             self.packages.append(line.split(':')[1].strip('\n'))
 
     def preloop(self):
@@ -119,7 +119,7 @@ class Parser(cmd2.Cmd):
         """
         Get an adb shell to the connected device (no args)
         """
-        subprocess.run('adb -s {} shell {}'.format(self.device.id, line), shell=True)
+        subprocess.run(f'adb -s {self.device.id} shell {line}', shell=True)
 
     def do_clear(self, line) -> None:
         """
@@ -301,9 +301,9 @@ class Parser(cmd2.Cmd):
                     file.write('MODULE ' + mod.Name + '\n')
                 file.write(self.modManager.getModule('scratchpad').Code)
             if os.path.splitext(line)[1] == '.session':
-                print("Current session mod list saved as: {}, use session --load to reload it".format(os.path.splitext(line)[0]))
+                print(f"Current session mod list saved as: {os.path.splitext(line)[0]}, use session --load to reload it")
             else:
-                print('Recipe exported to dir: {} as {}'.format(os.getcwd(), line))
+                print(f'Recipe exported to dir: {os.getcwd()} as {line}')
         except Exception as e:
             print(e) 
             print("[i] Usage: export filename")
@@ -528,9 +528,9 @@ class Parser(cmd2.Cmd):
                     }
                     }
                     """
-                    print('[+] Method: {} hook added !'.format(functionName))
+                    print(f'[+] Method: {functionName} hook added !')
                     functionName = input("Enter a method name (CTRL+C to Exit): ")
-                    enable_backtrace =  Polar('Enable backtrace?', False).ask()
+                    enable_backtrace = Polar('Enable backtrace?', False).ask()
                     uuid = str(int(time.time()))
 
                 except KeyboardInterrupt:
@@ -703,7 +703,7 @@ class Parser(cmd2.Cmd):
             elif options == 1 and line.split()[0] not in ['-a','-s','-3']:
                 package = line.split()[0]
                 if package in self.packages:
-                    dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
+                    dumpsys = os.popen(f'adb -s {self.device.id} shell dumpsys package {package}')
                     print('- package info -')
                     for ln in dumpsys:
                         print(ln,end='')
@@ -711,7 +711,7 @@ class Parser(cmd2.Cmd):
                     print('Invalid package')
             elif options == 2 and line.split()[1] == 'path':
                 package = line.split()[0]
-                dumpsys = os.popen('adb -s {} shell dumpsys package {}'.format(self.device.id,package))
+                dumpsys = os.popen(f'adb -s {self.device.id} shell dumpsys package {package}')
                 print('-'*20+package+' '+"paths"+'-'*20)
                 for ln in dumpsys:
                     for keyword in ["resourcePath","codePath","legacyNativeLibraryDir","primaryCpuAbi"]:
@@ -750,7 +750,7 @@ class Parser(cmd2.Cmd):
             devices = frida.enumerate_devices()
 
             for i in range(len(devices)):
-                print('{}) {}'.format(i, devices[i]))
+                print(f'{i}) {devices[i]}')
             self.device = devices[int(Numeric('\nEnter the index of the device to use:', lbound=0,ubound=len(devices)-1).ask())] 
             android_dev = android_device(self.device.id)
             android_dev.print_dev_properties()
@@ -788,12 +788,12 @@ class Parser(cmd2.Cmd):
                 return
             
             pkg = line.split(' ')[1]
-            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+            pid = os.popen(f"adb -s {self.device.id} shell pidof {pkg}").read().strip()
 
             if pid == "":
-                click.secho('Trying to start the app:'.format(pkg), fg = 'green')
-                os.popen("adb -s {} shell  monkey -p {} -c 'android.intent.category.LAUNCHER 1'".format(self.device.id,pkg)).read()
-                pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+                click.secho('Trying to start the app:', fg = 'green')
+                os.popen(f"adb -s {self.device.id} shell  monkey -p {pkg} -c 'android.intent.category.LAUNCHER 1'").read()
+                pid = os.popen(f"adb -s {self.device.id} shell pidof {pkg}").read().strip()
 
             if pid == "":
                 click.secho("Can't find pid !",fg='red')
@@ -802,15 +802,15 @@ class Parser(cmd2.Cmd):
                 option, index = pick(pid.split(' '),"More than one processes found running with that name:",indicator="=>",default_index=0)
                 pid = option
             else:
-                 click.secho('Process pid:{}'.format(pid),fg='green')
+                 click.secho(f'Process pid:{pid}',fg='green')
 
-            maps = os.popen("""adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().split('\n')
+            maps = os.popen(f"""adb -s {self.device.id} shell 'echo "cat /proc/{pid}/maps" | su'""").read().split('\n')
             for linein in maps:
                 if 'dalvik-main space' in linein:
                     range1 = int(linein.split(' ')[0].split('-')[0],16)
                     range2 = int(linein.split(' ')[0].split('-')[1],16)
                     sz = range2 - range1
-                    print('Starting addres: {}, size: {}'.format(hex(range1),range2-range1))
+                    print(f'Starting address: {hex(range1)}, size: {range2-range1}')
                     self.native_handler = nativeHandler(self.device)
                     self.native_handler.memraw(pkg + ' ' + pid + ' ' + hex(range1) + ' ' + str(sz),True)
 
@@ -823,7 +823,7 @@ class Parser(cmd2.Cmd):
             for filename in os.listdir(dump_dir):
                 file_path = os.path.join(dump_dir, filename)
                 if os.path.isfile(file_path):
-                    cmd = "strings {}".format(file_path)
+                    cmd = f"strings {file_path}"
                     result = subprocess.run(cmd,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     if result.returncode == 0:
                         output = result.stdout.decode().strip().split('\n')
@@ -879,7 +879,7 @@ class Parser(cmd2.Cmd):
         try:
 
             pkg = line.split(' ')[0]
-            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,pkg)).read().strip()
+            pid = os.popen(f"adb -s {self.device.id} shell pidof {pkg}").read().strip()
 
             if pid == "":
                 print("Can't find  pid. Is the application running ?")
@@ -888,7 +888,7 @@ class Parser(cmd2.Cmd):
                 option, index = pick(pid.split(' '),"More than one processes found running with that name:",indicator="=>",default_index=0)
                 pid = option
 
-            maps = os.popen("""adb -s {} shell 'echo "cat /proc/{}/maps" | su'""".format(self.device.id, pid)).read().strip().split('\n')
+            maps = os.popen(f"""adb -s {self.device.id} shell 'echo "cat /proc/{pid}/maps" | su'""").read().strip().split('\n')
             title = "Please choose a memory address range: "
             option, index = pick(maps,title,indicator="=>",default_index=0)
             print("Selected:")
@@ -897,7 +897,7 @@ class Parser(cmd2.Cmd):
             range1 = int(option.split(' ')[0].split('-')[0],16)
             range2 = int(option.split(' ')[0].split('-')[1],16)
             sz = range2 - range1
-            print('Starting address: {}, size: {}'.format(hex(range1),range2-range1))
+            print(f'Starting address: {hex(range1)}, size: {range2 - range1}')
 
             self.native_handler = nativeHandler(self.device)
             self.native_handler.memraw(pkg + ' ' + pid + ' ' + hex(range1) + ' ' + str(sz))
@@ -953,9 +953,9 @@ class Parser(cmd2.Cmd):
         try:
             if self.modManager.unstage(mod):
                 if redirect_output:
-                    sys.stderr.write("\nRemoved module(s) starting with : {}".format(mod))
+                    sys.stderr.write(f"\nRemoved module(s) starting with : {mod}")
                 else:
-                    print("\nRemoved module(s) starting with : {}".format(mod))
+                    print(f"\nRemoved module(s) starting with : {mod}")
                 self.modified = True
             else:
                 if redirect_output:
@@ -1007,7 +1007,7 @@ class Parser(cmd2.Cmd):
 
             if len(flags) == 1:
                 if flags[0] == '-p':
-                    runing_processes = os.popen("""adb -s {} shell 'echo "ps -A" | su'""".format(self.device.id)).read().strip().split('\n')
+                    runing_processes = os.popen(f"""adb -s {self.device.id} shell 'echo "ps -A" | su'""").read().strip().split('\n')
                     title = "Running processes: "
                     option, index = pick(runing_processes,title,indicator="=>",default_index=0)
                     click.echo(click.style(option,bg='blue', fg='white'))
@@ -1062,9 +1062,9 @@ class Parser(cmd2.Cmd):
         matches = self.modManager.findModule(pattern)
         if not matches:
             if redirect_output:
-                sys.stderr.write('\nNo modules found containing: {}!'.format(pattern))
+                sys.stderr.write(f'\nNo modules found containing: {pattern}!')
             else:
-                print('No modules found containing: {}!'.format(pattern))
+                print(f'No modules found containing: {pattern}!')
         else:
             for match in matches:
                 if redirect_output:
@@ -1095,7 +1095,7 @@ class Parser(cmd2.Cmd):
         Get a local shell
         """
         shell = os.environ['SHELL']
-        subprocess.run('{}'.format(shell), shell=True)
+        subprocess.run(f'{shell}', shell=True)
 
     def do_show(self, what) -> None:
         """
@@ -1190,7 +1190,7 @@ class Parser(cmd2.Cmd):
         Usage:
         type 'text to send to the device'
         """
-        os.popen("adb -s {} shell input text {}".format(self.device.id,text))
+        os.popen(f"adb -s {self.device.id} shell input text {text}")
 
     def do_use(self, mod, redirect_output=False) -> None:
         """
@@ -1275,24 +1275,24 @@ class Parser(cmd2.Cmd):
             return
         headers = {'x-apikey': key}
         for host in hosts:
-           # click.secho("Checking {}".format(host),fg='green')
+           # click.secho(f"Checking {host}",fg='green')
             response = requests.get(vt_address+host, headers=headers)
             if response.status_code == 200:
                 json_data = json.loads(response.text)
                 last_analysis_stats = json_data['data']['attributes']['last_analysis_stats']
                 malicious_count = last_analysis_stats['malicious']
                 if int(malicious_count) == 0: 
-                    click.secho("✅ {} ".format(host),fg='green')
-                    #click.secho("Clean".format(malicious_count),fg='yellow')
+                    click.secho(f"✅ {host} ",fg='green')
+                    #click.secho("Clean",fg='yellow')
                 else:
-                    click.secho("❌ {} detected by {} vendors ❗".format(host,malicious_count),bg='white',fg='red')
-                    #click.secho(" Detected by {} vendors:".format(malicious_count),fg='red',bg='white')
+                    click.secho(f"❌ {host} detected by {malicious_count} vendors ❗",bg='white',fg='red')
+                    #click.secho(f" Detected by {malicious_count} vendors:",fg='red',bg='white')
                     for key,value in json_data['data']['attributes']['last_analysis_results'].items():
                         verdict = json_data['data']['attributes']['last_analysis_results'][key]['category']
                         if verdict not in ['harmless','undetected']:
-                            print('[🚩] {} ({}) Ref:{}'.format(key,verdict.upper(),'https://www.virustotal.com/gui/domain/'+host))
+                            print(f"[🚩] {key} ({verdict.upper()}) Ref:{'https://www.virustotal.com/gui/domain/' + host}")
             else:
-                click.secho("[?] {} return {}".format(host,response.status_code),fg='blue')
+                click.secho(f"[?] {host} return {response.status_code}",fg='blue')
 
     def del_session(self)->None:
         try:
@@ -1313,7 +1313,7 @@ class Parser(cmd2.Cmd):
         elif mode == 'w':
             scratchpad.Code = code
         else:
-            raise Exception('Attempted to open scratchpad in invalid mode {}'.format(mode))
+            raise Exception(f'Attempted to open scratchpad in invalid mode {mode}')
         scratchpad.save()
         if code != '':
             self.modManager.stage('scratchpad')
@@ -1357,7 +1357,7 @@ class Parser(cmd2.Cmd):
         time.sleep(1)
         if not force:
             if pid == -1:
-                self.pid = os.popen("adb -s {} shell pidof {}".format(con_device.id,pkg)).read().strip()
+                self.pid = os.popen(f"adb -s {con_device.id} shell pidof {pkg}").read().strip()
             else:
                 self.pid = pid
     
@@ -1366,7 +1366,7 @@ class Parser(cmd2.Cmd):
                 return None
             frida_session = con_device.attach(int(self.pid))   
             if frida_session:
-                print(WHITE+"Attaching frida session to PID - {0}".format(frida_session._impl.pid))
+                print(WHITE + "Attaching frida session to PID - {0}".format(frida_session._impl.pid))
             else:
                 print("Could not attach the requested process"+RESET)
         elif force:
@@ -1474,7 +1474,7 @@ catch (err) {
         click.secho(f'\n{self.package_range}:',fg='green',bg='blue')
         print()
         for i in range(len(self.packages)):
-            print('[{}] {}'.format(i, self.packages[i]))
+            print(f'[{i}] {self.packages[i]}')
 
     def is_valid_url(self,url):
         try:
@@ -1489,7 +1489,7 @@ catch (err) {
             if session is not None:
                 print("Restoring: ")
                 click.echo(click.style(session,bg='blue', fg='white'))
-                self.do_reload('-r {}.session'.format(session))
+                self.do_reload(f'-r {session}.session')
             else:
                 return
         except Exception as e:
@@ -1544,13 +1544,13 @@ catch (err) {
             codeCacheDirectory = self.app_info["codeCacheDirectory"]
             obbDir = self.app_info["obbDir"]
             packageCodePath = self.app_info["packageCodePath"]
-            print(RESET+"""\nApplication Name: {}
-Data Directory: {}
-Cache Directory: {}
-External Cache Directory: {}
-Code Cache Directory: {}
-Obb Directory: {}
-Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCacheDirectory,codeCacheDirectory,obbDir,packageCodePath)+RESET)
+            print(RESET+f"""\nApplication Name: {appname}
+Data Directory: {filesDirectory}
+Cache Directory: {cacheDirectory}
+External Cache Directory: {externalCacheDirectory}
+Code Cache Directory: {codeCacheDirectory}
+Obb Directory: {obbDir}
+Apk Directory: {packageCodePath}\n""" + RESET)
         else:
             print("[!] No available info.")
 
@@ -1680,7 +1680,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
     def print_list(self, listName, message) -> None:
         print(GREEN+message+RESET)
         for item in listName:
-            print("""       {}""".format(item))
+            print(f"""       {item}""")
 
     def reload_script(self,session) -> None:
         self.script.unload()
@@ -1709,11 +1709,11 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
             if redirect_output:
                 if i == 0:
                     sys.stderr.write('\nCurrent Mods:\n')
-                sys.stderr.write('{}) {}\n'.format(i, self.modManager.staged[i].Name))
+                sys.stderr.write(f'{i}) {self.modManager.staged[i].Name}\n')
             else:
                 if i == 0: 
                     print("\nCurrent Mods:")
-                print('{}) {}'.format(i, self.modManager.staged[i].Name))
+                print(f'{i}) {self.modManager.staged[i].Name}')
         print()
 
     def show_mods_by_category(self, category) -> None:
@@ -1845,7 +1845,7 @@ Apk Directory: {}\n""".format(appname,filesDirectory,cacheDirectory,externalCach
                     for line in file:
                         if line.startswith('MODULE'):
                             module = line[7:-1]
-                            click.echo(click.style('\tLoading {}'.format(module), fg='yellow'))
+                            click.echo(click.style(f'\tLoading {module}', fg='yellow'))
                             self.modManager.stage_verbadim(module)
                         else:
                             data += line

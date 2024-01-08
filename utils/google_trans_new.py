@@ -215,10 +215,10 @@ class google_new_transError(Exception):
         if rsp is None:
             premise = "Failed to connect"
 
-            return "{}. Probable cause: {}".format(premise, "timeout")
+            return f"{premise}. Probable cause: timeout"
             # if tts.tld != 'com':
             #     host = _translate_url(tld=tts.tld)
-            #     cause = "Host '{}' is not reachable".format(host)
+            #     cause = f"Host '{host}' is not reachable"
 
         else:
             status = rsp.status_code
@@ -229,11 +229,11 @@ class google_new_transError(Exception):
             if status == 403:
                 cause = "Bad token or upstream API changes"
             elif status == 200 and not tts.lang_check:
-                cause = "No audio stream in response. Unsupported language '%s'" % self.tts.lang
+                cause = f"No audio stream in response. Unsupported language '{self.tts.lang}'"
             elif status >= 500:
                 cause = "Uptream API error. Try again later."
 
-        return "{}. Probable cause: {}".format(premise, cause)
+        return f"{premise}. Probable cause: {cause}"
 
 
 class google_translator:
@@ -272,7 +272,7 @@ class google_translator:
             self.url_suffix = URL_SUFFIX_DEFAULT
         else:
             self.url_suffix = url_suffix
-        url_base = "https://translate.google.{}".format(self.url_suffix)
+        url_base = f"https://translate.google.{self.url_suffix}"
         self.url = url_base + "/_/TranslateWebserverUi/data/batchexecute"
         self.timeout = timeout
 
@@ -283,7 +283,7 @@ class google_translator:
         rpc = [[[random.choice(GOOGLE_TTS_RPC), escaped_parameter, None, "generic"]]]
         espaced_rpc = json.dumps(rpc, separators=(',', ':'))
         # text_urldecode = quote(text.strip())
-        freq_initial = "f.req={}&".format(quote(espaced_rpc))
+        freq_initial = f"f.req={quote(espaced_rpc)}&"
         freq = freq_initial
         return freq
 
@@ -302,7 +302,7 @@ class google_translator:
         if len(text) == 0:
             return ""
         headers = {
-            "Referer": "http://translate.google.{}/".format(self.url_suffix),
+            "Referer": f"http://translate.google.{self.url_suffix}/",
             "User-Agent":
                 "Mozilla/5.0 (Windows NT 10.0; WOW64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -382,7 +382,7 @@ class google_translator:
         if len(text) == 0:
             return ""
         headers = {
-            "Referer": "http://translate.google.{}/".format(self.url_suffix),
+            "Referer": f"http://translate.google.{self.url_suffix}/",
             "User-Agent":
                 "Mozilla/5.0 (Windows NT 10.0; WOW64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "

@@ -208,19 +208,19 @@ class parser(cmd2.Cmd):
 
         if cmd is None:
             print("[i] Type 'exit' to return ") 
-            cmd = input(GREEN+'{}:adb:'.format(self.device.id)+RESET)
+            cmd = input(GREEN+f'{self.device.id}:adb:'+RESET)
 
         while cmd != 'exit':  
             if cmd != 'exit':
-                subprocess.run('adb -s {} {}'.format(self.device.id,cmd), shell=True)
+                subprocess.run(f'adb -s {self.device.id} {cmd}', shell=True)
                 if frombs:
                     return
-            cmd = input(GREEN+'{}:adb:'.format(self.device.id)+RESET)
+            cmd = input(GREEN+f'{self.device.id}:adb:'+RESET)
     #mark for tests
     def do_box(self,line):
         """Starts a busybox interactive shell. """
 
-        arch = self.run_command(["adb","-s",'{}'.format(self.device.id),"shell","getprop","ro.product.cpu.abi"])
+        arch = self.run_command(["adb","-s",f'{self.device.id}',"shell","getprop","ro.product.cpu.abi"])
         if b'v8' in arch:
             binary = "busybox-armv8l"
         elif 'v7' in arch:
@@ -228,7 +228,7 @@ class parser(cmd2.Cmd):
         else:
             print("Arch is not supported !")
             return
-        output = self.run_command("adb -s {} shell ls /data/local/tmp/{}".format(self.device.id,binary).split())
+        output = self.run_command(f"adb -s {self.device.id} shell ls /data/local/tmp/{binary}".split())
         if b'No such file' in output:
             download = Polar("[!] Can't find Bussybox in this device, do you want to download it ?").ask()
             if download:
@@ -237,11 +237,11 @@ class parser(cmd2.Cmd):
                     self.download_file(BUSSY_BOX_URL+binary,'./busybox.tmp')
                     #print(self.run_command(["curl", BUSSY_BOX_URL+binary, "--output", "busybox.tmp"]).decode('utf-8'))
                     if os.path.exists("./busybox.tmp"):
-                        print("[i] Download successfull, pushing the binary to the device as '/data/local/tmp/{}'".format(binary))
-                        print(self.run_command(["adb", "-s", "{}".format(self.device.id), "push", "./busybox.tmp", "/data/local/tmp/{}".format(binary)]).decode('utf-8'))
+                        print(f"[i] Download successful, pushing the binary to the device as '/data/local/tmp/{binary}'")
+                        print(self.run_command(["adb", "-s", f"{self.device.id}", "push", "./busybox.tmp", f"/data/local/tmp/{binary}"]).decode('utf-8'))
                         print("[i] Deleting local file...")
                         print(self.run_command(["rm", "./busybox.tmp"]).decode('utf-8'))
-                        print(self.run_command(["adb", "-s", "{}".format(self.device.id), "shell", "chmod", "+x", "/data/local/tmp/{}".format(binary)]).decode('utf-8'))
+                        print(self.run_command(["adb", "-s", f"{self.device.id}", "shell", "chmod", "+x", f"/data/local/tmp/{binary}"]).decode('utf-8'))
                         print("[i] Setting the aliases file...")
                         shellfile = os.path.abspath(os.path.join(self.base_directory,'../utils/busybox.sh'))
                         with open(shellfile,'r') as sf:
@@ -249,7 +249,7 @@ class parser(cmd2.Cmd):
                         data = data.replace('to_be_replaced',binary)
                         with open(shellfile,'w') as sf:
                             sf.write(data)
-                        subprocess.run("""adb -s {} push {} /data/local/tmp/busybox.sh""".format(self.device.id,shellfile),shell=True)
+                        subprocess.run(f"""adb -s {self.device.id} push {shellfile} /data/local/tmp/busybox.sh""",shell=True)
                     else:
                         print("[!] Download Failed !")
                         return
@@ -269,7 +269,7 @@ class parser(cmd2.Cmd):
         """
         Get an adb shell to the connected device (no args)
         """
-        subprocess.run('adb -s {} shell {}'.format(self.device.id, line), shell=True)
+        subprocess.run(f'adb -s {self.device.id} shell {line}', shell=True)
 
     def do_clear(self,line):
         """Clear the screen"""
@@ -320,7 +320,7 @@ class parser(cmd2.Cmd):
                     print("[+] POC created")
 
                 else:
-                    output=os.popen("adb -s {} shell am start -W -a android.intent.action.VIEW -d {}".format(self.device.id,line.split(' ')[0])).read()
+                    output=os.popen(f"adb -s {self.device.id} shell am start -W -a android.intent.action.VIEW -d {line.split(' ')[0]}").read()
                     print(output)
             except Exception as e:
                 print(e)
@@ -332,13 +332,13 @@ class parser(cmd2.Cmd):
         path = os.getcwd()
         try:
             if os.path.isfile('./script.sh'):
-                if Polar('\t (!) Delete {} ?'.format(path+'/script.sh')).ask():
+                if Polar(f"\t (!) Delete {path+'/script.sh'} ?").ask():
                     os.remove('script.sh')
             if os.path.isfile('.\script.bat'):
                 if Polar('\t(!) Do you want to delete the trace script file?').ask():
                     os.remove('./script.bat')
             if os.path.exists('__handlers__/'):
-                if Polar('\t(!) Delete the folder {}?'.format(path+'/__handlers__')).ask():   
+                if Polar(f"\t(!) Delete the folder {path+'/__handlers__'}?").ask():
                     os.system("rm -r __handlers__/")
             else:
                 print("All good !")
@@ -361,7 +361,7 @@ class parser(cmd2.Cmd):
             if os.path.exists(apkfile):
                 self.real_import(apkfile)
             else:
-                print(Fore.RED+"[!] Error: can't find: {} ".format(apkfile)+Fore.RESET)
+                print(Fore.RED+f"[!] Error: can't find: {apkfile} "+Fore.RESET)
         elif num_of_options == 2 and line.split(' ')[1] == '--mass':
             try:
                 apk_files=[]
@@ -392,9 +392,9 @@ class parser(cmd2.Cmd):
                 apk_file = line.split(' ')[0]
 
                 if os.path.exists(apk_file):
-                    self.do_adb('adb','install {}'.format(apk_file),True)
+                    self.do_adb('adb',f'install {apk_file}',True)
                 else:
-                    print(Fore.RED+"[!] Error: can't find: {} ".format(apk_file)+Fore.RESET)
+                    print(Fore.RED+f"[!] Error: can't find: {apk_file} "+Fore.RESET)
         except Exception as e:
             print(e)
 
@@ -409,7 +409,7 @@ class parser(cmd2.Cmd):
                     self.download_file(MEDUSA_AGENT_URL, MEDUSA_AGENT)
                 else:
                     return
-            subprocess.run('adb -s {} install -g {}'.format(self.device.id,MEDUSA_AGENT),shell=True)
+            subprocess.run(f'adb -s {self.device.id} install -g {MEDUSA_AGENT}',shell=True)
         except Exception as e:
             print(e)
 
@@ -429,8 +429,8 @@ class parser(cmd2.Cmd):
                 a = input("""[!] Make sure that burp is running on 127.0.0.1:8080\n\nType 'y' to continue or 'x' to cancel:""")
 
             if a == 'y':
-                os.popen("chmod +x {}; {} {}".format(install_script,install_script,self.device.id)).read()
-                os.popen("adb -s {} shell am broadcast -a com.medusa.INSTALL_CERTIFICATE -n com.medusa.agent/.Receiver".format(self.device.id)).read()
+                os.popen(f"chmod +x {install_script}; {install_script} {self.device.id}").read()
+                os.popen(f"adb -s {self.device.id} shell am broadcast -a com.medusa.INSTALL_CERTIFICATE -n com.medusa.agent/.Receiver").read()
 
                 time.sleep(1)
                 print(GREEN+"""
@@ -456,8 +456,8 @@ $adb remount
         Please not that the app has to have the debuggable flag set to true."""
 
         try:
-            pid = os.popen("adb -s {} shell pidof {}".format(self.device.id,line.split(' ')[0])).read()
-            output = os.popen("adb -s {} forward tcp:6667 jdwp:{}".format(self.device.id,pid)).read()
+            pid = os.popen(f"adb -s {self.device.id} shell pidof {line.split(' ')[0]}").read()
+            output = os.popen(f"adb -s {self.device.id} forward tcp:6667 jdwp:{pid}").read()
             print(output)
             subprocess.run('jdb -attach localhost:6667', shell=True)
         except Exception as e:
@@ -479,7 +479,7 @@ $adb remount
 
         try:         
             print(package)
-            output=os.popen("adb -s {} shell  am force-stop {}".format(self.device.id,package.split(' ')[0])).read()
+            output=os.popen(f"adb -s {self.device.id} shell  am force-stop {package.split(' ')[0]}").read()
             print(output)
         except Exception as e:
             print(e)
@@ -500,7 +500,7 @@ $adb remount
             i = 0
 
             for dv in devices:
-                print('{}) {}'.format(i,dv))
+                print(f'{i}) {dv}')
                 i += 1
             print(Fore.RESET)
             j = int(Numeric('\nEnter the index of the device you want to use:', lbound=0,ubound=i-1).ask())
@@ -531,7 +531,7 @@ $adb remount
             topic = line.split(' ')[0]
             h = self.highlight(topic, HELP_MESSAGE)
             if h == '':
-                print("[i] No help availlable for '{}'".format(topic))
+                print(f"[i] No help availlable for '{topic}'")
             else:
                 print(h)
         else:
@@ -557,7 +557,7 @@ $adb remount
         try:
             self.init_packages()   
             if 'com.medusa.agent' in self.packages:   
-                output=os.popen("adb -s {} shell am broadcast  -a com.medusa.NOTIFY --es subject {} --es body {}".format(self.device.id,line.split(' ')[0],line.split(' ')[1])).read()
+                output=os.popen(f"adb -s {self.device.id} shell am broadcast  -a com.medusa.NOTIFY --es subject {line.split(' ')[0]} --es body {line.split(' ')[1]}").read()
                 print(output)
             else:
                 print("[!] Medusa Agent must be installed and running on the device, type 'installagent' to install it.")
@@ -586,7 +586,7 @@ $adb remount
                         self.download_file(APKTOOL_URL, APKTOOL)
 
                 print(GREEN+'[+] Unpacking the apk....'+RESET)
-                subprocess.run('java -jar '+ APKTOOL +' d {} -o {}'.format(file,TMP_FOLDER), shell=True)
+                subprocess.run('java -jar '+ APKTOOL +f' d {file} -o {TMP_FOLDER}', shell=True)
 
                 print(GREEN+'[+] Extracting the manifest....'+RESET)
                 with open(TMP_FOLDER+'/AndroidManifest.xml','rt') as f:
@@ -602,11 +602,11 @@ $adb remount
                     with open(TMP_FOLDER+'/AndroidManifest.xml','wt') as f:
                         f.write(data)
                     print(GREEN+'[+] Repacking the app...'+RESET)
-                    subprocess.run('java -jar '+ APKTOOL +' b {} -o {}'.format(TMP_FOLDER,DEBUGGABLE_APK), shell=True)
+                    subprocess.run('java -jar '+ APKTOOL +f' b {TMP_FOLDER} -o {DEBUGGABLE_APK}', shell=True)
                     print(GREEN+'[+] Alligning the apk file.....'+RESET)
-                    subprocess.run('zipalign -p -v 4 {} {}'.format(DEBUGGABLE_APK,ALLIGNED_APK),shell=True)
+                    subprocess.run(f'zipalign -p -v 4 {DEBUGGABLE_APK} {ALLIGNED_APK}',shell=True)
                     print(GREEN+'[+] Signing the apk.....'+RESET)
-                    subprocess.run('apksigner sign --ks {} -ks-key-alias common --ks-pass pass:password --key-pass pass:password  {}'.format(SIGNATURE, ALLIGNED_APK),shell=True)
+                    subprocess.run(f'apksigner sign --ks {SIGNATURE} -ks-key-alias common --ks-pass pass:password --key-pass pass:password  {ALLIGNED_APK}',shell=True)
                     print(GREEN+'[+] Removing the unsigned apk.....'+RESET)
                     os.remove(DEBUGGABLE_APK)
                     print(GREEN+'[+] Backing up the original...'+RESET)
@@ -624,7 +624,7 @@ $adb remount
     def do_playstore(self,line):
         """Usage: playstore package_name
         Search the playstore for the app with the given id."""
-        print(os.popen("adb -s {} shell am start -W -a android.intent.action.VIEW -d market://details?id={}".format(self.device.id,line.split(' ')[0])).read())
+        print(os.popen(f"adb -s {self.device.id} shell am start -W -a android.intent.action.VIEW -d market://details?id={line.split(' ')[0]}").read())
 
     def do_proxy(self,line):
         """Usage: proxy [get | reset | set] [ip:port] 
@@ -640,8 +640,8 @@ $adb remount
             if 'get' in command:
                 self.print_proxy()
             elif 'reset' in command:
-                os.popen("adb -s {} shell settings put global http_proxy :0".format(self.device.id))  
-                os.popen("adb -s {} shell 'echo \"iptables -t nat -F\" | su'".format(self.device.id))
+                os.popen(f"adb -s {self.device.id} shell settings put global http_proxy :0")
+                os.popen(f"adb -s {self.device.id} shell 'echo \"iptables -t nat -F\" | su'")
                 time.sleep(2) 
                 self.print_proxy()
             elif 'set' in command:
@@ -653,7 +653,7 @@ $adb remount
                 else:
                     ip = line.split(' ')[1].split(':')[0]
                     port = line.split(' ')[1].split(':')[1]
-                    os.popen("adb -s {} shell settings put global http_proxy {}:{}".format(self.device.id,ip,port)) 
+                    os.popen(f"adb -s {self.device.id} shell settings put global http_proxy {ip}:{port}")
                     time.sleep(2) 
                     self.print_proxy()
             else:
@@ -668,7 +668,7 @@ $adb remount
 
         package = line.split(' ')[0]
         try:
-            base_apk = os.popen("adb -s {} shell pm path {} | grep base.apk | cut -d ':' -f 2".format(self.device.id,package)).read()
+            base_apk = os.popen(f"adb -s {self.device.id} shell pm path {package} | grep base.apk | cut -d ':' -f 2").read()
             print("Extracting: "+base_apk)
             output = os.popen("adb -s {} pull {}".format(self.device.id,base_apk,package)).read()
             print(output)
@@ -700,8 +700,8 @@ $adb remount
 
         try:
             if '-o' in line.split(' ')[0]:
-                os.popen("adb -s {} exec-out screencap -p > {}".format(self.device.id,line.split(' ')[1]))
-                print('[!] Screencap saved successfully to {}'.format(line.split(' ')[1]))
+                os.popen(f"adb -s {self.device.id} exec-out screencap -p > {line.split(' ')[1]}")
+                print(f"[!] Screencap saved successfully to {line.split(' ')[1]}")
             else:
                 print('[!] Usage: screencap -o filename.png')
         except Exception as e:
@@ -724,33 +724,33 @@ $adb remount
                 if len(inp) > 1:
                     pkg = inp[1]
                     print(RED+'Searching Strings using aapt2:'+RESET)
-                    subprocess.Popen('aapt2 dump strings {} | grep {} --color'.format(pkg,what),shell=True)
+                    subprocess.Popen(f'aapt2 dump strings {pkg} | grep {what} --color',shell=True)
                     return
 
                 print(RED+'Searching Activities:'+RESET)
                 if not self.real_search(what, self.activities):
-                    print('No Activities found containing: {} !'.format(what))
+                    print(f'No Activities found containing: {what} !')
                 
                 print(RED+'Searching Services:'+RESET)
                 if not self.real_search(what, self.services):
-                    print('No Services found containing: {} !'.format(what))            
+                    print(f'No Services found containing: {what} !')
 
                 print(RED+'Searching Receivers:'+RESET)
                 if not self.real_search(what, self.receivers):
-                    print('No Receivers found containing: {} !'.format(what)) 
+                    print(f'No Receivers found containing: {what} !')
 
                 print(RED+'Searching Providers:'+RESET)
                 if not self.real_search(what, self.providers):
-                    print('No Providers found containing: {} !'.format(what)) 
+                    print(f'No Providers found containing: {what} !')
 
                 print(RED+'Searching in res:'+RESET)
                 found = False
                 for line1 in self.strings.split('\n'):
-                    if what.casefold() in  line1:
+                    if what.casefold() in line1:
                         print(line1.replace(what.casefold(),Fore.GREEN + what.casefold()+Fore.RESET))
                         found = True
                 if not found:
-                    print('No Strings found containing: {} !'.format(what))
+                    print(f'No Strings found containing: {what} !')
             except Exception as e:
                 print(e)
 
@@ -847,9 +847,9 @@ $adb remount
         Use it in combination with the tab key to see available packages. """
 
         try:         
-            print('[+] Starting {}'.format(package))
-            os.popen("adb -s {} shell  monkey -p {} -c 'android.intent.category.LAUNCHER 1'".format(self.device.id,package.split(' ')[0])).read()
-            print('[+] {} started'.format(package))
+            print(f'[+] Starting {package}')
+            os.popen(f"adb -s {self.device.id} shell  monkey -p {package.split(' ')[0]} -c 'android.intent.category.LAUNCHER 1'").read()
+            print(f'[+] {package} started')
         except Exception as e:
             print(e)
 
@@ -864,8 +864,8 @@ $adb remount
             print(self.NO_APP_LOADED_MSG)
         else:
             try:
-                cmd = "adb -s {} shell 'su -c \"am start -n {}/{}\"'".format(self.device.id,self.info[0][2],line.split(' ')[0])
-                print("adb command: {}".format(cmd))
+                cmd = f"adb -s {self.device.id} shell 'su -c \"am start -n {self.info[0][2]}/{line.split(' ')[0]}\"'"
+                print(f"adb command: {cmd}")
                 output=os.popen(cmd).read()
                 print(output)
             except Exception as e:
@@ -881,8 +881,8 @@ $adb remount
         if self.current_app_sha256 is None:
             print(self.NO_APP_LOADED_MSG)
         else:
-            cmd = "adb -s {} shell 'echo \"am startservice -n {}/{}\" | su'".format(self.device.id,self.info[0][2],line.split(' ')[0])
-            print("adb command: {}".format(cmd))
+            cmd = f"adb -s {self.device.id} shell 'echo \"am startservice -n {self.info[0][2]}/{line.split(' ')[0]}\" | su'"
+            print(f"adb command: {cmd}")
             try:         
                 output=os.popen(cmd).read()
                 print(output)
@@ -900,7 +900,7 @@ $adb remount
             print(self.NO_APP_LOADED_MSG)
         else:
             try:         
-                output=os.popen("adb -s {} shell 'echo \"am stopservice -n {}/{}\" | su'".format(self.device.id,self.info[0][2],line.split(' ')[0])).read()
+                output=os.popen(f"adb -s {self.device.id} shell 'echo \"am stopservice -n {self.info[0][2]}/{line.split(' ')[0]}\" | su'").read()
                 print(output)
             except Exception as e:
                 print(e)
@@ -924,11 +924,11 @@ $adb remount
 
                 if 'Error' not in script:
                     if 'Darwin' in opsys:
-                        subprocess.run("""osascript -e 'tell application "Terminal" to do script "{}" ' """.format(script), shell=True)
+                        subprocess.run(f"""osascript -e 'tell application "Terminal" to do script "{script}" ' """, shell=True)
                     elif 'Linux' in opsys:
-                        subprocess.run("""x-terminal-emulator -e {}""".format(script)) 
+                        subprocess.run(f"""x-terminal-emulator -e {script}""")
                     elif 'Windows' in opsys:
-                        subprocess.call('start /wait {}'.format(script), shell=True)
+                        subprocess.call(f'start /wait {script}', shell=True)
             except Exception as e:
                 print(e)
 
@@ -940,7 +940,7 @@ $adb remount
         print("Type 'exit' to quit")
         while 'exit' not in line:
             line = input(':')
-            os.popen("adb -s {} shell input text {}".format(self.device.id,line))
+            os.popen(f"adb -s {self.device.id} shell input text {line}")
 
     def do_uninstall(self,package):
         """Usage: uninstall [package name]
@@ -948,7 +948,7 @@ $adb remount
         Use it in combination with the tab key to see available packages."""
 
         try:         
-            output=os.popen("adb -s {} uninstall {}".format(self.device.id,package.split(' ')[0])).read()
+            output=os.popen(f"adb -s {self.device.id} uninstall {package.split(' ')[0]}").read()
             print(output)
         except Exception as e:
             print(e)
@@ -1122,8 +1122,8 @@ $adb remount
     def print_database_structure(self):
         res = self.database.query_db("SELECT name FROM sqlite_master WHERE type='table';")
         for entry in res:
-            print(Fore.GREEN + "-"*40+"\nTable Name: {}\n".format(entry[0])+"-"*40+Fore.RESET)
-            columns = self.database.query_db("PRAGMA table_info({});".format(entry[0]))
+            print(Fore.GREEN + "-"*40+f"\nTable Name: {entry[0]}\n"+"-"*40+Fore.RESET)
+            columns = self.database.query_db(f"PRAGMA table_info({entry[0]});")
             print("{c: <25} {t: <15}".format(c="Column Name",t="Type"))
             for column in columns:
                 print("{c: <25} {t: <15}".format(c = column[1],t = column[2]))
@@ -1140,7 +1140,7 @@ $adb remount
                 component = attribs[0]
                 l = len(component)
                 if not quite:
-                    print(Fore.GREEN+'-'*l+Fore.YELLOW+'\nDeeplinks that start:'+ Fore.CYAN+ '{}'.format(component)+Fore.RESET)
+                    print(Fore.GREEN+'-'*l+Fore.YELLOW+'\nDeeplinks that start:'+ Fore.CYAN+ f'{component}'+Fore.RESET)
 
             detonate = attribs[1].split('|')
 
@@ -1208,7 +1208,7 @@ $adb remount
         display_text = ''
         for attribs in self.intent_filters:
             l = len(attribs[0])
-            print(Fore.GREEN+'-'*l+'\nComponent:{}'.format(attribs[0])+Fore.RESET)
+            print(Fore.GREEN+'-'*l+f'\nComponent:{attribs[0]}'+Fore.RESET)
          
             if attribs[1]:
                 print('Action(s): '+attribs[1].replace('|',' # '))
@@ -1250,11 +1250,11 @@ $adb remount
 
     def print_proxy(self):
         
-        settings = os.popen("adb -s {} shell settings get global http_proxy".format(self.device.id)).read()
+        settings = os.popen(f"adb -s {self.device.id} shell settings get global http_proxy").read()
         print (WHITE+"--------------Global proxy settings-----------------:"+RESET)
-        print ('Current proxy: {}'.format(settings))
+        print (f'Current proxy: {settings}')
         print (WHITE+"--------------IP tables settings--------------------:"+RESET)
-        output = subprocess.run("""adb -s {} shell 'echo "iptables -t nat -L" | su'""".format(self.device.id), shell=True)
+        output = subprocess.run(f"""adb -s {self.device.id} shell 'echo "iptables -t nat -L" | su'""", shell=True)
         print(output)
 
     def print_receivers(self,all = True,flag=None):
@@ -1364,13 +1364,13 @@ $adb remount
         valid = True
         if '-j' in switch:
             param1 = line.split(' ')[1]+ '*!*'
-            param = """frida-trace -D {} -f {} -j '{}' """.format(self.device.id,self.info[0][2],param1)
+            param = f"""frida-trace -D {self.device.id} -f {self.info[0][2]} -j '{param1}' """
         elif '-n' in switch:
             param1 = line.split(' ')[1]+ '*'
-            param = """frida-trace -D {} -i '{}' {}""".format(self.device.id,param1,self.info[0][2])
+            param = f"""frida-trace -D {self.device.id} -i '{param1}' {self.info[0][2]}"""
         elif '-a' in switch:
             param1 = line.split(' ')[1].strip()
-            param = """frida-trace -D {} -I '{}' {}""".format(self.device.id,param1,self.info[0][2])
+            param = f"""frida-trace -D {self.device.id} -I '{param1}' {self.info[0][2]}"""
         else:
             print('[E] Invalid command, run help for options!')  
             valid = False        
@@ -1414,10 +1414,10 @@ $adb remount
             self.receivers = application_database.get_all_receivers(app_sha256)
             self.providers = application_database.get_all_providers(app_sha256)
             self.intent_filters = application_database.get_intent_filters(app_sha256)
-            self.activity_names = list('\n'.join(map(lambda x: str(x[0]), application_database.query_db("SELECT name from Activities WHERE app_sha256='{}'".format(app_sha256)))).split('\n'))
-            self.service_names = list('\n'.join(map(lambda x: str(x[0]), application_database.query_db("SELECT name from Services WHERE app_sha256='{}'".format(app_sha256)))).split('\n'))
-            self.manifest = application_database.query_db("SELECT androidManifest FROM Application WHERE sha256='{}';".format(app_sha256))
-            self.strings = application_database.query_db("SELECT stringResources FROM Application WHERE sha256='{}';".format(app_sha256))[0][0].decode('utf-8')
+            self.activity_names = list('\n'.join(map(lambda x: str(x[0]), application_database.query_db(f"SELECT name from Activities WHERE app_sha256='{app_sha256}'"))).split('\n'))
+            self.service_names = list('\n'.join(map(lambda x: str(x[0]), application_database.query_db(f"SELECT name from Services WHERE app_sha256='{app_sha256}'"))).split('\n'))
+            self.manifest = application_database.query_db(f"SELECT androidManifest FROM Application WHERE sha256='{app_sha256}';")
+            self.strings = application_database.query_db(f"SELECT stringResources FROM Application WHERE sha256='{app_sha256}';")[0][0].decode('utf-8')
             self.total_deep_links = []
             self.package=self.info[0][2]
             self.deeplinks = application_database.get_deeplinks(app_sha256)
@@ -1428,7 +1428,7 @@ $adb remount
             print(e)
     
     def init_packages(self):
-        for line1 in os.popen('adb -s {} shell pm list packages'.format(self.device.id)):
+        for line1 in os.popen(f'adb -s {self.device.id} shell pm list packages'):
             self.packages.append(line1.split(':')[1].strip('\n'))
 
     def load_or_remove_application(self):
@@ -1473,9 +1473,9 @@ $adb remount
         trasnproxy_path = os.path.join(self.base_directory,'../utils/transproxy.sh')
         try:
             print('[i] Pushing transproxy script !')
-            os.popen("adb -s {} push {} /data/local/tmp/transproxy.sh".format(self.device.id,trasnproxy_path)).read() 
+            os.popen(f"adb -s {self.device.id} push {trasnproxy_path} /data/local/tmp/transproxy.sh").read()
             print('[i] Executing script')
-            os.popen("adb -s {} shell 'chmod +x /data/local/tmp/transproxy.sh; echo \"/data/local/tmp/transproxy.sh {} {}\" | su; rm /data/local/tmp/transproxy.sh'".format(self.device.id,ip,port)).read()
+            os.popen(f"adb -s {self.device.id} shell 'chmod +x /data/local/tmp/transproxy.sh; echo \"/data/local/tmp/transproxy.sh {ip} {port}\" | su; rm /data/local/tmp/transproxy.sh'").read()
             self.print_proxy()
         except Exception as e:
             print(e)

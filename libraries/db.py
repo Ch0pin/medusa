@@ -30,15 +30,15 @@ class apk_db:
         self.cursor.execute("""CREATE TABLE "Notes" ("index"	INTEGER NOT NULL UNIQUE, "app_sha256"	TEXT NOT NULL, "note"	TEXT, PRIMARY KEY("index" AUTOINCREMENT));""")
 
     def delete_application(self,sha256):
-        sql1 = "DELETE FROM Application WHERE sha256 = '{}'".format(sha256)
-        sql2 = "DELETE FROM Permissions WHERE app_sha256 = '{}'".format(sha256)
-        sql3 = "DELETE FROM Activities WHERE app_sha256 = '{}'".format(sha256)
-        sql4 = "DELETE FROM Services WHERE app_sha256 = '{}'".format(sha256)
-        sql5 = "DELETE FROM Providers WHERE app_sha256 = '{}'".format(sha256)
-        sql6 = "DELETE FROM Receivers WHERE app_sha256 = '{}'".format(sha256)
-        sql7 = "DELETE FROM ActivityAlias WHERE app_sha256 = '{}'".format(sha256)
-        sql8 = "DELETE FROM IntentFilters WHERE app_sha256 = '{}'".format(sha256)
-        sql9 = "DELETE FROM Notes WHERE app_sha256 = '{}'".format(sha256)
+        sql1 = f"DELETE FROM Application WHERE sha256 = '{sha256}'"
+        sql2 = f"DELETE FROM Permissions WHERE app_sha256 = '{sha256}'"
+        sql3 = f"DELETE FROM Activities WHERE app_sha256 = '{sha256}'"
+        sql4 = f"DELETE FROM Services WHERE app_sha256 = '{sha256}'"
+        sql5 = f"DELETE FROM Providers WHERE app_sha256 = '{sha256}'"
+        sql6 = f"DELETE FROM Receivers WHERE app_sha256 = '{sha256}'"
+        sql7 = f"DELETE FROM ActivityAlias WHERE app_sha256 = '{sha256}'"
+        sql8 = f"DELETE FROM IntentFilters WHERE app_sha256 = '{sha256}'"
+        sql9 = f"DELETE FROM Notes WHERE app_sha256 = '{sha256}'"
 
         self.cursor.execute(sql1)
         self.cursor.execute(sql2)
@@ -59,52 +59,52 @@ class apk_db:
         return
 
     def get_all_activities(self,sha256):
-        sql = """SELECT * from Activities WHERE app_sha256='{}'""".format(sha256)
+        sql = f"""SELECT * from Activities WHERE app_sha256='{sha256}'"""
         self.cursor.execute(sql) 
         return self.cursor.fetchall()
 
     def get_all_alias_activities(self,sha256):
-        sql = """SELECT * from ActivityAlias WHERE app_sha256='{}'""".format(sha256)
+        sql = f"""SELECT * from ActivityAlias WHERE app_sha256='{sha256}'"""
         self.cursor.execute(sql) 
         return self.cursor.fetchall()
 
     def get_all_permissions(self,sha256):
-        sql = """SELECT * from Permissions WHERE app_sha256='{}'""".format(sha256)
+        sql = f"""SELECT * from Permissions WHERE app_sha256='{sha256}'"""
         self.cursor.execute(sql) 
         return self.cursor.fetchall()
 
     def get_all_providers(self,sha256):
-        sql = """SELECT * from Providers WHERE app_sha256='{}'""".format(sha256)
+        sql = f"""SELECT * from Providers WHERE app_sha256='{sha256}'"""
         self.cursor.execute(sql) 
         return self.cursor.fetchall()
 
     def get_all_receivers(self,sha256):
-        sql = """SELECT * from Receivers WHERE app_sha256='{}'""".format(sha256)
+        sql = f"""SELECT * from Receivers WHERE app_sha256='{sha256}'"""
         self.cursor.execute(sql) 
         return self.cursor.fetchall()
 
     def get_all_services(self,sha256):
-        sql = """SELECT * from Services WHERE app_sha256='{}'""".format(sha256)
+        sql = f"""SELECT * from Services WHERE app_sha256='{sha256}'"""
         self.cursor.execute(sql) 
         return self.cursor.fetchall()
 
     def get_app_info(self,sha256):
-        sql = """SELECT * from Application WHERE sha256='{}'""".format(sha256)
+        sql = f"""SELECT * from Application WHERE sha256='{sha256}'"""
         self.cursor.execute(sql) 
         return self.cursor.fetchall()
 
     def get_deeplinks(self,sha256):
-        sql = """SELECT componentName,dataList from IntentFilters WHERE app_sha256='{}' AND dataList !=''""".format(sha256)
+        sql = f"""SELECT componentName,dataList from IntentFilters WHERE app_sha256='{sha256}' AND dataList !=''"""
         self.cursor.execute(sql) 
         return self.cursor.fetchall()
 
     def get_exported_activities(self,sha256):
-        sql = """SELECT name from Activities WHERE app_sha256='{}' AND enabled LIKE 'true%' AND exported LIKE 'true%'""".format(sha256)
+        sql = f"""SELECT name from Activities WHERE app_sha256='{sha256}' AND enabled LIKE 'true%' AND exported LIKE 'true%'"""
         self.cursor.execute(sql) 
         return self.cursor.fetchall()
 
     def get_intent_filters(self,sha256):
-        sql = """SELECT componentName,actionList,categoryList from IntentFilters WHERE app_sha256='{}'""".format(sha256)
+        sql = f"""SELECT componentName,actionList,categoryList from IntentFilters WHERE app_sha256='{sha256}'"""
         self.cursor.execute(sql) 
         return self.cursor.fetchall()
 
@@ -118,7 +118,7 @@ class apk_db:
             return None
     
     def sha256_exists(self,sha256):
-        sql = """SELECT name, packageName from Application WHERE sha256='{}'""".format(sha256)
+        sql = f"""SELECT name, packageName from Application WHERE sha256='{sha256}'"""
         self.cursor.execute(sql) 
         if not self.cursor.fetchall():
             return False
@@ -176,6 +176,6 @@ class apk_db:
         self.connection.commit()
     
     def get_all_notes(self,sha256):
-        sql = """SELECT * from Notes WHERE app_sha256='{}'""".format(sha256)
+        sql = f"""SELECT * from Notes WHERE app_sha256='{sha256}'"""
         self.cursor.execute(sql) 
         return self.cursor.fetchall()

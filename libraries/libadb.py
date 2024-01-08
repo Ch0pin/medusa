@@ -29,7 +29,7 @@ class android_device:
             except subprocess.CalledProcessError:
                 print(f"App '{package_name}' is not running yet. Retrying in {2} seconds...")
                 time.sleep(2)
-        return self.run_command(["adb","-s",self.id,"shell", "pidof", "-s", "{}".format(package_name)])
+        return self.run_command(["adb","-s",self.id,"shell", "pidof", "-s", f"{package_name}"])
 
     def print_dev_properties(self):
         print('\nDevice properties:\n')
@@ -69,7 +69,7 @@ class android_device:
         self.run_command(["adb","-s",self.id,cmd])
 
     def run_pseudo_adb_root_cmd(self,cmd):
-        cmdf = ["adb", "-s", "{}".format(self.id), "shell", "echo \"{}\" | su".format(cmd)]
+        cmdf = ["adb", "-s", f"{self.id}", "shell", f"echo \"{cmd}\" | su"]
         proccess = subprocess.Popen(cmdf,stdout = subprocess.PIPE,stderr=subprocess.STDOUT)
         #output, error = proccess.communicate()
         line=""

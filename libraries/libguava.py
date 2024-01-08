@@ -32,7 +32,7 @@ class Guava:
         return h.hexdigest()
 
     def sha256Exists(self, sha):
-        sql = """SELECT name from Application WHERE sha256='{}'""".format(sha)
+        sql = f"""SELECT name from Application WHERE sha256='{sha}'"""
         return self.application_database.query_db(sql)
 
     def extractIntentFilters(self, filters, obj):
@@ -185,7 +185,7 @@ class Guava:
 
         app_sha256 = self.sha256sum(apkfile)
 
-        print("[+] Analyzing apk with SHA256:{}".format(app_sha256))
+        print(f"[+] Analyzing apk with SHA256:{app_sha256}")
         apk_r = apk.APK(apkfile)
         manifest = apk_r.get_android_manifest_axml().get_xml_obj()
         application = manifest.findall("application")[0]

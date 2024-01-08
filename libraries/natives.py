@@ -355,7 +355,7 @@ class nativeHandler:
                 else:
                     payload += "var endAddress = baseAddress + module.size;"
 
-                payload += '\nvar offset = ' + str(arithemetic_offset);
+                payload += '\nvar offset = ' + str(arithemetic_offset)
                 payload += """\nvar buf = Memory.readByteArray(ptr(address),296);
                 if(buf){
                     console.log('Address Range:'+p_foo+' --> '+endAddress.toString(16));
@@ -466,7 +466,7 @@ class nativeHandler:
         try:
 
             payload += '\nvar address = p_foo.add(' + str(arithemetic_offset) + ');'
-            payload += '\nvar offset = ' + str(arithemetic_offset);
+            payload += '\nvar offset = ' + str(arithemetic_offset)
             payload += "\nconsole.log('Write op started');"
             payload += '\nMemory.protect(address, 0x5, "rwx");'
             payload += f"\nMemory.writeByteArray(ptr(address), {bytes})"

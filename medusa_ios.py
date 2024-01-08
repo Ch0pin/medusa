@@ -176,11 +176,6 @@ class Parser(cmd2.Cmd):
             print(e)
             print("[i] Usage: export filename")
 
-
-
-        except Exception as e:
-            print(e)
-
     def do_hook(self, line) -> None:
         """
         Hook a method or methods
@@ -561,7 +556,7 @@ class Parser(cmd2.Cmd):
                 return None
             return option
         except Exception as e:
-            print("An error occurred:", str(e))
+            print(f"An error occurred: {e}")
             return None
 
     def hookall(self, className, color='Purple') -> None:
@@ -722,7 +717,7 @@ catch (err) {
             else:
                 return
         except Exception as e:
-            print("An error occurred:", str(e))
+            print(f"An error occurred: {e}")
 
     def load_snippet(self, snippet) -> None:
         try:
@@ -868,22 +863,20 @@ Data container: {self.app_info.parameters['containers']['data']}\n""" + RESET)
                     sys.stdout = original_stdout
                     print(
                         "-" * 10 + "Here is what you missed while suspended" + "-" * 10 + "\n" + temp_stdout.getvalue())
-
-
                 elif s.split(' ')[0] == 't':
                     try:
 
                         self.do_jtrace(s.split(' ')[1])
                         self.do_compile('')
                         self.reload_script(session)
-                    except Exception as e:
+                    except Exception:
                         pass
 
                 elif s.split(' ')[0] == 'dc':
                     try:
                         self.do_compile('')
                         self.reload_script(session)
-                    except Exception as e:
+                    except Exception:
                         pass
 
             if self.script:

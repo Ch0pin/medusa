@@ -231,13 +231,13 @@ class google_new_transError(Exception):
             elif status == 200 and not tts.lang_check:
                 cause = f"No audio stream in response. Unsupported language '{self.tts.lang}'"
             elif status >= 500:
-                cause = "Uptream API error. Try again later."
+                cause = "Upstream API error. Try again later."
 
         return f"{premise}. Probable cause: {cause}"
 
 
 class google_translator:
-    '''
+    """
     You can use 108 language in target and source,details view LANGUAGES.
     Target language: like 'en'、'zh'、'th'...
 
@@ -263,8 +263,7 @@ class google_translator:
 
     :param proxies: proxies Will be used for every request.
     :type proxies: class : dict; like: {'http': 'http:171.112.169.47:19934/', 'https': 'https:171.112.169.47:19934/'}
-
-    '''
+    """
 
     def __init__(self, url_suffix="com", timeout=5, proxies=None):
         self.proxies = proxies
@@ -290,12 +289,14 @@ class google_translator:
     def translate(self, text, lang_tgt='auto', lang_src='auto', pronounce=False):
         try:
             lang = LANGUAGES[lang_src]
-        except:
+        except KeyError:
             lang_src = 'auto'
+
         try:
             lang = LANGUAGES[lang_tgt]
-        except:
+        except KeyError:
             lang_src = 'auto'
+
         text = str(text)
         if len(text) >= 5000:
             return "Warning: Can only detect less than 5000 characters"
@@ -368,10 +369,10 @@ class google_translator:
             r.raise_for_status()
         except requests.exceptions.ConnectTimeout as e:
             raise e
-        except requests.exceptions.HTTPError as e:
+        except requests.exceptions.HTTPError:
             # Request successful, bad response
             raise google_new_transError(tts=self, response=r)
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             # Request failed
             raise google_new_transError(tts=self)
 

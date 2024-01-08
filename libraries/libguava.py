@@ -86,7 +86,8 @@ class Guava:
                 self.extractIntentFilters(filters, activity)
 
             activity_attribs = (
-            sha256, activityName, enabled, exported, autoRemoveFromRecents, excludeFromRecents, noHistory, permission)
+                sha256, activityName, enabled, exported, autoRemoveFromRecents, excludeFromRecents, noHistory,
+                permission)
             self.application_database.update_activities(activity_attribs)
 
     def fill_activity_alias(self, application, sha256):
@@ -140,8 +141,8 @@ class Guava:
             writePermission = provider.get(NS_ANDROID + "writePermission")
             authorities = provider.get(NS_ANDROID + "authorities")
             provider_attribs = (
-            sha256, providername, enabled, exported, grantUriPermissions, permission, process, readPermission,
-            writePermission, authorities)
+                sha256, providername, enabled, exported, grantUriPermissions, permission, process, readPermission,
+                writePermission, authorities)
             self.application_database.update_providers(provider_attribs)
 
     def fill_receivers(self, application, sha256):
@@ -209,7 +210,7 @@ class Guava:
             objlist = self.filter_list[filter]
             for item in objlist:
                 filter_attribs = (
-                sha256, filter, '|'.join(item.actionList), '|'.join(item.categoryList), '|'.join(item.dataList))
+                    sha256, filter, '|'.join(item.actionList), '|'.join(item.categoryList), '|'.join(item.dataList))
                 self.application_database.update_intent_filters(filter_attribs)
 
     def insert_note(self, sha256, note):

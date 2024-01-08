@@ -9,6 +9,7 @@ import click
 import frida
 import logging
 import hashlib
+
 md5 = lambda bs: hashlib.md5(bs).hexdigest()
 
 logging.basicConfig(level=logging.INFO,
@@ -16,7 +17,7 @@ logging.basicConfig(level=logging.INFO,
                     datefmt='%m-%d/%H:%M:%S')
 
 
-def dump(pkg_name, api,mds=None):
+def dump(pkg_name, api, mds=None):
     if mds is None:
         mds = []
     matches = api.scandex()
@@ -38,7 +39,9 @@ def dump(pkg_name, api,mds=None):
             readable_hash = hashlib.sha256(bs).hexdigest();
             with open(pkg_name + "/" + readable_hash + ".dex", 'wb') as out:
                 out.write(bs)
-            click.secho(f"[DEXDump]: DexSize={hex(info['size'])}, SavePath={os.getcwd()}/{pkg_name}/{readable_hash}.dex", fg='green')
+            click.secho(
+                f"[DEXDump]: DexSize={hex(info['size'])}, SavePath={os.getcwd()}/{pkg_name}/{readable_hash}.dex",
+                fg='green')
         except Exception as e:
             click.secho(f"[Except] - {e}: {info}", bg='yellow')
 
@@ -53,16 +56,16 @@ def dump_pkg(pkg):
             print(f'{i}) {dv}')
             i += 1
         j = input('Enter the index of the device you want to use:')
-        device = devices[int(j)] 
+        device = devices[int(j)]
     except:
         device = frida.get_remote_device()
 
     bring_to_front = input('Bring the application you want to dump to the front and press enter.....\n')
 
     target = device.get_frontmost_application()
-    
-    pkg_name = pkg#target.identifier
-    print('[+] Dumping: '+pkg)
+
+    pkg_name = pkg  # target.identifier
+    print('[+] Dumping: ' + pkg)
     # processes = get_all_process(device, pkg_name)
     # if len(processes) == 1:
     #     target = processes[0]
@@ -85,7 +88,7 @@ def dump_pkg(pkg):
     logging.info(f"[DEXDump]: found target [{target.pid}] {pkg_name}")
     session = device.attach(target.pid)
     path = os.path.dirname(__file__)
-    #path = path if path else "."
+    # path = path if path else "."
     script = session.create_script(open(path + "/../dexdump.js").read())
     script.load()
     dump(pkg_name, script.exports)

@@ -1,5 +1,4 @@
 class IntentFilter:
-
     actionList = []
     categoryList = []
     dataList = []
@@ -10,13 +9,13 @@ class IntentFilter:
         self.categoryList = []
         self.dataList = []
 
-    def addAction(self,action):
+    def addAction(self, action):
         self.actionList.append(action)
 
-    def addCategory(self,category):
+    def addCategory(self, category):
         self.categoryList.append(category)
 
-    def addData(self,data):
+    def addData(self, data):
         self.dataList.append(data)
 
     def getActionList(self):

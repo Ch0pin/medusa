@@ -7,13 +7,13 @@ if len(sys.argv) < 2:
     print(f'I: Usage: {sys.argv[0]} [file]')
 else:
     try:
-        with open(sys.argv[1],'r') as f:
+        with open(sys.argv[1], 'r') as f:
             lines = f.read()
         array = '['
 
         for line in lines.split('\n'):
-            array +='"' + line + '"' + ','
-        array1 = array[:-1]+']'
+            array += '"' + line + '"' + ','
+        array1 = array[:-1] + ']'
         print(array1)
     except Exception as e:
         print(e)

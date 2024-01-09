@@ -456,7 +456,7 @@ $adb remount
 
                 """ + RESET)
                 print()
-        except Exception as e:
+        except Exception:
             print('')
 
     def do_jdwp(self, line):
@@ -560,7 +560,7 @@ $adb remount
     def do_notify(self, line):
         """Usage: notify 'notification title' 'Notification body,....'
         Sends a notification to the device (it is used to trigger notification listeners). 
-        Please not that the Medusa Agent must be installed and running on the device 
+        Please note that the Medusa Agent must be installed and running on the device
         (see installagent)."""
 
         try:
@@ -594,7 +594,7 @@ $adb remount
                     print("[!] zipalign is not installed, quiting !")
                     return
                 if not os.path.exists(APKTOOL):
-                    if (Polar('[?] apktool has not been downloaded, do you want to do it now ?').ask()):
+                    if Polar('[?] apktool has not been downloaded, do you want to do it now ?').ask():
                         self.download_file(APKTOOL_URL, APKTOOL)
 
                 print(GREEN + '[+] Unpacking the apk....' + RESET)
@@ -627,7 +627,7 @@ $adb remount
                     shutil.move(file, 'original_' + file)
                     shutil.move(ALLIGNED_APK, file)
 
-                    if (not Polar('[?] Do you want to keep the extracted resources ?').ask()):
+                    if not Polar('[?] Do you want to keep the extracted resources ?').ask():
                         shutil.rmtree(TMP_FOLDER)
             except Exception as e:
                 print(e)
@@ -1305,7 +1305,7 @@ $adb remount
                     print(display_text)
             print(Style.RESET_ALL)
         except Exception as e:
-            print("An error occured")
+            print(f"An error occurred: {e}")
 
     def print_services(self, all=True):
         try:
@@ -1322,7 +1322,7 @@ $adb remount
                     print(display_text)
             print(Style.RESET_ALL)
         except Exception as e:
-            print("An error occured")
+            print(f"An error occurred: {e}")
 
     def print_strings(self):
         for string in self.strings.split('\n'):

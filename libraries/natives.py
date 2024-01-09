@@ -88,7 +88,6 @@ class nativeHandler:
     def getModules(self, package, force):
         print(f'[i] Using device with id {self.device}')
         self.modules = []
-        pid = 0
         try:
             if force:
                 pid = self.device.spawn(package)
@@ -108,7 +107,6 @@ class nativeHandler:
             self.device.resume(pid)
             time.sleep(5)
             script.unload()
-
         except Exception as e:
             print(e)
 
@@ -186,7 +184,7 @@ class nativeHandler:
                 cmd = input(prompt)
             prev_cmd = 'e'
 
-            while (not cmd.lower().startswith('e')):
+            while not cmd.lower().startswith('e'):
                 if cmd.startswith('r@'):
                     cmd = self.read_memory(cmd[2:], script, session, codejs, prolog, epilog, payload, prompt, True,
                                            size)
@@ -280,7 +278,7 @@ class nativeHandler:
             cmd = input(self.prompt_)
             prev_cmd = 'e'
 
-            while (not cmd.lower().startswith('e')):
+            while not cmd.lower().startswith('e'):
                 if cmd.startswith('r@'):
                     cmd = self.read_memory(cmd[2:], script, session, codejs, prolog, epilog, payload, self.prompt_)
                     continue
@@ -318,7 +316,6 @@ class nativeHandler:
                 payload = message["payload"]
                 self.modules.append(payload.split(":")[0].strip())
                 # self.script.post({'input':'null'})
-
         except Exception as e:
             print(e)
 

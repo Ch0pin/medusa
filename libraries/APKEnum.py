@@ -222,48 +222,32 @@ def findPublicIPs(line):
 
 
 def performRecon(line):
-    exceptions_occured = False
     global domainList, authorityList, inScopeDomainList, inScopeAuthorityList
-    filecontent = ""
+
+    exceptions_occurred = False
+
+    def process_file_content(file_content):
+        findUrls(file_content)
+        findPublicIPs(file_content)
+        findS3Bucket(file_content)
+        findS3Website(file_content)
+        findGoogleAPIKeys(file_content)
+
     for dir_path, dirs, file_names in os.walk(line):
         for file_name in file_names:
+            full_path = os.path.join(dir_path, file_name)
             try:
-                fullpath = os.path.join(dir_path, file_name)
-                fileobj = open(fullpath, mode='r')
-                filecontent = fileobj.read()
-                fileobj.close()
-            except Exception as e:
-                exceptions_occured = True
+                with open(full_path, "r") as f:
+                    file_content = f.read()
+                    thread = threading.Thread(target=process_file_content, args=(file_content,))
+                    thread.start()
+                    thread.join()
+            except Exception:
+                exceptions_occurred = True
 
-            try:
-                # findUrls(filecontent)
-                # findPublicIPs(filecontent)
-                # findS3Bucket(filecontent)
-                # findS3Website(filecontent)
-                # findGoogleAPIKeys(filecontent)
-                # findUnrestrictedGmapKeys()
-                t1 = Thread(target=findUrls, args=(filecontent,))
-                t2 = Thread(target=findPublicIPs, args=(filecontent,))
-                t3 = Thread(target=findS3Bucket, args=(filecontent,))
-                t4 = Thread(target=findS3Website, args=(filecontent,))
-                t5 = Thread(target=findGoogleAPIKeys, args=(filecontent,))
-                t1.start()
-                t2.start()
-                t3.start()
-                t4.start()
-                t5.start()
-                t1.join()
-                t2.join()
-                t3.join()
-                t4.join()
-                t5.join()
-            # t6 = Thread(target=findUnrestrictedGmapKeys, args=())
-            # t6.start()
-            # t6.join()
-            except Exception as e:
-                myPrint("E: Error while spawning threads", "ERROR")
-    if exceptions_occured:
-        print('[E] Some exceptions occured and were ommited !')
+    if exceptions_occurred:
+        print('[E] Some exceptions occurred and were omitted !')
+
     displayResults()
 
 

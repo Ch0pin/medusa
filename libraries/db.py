@@ -9,9 +9,9 @@ class apk_db:
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
 
         if not self.cursor.fetchall():
-            self.create_db(self.connection)
+            self.create_db()
 
-    def create_db(self, cursor):
+    def create_db(self):
         self.cursor.execute("""CREATE TABLE Application(sha256 TEXT, name TEXT, packageName TEXT, versionCode TEXT, versionName TEXT, minSdkVersion TEXT, targetSdkVersion TEXT, maxSdkVersion TEXT,permissions TEXT, libraries TEXT, debuggable TEXT, allowbackup TEXT, androidManifest TEXT, stringResources TEXT, original_filename TEXT, tampered TEXT)""")
 
         self.cursor.execute("""CREATE TABLE Permissions(app_sha256 TEXT, permission TEXT, type TEXT, shortDescription TEXT, fullDescription TEXT)""")
@@ -31,25 +31,12 @@ class apk_db:
         self.cursor.execute("""CREATE TABLE "Notes" ("index"	INTEGER NOT NULL UNIQUE, "app_sha256"	TEXT NOT NULL, "note"	TEXT, PRIMARY KEY("index" AUTOINCREMENT));""")
 
     def delete_application(self, sha256):
-        sql1 = f"DELETE FROM Application WHERE sha256 = '{sha256}'"
-        sql2 = f"DELETE FROM Permissions WHERE app_sha256 = '{sha256}'"
-        sql3 = f"DELETE FROM Activities WHERE app_sha256 = '{sha256}'"
-        sql4 = f"DELETE FROM Services WHERE app_sha256 = '{sha256}'"
-        sql5 = f"DELETE FROM Providers WHERE app_sha256 = '{sha256}'"
-        sql6 = f"DELETE FROM Receivers WHERE app_sha256 = '{sha256}'"
-        sql7 = f"DELETE FROM ActivityAlias WHERE app_sha256 = '{sha256}'"
-        sql8 = f"DELETE FROM IntentFilters WHERE app_sha256 = '{sha256}'"
-        sql9 = f"DELETE FROM Notes WHERE app_sha256 = '{sha256}'"
+        tables_to_delete = ["Application", "Permissions", "Activities", "Services", "Providers", "Receivers",
+                            "ActivityAlias", "IntentFilters", "Notes"]
 
-        self.cursor.execute(sql1)
-        self.cursor.execute(sql2)
-        self.cursor.execute(sql3)
-        self.cursor.execute(sql4)
-        self.cursor.execute(sql5)
-        self.cursor.execute(sql6)
-        self.cursor.execute(sql7)
-        self.cursor.execute(sql8)
-        self.cursor.execute(sql9)
+        for table in tables_to_delete:
+            query = f"DELETE FROM {table} WHERE sha256 = '{sha256}'"
+            self.cursor.execute(query)
 
         self.connection.commit()
         return
@@ -123,8 +110,7 @@ class apk_db:
         self.cursor.execute(sql)
         if not self.cursor.fetchall():
             return False
-        else:
-            return True
+        return True
 
     def update_activities(self, attribs):
         sql = """INSERT INTO Activities(app_sha256, name, enabled, exported, autoRemoveFromRecents, 

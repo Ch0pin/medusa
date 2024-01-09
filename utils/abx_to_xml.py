@@ -49,7 +49,6 @@ class XmlType(enum.IntEnum):
     PROCESSING_INSTRUCTION = 8
     COMMENT = 9
     DOCDECL = 10
-
     ATTRIBUTE = 15
 
 

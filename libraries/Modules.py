@@ -87,7 +87,6 @@ class ModuleManager:
             print(f'Module {moduleName} not found!')
 
     def unstage(self, moduleName):
-        
         tmp = len(self.staged)
 
         for mod in self.staged:  # check for exact name first

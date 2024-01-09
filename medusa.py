@@ -498,7 +498,7 @@ class Parser(cmd2.Cmd):
             functionName = input("Enter a method name (CTRL+C to Exit): ")
             enable_backtrace = Polar('Enable backtrace?', False).ask()
 
-            while (True):
+            while True:
                 try:
 
                     codejs += """
@@ -1313,7 +1313,7 @@ class Parser(cmd2.Cmd):
             else:
                 return
         except Exception as e:
-            print("An error occurred:", str(e))
+            print(f"An error occurred: {e}")
 
     def edit_scratchpad(self, code, mode='w') -> None:
         scratchpad = self.modManager.getModule('scratchpad')
@@ -1345,7 +1345,7 @@ class Parser(cmd2.Cmd):
                 return None
             return option
         except Exception as e:
-            print("An error occurred:", str(e))
+            print(f"An error occurred: {e}")
             return None
 
     def hookall(self, className, color='Purple') -> None:

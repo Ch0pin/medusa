@@ -31,12 +31,15 @@ class nativeHandler:
         print("""Available commands:
         
         (e)xit:     Exit memops
-        dump:     Dump loaded module to a file
+        dump:       Dump the loaded library to a file
         r@offset:   Read @ offet (e.g. r@beaf)
         Return:     Read next 296 bytes
         w@offset:   Write @ offset (e.g. w@beaf)
-        scan:       Scan a memory region for a pattern
-        ?:          Display this message
+        scan:       Scan a memory region for a specific match.
+                    The input can be a simple text (e.g. "test" without quotes)
+                    or a byte array inserted as: bytes(00 11 22 33 ??) where ??
+                    represents a wildcard.
+        (h)elp:     Display this message
         """)
 
     # todo add force or attach
@@ -289,7 +292,7 @@ class nativeHandler:
                 elif cmd.startswith('h'):
                     self.display_help()
                 elif cmd.startswith('scan'):
-                    in_bytes = input("Enter a text or byte array in form of bytes (DE 00 11 ?? ?? BE AF):")
+                    in_bytes = input("Enter a text or a byte array (see help for details):")
                     if in_bytes.startswith('bytes('):
                         pattern = in_bytes[6:].strip(')')
                     else:

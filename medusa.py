@@ -61,7 +61,7 @@ class Parser(cmd2.Cmd):
         elif option == '-3':
             self.package_range = '- 3rd party installed applications'
         else:
-            self.package_range = '- All installed applicatons'
+            self.package_range = '- All installed applications'
 
         self.packages = []
         for line in os.popen(f'adb -s {self.device.id} shell pm list packages {option}'):
@@ -127,7 +127,7 @@ class Parser(cmd2.Cmd):
     def do_compile(self, line, rs=False) -> None:
         """
         Compile the current staged modules to a single js frida script. Use '-t' to add a delay.
-        compile [-t X], where X is a value in milisec
+        compile [-t X], where X is a value in millisec
         """
         try:
             hooks = []
@@ -417,7 +417,7 @@ class Parser(cmd2.Cmd):
 
                         - libs (-a, -s, -j) package_name [--attach]  
 
-                            -a                          : List aLL loaded libraries
+                            -a                          : List ALL loaded libraries
                             -s                          : List system's loaded libraries
                             -j                          : List application's Libraries
                             --attach                    : Attach to the process (default is to first run the app) 
@@ -443,7 +443,7 @@ class Parser(cmd2.Cmd):
 
                         - describe_java_class full.path.to.class.name   : Log details about the given class
                         - get package_name full.path.to.class.field     : Get the current value of a field of an 
-                                                                          instnatiated java class. 
+                                                                          instantiated java class. 
                 ====================================================================================================
 
                 Usefull utilities:
@@ -485,7 +485,7 @@ class Parser(cmd2.Cmd):
                                         (default is purple)
             -f                        : Initiate a dialog for hooking a Java method
             -n                        : Initiate a dialog for hooking a native method
-            -r                        : Reset the hooks setted so far
+            -r                        : Reset the hooks set so far
         """
         option = line.split(' ')[0]
         codejs = '\n'
@@ -545,8 +545,8 @@ class Parser(cmd2.Cmd):
             else:
                 if len(line.split(' ')) > 2:
                     if line.split(' ')[2].strip() == '--color':
-                        collors = ['Blue', 'Cyan', 'Gray', 'Green', 'Purple', 'Red', 'Yellow']
-                        option, index = pick(collors, "Available colors:", indicator="=>", default_index=0)
+                        colors = ['Blue', 'Cyan', 'Gray', 'Green', 'Purple', 'Red', 'Yellow']
+                        option, index = pick(colors, "Available colors:", indicator="=>", default_index=0)
                         self.hookall(aclass, option)
                     else:
                         self.hookall(aclass)
@@ -887,7 +887,7 @@ class Parser(cmd2.Cmd):
             pid = os.popen(f"adb -s {self.device.id} shell pidof {pkg}").read().strip()
 
             if pid == "":
-                print("Can't find  pid. Is the application running ?")
+                print("Can't find pid. Is the application running ?")
                 return
             elif len(pid.split(' ')) > 1:
                 option, index = pick(pid.split(' '), "More than one processes found running with that name:",
@@ -952,7 +952,7 @@ class Parser(cmd2.Cmd):
         """
         Remove one or more staged modules
         rem [module]
-        The command will remove stage modules starting with or equal to the argument given
+        The command will remove staged modules starting with or equal to the argument given
         Example: rem http_communications/ , will remove all the modules starting with "http_communications/"
 
         """
@@ -1610,7 +1610,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
                         print(GREEN + "Script unchanged, nothing to reload ...." + RESET)
                 elif s == '?':
                     print(RESET + """\nAvailable commands: 
-    'c'     clear the sreen 
+    'c'     clear the screen 
     'e'     exit the session
     'r'     reload the script in case it changed
     'rs'    reset the scratchpad

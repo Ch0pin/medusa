@@ -12,7 +12,7 @@ from colorama import Fore, Back, Style
 
 BASE = os.path.dirname(__file__)
 
-APKTOOL_URL = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.1.jar"
+APKTOOL_URL = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.2.jar"
 MEDUSA_AGENT_URL = "https://github.com/Ch0pin/medusa/files/13833921/agent.zip"
 
 APKTOOL = os.path.abspath(os.path.join(BASE, '../dependencies/apktool.jar'))

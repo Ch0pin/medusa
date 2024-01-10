@@ -95,7 +95,7 @@ class nativeHandler:
             else:
                 pid = int(os.popen(f"adb -s {self.device.id} shell pidof {package}").read().strip())
                 if pid is None:
-                    print(f"[+] Could not find process with this name {pid_s}.")
+                    print(f"[+] Could not find process with this name {pid}.")
                     return
                 print(f"[i] Attaching to process {package} [pid:{pid}]")
 

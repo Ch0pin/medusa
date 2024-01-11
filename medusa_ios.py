@@ -86,7 +86,7 @@ class Parser(cmd2.Cmd):
     def do_compile(self, line, rs=False) -> None:
         """
         Compile the current staged modules to a single js frida script. Use '-t' to add a delay.
-        compile [-t X], where X is a value in milisec
+        compile [-t X], where X is a value in millisec
         """
         try:
             hooks = []
@@ -193,8 +193,8 @@ class Parser(cmd2.Cmd):
             else:
                 if len(line.split(' ')) > 2:
                     if line.split(' ')[2].strip() == '--color':
-                        collors = ['Blue', 'Cyan', 'Gray', 'Green', 'Purple', 'Red', 'Yellow']
-                        option, index = pick(collors, "Available colors:", indicator="=>", default_index=0)
+                        colors = ['Blue', 'Cyan', 'Gray', 'Green', 'Purple', 'Red', 'Yellow']
+                        option, index = pick(colors, "Available colors:", indicator="=>", default_index=0)
                         self.hookall(aclass, option)
                     else:
                         self.hookall(aclass)
@@ -807,7 +807,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n""" + RESET)
                         print(GREEN + "Script unchanged, nothing to reload ...." + RESET)
                 elif s == '?':
                     print(RESET + """\nAvailable commands: 
-    'c'     clear the sreen 
+    'c'     clear the screen 
     'e'     exit the session
     'r'     reload the script in case it changed
     'rs'    reset the scratchpad

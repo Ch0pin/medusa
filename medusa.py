@@ -3,7 +3,7 @@ import subprocess, platform, os, sys, readline, time, argparse, requests, re
 from urllib.parse import urlparse
 import cmd2, click, frida, random, yaml
 from libraries.dumper import dump_pkg
-from utils.google_trans_new import google_translator
+from google_trans_new import google_translator
 from libraries.natives import *
 from libraries.libadb import *
 from libraries.Questions import *
@@ -320,31 +320,51 @@ class Parser(cmd2.Cmd):
             if field == '*':
                 codeJs = """
                 Java.perform(function() { 
-                    try {
-                        var jClass = Java.use('""" + clazz + """');
-                        var _fields = jClass.class.getFields().map(f => {
-                        return f.toString()
-                        })  
-                        Java.choose('""" + clazz + """', {
-                        onMatch: function(instance) {
-                            for(var i = 0; i < _fields.length; i++){
-                            var field = _fields[i].substring(_fields[i].lastIndexOf(".") + 1);                
-                            console.log('var '+field+ ' ='+JSON.stringify(instance[field].value))
+                        try {
+                            var jClass = Java.use('""" + clazz + """');
+                            var _fields = jClass.class.getFields().map(f => {
+                            return f.toString()
+                            })  
+                            Java.choose('""" + clazz + """', {
+                            onMatch: function(instance) {
+                                for(var i = 0; i < _fields.length; i++){
+                                var field = _fields[i].substring(_fields[i].lastIndexOf(".") + 1);                
+                                console.log('var '+field+ ' ='+JSON.stringify(instance[field].value))
+                                }
+                            }, onComplete: function() {
                             }
-                        }, onComplete: function() {
+                            })
                         }
-                        })
-                    }
-                        catch(e){console.log(e)}
-                    });
-                    """
-
+                            catch(e){console.log(e)}
+                        });
+                        """
             else:
-                codeJs = "Java.perform(function() { try { Java.choose('" + clazz + "',{"
-                codeJs += "onMatch: function(instance) {"
-                codeJs += "console.log('Current field value of '+instance+ ' is:'+JSON.stringify(instance." + field + '.value))'
-                codeJs += "}, onComplete: function() { }});} catch (e){console.log(e)}})"
-
+                codeJs = """
+                Java.perform(function() { 
+                    var jClass = Java.use('""" + clazz + """');
+                    Java.choose('""" + clazz + """', {
+                    onMatch: function(instance) {             
+                        console.log('Current field value of '+instance+ ' is:'+JSON.stringify(instance."""+field+""".value));
+                        var IterableClass = Java.use("java.lang.Iterable");
+                        var field = jClass.class.getDeclaredField('"""+field+"""')
+                        field.setAccessible(true); 
+                        var rvalue = field.get(instance);
+                        try {
+                            var isIter = Java.cast(rvalue, IterableClass);
+                            if(isIter){
+                                console.log('Iterable detected. Trying to dump:')
+                                var iter = isIter.iterator();
+                                while(iter.hasNext()){    
+                                    console.log('\t'+iter.next())
+                                    }
+                                } 
+                            }catch(e){ 
+                        }
+                    }, onComplete: function() {
+                }
+            })
+        });
+                    """
             self.detached = False
 
             session = self.frida_session_handler(self.device, False, package_name)

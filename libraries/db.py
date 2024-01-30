@@ -31,11 +31,14 @@ class apk_db:
         self.cursor.execute("""CREATE TABLE "Notes" ("index"	INTEGER NOT NULL UNIQUE, "app_sha256"	TEXT NOT NULL, "note"	TEXT, PRIMARY KEY("index" AUTOINCREMENT));""")
 
     def delete_application(self, sha256):
-        tables_to_delete = ["Application", "Permissions", "Activities", "Services", "Providers", "Receivers",
+
+        sql1 = f"DELETE FROM Application WHERE sha256 = '{sha256}'"
+        self.cursor.execute(sql1)
+        tables_to_delete = ["Permissions", "Activities", "Services", "Providers", "Receivers",
                             "ActivityAlias", "IntentFilters", "Notes"]
 
         for table in tables_to_delete:
-            query = f"DELETE FROM {table} WHERE sha256 = '{sha256}'"
+            query = f"DELETE FROM {table} WHERE app_sha256 = '{sha256}'"
             self.cursor.execute(query)
 
         self.connection.commit()

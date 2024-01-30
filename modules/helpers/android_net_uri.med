@@ -41,6 +41,12 @@ Uri.getQueryParameters.implementation = function(key){
     return retval;
 }
 
+Uri.parse.implementation = function(uriString){
+  var ret = this.parse(uriString);
+  colorLog('[+] Uri parse with Uri String: '+uriString,{c: Color.Green})
+  return ret;
+}
+
 Uri.getAuthority.implementation = function(key){
   var ret = this.getAuthority();
   colorLog('[+] getAuthority for Uri: '+this,{c: Color.Green})

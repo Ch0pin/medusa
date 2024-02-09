@@ -43,7 +43,11 @@ Uri.getQueryParameters.implementation = function(key){
 
 Uri.parse.implementation = function(uriString){
   var ret = this.parse(uriString);
-  colorLog('[+] Uri parse with Uri String: '+uriString,{c: Color.Green})
+  if(ret.getScheme()=='http'||ret.getScheme()=='https')
+    log('[+] Uri parse with Uri String: '+uriString)
+  else
+    styleLog('[+] Uri with custom scheme: '+uriString,['custom scheme:',uriString.split(':/')[0]],StyleLogColorset.cyan,StyleLogColorset.black);
+
   return ret;
 }
 

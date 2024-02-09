@@ -1,0 +1,104 @@
+
+{
+    "Name": "URIs/deeplinks",
+    "Description": "The NSURLComponents class is a class that is designed to parse URLs based on RFC 3986 and to construct URLs from their constituent parts.",
+    "Help": "An object that parses URLs into and constructs URLs from their constituent parts that bridges to URLComponents; use NSURLComponents when you need reference semantics or other Foundation-specific behavior.",
+    "Code": "    
+
+
+console.log('\\n---------Loading NSURLComponents_class------------------');
+
+if (ObjC.available) {
+
+  var openURL_1707494523 = ObjC.classes.NSURLComponents['+ componentsWithString:'];
+  var openURL_1707494523 = ObjC.classes.NSURLComponents['+ componentsWithURL:resolvingAgainstBaseURL:'];
+  var queryItemWithName_1707494523 = ObjC.classes.NSURLQueryItem['+ queryItemWithName:value:'];
+  var initWithName_1707494523 = ObjC.classes.NSURLQueryItem['- initWithName:value:'];
+
+  function isCustom(str) {
+    const prefixes = ['http://', 'https://'];
+
+    for (const prefix of prefixes) {
+      if (str.startsWith(prefix)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+
+
+  // Intercept the method
+  Interceptor.attach(openURL_1707494523.implementation, {
+    onEnter: function(a) {
+
+        colorLog('Entering : NSURLComponents + componentsWithString:',{c:Color.Green})
+    
+        if (ios_isObjC(a[2])) {
+          const theObj = new ObjC.Object(a[2]);
+          if(!isCustom(theObj.toString()))
+              console.log('\\t\\URLString: ' + theObj.toString() + ' (' + theObj.$className + ')');
+          else 
+              colorLog('Custom link: '  + theObj.toString() + ' (' + theObj.$className + ')',{c:Color.Red});
+    
+        }
+    }
+  });
+
+  Interceptor.attach(openURL_1707494523.implementation, {
+    onEnter: function(a) {
+
+        colorLog('Entering : NSURLComponents + componentsWithURL:resolvingAgainstBaseURL:',{c:Color.Green})
+    
+        if (ios_isObjC(a[2])) {
+          const theObj = new ObjC.Object(a[2]);
+          if(!isCustom(theObj.toString()))
+              console.log('\\t\\URLString: ' + theObj.toString() + ' (' + theObj.$className + ')');
+          else 
+              colorLog('Custom link: '  + theObj.toString() + ' (' + theObj.$className + ')',{c:Color.Red});
+    
+        }
+    }
+  });
+
+ 
+  Interceptor.attach(queryItemWithName_1707494523.implementation, {
+    onEnter: function (args) {
+      colorLog('[*] Entering queryItemWithName',{c:Color.Cyan});
+        const nameArg = new ObjC.Object(args[2]);
+        const valueArg = new ObjC.Object(args[3]);
+        if(filterKeyWords.some(word => nameArg.toString().toLowerCase().includes(word)))
+          colorLog('\t\\\\_key:'+nameArg+', value:'+valueArg.toString(), {c: Color.Red});
+        else
+          console.log(`\\t\\\\_Key: `+nameArg.toString()+', value:'+valueArg.toString());
+      },
+    onLeave: function (retval) {
+      //console.log(`[*] Leaving `);
+      }
+    });
+
+    Interceptor.attach(initWithName_1707494523.implementation, {
+      onEnter: function (args) {
+        colorLog('[*] Entering initWithName',{c:Color.Cyan});
+        const nameArg = new ObjC.Object(args[2]);
+        const valueArg = new ObjC.Object(args[3]);
+        if(filterKeyWords.some(word => nameArg.toString().toLowerCase().includes(word)))
+          colorLog('\t\\\\_key:'+nameArg+', value:'+valueArg.toString(), {c: Color.Red});
+        else
+          console.log(`\\t\\\\_Key: `+nameArg.toString()+', value:'+valueArg.toString());
+        },
+      onLeave: function (retval) {
+        //console.log(`[*] Leaving `);
+        }
+      });
+
+} else {
+  console.log('[!] Objective-C runtime is not available.');
+}
+
+
+
+"
+}
+
+

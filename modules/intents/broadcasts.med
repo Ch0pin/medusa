@@ -1,0 +1,219 @@
+{
+    "Name": "intents/broadcasts",
+    "Description": "Use this module to intercept broadcasts and dynamically registered receivers",
+    "Help": "",
+    "Code": "
+
+    console.log('\\n----------Broadcast monitor by @ch0p1n------------------------');
+
+
+
+    let hook_1703795516 = Java.use('android.content.ContextWrapper');
+    
+    function dumpIntentFilter(intentFilter){
+      
+      if(intentFilter.mActions.value != null)
+      {
+        console.log('------------Actions--------------------------------')
+        console.log(intentFilter.mActions.value)
+        console.log('---------------------------------------------------')
+      }
+      if(intentFilter.mCategories.value != null)
+      {
+        console.log('------------Categories-----------------------------')
+        console.log(intentFilter.mCategories.value)
+        console.log('---------------------------------------------------')
+    
+      }
+      if(intentFilter.mDataSchemes.value != null)
+      {
+        console.log('------------DataSchemes----------------------------')
+        console.log(intentFilter.mDataSchemes.value)
+        console.log('---------------------------------------------------')
+    
+      }
+      if(intentFilter.mDataSchemeSpecificParts.value != null)
+      {
+        console.log('------------DataSchemeSpecificParts----------------')
+        console.log(intentFilter.mDataSchemeSpecificParts.value)
+        console.log('---------------------------------------------------')
+    
+      }
+      if(intentFilter.mDataAuthorities.value != null)
+      {
+        console.log('------------DataAuthorities------------------------')
+        console.log(intentFilter.mDataAuthorities.value)
+        console.log('---------------------------------------------------')
+    
+      }
+      if(intentFilter.mDataPaths.value != null)
+      {
+        console.log('------------DataPaths------------------------------')
+        console.log(intentFilter.mDataPaths.value)
+        console.log('---------------------------------------------------')
+    
+      }
+      if(intentFilter.mDataTypes.value != null)
+      {
+        console.log('------------DataTypes------------------------------')
+        console.log(intentFilter.mDataTypes.value)
+        console.log('---------------------------------------------------')
+    
+      }
+    
+      if(intentFilter.mMimeGroups.value != null)
+      {
+        console.log('------------MimeGroups-----------------------------')
+        console.log(intentFilter.mMimeGroups.value)
+        console.log('---------------------------------------------------')
+    
+      }
+    
+    }
+    
+     
+        hook_1703795516.sendBroadcast.overload('android.content.Intent').implementation = function(intent) {
+          colorLog('\\nA_SB_0'+this+' ====> sendBroadcast('+intent.getComponent()+')',{c:Color.Yellow}); 
+          dumpIntent(intent);
+          colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Yellow});     
+          this.sendBroadcast.overload('android.content.Intent').apply(this, arguments);
+        };
+    
+        hook_1703795516.sendBroadcast.overload('android.content.Intent', 'java.lang.String').implementation = function(intent, receiverPermission) {
+          colorLog('\\nA_SB_1'+this+' ====> sendBroadcast('+intent.getComponent()+')',{c:Color.Yellow}); 
+          dumpIntent(intent);
+          console.log('Intent receiverPermission: ' + receiverPermission);
+          colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Yellow});     
+    
+          this.sendBroadcast.overload('android.content.Intent', 'java.lang.String').apply(this, arguments);
+        };
+      
+
+        hook_1703795516.sendBroadcast.overload('android.content.Intent', 'java.lang.String', 'android.os.Bundle').implementation = function(intent, receiverPermission, options) {
+          colorLog('\\nA_SB_1'+this+' ====> sendBroadcast('+intent.getComponent()+')',{c:Color.Yellow}); 
+          dumpIntent(intent);
+          console.log('Intent receiverPermission: ' + receiverPermission);
+          console.log('OPTIONS: '+options.toString())
+          colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Yellow});     
+    
+          this.sendBroadcast.overload('android.content.Intent', 'java.lang.String', 'android.os.Bundle').apply(this, arguments);
+        };
+
+    
+        hook_1703795516.sendStickyBroadcast.overload('android.content.Intent').implementation = function(intent) {
+          colorLog('\\nA_SSB'+this+' ====> sendStickyBroadcast('+intent.getComponent()+')',{c:Color.Yellow}); 
+          dumpIntent(intent);
+          console.log('Intent getFlags: ' + intent.getFlags());
+          colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Yellow});     
+    
+          this.sendStickyBroadcast.overload('android.content.Intent').apply(this, arguments);
+        };
+      
+    
+        hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter').implementation = function(receiver, filter) {
+          colorLog('[+] The application registers the receiver:'+receiver,{c:Color.Green});
+          dumpIntentFilter(filter)
+          this.registerReceiver(receiver, filter);
+        };
+    
+        hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter', 'int').implementation = function(receiver, filter, flags) {
+          colorLog('[+] The application registers the receiver:'+receiver ,{c:Color.Green});
+          dumpIntentFilter(filter)
+          this.registerReceiver(receiver, filter);
+        };
+    
+        hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter', 'java.lang.String', 'android.os.Handler').implementation = function(receiver, filter, broadcastPermission, scheduler) {
+          colorLog('[+] The application registers the receiver:'+receiver + ' protected by permission: '+broadcastPermission,{c:Color.Green});
+          dumpIntentFilter(filter)
+          this.registerReceiver(receiver, filter, broadcastPermission, scheduler);
+        };
+    
+        hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter', 'java.lang.String', 'android.os.Handler', 'int').implementation = function(receiver, filter, broadcastPermission, scheduler,flags) {
+          colorLog('[+] The application registers the receiver:'+receiver + ' protected by permission: '+broadcastPermission,{c:Color.Green});
+          dumpIntentFilter(filter)
+          this.registerReceiver(receiver, filter, broadcastPermission, scheduler,flags);
+        };
+    
+
+
+
+
+
+    
+                    let overloadCount_1703795516 = hook_1703795516['sendBroadcastAsUser'].overloads.length;
+                    colorLog('\\nTracing ' +'sendBroadcastAsUser' + ' [' + overloadCount_1703795516 + ' overload(s)]',{ c: Color.Yellow });
+                        
+                        for (let i = 0; i < overloadCount_1703795516; i++) {
+                            hook_1703795516['sendBroadcastAsUser'].overloads[i].implementation = function() {
+                            colorLog('*** entered ' +'sendBroadcastAsUser',{ c: Color.Yellow });
+
+                    if (arguments.length) console.log();
+                    for (let j = 0; j < arguments.length; j++) {
+                        console.log('arg[' + j + ']: ' + arguments[j]);
+                    }
+                    let retval = this['sendBroadcastAsUser'].apply(this, arguments); 
+                    console.log('retval: ' + retval);
+                    colorLog('*** exiting ' + 'sendBroadcastAsUser',{ c: Color.Yellow });
+                    return retval;
+                    }
+                    }
+                    
+                    let overloadCount_1703795552 = hook_1703795516['sendBroadcastWithMultiplePermissions'].overloads.length;
+                    colorLog('\\nTracing ' +'sendBroadcastWithMultiplePermissions' + ' [' + overloadCount_1703795552 + ' overload(s)]',{ c: Color.Yellow });
+                        
+                        for (let i = 0; i < overloadCount_1703795552; i++) {
+                            hook_1703795516['sendBroadcastWithMultiplePermissions'].overloads[i].implementation = function() {
+                            colorLog('*** entered ' +'sendBroadcastWithMultiplePermissions',{ c: Color.Yellow });
+
+                    if (arguments.length) console.log();
+                    for (let j = 0; j < arguments.length; j++) {
+                        console.log('arg[' + j + ']: ' + arguments[j]);
+                    }
+                    let retval = this['sendBroadcastWithMultiplePermissions'].apply(this, arguments); 
+                    console.log('retval: ' + retval);
+                    colorLog('*** exiting ' + 'sendBroadcastWithMultiplePermissions',{ c: Color.Yellow });
+                    return retval;
+                    }
+                    }
+                    
+                    let overloadCount_1703795567 = hook_1703795516['sendOrderedBroadcast'].overloads.length;
+                    colorLog('\\nTracing ' +'sendOrderedBroadcast' + ' [' + overloadCount_1703795567 + ' overload(s)]',{ c: Color.Yellow });
+                        
+                        for (let i = 0; i < overloadCount_1703795567; i++) {
+                            hook_1703795516['sendOrderedBroadcast'].overloads[i].implementation = function() {
+                            colorLog('*** entered ' +'sendOrderedBroadcast',{ c: Color.Yellow });
+
+                    if (arguments.length) console.log();
+                    for (let j = 0; j < arguments.length; j++) {
+                        console.log('arg[' + j + ']: ' + arguments[j]);
+                    }
+                    let retval = this['sendOrderedBroadcast'].apply(this, arguments); 
+                    console.log('retval: ' + retval);
+                    colorLog('*** exiting ' + 'sendOrderedBroadcast',{ c: Color.Yellow });
+                    return retval;
+                    }
+                    }
+                    
+                    let overloadCount_1703795578 = hook_1703795516['sendOrderedBroadcastAsUser'].overloads.length;
+                    colorLog('\\nTracing ' +'sendOrderedBroadcastAsUser' + ' [' + overloadCount_1703795578 + ' overload(s)]',{ c: Color.Yellow });
+                        
+                        for (let i = 0; i < overloadCount_1703795578; i++) {
+                            hook_1703795516['sendOrderedBroadcastAsUser'].overloads[i].implementation = function() {
+                            colorLog('*** entered ' +'sendOrderedBroadcastAsUser',{ c: Color.Yellow });
+
+                    if (arguments.length) console.log();
+                    for (let j = 0; j < arguments.length; j++) {
+                        console.log('arg[' + j + ']: ' + arguments[j]);
+                    }
+                    let retval = this['sendOrderedBroadcastAsUser'].apply(this, arguments); 
+                    console.log('retval: ' + retval);
+                    colorLog('*** exiting ' + 'sendOrderedBroadcastAsUser',{ c: Color.Yellow });
+                    return retval;
+                    }
+                    }
+                    
+
+
+    
+"
+}

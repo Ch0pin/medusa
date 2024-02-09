@@ -8,6 +8,17 @@ console.log('\\n--------Setting hooks: android.os.Bundle.get* Methods-----------
 let hook_1694772606 = Java.use('android.os.Bundle');
 
 const declaredMethods = hook_1694772606.class.getDeclaredMethods();
+
+const getStringOverloads = hook_1694772606.getString.overloads;
+for (let i = 0; i < getStringOverloads.length; i++) {
+    getStringOverloads[i].implementation = function() {
+        let retval = getStringOverloads[i].call(this, ...arguments);
+        console.log('[+] Bundle.getString called with args:', arguments, ' and retval:', retval);
+        return retval;
+    };
+}
+
+
 for(const method of declaredMethods)
 {
   const methodName = method.getName();

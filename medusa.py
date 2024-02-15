@@ -3,7 +3,7 @@ import subprocess, platform, os, sys, readline, time, argparse, requests, re
 from urllib.parse import urlparse
 import cmd2, click, frida, random, yaml
 from libraries.dumper import dump_pkg
-from google_trans_new import google_translator
+from Utils.google_trans_new import google_translator
 from libraries.natives import *
 from libraries.libadb import *
 from libraries.Questions import *

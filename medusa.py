@@ -1633,6 +1633,8 @@ Apk Directory: {packageCodePath}\n""" + RESET)
             device = frida.get_device_manager() \
                 .add_remote_device(f'{host}:{port}')
             print(f'Using device:{device}')
+        recording = self.package_name+'-'+str(int(time.time()))+'.mp4'
+        os.popen(f"adb -s {self.device.id} shell screenrecord /sdcard/{recording} --time-limit {self.time_to_run}")
 
         self.detached = False
         session = self.frida_session_handler(device, force, package_name, pid)
@@ -1665,6 +1667,8 @@ Apk Directory: {packageCodePath}\n""" + RESET)
                 self.script.unload()
             open(os.path.join(self.base_directory, 'agent.js'), 'w').close()
             self.edit_scratchpad('')
+            os.popen(f"adb -s {self.device.id} pull /sdcard/{recording} {os.path.join(os.path.dirname(self.save_to_file), recording)}")
+            os.popen(f"adb -s {self.device.id} shell rm /sdcard/{recording}")
             sys.exit(0)
 
         except Exception as e:

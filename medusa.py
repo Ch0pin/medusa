@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import subprocess, platform, os, sys, readline, time, argparse, requests, re
 from urllib.parse import urlparse
-import cmd2, click, frida, random, yaml
+import cmd2, click, frida, random, yaml, sys
 from libraries.dumper import dump_pkg
 from utils.google_trans_new import google_translator
 from libraries.natives import *
@@ -20,6 +20,16 @@ RESET = "\033[0;0m"
 BOLD = "\033[;1m"
 REVERSE = "\033[;7m"
 
+medusa_logo="""
+    ███╗   ███╗███████╗██████╗ ██╗   ██╗███████╗ █████╗ 
+    ████╗ ████║██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗    
+    ██╔████╔██║█████╗  ██║  ██║██║   ██║███████╗███████║
+    ██║╚██╔╝██║██╔══╝  ██║  ██║██║   ██║╚════██║██╔══██║
+    ██║ ╚═╝ ██║███████╗██████╔╝╚██████╔╝███████║██║  ██║
+    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (Android) Version: 2.0  
+                                    
+ 🪼 Type help for options 🪼 \n\n
+"""
 
 class Parser(cmd2.Cmd):
     base_directory = os.path.dirname(__file__)
@@ -42,6 +52,12 @@ class Parser(cmd2.Cmd):
     libname = None
     modManager = ModuleManager()
     package_range = ''
+
+    interactive=True 
+    time_to_run = None
+    package_name = None
+    save_to_file = None
+    device_id = None
 
     def __init__(self):
         super().__init__(
@@ -74,23 +90,38 @@ class Parser(cmd2.Cmd):
             prog='Medusa',
             description='An extensible and modularized framework that automates processes and techniques practiced during the dynamic analysis of Android Applications.')
         parser.add_argument('-r', '--recipe', help='Use this option to load a session/recipe')
+        parser.add_argument('--not-interactive', action='store_true', help='Run Medusa without user interaction (additional parameters required)')
+        parser.add_argument('-t', '--time', type=int, help='Run Medusa for T seconds without user interaction')
+        parser.add_argument('-p', '--package-name', help='Package name to run')
+        parser.add_argument('-d', '--device', help='Device to connect to')
+        parser.add_argument('-s', '--save', help='Filename to save the output log')
+
         args = parser.parse_args()
+        num_args_set = sum(1 for arg in vars(args).values() if arg is not None)
 
         if args.recipe:
-            self.write_recipe(args.recipe)
+            if not args.not_interactive and num_args_set > 1:
+                if args.time or args.device or args.save or args.package_name:
+                    print('Non-interactive mode arguments are ignored in interactive mode.')
+                else:
+                    self.write_recipe(args.recipe)
+            else:
+                if not(args.time and args.device and args.save and args.package_name):
+                    print('Insufficient parameters for not interactive mode. Exiting...')
+                    exit(1)
+                else:
+                    self.interactive = False
+                    self.time_to_run = args.time
+                    self.package_name = args.package_name
+                    self.device_id = args.device
+                    self.save_to_file = args.save
+                    self.write_recipe(args.recipe)
 
         randomized_fg = lambda: tuple(random.randint(0, 255) for _ in range(3))
-
-        click.secho("""                                                                                                                      
-    ███╗   ███╗███████╗██████╗ ██╗   ██╗███████╗ █████╗ 
-    ████╗ ████║██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗    
-    ██╔████╔██║█████╗  ██║  ██║██║   ██║███████╗███████║
-    ██║╚██╔╝██║██╔══╝  ██║  ██║██║   ██║╚════██║██╔══██║
-    ██║ ╚═╝ ██║███████╗██████╔╝╚██████╔╝███████║██║  ██║
-    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (Android) Version: 2.0  
-                                    
- 🪼 Type help for options 🪼 \n\n""", fg=randomized_fg(), bold=True)
+        click.secho(medusa_logo, fg=randomized_fg(), bold=True)
         self.do_loaddevice("dummy")
+        if not self.interactive:
+            self.do_run('-f '+self.package_name)
 
     ###################################################### do_ defs start ############################################################
 
@@ -768,20 +799,24 @@ class Parser(cmd2.Cmd):
         Load a device in order to interact
         """
         try:
-            print('Available devices:\n')
-            devices = frida.enumerate_devices()
+            if self.interactive:
+                print('Available devices:\n')
+                devices = frida.enumerate_devices()
 
-            for i in range(len(devices)):
-                print(f'{i}) {devices[i]}')
-            self.device = devices[
-                int(Numeric('\nEnter the index of the device to use:', lbound=0, ubound=len(devices) - 1).ask())]
-            android_dev = android_device(self.device.id)
-            android_dev.print_dev_properties()
+                for i in range(len(devices)):
+                    print(f'{i}) {devices[i]}')
+                self.device = devices[
+                    int(Numeric('\nEnter the index of the device to use:', lbound=0, ubound=len(devices) - 1).ask())]
+                android_dev = android_device(self.device.id)
+                android_dev.print_dev_properties()
+            else:
+                self.device = frida.get_device(self.device_id)
         except:
             self.device = frida.get_remote_device()
         finally:
             # lets start by loading all packages and let the user to filter them out
-            self.init_packages('-3')
+            if self.interactive:
+                self.init_packages('-3')
 
     def do_memops(self, line) -> None:
         """
@@ -1014,6 +1049,11 @@ class Parser(cmd2.Cmd):
              add --host ip:port   to specify the IP address and port of the remote Frida server to connect to. 
         """
         try:
+            if not self.interactive:
+                self.do_compile(line)
+                self.run_frida_n_interactive(True, False, line.split(' ')[1], self.device, -1, '', '')
+                return
+            
             if self.modified:
                 if Polar('Module list has been modified, do you want to recompile?').ask():
                     self.do_compile(line)
@@ -1587,6 +1627,50 @@ Obb Directory: {obbDir}
 Apk Directory: {packageCodePath}\n""" + RESET)
         else:
             print("[!] No available info.")
+
+    def run_frida_n_interactive(self, force, detached, package_name, device, pid=-1, host='', port='') -> None:
+        if host != '' and port != '':
+            device = frida.get_device_manager() \
+                .add_remote_device(f'{host}:{port}')
+            print(f'Using device:{device}')
+
+        self.detached = False
+        session = self.frida_session_handler(device, force, package_name, pid)
+        try:
+            with open(os.path.join(self.base_directory, "agent.js")) as f:
+                self.script = session.create_script(f.read())
+
+            session.on('detached', self.on_detached)
+            self.script.on("message", self.my_message_handler)  # register the message handler
+            self.script.load()
+            if force:
+                device.resume(self.pid)
+
+            startTime = time.time()
+            end_time = self.time_to_run+startTime
+            original_stdout = sys.stdout
+            from io import StringIO
+            temp_stdout = StringIO()
+            sys.stdout = temp_stdout
+
+            while (time.time() < end_time) and (not self.detached):
+                pass
+            
+            with open(self.save_to_file,'w') as f:
+                sys.stdout = original_stdout
+                f.write(medusa_logo)
+                f.write(temp_stdout.getvalue())
+
+            if self.script:
+                self.script.unload()
+            open(os.path.join(self.base_directory, 'agent.js'), 'w').close()
+            self.edit_scratchpad('')
+            sys.exit(0)
+
+        except Exception as e:
+            print(e)
+        print(RESET)
+
 
     def run_frida(self, force, detached, package_name, device, pid=-1, host='', port='') -> None:
         if host != '' and port != '':

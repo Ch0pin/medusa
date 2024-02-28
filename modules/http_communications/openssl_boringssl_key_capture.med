@@ -1,0 +1,31 @@
+{
+    "Name": "http_communications/openssl_boringssl_key_capture",
+    "Description": "Capture TLS keys from OpenSSL/BoringSSL",
+    "Help": "",
+    "Code": "
+        // Code based on https://github.com/fkie-cad/friTap/
+
+        try {
+            Module.ensureInitialized('libssl.so');
+        } catch (err) {
+            console.log('libssl.so module not loaded. Trying to manually load it.');
+            Module.load('libssl.so');
+        }
+
+        var keylog_callback = new NativeCallback(function(ctxPtr, linePtr) {
+            send('tlskeylog|' + linePtr.readCString());
+        }, 'void', ['pointer', 'pointer']);
+
+        var SSL_CTX_set_keylog_callback = new NativeFunction(
+            Module.findExportByName('libssl.so', 'SSL_CTX_set_keylog_callback'),
+            'void',
+            ['pointer', 'pointer']
+        );
+
+        Interceptor.attach(Module.findExportByName('libssl.so', 'SSL_new'), {
+            onEnter: function(args) {
+                SSL_CTX_set_keylog_callback(args[0], keylog_callback);
+            }
+        });
+"
+}

@@ -1599,14 +1599,18 @@ catch (err) {
                 result = self.translator.translate(data[data.index("trscrpt|") + len("trscrpt|"):])
                 self.script.post({"my_data": result})
             elif "tlskeylog|" in data:
-                result = data[data.index("tlskeylog|") + len("tlskeylog|"):]
-                if result not in self.keydump_Set:
-                    if self.keylog_file is None or self.keylog_file.closed:
-                        self.keylog_file = open(f'tls_keylog-' + 'unknown_package' + '-' + str(int(time.time())) + '.txt', 'a+')
-                    if self.keylog_file is not None and not self.keylog_file.closed:
-                        self.keylog_file.write(result + "\n")
-                        self.keylog_file.flush()
-                        self.keydump_Set.add(result)
+                result = data.split("|")
+                if len(result) >= 4:
+                    package_name = result[0]
+                    time = result[1]
+                    key = result[3]
+                    if key not in self.keydump_Set:
+                        if self.keylog_file is None or self.keylog_file.closed:
+                            self.keylog_file = open(f'tlskeylog-' + package_name + '-' + time + '.txt', 'a+')
+                        if self.keylog_file is not None and not self.keylog_file.closed:
+                            self.keylog_file.write(key + "\n")
+                            self.keylog_file.flush()
+                            self.keydump_Set.add(key)
             else:
                 self.fill_app_info(message["payload"])
 
@@ -1646,11 +1650,6 @@ Apk Directory: {packageCodePath}\n""" + RESET)
             print(f'Using device:{device}')
         recording = self.package_name+'-'+str(int(time.time()))+'.mp4'
         os.popen(f"adb -s {self.device.id} shell screenrecord /sdcard/{recording} --time-limit {self.time_to_run}")
-
-        # open TLS key log file if a key capture module is being used
-        for mod in self.modManager.staged:
-            if 'http_communications/openssl_boringssl_key_capture' in mod.path:
-                self.keylog_file = open(f'tls_keylog-' + package_name + '-' + str(int(time.time())) + '.txt', 'a+')
 
         self.detached = False
         session = self.frida_session_handler(device, force, package_name, pid)
@@ -1697,11 +1696,6 @@ Apk Directory: {packageCodePath}\n""" + RESET)
             device = frida.get_device_manager() \
                 .add_remote_device(f'{host}:{port}')
             print(f'Using device:{device}')
-
-        # open TLS key log file if a key capture module is being used
-        for mod in self.modManager.staged:
-            if 'http_communications/openssl_boringssl_key_capture' in mod.path:
-                self.keylog_file = open(f'tls_keylog-' + package_name + '-' + str(int(time.time())) + '.txt', 'a+')
 
         in_session_menu = WHITE + '(in-session)' + GREEN + ' type ' + YELLOW + '?' + GREEN + ' for options' + WHITE + ':➤' + RESET
         creation_time = modified_time = None

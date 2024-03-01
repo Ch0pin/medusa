@@ -250,10 +250,9 @@ function printBeat(beat) {
 }
   
 function traceClass(targetClass,color='Purple'){
-    console.log('\x1b[43m\x1b[31m[?] Hooking methods of '+ targetClass +'\x1b[0m\n');
+    console.log('\n\x1b[43m\x1b[31m [?] Hooking methods of '+ targetClass +'\x1b[0m\n');
 	var hook = Java.use(targetClass);
 	var methods = hook.class.getDeclaredMethods();
-	hook.$dispose();
 	var parsedMethods = ['$init']; 
 	methods.forEach(function(method) {
         try{
@@ -275,6 +274,7 @@ function traceClass(targetClass,color='Purple'){
 		}
 		catch(err){}
 	});
+    hook.$dispose();
     console.log();
 }
 

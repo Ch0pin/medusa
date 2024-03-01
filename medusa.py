@@ -52,6 +52,8 @@ class Parser(cmd2.Cmd):
     libname = None
     modManager = ModuleManager()
     package_range = ''
+    keydump_Set = {*()}
+    keylog_file = None
 
     interactive=True 
     time_to_run = None
@@ -1596,6 +1598,19 @@ catch (err) {
             if "trscrpt|" in data:
                 result = self.translator.translate(data[data.index("trscrpt|") + len("trscrpt|"):])
                 self.script.post({"my_data": result})
+            elif "tlskeylog|" in data:
+                result = data.split("|")
+                if len(result) >= 4:
+                    package_name = result[0]
+                    time = result[1]
+                    key = result[3]
+                    if key not in self.keydump_Set:
+                        if self.keylog_file is None or self.keylog_file.closed:
+                            self.keylog_file = open(f'tlskeylog-' + package_name + '-' + time + '.txt', 'a+')
+                        if self.keylog_file is not None and not self.keylog_file.closed:
+                            self.keylog_file.write(key + "\n")
+                            self.keylog_file.flush()
+                            self.keydump_Set.add(key)
             else:
                 self.fill_app_info(message["payload"])
 

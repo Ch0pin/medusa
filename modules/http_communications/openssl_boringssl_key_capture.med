@@ -1,0 +1,78 @@
+{
+    "Name": "http_communications/openssl_boringssl_key_capture",
+    "Description": "Capture TLS keys from OpenSSL/BoringSSL",
+    "Help": "",
+    "Code": "
+        // Code based on https://github.com/fkie-cad/friTap/
+
+        var packageName = null;
+        var currentTime = null;
+        var bufferedKeys = []; // Buffer to hold keys until the app is initialized
+
+        // Function to log buffered keys
+        function logBufferedKeys() {
+            bufferedKeys.forEach(function(key) {
+                send(packageName + '|' + currentTime + '|' + 'tlskeylog|' + key);
+            });
+            bufferedKeys = []; // Clear the buffer after logging
+        }
+
+        // Function to setup native hooks
+        function setupNativeHooks() {
+            try {
+                Module.ensureInitialized('libssl.so');
+            } catch (err) {
+                console.log('libssl.so module not loaded. Trying to manually load it.');
+                Module.load('libssl.so');
+            }
+
+            var SSL_CTX_set_keylog_callback = new NativeFunction(
+                Module.findExportByName('libssl.so', 'SSL_CTX_set_keylog_callback'),
+                    'void', ['pointer', 'pointer']
+            );
+
+            var keylog_callback = new NativeCallback(function (ctxPtr, linePtr) {
+                var keyLine = linePtr.readCString();
+                // Check if packageName and currentTime are already set
+                if (packageName && currentTime) {
+                    send(packageName + '|' + currentTime + '|' + 'tlskeylog|' + keyLine);
+                } else {
+                    // Buffer the key for later logging
+                    bufferedKeys.push(keyLine);
+                }
+            }, 'void', ['pointer', 'pointer']);
+
+            Interceptor.attach(Module.findExportByName('libssl.so', 'SSL_new'), {
+                onEnter: function (args) {
+                    SSL_CTX_set_keylog_callback(args[0], keylog_callback);
+                }
+            });
+        }
+
+        function tryGetAppInfo() {
+            var app = Java.use('android.app.ActivityThread').currentApplication();
+            if (app !== null) {
+                var context = app.getApplicationContext();
+                if (context !== null && packageName === null && currentTime === null) {
+                    packageName = context.getPackageName();
+                    currentTime = Math.floor(Date.now() / 1000);
+
+                    // Log any buffered keys now that packageName and currentTime are set
+                    logBufferedKeys();
+                } else if (packageName === null || currentTime === null) {
+                    console.log('Waiting for application context...');
+                    setTimeout(tryGetAppInfo, 1000); // Retry after 1 second
+                }
+            } else {
+                console.log('Application is not initialized yet, retrying...');
+                setTimeout(tryGetAppInfo, 1000); // Retry after 1 second
+            }
+        }
+
+        // Setup native hooks immediately to start capturing keys
+        setupNativeHooks();
+
+        // Attempt to get application info and log buffered keys when ready
+        tryGetAppInfo();
+"
+}

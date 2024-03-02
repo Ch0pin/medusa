@@ -1,0 +1,46 @@
+{
+    "Name": "system_server/registered_receivers",
+    "Description": "System hooks for the system_server, class:com.android.server.am.ActivityManagerService.",
+    "Help": "Use by attaching to system_server",
+    "Code": "
+    
+console.log('\\n------------Registered broadcast receivers logger by @Ch0pin--------------')
+    
+let hook_1709301546 = Java.use('com.android.server.am.ActivityManagerService');
+let overloadCount_1709301546 = hook_1709301546['registerReceiverWithFeature'].overloads.length;
+
+
+function printActions(intentFilter){
+    let actions = [];
+    intentFilter.mActions.value.toArray().forEach(function(action) {
+      actions.push(Java.cast(action, Java.use('java.lang.String')).toString());
+    });
+    
+    console.log('\\t\\\\_[i] Actions: ' + JSON.stringify(actions));
+  }
+
+
+for (let i = 0; i < overloadCount_1709301546; i++) {
+    hook_1709301546['registerReceiverWithFeature'].overloads[i].implementation = function() {
+        colorLog('\\n________  [▶︎] Entering: [com.android.server.am.ActivityManagerService.registerReceiverWithFeature]:', { c: Color.Green });
+
+        colorLog('\\t\\\\_[i] Caller package: ' + arguments[1],{ c: Color.Cyan});
+
+        if(arguments[3])
+            console.log('\\t\\\\_[i] Receiver ID: ' + arguments[3]);
+        if(arguments[5])
+            printActions(arguments[5]);
+        if(arguments[6])
+            console.log('\\t\\\\_[i] Permission: ' + arguments[6]);
+
+        let retval = this['registerReceiverWithFeature'].apply(this, arguments);
+        console.log('\\t\\\\_Returns: '+retval);
+        colorLog('          [◀] Exiting [com.android.server.am.ActivityManagerService.registerReceiverWithFeature]', { c: Color.Green });
+
+        return retval;
+    }
+} 
+
+
+    "
+}

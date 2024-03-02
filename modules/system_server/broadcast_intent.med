@@ -1,0 +1,48 @@
+{
+    "Name": "system_server/broadcast_intent",
+    "Description": "System hooks for the system_server, class: com.android.server.am.ActivityManagerService",
+    "Help": "Use by attaching to system_server",
+    "Code": "
+    
+console.log('\\n------------Registered broadcast receivers logger by @Ch0pin--------------')
+    
+let hook_1709301547 = Java.use('com.android.server.am.ActivityManagerService');
+
+
+// let overloadCount_1709301547 = hook_1709301547['broadcastIntentWithFeature'].overloads.length;
+
+// for (let i = 0; i < overloadCount_1709301547; i++) {
+//     hook_1709301547['broadcastIntentWithFeature'].overloads[i].implementation = function() {
+//         colorLog('\\n[ ▶︎▶︎▶︎] Entering:  com.android.server.am.ActivityManagerService.broadcastIntentWithFeature', { c: Color.Red });
+//         if(arguments[2])
+//             colorLog('\\t\\\\_[i] Broadcasting intent: ' + dumpIntent(arguments[2]),{ c: Color.Cyan});
+
+
+//         let retval = this['broadcastIntentWithFeature'].apply(this, arguments);
+//         colorLog('[ ◀︎◀︎◀︎ ] Exiting ' + ' com.android.server.am.ActivityManagerService.broadcastIntentWithFeature', { c: Color.Red });
+//         console.log('\\t\\\\_Returns: '+retval+'\\n');
+//         return retval;
+//     }
+// } 
+
+
+hook_1709301547['broadcastIntentLocked'].overloads[1].implementation = function() {
+    colorLog('\\n[ ▶︎▶︎▶︎] Entering:  com.android.server.am.ActivityManagerService.broadcastIntentLocked', { c: Color.Red });
+    if(arguments[1])
+        colorLog('\\t\\\\_[i] Caller package: ' + arguments[1],{ c: Color.Cyan});
+
+    if(arguments[3])
+        colorLog('\\t\\\\_[i] Broadcasting intent: ' + dumpIntent(arguments[3]),{ c: Color.Cyan});
+
+
+    let retval = this['broadcastIntentLocked'].apply(this, arguments);
+    colorLog('[ ◀︎◀︎◀︎ ] Exiting ' + ' com.android.server.am.ActivityManagerService.broadcastIntentLocked', { c: Color.Red });
+    console.log('\\t\\\\_Returns: '+retval+'\\n');
+    return retval;
+
+} 
+
+
+
+    "
+}

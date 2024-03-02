@@ -1,7 +1,7 @@
 {
     "Name": "http_communications/openssl_boringssl_key_capture",
     "Description": "Capture TLS keys from OpenSSL/BoringSSL",
-    "Help": "",
+    "Help": "After running the app, the TLS keys are stored in the medusa's root directory with the name tlskeylog-<package-name>-<unix-time>.txt",
     "Code": "
         // Code based on https://github.com/fkie-cad/friTap/
 

@@ -1,0 +1,11 @@
+.vscode/
+dump/
+recipes/
+modules/private_modules/
+*/__pycache__/
+
+vt.key
+.DS_Store
+
+*.apk
+*.jar

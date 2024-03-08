@@ -8,7 +8,7 @@ console.log('\\n------------Registered broadcast receivers logger by @Ch0pin----
     
 let hook_1709301546 = Java.use('com.android.server.am.ActivityManagerService');
 let overloadCount_1709301546 = hook_1709301546['registerReceiverWithFeature'].overloads.length;
-
+let filter_1709301546 ='';
 
 function printActions(intentFilter){
     let actions = [];
@@ -22,6 +22,8 @@ function printActions(intentFilter){
 
 for (let i = 0; i < overloadCount_1709301546; i++) {
     hook_1709301546['registerReceiverWithFeature'].overloads[i].implementation = function() {
+        if(filter_1709301546 !=='' && arguments[1]!=filter_1709301546)
+            return this['registerReceiverWithFeature'].apply(this, arguments);
         colorLog('\\n________  [▶︎] Entering: [com.android.server.am.ActivityManagerService.registerReceiverWithFeature]:', { c: Color.Green });
 
         colorLog('\\t\\\\_[i] Caller package: ' + arguments[1],{ c: Color.Cyan});

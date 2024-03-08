@@ -19,14 +19,15 @@ GREEN = "\033[0;32m"
 RESET = "\033[0;0m"
 BOLD = "\033[;1m"
 REVERSE = "\033[;7m"
-
+agent_script = "agent.js"
+scratchpad_module = 'modules/scratchpad.med'
 medusa_logo="""
     ███╗   ███╗███████╗██████╗ ██╗   ██╗███████╗ █████╗ 
     ████╗ ████║██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗    
     ██╔████╔██║█████╗  ██║  ██║██║   ██║███████╗███████║
     ██║╚██╔╝██║██╔══╝  ██║  ██║██║   ██║╚════██║██╔══██║
     ██║ ╚═╝ ██║███████╗██████╔╝╚██████╔╝███████║██║  ██║
-    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (Android) Version: 2.4.6 (dev)  
+    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (Android) Version: dev  
                                     
  🪼 Type help for options 🪼 \n\n
 """
@@ -210,7 +211,7 @@ class Parser(cmd2.Cmd):
             else:
                 hooks.append(epilog)
 
-            with open(os.path.join(self.base_directory, 'agent.js'), 'w') as agent:
+            with open(os.path.join(self.base_directory, agent_script), 'w') as agent:
                 for hook_line in hooks:
                     agent.write('%s\n' % hook_line)
             if rs:
@@ -303,12 +304,12 @@ class Parser(cmd2.Cmd):
         """
         Exit MEDUSA
         """
-        agent_path = os.path.join(self.base_directory, 'agent.js')
-        scratchpad_path = os.path.join(self.base_directory, 'modules/scratchpad.med')
+        agent_path = os.path.join(self.base_directory, agent_script)
+        scratchpad_path = os.path.join(self.base_directory, scratchpad_module)
 
         if os.path.getsize(agent_path) != 0:
             if Polar('Do you want to reset the agent script?').ask():
-                open(os.path.join(self.base_directory, 'agent.js'), 'w').close()
+                open(os.path.join(self.base_directory, agent_script), 'w').close()
 
         if os.path.getsize(scratchpad_path) != 119:
             if Polar('Do you want to reset the scratchpad?').ask():
@@ -1650,7 +1651,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
         self.detached = False
         session = self.frida_session_handler(device, force, package_name, pid)
         try:
-            with open(os.path.join(self.base_directory, "agent.js")) as f:
+            with open(os.path.join(self.base_directory, agent_script)) as f:
                 self.script = session.create_script(f.read())
 
             session.on('detached', self.on_detached)
@@ -1676,7 +1677,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
 
             if self.script:
                 self.script.unload()
-            open(os.path.join(self.base_directory, 'agent.js'), 'w').close()
+            open(os.path.join(self.base_directory, agent_script), 'w').close()
             self.edit_scratchpad('')
             os.popen(f"adb -s {self.device.id} pull /sdcard/{recording} {os.path.join(os.path.dirname(self.save_to_file), recording)}")
             os.popen(f"adb -s {self.device.id} shell rm /sdcard/{recording}")
@@ -1698,8 +1699,8 @@ Apk Directory: {packageCodePath}\n""" + RESET)
         self.detached = False
         session = self.frida_session_handler(device, force, package_name, pid)
         try:
-            creation_time = self.modification_time(os.path.join(self.base_directory, "agent.js"))
-            with open(os.path.join(self.base_directory, "agent.js")) as f:
+            creation_time = self.modification_time(os.path.join(self.base_directory, agent_script))
+            with open(os.path.join(self.base_directory, agent_script)) as f:
                 self.script = session.create_script(f.read())
 
             session.on('detached', self.on_detached)
@@ -1714,13 +1715,13 @@ Apk Directory: {packageCodePath}\n""" + RESET)
                 if s == 'r':
                     # handle changes during runtime
 
-                    modified_time = self.modification_time(os.path.join(self.base_directory, "agent.js"))
+                    modified_time = self.modification_time(os.path.join(self.base_directory, agent_script))
                     if modified_time != creation_time:
                         print(RED + "Script changed, reloading ...." + RESET)
                         creation_time = modified_time
                         self.reload_script(session)
                         # self.script.unload()
-                        # with open(os.path.join(self.base_directory, "agent.js")) as f:
+                        # with open(os.path.join(self.base_directory, agent_script)) as f:
                         #     self.script = session.create_script(f.read())
                         # session.on('detached',self.on_detached)
                         # self.script.on("message",self.my_message_handler)  # register the message handler
@@ -1817,7 +1818,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
 
     def reload_script(self, session) -> None:
         self.script.unload()
-        with open(os.path.join(self.base_directory, "agent.js")) as f:
+        with open(os.path.join(self.base_directory, agent_script)) as f:
             self.script = session.create_script(f.read())
             session.on('detached', self.on_detached)
             self.script.on("message", self.my_message_handler)  # register the message handler

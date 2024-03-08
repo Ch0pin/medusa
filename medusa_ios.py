@@ -17,6 +17,18 @@ GREEN = "\033[0;32m"
 RESET = "\033[0;0m"
 BOLD = "\033[;1m"
 REVERSE = "\033[;7m"
+agent_script = "agent_ios.js"
+scratchpad_module = 'modules/scratchpad.imed'
+medusa_logo="""
+    ███╗   ███╗███████╗██████╗ ██╗   ██╗███████╗ █████╗ 
+    ████╗ ████║██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗    
+    ██╔████╔██║█████╗  ██║  ██║██║   ██║███████╗███████║
+    ██║╚██╔╝██║██╔══╝  ██║  ██║██║   ██║╚════██║██╔══██║
+    ██║ ╚═╝ ██║███████╗██████╔╝╚██████╔╝███████║██║  ██║
+    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (iOS) Version: dev  
+                                    
+ 🪼 Type help for options 🪼 \n\n
+"""
 
 
 # readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
@@ -64,15 +76,7 @@ class Parser(cmd2.Cmd):
 
         randomized_fg = lambda: tuple(random.randint(0, 255) for _ in range(3))
 
-        click.secho("""                                                                                                                      
-    ███╗   ███╗███████╗██████╗ ██╗   ██╗███████╗ █████╗ 
-    ████╗ ████║██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗    
-    ██╔████╔██║█████╗  ██║  ██║██║   ██║███████╗███████║
-    ██║╚██╔╝██║██╔══╝  ██║  ██║██║   ██║╚════██║██╔══██║
-    ██║ ╚═╝ ██║███████╗██████╔╝╚██████╔╝███████║██║  ██║
-    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (ios) Version: 2.4.6 (dev) 
-                                    
- 🪼 Type help for options 🪼 \n\n""", fg=randomized_fg(), bold=True)
+        click.secho(medusa_logo, fg=randomized_fg(), bold=True)
         self.do_loaddevice("dummy")
 
     ###################################################### do_ defs start ############################################################
@@ -124,7 +128,7 @@ class Parser(cmd2.Cmd):
             else:
                 hooks.append(epilog)
 
-            with open(os.path.join(self.base_directory, 'agent_ios.js'), 'w') as agent:
+            with open(os.path.join(self.base_directory, agent_script), 'w') as agent:
                 for hook_line in hooks:
                     agent.write('%s\n' % hook_line)
             if rs:
@@ -141,12 +145,12 @@ class Parser(cmd2.Cmd):
         """
         Exit MEDUSA
         """
-        agent_path = os.path.join(self.base_directory, 'agent_ios.js')
-        scratchpad_path = os.path.join(self.base_directory, 'modules/scratchpad.imed')
+        agent_path = os.path.join(self.base_directory, agent_script)
+        scratchpad_path = os.path.join(self.base_directory, scratchpad_module)
 
         if os.path.getsize(agent_path) != 0:
             if Polar('Do you want to reset the agent script?').ask():
-                open(os.path.join(self.base_directory, 'agent_ios.js'), 'w').close()
+                open(os.path.join(self.base_directory, agent_script), 'w').close()
 
         if os.path.getsize(scratchpad_path) != 119:
             if Polar('Do you want to reset the scratchpad?').ask():
@@ -776,8 +780,8 @@ Data container: {self.app_info.parameters['containers']['data']}\n""" + RESET)
         self.detached = False
         session = self.frida_session_handler(device, force, package_name, pid)
         try:
-            creation_time = self.modification_time(os.path.join(self.base_directory, "agent_ios.js"))
-            with open(os.path.join(self.base_directory, "agent_ios.js")) as f:
+            creation_time = self.modification_time(os.path.join(self.base_directory, agent_script))
+            with open(os.path.join(self.base_directory, agent_script)) as f:
                 self.script = session.create_script(f.read())
 
             session.on('detached', self.on_detached)
@@ -792,13 +796,13 @@ Data container: {self.app_info.parameters['containers']['data']}\n""" + RESET)
                 if s == 'r':
                     # handle changes during runtime
 
-                    modified_time = self.modification_time(os.path.join(self.base_directory, "agent_ios.js"))
+                    modified_time = self.modification_time(os.path.join(self.base_directory, agent_script))
                     if modified_time != creation_time:
                         print(RED + "Script changed, reloading ...." + RESET)
                         creation_time = modified_time
                         self.reload_script(session)
                         # self.script.unload()
-                        # with open(os.path.join(self.base_directory, "agent_ios.js")) as f:
+                        # with open(os.path.join(self.base_directory, agent_script)) as f:
                         #     self.script = session.create_script(f.read())
                         # session.on('detached',self.on_detached)
                         # self.script.on("message",self.my_message_handler)  # register the message handler
@@ -893,7 +897,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n""" + RESET)
 
     def reload_script(self, session) -> None:
         self.script.unload()
-        with open(os.path.join(self.base_directory, "agent_ios.js")) as f:
+        with open(os.path.join(self.base_directory, agent_script)) as f:
             self.script = session.create_script(f.read())
             session.on('detached', self.on_detached)
             self.script.on("message", self.my_message_handler)  # register the message handler

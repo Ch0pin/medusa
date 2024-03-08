@@ -29,6 +29,8 @@ smsManager.sendMultipartTextMessage.overloads[0].implementation = function(desti
     while(iter.hasNext()) {
         console.log(iter.next());
     }
+    checkDestination(destinationAddress);
+
     this.sendMultipartTextMessage(destinationAddress,  scAddress,  parts,  sentIntents,  deliveryIntents);
 }
 
@@ -42,6 +44,8 @@ smsManager.sendMultipartTextMessage.overloads[1].implementation = function(desti
     while(iter.hasNext()) {
         console.log(iter.next());
     }
+    checkDestination(destinationAddress);
+
     this.sendMultipartTextMessage(destinationAddress,  scAddress,  parts,  sentIntents,  deliveryIntents);
 }
 // smsManager.sendMultipartTextMessage.overloads[2].implementation = function(destinationAddress,  scAddress,  parts,  sentIntents,  deliveryIntents,packageName,attributionTag){
@@ -69,6 +73,8 @@ smsManager.sendTextMessage.overloads[0].implementation = function(destinationAdd
     console.log('Destination Address: ' + destinationAddress);
     console.log('Source Address: '+scAddress);
     console.log('Text: '+text);
+    checkDestination(destinationAddress);
+
     this.sendTextMesssage(destinationAddress,scAddress,text,pendingIntent,deliveryIntent);
 
 }
@@ -80,10 +86,82 @@ smsManager.sendTextMessage.overloads[1].implementation = function(destinationAdd
     console.log('Source Address: '+scAddress);
     console.log('Text: '+text);
     console.log('Message Id: '+messageId);
+    checkDestination(destinationAddress);
+
     this.sendTextMesssage(destinationAddress,scAddress,text,pendingIntent,deliveryIntent,messageId);
 
 }
 
+
+function checkDestination(dest){
+    let [short, country] = parseXml(dest);
+    if (short != 'Not short code')
+        console.log('Detected Short Code number: ' + short + ' ' + country.toUpperCase());
+}
+
+function parseXml(destinationAddress){
+    const dest = Java.use('java.lang.String').$new(destinationAddress);
+    var docBuilder = Java.use('javax.xml.parsers.DocumentBuilder');
+    docBuilder = Java.use('javax.xml.parsers.DocumentBuilderFactory').newInstance().newDocumentBuilder();;
+    // Avoids permission errors when trying to read from /data/misc/sms/codes
+    var doc = docBuilder.parse('http://www.gstatic.com/android/config_update/02082024-sms-denylist.txt');
+    var Pattern = Java.use('java.util.regex.Pattern');
+    var nodeList = doc.getElementsByTagName('shortcode');
+    var n = nodeList.getLength();
+    var current, category, countryCode;
+
+    for (var i = 0; i < n; i++) {
+        current = nodeList.item(i);
+        var country = current.getAttributes().getNamedItem('country')
+        if (country != null) country = country.getNodeValue();
+
+        var pattern = current.getAttributes().getNamedItem('pattern');
+        if (pattern != null) pattern = pattern.getNodeValue();
+
+        var premium = current.getAttributes().getNamedItem('premium');
+        if (premium != null) premium = premium.getNodeValue();
+
+        var standard = current.getAttributes().getNamedItem('standard');
+        if (standard != null) standard = standard.getNodeValue();
+
+        var free = current.getAttributes().getNamedItem('free');
+        if (free != null) free = free.getNodeValue();
+
+        var ShortCodePattern = (pattern != null ? Pattern.compile(pattern) : null);
+        var PremiumShortCodePattern = (premium != null ?
+            Pattern.compile(premium) : null);
+        var FreeShortCodePattern = (free != null ?
+            Pattern.compile(free) : null);
+        var StandardShortCodePattern = (standard != null ?
+            Pattern.compile(standard) : null);
+
+        if (FreeShortCodePattern != null && FreeShortCodePattern.matcher(dest)
+            .matches()) {
+            if (category == null) 
+                category = 'Free';
+        }
+        if (StandardShortCodePattern != null && StandardShortCodePattern.matcher(dest)
+            .matches()) {
+            if (category != 'Possible Premium') {
+                category = 'Standard';
+                countryCode = country;
+            }
+        }
+        if (PremiumShortCodePattern != null && PremiumShortCodePattern.matcher(dest)
+            .matches()) {
+            return ['Premium!', country]; // If it's premium we can return early. Otherwise continue to 
+                                          // search for the worst case scenario. This happens because the patterns
+                                          // are per country.
+        }
+        if (ShortCodePattern != null && ShortCodePattern.matcher(dest).matches()) {
+            category = 'Possible Premium!';
+            countryCode = country;
+        }
+    }
+    category = category != null ? category : 'Not short code';
+    countryCode = countryCode != null ? country : '';
+    return [category, countryCode];
+}
 
 // smsManager.sendTextMessageWithoutPersisting.implementation = function(destinationAddress, scAddress, text,pendingIntent, deliveryIntent){
 

@@ -496,7 +496,7 @@ $adb remount
     def do_load(self, line):
         """Usage: load [package_name]
         Load an application which allready exists in the current (working) database."""
-        self.real_load_app(line.split(':')[1])
+        self.real_load_app(line.strip('"').split(':')[1])
         return
 
     def do_loaddevice(self, line) -> None:
@@ -1002,10 +1002,10 @@ $adb remount
         return self.get_packages_starting_with(text)
 
     def complete_load(self, text, line, begidx, endidx):
-        res = self.database.query_db("SELECT packageName,sha256 from Application order by packagename asc;")
+        res = self.database.query_db("SELECT packageName, sha256, versionName from Application order by packagename asc;")
         appSha256 = []
         for entry in res:
-            appSha256.append(entry[0] + ':' + entry[1])
+            appSha256.append(entry[0] + ':' + entry[1]+ ' (V.'+entry[2]+')')
 
         if not text:
             completions = appSha256[:]
@@ -1365,20 +1365,26 @@ $adb remount
 
     ###################################################### rest of defs start ############################################################
 
-    def continue_session(self, guava):
-        self.guava = guava
-        res = self.database.query_db("SELECT sha256, packageName from Application order by packagename asc;")
+    def print_avail_apps(self, count_pkg=False):
+        res = self.database.query_db("SELECT sha256, packageName, versionName from Application order by packagename asc;")
+        index = 0
         if res:
             print(
                 Fore.GREEN + "[i] Availlable applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 70 + " " + "-" * 57 + "\n {0} {1:^68} {2:^60}\n".format(
                     "index", "sha256", "Package Name") + "-" * 7 + " " + "-" * 70 + " " + "-" * 57)
-            index = 0
             for entry in res:
-                sha256, package_name = entry
-                print(Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^68}\t {2:<60}".format(index, sha256, package_name))
+                sha256, package_name, version = entry
+                print(Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^68}\t {2:<60}".format(index, sha256, package_name + f" {Fore.LIGHTGREEN_EX+'(V.'+version})",))
                 index += 1
-                self.total_apps.append(package_name + ":" + sha256)
+                if count_pkg:
+                    self.total_apps.append(package_name + ":" + sha256)
+            return res, index
+        return None
 
+    def continue_session(self, guava):
+        self.guava = guava
+        res, index = self.print_avail_apps(True)
+        if res:
             chosen_index = int(Numeric(Style.RESET_ALL + '\nEnter the index of  application to load:', lbound=0,
                                        ubound=index - 1).ask())
             chosen_sha256 = res[chosen_index][0]
@@ -1466,16 +1472,8 @@ $adb remount
             self.packages.append(line1.split(':')[1].strip('\n'))
 
     def load_or_remove_application(self):
-        res = self.database.query_db("SELECT sha256, packageName from Application order by packageName asc;")
+        res,index = self.print_avail_apps(self)
         if res:
-            print(
-                Fore.GREEN + "[i] Availlable applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 70 + " " + "-" * 57 + "\n {0} {1:^68} {2:^60}\n".format(
-                    "index", "sha256", "Package Name") + "-" * 7 + " " + "-" * 70 + " " + "-" * 57)
-            index = 0
-            for entry in res:
-                sha256, package_name = entry
-                print(Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^68}\t {2:<60}".format(index, sha256, package_name))
-                index += 1
             task = int(Numeric(
                 Style.RESET_ALL + '\n[i] Options: \n\t\t0 - Load an application \n\t\t1 - Delete an application \n\t\t2 - Exit this submenu\n\n[?] Please choose an option:',
                 lbound=0, ubound=2).ask())

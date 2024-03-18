@@ -3,7 +3,8 @@
     "Description": "Use this module to monitor file input stream operations",
     "Help": "https://docs.oracle.com/javase/7/docs/api/java/io/FileInputStream.html",
     "Code": "
-console.log('-------file input stream operations monitor by @chopin--------------');
+{
+      console.log('-------file input stream operations monitor by @chopin--------------');
 
       var fileInputStream= Java.use('java.io.FileInputStream');
 
@@ -26,5 +27,6 @@ console.log('-------file input stream operations monitor by @chopin-------------
         
         return this.$init(name);
       }
+  }
 "
 }

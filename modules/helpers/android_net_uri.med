@@ -5,75 +5,75 @@
     "Code": "
 console.log('\\n----------URI parsing monitor by @ch0p1n------------');
 
-var Uri = Java.use('android.net.Uri'); 
-
-const commonSchemes = ['http', 'https', 'content', 'file', 'android-app'];
-
-var currentUri = '';
-
-Uri.getQueryParameter.implementation = function(key)
 {
-    var retval = this.getQueryParameter(key);
+  var Uri = Java.use('android.net.Uri'); 
+
+  const commonSchemes = ['http', 'https', 'content', 'file', 'android-app'];
+
+  var currentUri = '';
+
+  Uri.getQueryParameter.implementation = function(key)
+  {
+      var retval = this.getQueryParameter(key);
+      if (currentUri == this.toString()){}
+      else
+      {
+        currentUri = this.toString();
+        colorLog('[+] getQueryParameter for Uri: '+currentUri,{c: Color.Green})
+      }
+
+      if(filterKeyWords.some(word => key.toString().toLowerCase().includes(word)))
+        colorLog('\t\\\\_key:'+key+', value:'+retval, {c: Color.Red});
+      else
+        console.log('\t\\\\_key:'+key+', value:'+retval);
+      return retval;
+  }
+
+  Uri.getQueryParameters.implementation = function(key){
+    var retval = this.getQueryParameters(key);
     if (currentUri == this.toString()){}
     else
     {
       currentUri = this.toString();
-      colorLog('[+] getQueryParameter for Uri: '+currentUri,{c: Color.Green})
+      colorLog('[+] getQueryParameters for Uri: '+currentUri,{c: Color.Green})
     }
-
-    if(filterKeyWords.some(word => key.toString().toLowerCase().includes(word)))
-      colorLog('\t\\\\_key:'+key+', value:'+retval, {c: Color.Red});
-    else
-      console.log('\t\\\\_key:'+key+', value:'+retval);
-    return retval;
-}
-
-Uri.getQueryParameters.implementation = function(key){
-  var retval = this.getQueryParameters(key);
-  if (currentUri == this.toString()){}
-  else
-  {
-    currentUri = this.toString();
-    colorLog('[+] getQueryParameters for Uri: '+currentUri,{c: Color.Green})
+      if(filterKeyWords.some(word => key.toString().toLowerCase().includes(word)))
+        colorLog('\t\\\\_key:'+key+', value:'+retval, {c: Color.Red});
+      else
+        console.log('\t\\\\_key:'+key+', value:'+retval);
+      return retval;
   }
-    if(filterKeyWords.some(word => key.toString().toLowerCase().includes(word)))
-      colorLog('\t\\\\_key:'+key+', value:'+retval, {c: Color.Red});
+
+  Uri.parse.implementation = function(uriString){
+    var ret = this.parse(uriString);
+    if(commonSchemes.includes(ret.getScheme()))
+      log('[+] Uri parse with Uri String: '+uriString)
     else
-      console.log('\t\\\\_key:'+key+', value:'+retval);
-    return retval;
+      styleLog('[+] Uri with custom scheme: '+uriString,['custom scheme:',uriString.split(':/')[0]],StyleLogColorset.cyan,StyleLogColorset.black);
+
+    return ret;
+  }
+
+  Uri.getAuthority.implementation = function(key){
+    var ret = this.getAuthority();
+    colorLog('[+] getAuthority for Uri: '+this,{c: Color.Green})
+    console.log('\t\\_returns:'+ret);
+    return ret;
+  }
+
+  Uri.getHost.implementation = function(key){
+    var ret = this.getHost();
+    colorLog('[+] getHost for Uri: '+this,{c: Color.Green})
+    console.log('\t\\_returns:'+ret);
+    return ret;
+  }
+
+  Uri.getScheme.implementation = function(key){
+    var ret = this.getScheme();
+    colorLog('[+] getScheme for Uri: '+this,{c: Color.Cyan})
+    console.log('\t\\_returns:'+ret);
+    return ret;
+  }
 }
-
-Uri.parse.implementation = function(uriString){
-  var ret = this.parse(uriString);
-  if(commonSchemes.includes(ret.getScheme()))
-    log('[+] Uri parse with Uri String: '+uriString)
-  else
-    styleLog('[+] Uri with custom scheme: '+uriString,['custom scheme:',uriString.split(':/')[0]],StyleLogColorset.cyan,StyleLogColorset.black);
-
-  return ret;
-}
-
-Uri.getAuthority.implementation = function(key){
-  var ret = this.getAuthority();
-  colorLog('[+] getAuthority for Uri: '+this,{c: Color.Green})
-  console.log('\t\\_returns:'+ret);
-  return ret;
-}
-
-Uri.getHost.implementation = function(key){
-  var ret = this.getHost();
-  colorLog('[+] getHost for Uri: '+this,{c: Color.Green})
-  console.log('\t\\_returns:'+ret);
-  return ret;
-}
-
-Uri.getScheme.implementation = function(key){
-  var ret = this.getScheme();
-  colorLog('[+] getScheme for Uri: '+this,{c: Color.Cyan})
-  console.log('\t\\_returns:'+ret);
-  return ret;
-}
-
-
 "
 }

@@ -5,159 +5,179 @@
     "Code": "
 console.log('\\n----Loading toll fraud Hooks by @ch0pin-----');
 
+{
+    var wifiManager = Java.use(\"android.net.wifi.WifiManager\");
+    var telephonyManager = Java.use('android.telephony.TelephonyManager');
 
-var wifiManager = Java.use(\"android.net.wifi.WifiManager\");
-var telephonyManager = Java.use('android.telephony.TelephonyManager');
+    telephonyManager.getNetworkOperator.overload().implementation = function(){
+        console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperator detected');
+        return this.getNetworkOperator();
+    }
+    telephonyManager.getNetworkOperator.overload('int').implementation = function(a){
+        console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperator detected');
+        return this.getNetworkOperator();
+    }
+    telephonyManager.getNetworkOperatorName.overload().implementation = function(){
+        console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperatorName detected');
+        return this.getNetworkOperatorName();
 
-telephonyManager.getNetworkOperator.overload().implementation = function(){
-	console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperator detected');
-	return this.getNetworkOperator();
-}
-telephonyManager.getNetworkOperator.overload('int').implementation = function(a){
-	console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperator detected');
-	return this.getNetworkOperator();
-}
-telephonyManager.getNetworkOperatorName.overload().implementation = function(){
-    console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperatorName detected');
-    return this.getNetworkOperatorName();
+    }
+    telephonyManager.getNetworkOperatorName.overload('int').implementation = function(a){
+        console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperatorName detected');
+        return this.getNetworkOperatorName(a);
 
-}
-telephonyManager.getNetworkOperatorName.overload('int').implementation = function(a){
-    console.log('[!] A call to android.telephony.TelephonyManager.getNetworkOperatorName detected');
-    return this.getNetworkOperatorName(a);
+    }
+    telephonyManager.getDataNetworkType.overload().implementation = function(){
+        console.log('[!] A call to android.telephony.TelephonyManager.getDataNetworkType detected');
+        return this.getDataNetworkType();
 
-}
-telephonyManager.getDataNetworkType.overload().implementation = function(){
-    console.log('[!] A call to android.telephony.TelephonyManager.getDataNetworkType detected');
-    return this.getDataNetworkType();
+    }
+    telephonyManager.getDataNetworkType.overload('int').implementation = function(a){
+        console.log('[!] A call to android.telephony.TelephonyManager.getDataNetworkType detected');
+        return this.getDataNetworkType();
 
-}
-telephonyManager.getDataNetworkType.overload('int').implementation = function(a){
-    console.log('[!] A call to android.telephony.TelephonyManager.getDataNetworkType detected');
-    return this.getDataNetworkType();
-
-}
-
-
-		
-telephonyManager.getSimOperator.overload().implementation = function(){
-	console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
-	return this.getSimOperator();
-}
-
-telephonyManager.getSimOperator.overload('int').implementation = function(sm){
-	console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
-	return this.getSimOperator(sm);
-}
-
-telephonyManager.getLine1Number.overloads[0].implementation = function() {
-	colorLog('[+] Application is fetching the phone number',{c: Color.Green});
-	return this.getMediaProjection(resultCode,resultData);
-}
+    }
 
 
-wifiManager.setWifiEnabled.implementation = function(enabled){
-	if(enabled == false)
-		colorLog('[!] Application is disabling the WiFi',{ c: Color.Red });
-	else
-		colorLog('[!] A call to android.net.wifi.WifiManager.setWifiEnabled detected',{c: Color.Red});
+            
+    telephonyManager.getSimOperator.overload().implementation = function(){
+        console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
+        return this.getSimOperator();
+    }
 
-	return this.setWifiEnabled(enabled);
-}
-    
+    telephonyManager.getSimOperator.overload('int').implementation = function(sm){
+        console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
+        return this.getSimOperator(sm);
+    }
 
-console.log('\\n----Loading click_fraud Hooks by @ch0pin-----');
-
-
-var viewClassHook = Java.use('android.view.View');
-var motionEvent = Java.use('android.view.MotionEvent');
-var webView = Java.use('android.webkit.WebView');
-var appInstrumentation = Java.use('android.app.Instrumentation');
+    telephonyManager.getLine1Number.overloads[0].implementation = function() {
+        colorLog('[+] Application is fetching the phone number',{c: Color.Green});
+        return this.getMediaProjection(resultCode,resultData);
+    }
 
 
-appInstrumentation.sendPointerSync.implementation = function(motionEvent){
-    colorLog('[+] Send Pointer Sync called ',{c:Color.Green} );
-    return this.sendPointerSync(motionEvent);
-}
+    wifiManager.setWifiEnabled.implementation = function(enabled){
+        if(enabled == false)
+            colorLog('[!] Application is disabling the WiFi',{ c: Color.Red });
+        else
+            colorLog('[!] A call to android.net.wifi.WifiManager.setWifiEnabled detected',{c: Color.Red});
 
-viewClassHook.dispatchTouchEvent.implementation = function(motionEvent){
-    //printBacktrace();
-    colorLog('[+] Dispatch touch event called on '+this.toString(),{c:Color.Green} );
-    return this.dispatchTouchEvent(motionEvent);
-}
+        return this.setWifiEnabled(enabled);
+    }
+        
 
-webView.addJavascriptInterface.implementation = function(object, name){
-    console.log('[i] Javascript interface detected:' + object.$className + ' instatiated as' + name);
-    this.addJavascriptInterface(object,name);
-}
+    console.log('\\n----Loading click_fraud Hooks by @ch0pin-----');
 
 
-webView.evaluateJavascript.implementation = function(script, resultCallback){
-    console.log('[i] evaluateJavascript called with the following script: '+script);
-    this.evaluateJavascript(script,resultCallback);
-}
-
-webView.getUrl.implementation = function(){
-    console.log('[i] Current Loaded url:' + this.getUrl());
-    return this.getUrl();
-}
-
-webView.loadData.implementation = function(data,mimeType, encoding){
-    console.log('[i] Load data called with the following parameters:\\n' + 'Data:' + data + '\\nMime type: '+mimeType+'\\nEncoding: '+ encoding);
-    this.loadData(data,mimeType,encoding);
-}
-
-webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,  encoding,  historyUrl){
-    console.log('[i] loadDataWithBaseURL call detected, having the following parameters:'+
-    '\\nBaseUrl: ' + baseUrl +
-    '\\nData: ' + data+
-    '\\nmimeType: ' + mimeType+
-    '\\nhistory URL' + historyUrl);
-
-    this.loadDataWithBaseURL(baseUrl,data,mimeType,encoding,historyUrl);
-}
-
-webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
-    console.log('[i] Loading URL: ' + url);
-    this.loadUrl(url,additionalHttpHeaders);
-}
+    var viewClassHook = Java.use('android.view.View');
+    var motionEvent = Java.use('android.view.MotionEvent');
+    var webView = Java.use('android.webkit.WebView');
+    var appInstrumentation = Java.use('android.app.Instrumentation');
 
 
-webView.loadUrl.overload('java.lang.String').implementation = function(url){
-    console.log('[i] Loading URL:' + url);
-    this.loadUrl(url);
-}
+    appInstrumentation.sendPointerSync.implementation = function(motionEvent){
+        colorLog('[+] Send Pointer Sync called ',{c:Color.Green} );
+        return this.sendPointerSync(motionEvent);
+    }
+
+    viewClassHook.dispatchTouchEvent.implementation = function(motionEvent){
+        //printBacktrace();
+        colorLog('[+] Dispatch touch event called on '+this.toString(),{c:Color.Green} );
+        return this.dispatchTouchEvent(motionEvent);
+    }
+
+    webView.addJavascriptInterface.implementation = function(object, name){
+        console.log('[i] Javascript interface detected:' + object.$className + ' instatiated as' + name);
+        this.addJavascriptInterface(object,name);
+    }
 
 
-webView.setWebViewClient.implementation = function(client){
-    console.log('Webview client: ' + client.$className);
-    this.setWebViewClient(client);
-}
+    webView.evaluateJavascript.implementation = function(script, resultCallback){
+        console.log('[i] evaluateJavascript called with the following script: '+script);
+        this.evaluateJavascript(script,resultCallback);
+    }
+
+    webView.getUrl.implementation = function(){
+        console.log('[i] Current Loaded url:' + this.getUrl());
+        return this.getUrl();
+    }
+
+    webView.loadData.implementation = function(data,mimeType, encoding){
+        console.log('[i] Load data called with the following parameters:\\n' + 'Data:' + data + '\\nMime type: '+mimeType+'\\nEncoding: '+ encoding);
+        this.loadData(data,mimeType,encoding);
+    }
+
+    webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,  encoding,  historyUrl){
+        console.log('[i] loadDataWithBaseURL call detected, having the following parameters:'+
+        '\\nBaseUrl: ' + baseUrl +
+        '\\nData: ' + data+
+        '\\nmimeType: ' + mimeType+
+        '\\nhistory URL' + historyUrl);
+
+        this.loadDataWithBaseURL(baseUrl,data,mimeType,encoding,historyUrl);
+    }
+
+    webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
+        console.log('[i] Loading URL: ' + url);
+        this.loadUrl(url,additionalHttpHeaders);
+    }
 
 
+    webView.loadUrl.overload('java.lang.String').implementation = function(url){
+        console.log('[i] Loading URL:' + url);
+        this.loadUrl(url);
+    }
 
 
-
-//--------------------------------------------------------
-
-motionEvent.obtain.overload().implementation = function(){
-    console.log(\"MotionEvent called without paremeters\");
-    return this.obtain();
-}
-
-
-motionEvent.obtain.overload('android.view.MotionEvent').implementation = function(motionEv){
-
-    console.log('A new MotionEvent, copied from an existing one:' + motionEv.$className);
-    return this.obtain(motionEv);
-
-}
+    webView.setWebViewClient.implementation = function(client){
+        console.log('Webview client: ' + client.$className);
+        this.setWebViewClient(client);
+    }
 
 
 
 
 
-motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'int').implementation = function(downTime,eventTime,action,x,y,metastate){
+    //--------------------------------------------------------
+
+    motionEvent.obtain.overload().implementation = function(){
+        console.log(\"MotionEvent called without paremeters\");
+        return this.obtain();
+    }
+
+
+    motionEvent.obtain.overload('android.view.MotionEvent').implementation = function(motionEv){
+
+        console.log('A new MotionEvent, copied from an existing one:' + motionEv.$className);
+        return this.obtain(motionEv);
+
+    }
+
+
+
+
+
+    motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'int').implementation = function(downTime,eventTime,action,x,y,metastate){
+        var actionType ='';
+        if(action == '0'){
+            actionType = 'ACTION_DOWN';
+        }
+        else if(action == '1'){
+            actionType = 'ACTION_UP'
+        }
+        else actionType = action.toString();
+        console.log('Motion event detected using the following parameters:'
+        + '\\ndownTime: '+downTime
+        + '\\neventTime: '+eventTime
+        + '\\naction: '+actionType
+        + '\\nx: '+x
+        + '\\ny: '+y
+        + '\\nmetastate: '+metastate);
+        return this.obtain(downTime, eventTime, action,x,y,metastate);
+    }
+
+    motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'float', 'float', 'int', 'float', 'float', 'int', 'int').implementation = function(downTime, eventTime, action,x,y,pressure,size,metastate,xPrecission,yPrecission,deviceId,edgeFlags){
+    // downTime, eventTime, action,x,y,pressure,size,metastate,xPrecission,yPrecission,deviceId,edgeFlags
     var actionType ='';
     if(action == '0'){
         actionType = 'ACTION_DOWN';
@@ -166,123 +186,104 @@ motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'int').impl
         actionType = 'ACTION_UP'
     }
     else actionType = action.toString();
-    console.log('Motion event detected using the following parameters:'
-    + '\\ndownTime: '+downTime
-    + '\\neventTime: '+eventTime
-    + '\\naction: '+actionType
-    + '\\nx: '+x
-    + '\\ny: '+y
-    + '\\nmetastate: '+metastate);
-    return this.obtain(downTime, eventTime, action,x,y,metastate);
-}
-
-motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'float', 'float', 'int', 'float', 'float', 'int', 'int').implementation = function(downTime, eventTime, action,x,y,pressure,size,metastate,xPrecission,yPrecission,deviceId,edgeFlags){
-   // downTime, eventTime, action,x,y,pressure,size,metastate,xPrecission,yPrecission,deviceId,edgeFlags
-   var actionType ='';
-   if(action == '0'){
-       actionType = 'ACTION_DOWN';
-   }
-   else if(action == '1'){
-       actionType = 'ACTION_UP'
-   }
-   else actionType = action.toString();
-    console.log('Motion event detected using the following parameters:'
-    + '\\ndownTime: '+downTime
-    + '\\neventTime: '+eventTime
-    + '\\naction: '+actionType
-    + '\\nx: '+x
-    + '\\ny: '+y
-    + '\\npressure: '+pressure
-    + '\\nsize: '+size
-    + '\\nmetastate: '+metastate
-    + '\\nxPrecission: '+xPrecission
-    + '\\nyPrecission: '+yPrecission
-    + '\\ndeviceId: '+deviceId
-    + '\\nedgeFlags: ' + edgeFlags);
-    return this.obtain(downTime, eventTime, action,x,y,pressure,size,metastate,xPrecission,yPrecission,deviceId,edgeFlags);
-}
-
-motionEvent.obtain.overload('long', 'long', 'int', 'int', '[I', '[Landroid.view.MotionEvent$PointerCoords;', 'int', 'float', 'float', 'int', 'int', 'int', 'int').implementation = 
-function(downTime,eventTime,action,pointerCount,pointerIds,pointerCoords,metastate,xPrecission,yPrecission,deviceId,edgeFlags,source,flags){
-    console.log('[!] Motion event detected using obtain which was Deprecated in API level 15');
-    return this.obtain(downTime,eventTime,action,pointerCount,pointerIds,pointerCoords,metastate,xPrecission,yPrecission,deviceId,edgeFlags,source,flags);
-}
-
-motionEvent.obtain.overload('long', 'long', 'int', 'int', 'float', 'float', 'float', 'float', 'int', 'float', 'float', 'int', 'int').implementation = 
-function(downTime,eventTime,action,pointerCount,x,y,pressure,size,metastate,xPrecission,deviceId,edgeFlags){
-    var actionType ='';
-    if(action == '0'){
-        actionType = 'ACTION_DOWN';
+        console.log('Motion event detected using the following parameters:'
+        + '\\ndownTime: '+downTime
+        + '\\neventTime: '+eventTime
+        + '\\naction: '+actionType
+        + '\\nx: '+x
+        + '\\ny: '+y
+        + '\\npressure: '+pressure
+        + '\\nsize: '+size
+        + '\\nmetastate: '+metastate
+        + '\\nxPrecission: '+xPrecission
+        + '\\nyPrecission: '+yPrecission
+        + '\\ndeviceId: '+deviceId
+        + '\\nedgeFlags: ' + edgeFlags);
+        return this.obtain(downTime, eventTime, action,x,y,pressure,size,metastate,xPrecission,yPrecission,deviceId,edgeFlags);
     }
-    else if(action == '1'){
-        actionType = 'ACTION_UP'
+
+    motionEvent.obtain.overload('long', 'long', 'int', 'int', '[I', '[Landroid.view.MotionEvent$PointerCoords;', 'int', 'float', 'float', 'int', 'int', 'int', 'int').implementation = 
+    function(downTime,eventTime,action,pointerCount,pointerIds,pointerCoords,metastate,xPrecission,yPrecission,deviceId,edgeFlags,source,flags){
+        console.log('[!] Motion event detected using obtain which was Deprecated in API level 15');
+        return this.obtain(downTime,eventTime,action,pointerCount,pointerIds,pointerCoords,metastate,xPrecission,yPrecission,deviceId,edgeFlags,source,flags);
     }
-    else actionType = action.toString();
-    console.log('Motion event detected using the following parameters:'
-    + '\\ndownTime: '+downTime
-    + '\\neventTime: '+eventTime
-    + '\\naction: '+actionType
-    + '\\nPointercount: ' + pointerCount
-    + '\\nx: '+x
-    + '\\ny: '+y
-    + '\\npressure: '+pressure
-    + '\\nsize: '+size
-    + '\\nmetastate: '+metastate
-    + '\\nxPrecission: '+xPrecission
-    + '\\nyPrecission: '+yPrecission
-    + '\\ndeviceId: '+deviceId
-    + '\\nedgeFlags: ' + edgeFlags);
-    return this.obtain(downTime,eventTime,action,pointerCount,x,y,pressure,size,metastate,xPrecission,deviceId,edgeFlags);           
-}
-motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'float', 'float', 'int', 'float', 'float', 'int', 'int', 'int', 'int').implementation = function(a,b,c,d,e,f,g,h,i,j,k,l,m,n){
-    console.log('[+] Motion Event detected');
-    return this.obtain(a,b,c,d,e,f,g,h,i,j,k,l,m,n);
-}
 
-motionEvent.obtain.overload('long', 'long', 'int', 'int', '[Landroid.view.MotionEvent$PointerProperties;', '[Landroid.view.MotionEvent$PointerCoords;', 'int', 'int', 'float', 'float', 'int', 'int', 'int', 'int').implementation = 
-function(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,metastate,buttonState,xPrecission,yPrecission,deviceId,edgeFlags,source,flags){
-    var actionType ='';
-    if(action == '0'){
-        actionType = 'ACTION_DOWN';
+    motionEvent.obtain.overload('long', 'long', 'int', 'int', 'float', 'float', 'float', 'float', 'int', 'float', 'float', 'int', 'int').implementation = 
+    function(downTime,eventTime,action,pointerCount,x,y,pressure,size,metastate,xPrecission,deviceId,edgeFlags){
+        var actionType ='';
+        if(action == '0'){
+            actionType = 'ACTION_DOWN';
+        }
+        else if(action == '1'){
+            actionType = 'ACTION_UP'
+        }
+        else actionType = action.toString();
+        console.log('Motion event detected using the following parameters:'
+        + '\\ndownTime: '+downTime
+        + '\\neventTime: '+eventTime
+        + '\\naction: '+actionType
+        + '\\nPointercount: ' + pointerCount
+        + '\\nx: '+x
+        + '\\ny: '+y
+        + '\\npressure: '+pressure
+        + '\\nsize: '+size
+        + '\\nmetastate: '+metastate
+        + '\\nxPrecission: '+xPrecission
+        + '\\nyPrecission: '+yPrecission
+        + '\\ndeviceId: '+deviceId
+        + '\\nedgeFlags: ' + edgeFlags);
+        return this.obtain(downTime,eventTime,action,pointerCount,x,y,pressure,size,metastate,xPrecission,deviceId,edgeFlags);           
     }
-    else if(action == '1'){
-        actionType = 'ACTION_UP'
+    motionEvent.obtain.overload('long', 'long', 'int', 'float', 'float', 'float', 'float', 'int', 'float', 'float', 'int', 'int', 'int', 'int').implementation = function(a,b,c,d,e,f,g,h,i,j,k,l,m,n){
+        console.log('[+] Motion Event detected');
+        return this.obtain(a,b,c,d,e,f,g,h,i,j,k,l,m,n);
     }
-    else actionType = action.toString();
-    console.log('Motion event detected using the following parameters:'
-    + '\\ndownTime: '+downTime
-    + '\\neventTime: '+eventTime
-    + '\\naction: '+actionType
-    + '\\npointerCount: ' + pointerCount
-    + '\\npointerProperties: ' + pointerProperties
-    + '\\npointerCoords: ' + pointerCoords
-    + '\\nmetastate: '+metastate
-    + '\\nbuttonState: '+buttonState
-    + '\\nxPrecission: '+xPrecission
-    + '\\nyPrecission: '+yPrecission
-    + '\\ndeviceId: '+deviceId
-    + '\\nedgeFlags: ' + edgeFlags
-    + '\\nsource: ' + source
-    + '\\nflags: '+flags);
-    return this.obtain(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,metastate,buttonState,xPrecission,yPrecission,deviceId,edgeFlags,source,flags);
-}
-motionEvent.obtain.overload('long', 'long', 'int', 'int', '[Landroid.view.MotionEvent$PointerProperties;', '[Landroid.view.MotionEvent$PointerCoords;', 'int', 'int', 'float', 'float', 'int', 'int', 'int', 'int', 'int').implementation = 
-function(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o){
-    console.log('[+] Motion Event Detected');
-    return this.obtain(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o);
-}
+
+    motionEvent.obtain.overload('long', 'long', 'int', 'int', '[Landroid.view.MotionEvent$PointerProperties;', '[Landroid.view.MotionEvent$PointerCoords;', 'int', 'int', 'float', 'float', 'int', 'int', 'int', 'int').implementation = 
+    function(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,metastate,buttonState,xPrecission,yPrecission,deviceId,edgeFlags,source,flags){
+        var actionType ='';
+        if(action == '0'){
+            actionType = 'ACTION_DOWN';
+        }
+        else if(action == '1'){
+            actionType = 'ACTION_UP'
+        }
+        else actionType = action.toString();
+        console.log('Motion event detected using the following parameters:'
+        + '\\ndownTime: '+downTime
+        + '\\neventTime: '+eventTime
+        + '\\naction: '+actionType
+        + '\\npointerCount: ' + pointerCount
+        + '\\npointerProperties: ' + pointerProperties
+        + '\\npointerCoords: ' + pointerCoords
+        + '\\nmetastate: '+metastate
+        + '\\nbuttonState: '+buttonState
+        + '\\nxPrecission: '+xPrecission
+        + '\\nyPrecission: '+yPrecission
+        + '\\ndeviceId: '+deviceId
+        + '\\nedgeFlags: ' + edgeFlags
+        + '\\nsource: ' + source
+        + '\\nflags: '+flags);
+        return this.obtain(downTime,eventTime,action,pointerCount,pointerProperties,pointerCoords,metastate,buttonState,xPrecission,yPrecission,deviceId,edgeFlags,source,flags);
+    }
+    motionEvent.obtain.overload('long', 'long', 'int', 'int', '[Landroid.view.MotionEvent$PointerProperties;', '[Landroid.view.MotionEvent$PointerCoords;', 'int', 'int', 'float', 'float', 'int', 'int', 'int', 'int', 'int').implementation = 
+    function(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o){
+        console.log('[+] Motion Event Detected');
+        return this.obtain(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o);
+    }
 
 
-viewClassHook.setAlpha.implementation = function(num){
-    if(num == 0) colorLog('[+] Attempt to set view to invisible',{c:Color.Red});
-    this.setAlpha(1);
+    viewClassHook.setAlpha.implementation = function(num){
+        if(num == 0) colorLog('[+] Attempt to set view to invisible',{c:Color.Red});
+        this.setAlpha(1);
 
-}
+    }
 
-viewClassHook.performClick.implementation = function(){
-    //printBacktrace();
-    colorLog('[+] Perform Click detected on:'+this.$className, {c:Color.Red});
-    return this.performClick();
+    viewClassHook.performClick.implementation = function(){
+        //printBacktrace();
+        colorLog('[+] Perform Click detected on:'+this.$className, {c:Color.Red});
+        return this.performClick();
+    }
 }
 "
 }

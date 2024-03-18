@@ -2,7 +2,8 @@
     "Name": "helpers/enable_screencap",
     "Description": "Disables the secure flag in order to be able to take screenshots",
     "Help": "In case of successful bypass it will display the message: Denied app to set FLAG_SECURE to prevent screen from being captured",
-    "Code": "    
+    "Code": "
+{    
     console.log('\\n----------Screen Cap enabler------------');
 
     Java.use('android.view.Window').addFlags.overload('int').implementation = function (flag) {
@@ -20,5 +21,6 @@
         }
         this.setFlags(flags,mask);
     }
+}
 "
 }   

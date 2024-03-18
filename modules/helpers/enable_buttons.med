@@ -3,13 +3,15 @@
     "Description": "Use this script to enable buttons that are dissabled",
     "Help": "Hooks the setEnabled function and sets the boolean parameter to true",
     "Code": "
-console.log('\\n----------Button Enabler------------');
+{
+    console.log('\\n----------Button Enabler------------');
 
-var button = Java.use('android.widget.Button');
+    var button = Java.use('android.widget.Button');
 
-button.setEnabled.implementation = function(a){
-    console.log('Canceling button dissable');
-    this.setEnabled(true);
+    button.setEnabled.implementation = function(a){
+        console.log('Canceling button dissable');
+        this.setEnabled(true);
+    }
 }
 "
 }

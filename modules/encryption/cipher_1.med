@@ -2,8 +2,9 @@
     "Name": "encryption/cipher_1",
     "Description": "Monitors application's encryption/decrpyption procedures",
 	"Help": "https://github.com/dpnishant/appmon/blob/master/scripts/Android/Crypto/Cipher.js",
-	"Code": "			   
-console.log('---------------Encryption/Decryption monitoring by Nishant Das Patnaik-----------');
+	"Code": "
+{			   
+		console.log('---------------Encryption/Decryption monitoring by Nishant Das Patnaik-----------');
 		  
 		  var Cipher = Java.use(\"javax.crypto.Cipher\");
 		  var PBEKeySpec = Java.use(\"javax.crypto.spec.PBEKeySpec\");
@@ -300,5 +301,6 @@ console.log('---------------Encryption/Decryption monitoring by Nishant Das Patn
 		      return this.setSeed.overloads[1].apply(this, arguments);
 		    }
 		  }
+}
 "
 }

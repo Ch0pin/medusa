@@ -3,17 +3,19 @@
     "Description": "Monitors Get system properties requests",
     "Help": "https://stackoverflow.com/questions/2641111/where-is-android-os-systemproperties",
     "Code": "
-console.log('\\n---------------System properties monitor by @ch0pin------------');
+{
+    console.log('\\n---------------System properties monitor by @ch0pin------------');
 
-var systemProperties = Java.use('android.os.SystemProperties');
+    var systemProperties = Java.use('android.os.SystemProperties');
 
-systemProperties.get.overload('java.lang.String').implementation = function(key){
-    console.log('[+] Get system properties called using key: ' + key);
-    return this.get(key);
-    
+    systemProperties.get.overload('java.lang.String').implementation = function(key){
+        console.log('[+] Get system properties called using key: ' + key);
+        return this.get(key);
+        
+    }
+
+
+    console.log('\\nLOADED -----GET SYSTEM PROPERTIES------------');
 }
-
-
-console.log('\\nLOADED -----GET SYSTEM PROPERTIES------------');
 "
 }

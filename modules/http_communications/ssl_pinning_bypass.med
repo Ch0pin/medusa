@@ -3,7 +3,8 @@
     "Description": "This script combines by HTTP ToolKit, fixes & extends a long list of other scripts",
 	"Help": "Original script: https://github.com/httptoolkit/frida-android-unpinning.git",
 	"Code": "
-setTimeout(function () {
+
+    setTimeout(function () {
     Java.perform(function () {
         console.log(\"---\");
         console.log(\"Unpinning Android app...\");

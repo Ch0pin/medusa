@@ -3,9 +3,8 @@
     "Description": "De-reflection observation script",
     "Help": "https://github.com/eybisi",
     "Code": "
-console.log('-----De reflection script by @0xabc0-------------------------------------');
-
-
+{
+    console.log('-----De reflection script by @0xabc0-------------------------------------');
 
     var internalClasses = [\"android.\", \"org.\"];
     var classDef = Java.use('java.lang.Class');
@@ -119,5 +118,6 @@ console.log('-----De reflection script by @0xabc0-------------------------------
         }
         console.log(\"---------------------------END STACK--------------------------------------\");
     }
+}
 "
 }

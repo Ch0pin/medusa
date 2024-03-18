@@ -3,233 +3,215 @@
     "Description": "Hooks to DatabaseReference class",
     "Help": "This class is the starting point for all Database operations. After you've initialized it with a URL, you can use it to read data, write data, and to create new DatabaseReferences.",
     "Code": "
-var databaseReference = Java.use('com.google.firebase.database.DatabaseReference');
+{
+    var databaseReference = Java.use('com.google.firebase.database.DatabaseReference');
 
-var dataSnapshot = Java.use('com.google.firebase.database.DataSnapshot');
-var firebaseDatabase = Java.use('com.google.firebase.database.FirebaseDatabase')
-/*
+    var dataSnapshot = Java.use('com.google.firebase.database.DataSnapshot');
+    var firebaseDatabase = Java.use('com.google.firebase.database.FirebaseDatabase')
+    /*
 
-
-
-
-
-
-
-.overload('java.lang.String', 'com.google.firebase.database.core.DatabaseConfig')
-.overload('com.google.firebase.database.core.utilities.ParsedUrl', 'com.google.firebase.database.core.DatabaseConfig')
-.overload('com.google.firebase.database.core.Repo', 'com.google.firebase.database.core.Path')
-*/
+    .overload('java.lang.String', 'com.google.firebase.database.core.DatabaseConfig')
+    .overload('com.google.firebase.database.core.utilities.ParsedUrl', 'com.google.firebase.database.core.DatabaseConfig')
+    .overload('com.google.firebase.database.core.Repo', 'com.google.firebase.database.core.Path')
+    */
 
 
+    //-----------------------------------------------------------------------------
+    dataSnapshot.child.implementation = function(path){
+        var retData = this.child(path);
+        colorLog('[+] Application is fetching data from: '+path,{c: Color.Red});
+        console.log('   [-] Key:' + retData.getKey())
+        return retData;
+    }
+    dataSnapshot.getKey.implementation = function(){
+        var key = this.getKey();
+        colorLog('[+] Datasnapshot key: '+key,{c: Color.Red});
+        return key;
+    }
+    dataSnapshot.getValue.overloads[0].implementation = function(){
+        var value = this.getValue();
+        colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
+        return value;
+    }
+    dataSnapshot.getValue.overloads[1].implementation = function(bl){
+        var value = this.getValue(bl);
+        colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
+        return value;
+    }
+    dataSnapshot.getValue.overloads[2].implementation = function(cls){
+        var value = this.getValue(cls);
+        colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
+        return value;
+    }
+    dataSnapshot.getValue.overloads[3].implementation = function(tpIndicator){
+        var value = this.getValue(tpIndicator);
+        colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
+        return value;
+    }
+
+    databaseReference.$init.overloads[0].implementation = function(parseUrl, dbconfig){
+
+        colorLog('[+] Database reference: '+parseUrl,{c: Color.Green});
+        return this.$init(parseUrl,dbconfig);
+    }
+
+    // databaseReference.$init.overloads[1].implementation = function(parseUrl, dbconfig){
+        
+
+    //     colorLog('[+] Database reference: '+parseUrl.toString(),{c: Color.Green});
+    //     return this.$init(parseUrl,dbconfig);
+    // }
+
+    // databaseReference.$init.overloads[2].implementation = function(repo, path){
+        
+
+    //     colorLog('[+] Database reference: '+repo.toString(),{c: Color.Green});
+    //     return this.$init(repo,path);
+    // }
+
+    /*
+    DatabaseReference	
+    getReference()
+    Gets a DatabaseReference for the database root node.
+    DatabaseReference	
+    getReference(String path)
+    Gets a DatabaseReference for the provided path.
+    DatabaseReference	
+    getReferenceFromUrl(String url)
+    Gets a DatabaseReference for the provided URL.
+    */
 
 
+    firebaseDatabase.getReference.overloads[0].implementation = function(){
+
+        console.log('[+] Application is acquiring a  DatabaseReference for the database root node.');
+        // console.log('   [-] key: '+child.getKey())
+    
+        return this.getReference();
+
+    }
+    firebaseDatabase.getReference.overloads[1].implementation = function(path){
+
+        console.log('[+] Application is acquiring a  DatabaseReference for the path:'+path);
+        // console.log('   [-] key: '+child.getKey())
+    
+        return this.getReference(path);
+
+    }
+
+    firebaseDatabase.getReferenceFromUrl.implementation = function(uri){
+
+        console.log('[+] Application is acquiring a  DatabaseReference for the path:'+uri);
+        // console.log('   [-] key: '+child.getKey())
+    
+        return this.getReferenceFromUrl(uri);
+
+    }
 
 
+    /*
+    public DatabaseReference child (String pathString)
+    Also: Google Play services
+    Get a reference to location relative to this one
+
+    Parameters
+    pathString	The relative path from this reference to the new one that should be created
+    Returns A new DatabaseReference to the given path
+    */
 
 
-
-//-----------------------------------------------------------------------------
-dataSnapshot.child.implementation = function(path){
-    var retData = this.child(path);
-    colorLog('[+] Application is fetching data from: '+path,{c: Color.Red});
-    console.log('   [-] Key:' + retData.getKey())
-    return retData;
-}
-dataSnapshot.getKey.implementation = function(){
-    var key = this.getKey();
-    colorLog('[+] Datasnapshot key: '+key,{c: Color.Red});
-    return key;
-}
-dataSnapshot.getValue.overloads[0].implementation = function(){
-    var value = this.getValue();
-    colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
-    return value;
-}
-dataSnapshot.getValue.overloads[1].implementation = function(bl){
-    var value = this.getValue(bl);
-    colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
-    return value;
-}
-dataSnapshot.getValue.overloads[2].implementation = function(cls){
-    var value = this.getValue(cls);
-    colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
-    return value;
-}
-dataSnapshot.getValue.overloads[3].implementation = function(tpIndicator){
-    var value = this.getValue(tpIndicator);
-    colorLog('[+] Datasnapshot value: '+value,{c: Color.Red});
-    return value;
-}
-
-databaseReference.$init.overloads[0].implementation = function(parseUrl, dbconfig){
-
-    colorLog('[+] Database reference: '+parseUrl,{c: Color.Green});
-    return this.$init(parseUrl,dbconfig);
-}
-
-// databaseReference.$init.overloads[1].implementation = function(parseUrl, dbconfig){
+    databaseReference.child.implementation = function(pathString){
     
 
-//     colorLog('[+] Database reference: '+parseUrl.toString(),{c: Color.Green});
-//     return this.$init(parseUrl,dbconfig);
-// }
-
-// databaseReference.$init.overloads[2].implementation = function(repo, path){
+        console.log('[+] Application is acquiring a reference to: '+pathString);
+        // console.log('   [-] key: '+child.getKey())
     
-
-//     colorLog('[+] Database reference: '+repo.toString(),{c: Color.Green});
-//     return this.$init(repo,path);
-// }
-
-/*
-DatabaseReference	
-getReference()
-Gets a DatabaseReference for the database root node.
-DatabaseReference	
-getReference(String path)
-Gets a DatabaseReference for the provided path.
-DatabaseReference	
-getReferenceFromUrl(String url)
-Gets a DatabaseReference for the provided URL.
-*/
+        return this.child(pathString);
+    }
 
 
-firebaseDatabase.getReference.overloads[0].implementation = function(){
+    /*
+    public FirebaseDatabase getDatabase ()
+    Gets the Database instance associated with this reference.
+    Returns
+    The Database object for this reference.
+    */
 
-    console.log('[+] Application is acquiring a  DatabaseReference for the database root node.');
-    // console.log('   [-] key: '+child.getKey())
-  
-    return this.getReference();
+    databaseReference.getDatabase.implementation = function(){
 
-}
-firebaseDatabase.getReference.overloads[1].implementation = function(path){
+        console.log('[+] Application is acquiring an instance associate with this reference');
+        return this.getDatabase();
+    }
 
-    console.log('[+] Application is acquiring a  DatabaseReference for the path:'+path);
-    // console.log('   [-] key: '+child.getKey())
-  
-    return this.getReference(path);
+    /*
+    public String getKey ()
 
-}
+    Returns
+    The last token in the location pointed to by this reference or null if this reference points to the database root
+    public DatabaseReference getParent ()
+    */
 
-firebaseDatabase.getReferenceFromUrl.implementation = function(uri){
 
-    console.log('[+] Application is acquiring a  DatabaseReference for the path:'+uri);
-    // console.log('   [-] key: '+child.getKey())
-  
-    return this.getReferenceFromUrl(uri);
 
-}
+    databaseReference.getKey.implementation = function(){
+
+        var key = this.getkey();
+
+        console.log('[+] The last token in the location pointed to by this reference is:'+key);
+        return key;
+    }
 
 
 
 
 
+    /*
+        .overload('java.lang.Object')
+        .overload('java.lang.Object', 'com.google.firebase.database.DatabaseReference$CompletionListener')
+        .overload('java.lang.Object', 'java.lang.Object')
+        .overload('java.lang.Object', 'java.lang.Object', 'com.google.firebase.database.DatabaseReference$CompletionListener')
+    */
 
 
+    databaseReference.setValue.overloads[0].implementation = function(obj,completionListener){
 
-/*
-public DatabaseReference child (String pathString)
-Also: Google Play services
-Get a reference to location relative to this one
+        colorLog('[+] SET VALUE --> ' + obj.toString(),{c: Color.Green});
+        this.setValue(obj,completionListener);
+    }
+    databaseReference.setValue.overloads[1].implementation = function(obja,objb){
 
-Parameters
-pathString	The relative path from this reference to the new one that should be created
-Returns A new DatabaseReference to the given path
-*/
+        colorLog('[+] SET VALUE --> ' + obja.toString() + ' , '+objb.toString(), {c: Color.Green});
+        this.setValue(obja,objb);
+    }
+    databaseReference.setValue.overloads[2].implementation = function(obja,objb,objc,completionListener){
 
-
-
-databaseReference.child.implementation = function(pathString){
- 
-
-    console.log('[+] Application is acquiring a reference to: '+pathString);
-    // console.log('   [-] key: '+child.getKey())
-  
-    return this.child(pathString);
-}
+        colorLog('[+] SET VALUE --> ' + obja.toString() + ' , '+objb.toString() + ' ' +objc.toString(), {c: Color.Green});
+        this.setValue(obja,objb,objc,completionListener);
+    }
 
 
-/*
-public FirebaseDatabase getDatabase ()
-Gets the Database instance associated with this reference.
-Returns
-The Database object for this reference.
-*/
+    /*
+    Task<Void>	
+    updateChildren(Map<String, Object> update)
+    Update the specific child keys to the specified values.
+    void	
+    updateChildren(Map<String, Object> update, DatabaseReference.CompletionListener listener)
+    Update the specific child keys to the specified values.
+    */
 
-databaseReference.getDatabase.implementation = function(){
+    databaseReference.updateChildren.overloads[0].implementation = function(map){
 
-    console.log('[+] Application is acquiring an instance associate with this reference');
-    return this.getDatabase();
-}
-
-/*
-public String getKey ()
-
-Returns
-The last token in the location pointed to by this reference or null if this reference points to the database root
-public DatabaseReference getParent ()
-*/
-
-
-
-databaseReference.getKey.implementation = function(){
-
-    var key = this.getkey();
-
-    console.log('[+] The last token in the location pointed to by this reference is:'+key);
-    return key;
-}
-
-
-
-
-
-/*
-	.overload('java.lang.Object')
-	.overload('java.lang.Object', 'com.google.firebase.database.DatabaseReference$CompletionListener')
-	.overload('java.lang.Object', 'java.lang.Object')
-	.overload('java.lang.Object', 'java.lang.Object', 'com.google.firebase.database.DatabaseReference$CompletionListener')
-*/
-
-
-databaseReference.setValue.overloads[0].implementation = function(obj,completionListener){
-
-    colorLog('[+] SET VALUE --> ' + obj.toString(),{c: Color.Green});
-    this.setValue(obj,completionListener);
-}
-databaseReference.setValue.overloads[1].implementation = function(obja,objb){
-
-    colorLog('[+] SET VALUE --> ' + obja.toString() + ' , '+objb.toString(), {c: Color.Green});
-    this.setValue(obja,objb);
-}
-databaseReference.setValue.overloads[2].implementation = function(obja,objb,objc,completionListener){
-
-    colorLog('[+] SET VALUE --> ' + obja.toString() + ' , '+objb.toString() + ' ' +objc.toString(), {c: Color.Green});
-    this.setValue(obja,objb,objc,completionListener);
-}
-
-
-/*
-Task<Void>	
-updateChildren(Map<String, Object> update)
-Update the specific child keys to the specified values.
-void	
-updateChildren(Map<String, Object> update, DatabaseReference.CompletionListener listener)
-Update the specific child keys to the specified values.
-*/
-
-databaseReference.updateChildren.overloads[0].implementation = function(map){
-
-    colorLog('[+] The app updates the firebase ',{c:Color.Red})
-    console.log('[+] key:'+map.getKey());
-    console.log('[+] Value: '+map.getValue());
-    this.updateChildren(map);
-}
-databaseReference.updateChildren.overloads[1].implementation = function(map,dbreference){
-    colorLog('[+] The app updates the firebase ',{c:Color.Red})
-    console.log('[+] key:'+map.getKey());
-    console.log('[+] Value: '+map.getValue());
-    this.updateChildren(map,dbreference);
+        colorLog('[+] The app updates the firebase ',{c:Color.Red})
+        console.log('[+] key:'+map.getKey());
+        console.log('[+] Value: '+map.getValue());
+        this.updateChildren(map);
+    }
+    databaseReference.updateChildren.overloads[1].implementation = function(map,dbreference){
+        colorLog('[+] The app updates the firebase ',{c:Color.Red})
+        console.log('[+] key:'+map.getKey());
+        console.log('[+] Value: '+map.getValue());
+        this.updateChildren(map,dbreference);
+    }
 }
 "
 }

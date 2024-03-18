@@ -3,7 +3,7 @@
     "Description": "Bypass TikTok SSL pinning on Android devices",
     "Help": "Supported ABIs: armeabi-v7a, arm64-v8a, x86 The Latest version: v26.7.5",
     "Code": "
-    
+{    
     console.log('\\n[+] loading -------Tiktok SSL Pinning Bypass by @eltimusa4 (https://github.com/Eltion/Tiktok-SSL-Pinning-Bypass) -------+\\n')
     
     function hook_certVerify(lib) {
@@ -123,7 +123,7 @@
             logger('[*][-] Failed to hook SSLContextInit')
         }
     })
-
+}
     "
 
 }

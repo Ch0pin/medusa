@@ -3,6 +3,7 @@
     "Description": "frida-multiple-unpinning CRITICAL: Make sure is added on the top of the module list (0 index)",
 	"Help": "Android ssl certificate pinning bypass script for various methods by Maurizio Siddu (https://codeshare.frida.re/@akabe1/frida-multiple-unpinning)\nCRITICAL: Make sure is added on the top of the module list (0 index)",
 	"Code": "
+{
 		console.log('');
 		console.log('======');
 		console.log('[#] Android Bypass for various Certificate Pinning methods [#]');
@@ -717,5 +718,6 @@
 			//console.log('\\x1b[36m[-] SSLPeerUnverifiedException not found\\x1b[0m');
 			//console.log('\\x1b[36m'+err+'\\x1b[0m');
 		}
+	}
 "
 }

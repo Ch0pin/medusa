@@ -6,7 +6,7 @@
 console.log('\\n----------Gzip interceptor-module--------');
 console.log('----------twiter:@Ch0pin-------------------');
 
-
+{
 
     var gzipInputStream = Java.use('java.util.zip.GZIPInputStream');
     var gzipOutputStream = Java.use('java.util.zip.GZIPOutputStream');
@@ -36,5 +36,6 @@ console.log('----------twiter:@Ch0pin-------------------');
         console.log('[+] Zipped INPUT stream: ' + result);
         return this.write(buff,off,len_n);
     }
+}
 "
 }

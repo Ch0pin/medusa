@@ -3,6 +3,7 @@
     "Description": "Use this module to monitor outgoing intents",
     "Help": "Displays a message with the intent acction or extra data when it is feasible",
     "Code": "
+{
  console.log('\\n----------Outgoing Intent monitor------------');
 
  
@@ -235,5 +236,6 @@
         console.log('[!] Intent Extra name: '+ name );
         return this.putExtra(name,binder);
     }
+}
 "
 }

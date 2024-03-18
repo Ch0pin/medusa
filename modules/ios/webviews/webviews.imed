@@ -2,229 +2,227 @@
     "Name": "webviews/hook_webviews",
     "Description": "Hook webview methods",
     "Help": "",
-    "Code": "    
-    console.log('\\n---------Webviews hook script for ios by ch0pin------------------');
+    "Code": " 
+  {   
+      console.log('\\n---------Webviews hook script for ios by ch0pin------------------');
 
 
-    function dumpWebviewSettings(wv,url){
-      colorLog('[i] ------------------------- Dumping webview settings start --------------------:',{c:Color.Yellow});
-      colorLog('=====> Class Name: '+wv.$className,{c:Color.Yellow});
-      highlight('     JavaScriptEnabled: ',wv.configuration().preferences().javaScriptEnabled().toString());
-      highlight('     HasOnlySecureContent: ',wv.hasOnlySecureContent().toString());
-      highlight('     AllowFileAccessFromFileURLs: ',wv.configuration().preferences().valueForKey_('allowFileAccessFromFileURLs').toString());
-      highlight('     AllowUniversalAccessFromFileURLs: ',wv.configuration().valueForKey_('allowUniversalAccessFromFileURLs').toString());
-      colorLog('[i] Currently Loaded '+url, {c: Color.Gray});
-      colorLog('[i] ------------------------- Dumping webview settings end ----------------------.',{c:Color.Yellow});
-  }
-  
-  function highlight(tag, flag){
-    if(flag=='true')
-      colorLog(tag + flag.toString(),{c:Color.Red});
-    else 
-      console.log(tag+flag.toString());
-  
-  }
-
-
-var WKWebView = ObjC.classes['WKWebView'];
-
-Interceptor.attach(WKWebView['- loadRequest:'].implementation, {
-  onEnter: function(args) {
-
-    let self = new ObjC.Object(ptr(args[0]));
-    let myJSURL = (new ObjC.Object(ptr(args[2]))).toString();
-    let url = myJSURL.substring(myJSURL.indexOf('URL:'), myJSURL.length-1);
-    dumpWebviewSettings(self,url);
-  }
-});
-
-Interceptor.attach(WKWebView['- loadHTMLString:baseURL:'].implementation, {
-  onEnter: function(args) {
-
-    let self = new ObjC.Object(ptr(args[0]));
-    let htmlCode = (new ObjC.Object(ptr(args[2]))).toString();
-    let myJSURL = (new ObjC.Object(ptr(args[3]))).toString();
-    let url = myJSURL.substring(myJSURL.indexOf('URL:'), myJSURL.length-1);
-    dumpWebviewSettings(self,'loadHTMLString '+htmlCode + '\\n Base :'+url);
-
-  }
-});
-
-Interceptor.attach(WKWebView['- loadFileURL:allowingReadAccessToURL:'].implementation, {
-  onEnter: function(args) {
-
-    let self = new ObjC.Object(ptr(args[0]));
-    let myJSURL = (new ObjC.Object(ptr(args[2]))).toString();
-    let url = myJSURL.substring(myJSURL.indexOf('URL:'), myJSURL.length-1);
-    dumpWebviewSettings(self, 'URL: '+url);
-
-  }
-});
-
-
-Interceptor.attach(WKWebView['- _evaluateJavaScript:asAsyncFunction:withSourceURL:withArguments:forceUserGesture:inFrame:inWorld:completionHandler:'].implementation, {
-  onEnter: function(args) {
-
-    let self = new ObjC.Object(ptr(args[0]));
-    let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-    dumpWebviewSettings(self, 'Javascript: '+javascript);
-
-  }
-});
-
-Interceptor.attach(WKWebView['- _evaluateJavaScript:asAsyncFunction:withSourceURL:withArguments:forceUserGesture:inFrame:inWorld:completionHandler:'].implementation, {
-  onEnter: function(args) {
-
-    let self = new ObjC.Object(ptr(args[0]));
-    let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-
-    dumpWebviewSettings(self, 'Javascript: '+javascript);
-
-  }
-});
-
-Interceptor.attach(WKWebView['- evaluateJavaScript:completionHandler:'].implementation, {
-  onEnter: function(args) {
-
-    let self = new ObjC.Object(ptr(args[0]));
-    let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-
-    dumpWebviewSettings(self, 'Javascript: '+javascript);
-
-  }
-});
-
-Interceptor.attach(WKWebView['- evaluateJavaScript:inFrame:inContentWorld:completionHandler:'].implementation, {
-  onEnter: function(args) {
-
-    let self = new ObjC.Object(ptr(args[0]));
-    let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-
-    dumpWebviewSettings(self, 'Javascript: '+javascript);
-
-  }
-});
-
-Interceptor.attach(WKWebView['- _evaluateJavaScriptWithoutUserGesture:completionHandler:'].implementation, {
-  onEnter: function(args) {
-
-    let self = new ObjC.Object(ptr(args[0]));
-    let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+      function dumpWebviewSettings(wv,url){
+        colorLog('[i] ------------------------- Dumping webview settings start --------------------:',{c:Color.Yellow});
+        colorLog('=====> Class Name: '+wv.$className,{c:Color.Yellow});
+        highlight('     JavaScriptEnabled: ',wv.configuration().preferences().javaScriptEnabled().toString());
+        highlight('     HasOnlySecureContent: ',wv.hasOnlySecureContent().toString());
+        highlight('     AllowFileAccessFromFileURLs: ',wv.configuration().preferences().valueForKey_('allowFileAccessFromFileURLs').toString());
+        highlight('     AllowUniversalAccessFromFileURLs: ',wv.configuration().valueForKey_('allowUniversalAccessFromFileURLs').toString());
+        colorLog('[i] Currently Loaded '+url, {c: Color.Gray});
+        colorLog('[i] ------------------------- Dumping webview settings end ----------------------.',{c:Color.Yellow});
+    }
     
-    dumpWebviewSettings(self, 'Javascript: '+javascript);
-
-  }
-});
-
-Interceptor.attach(WKWebView['- _evaluateJavaScript:inFrame:inContentWorld:completionHandler:'].implementation, {
-  onEnter: function(args) {
-
-    let self = new ObjC.Object(ptr(args[0]));
-    let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+    function highlight(tag, flag){
+      if(flag=='true')
+        colorLog(tag + flag.toString(),{c:Color.Red});
+      else 
+        console.log(tag+flag.toString());
     
-    dumpWebviewSettings(self, 'Javascript: '+javascript);
+    }
 
-  }
-});
 
-Interceptor.attach(WKWebView['- _evaluateJavaScript:withSourceURL:inFrame:inContentWorld:completionHandler:'].implementation, {
-  onEnter: function(args) {
+  var WKWebView = ObjC.classes['WKWebView'];
 
-    let self = new ObjC.Object(ptr(args[0]));
-    let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+  Interceptor.attach(WKWebView['- loadRequest:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let myJSURL = (new ObjC.Object(ptr(args[2]))).toString();
+      let url = myJSURL.substring(myJSURL.indexOf('URL:'), myJSURL.length-1);
+      dumpWebviewSettings(self,url);
+    }
+  });
+
+  Interceptor.attach(WKWebView['- loadHTMLString:baseURL:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let htmlCode = (new ObjC.Object(ptr(args[2]))).toString();
+      let myJSURL = (new ObjC.Object(ptr(args[3]))).toString();
+      let url = myJSURL.substring(myJSURL.indexOf('URL:'), myJSURL.length-1);
+      dumpWebviewSettings(self,'loadHTMLString '+htmlCode + '\\n Base :'+url);
+
+    }
+  });
+
+  Interceptor.attach(WKWebView['- loadFileURL:allowingReadAccessToURL:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let myJSURL = (new ObjC.Object(ptr(args[2]))).toString();
+      let url = myJSURL.substring(myJSURL.indexOf('URL:'), myJSURL.length-1);
+      dumpWebviewSettings(self, 'URL: '+url);
+
+    }
+  });
+
+
+  Interceptor.attach(WKWebView['- _evaluateJavaScript:asAsyncFunction:withSourceURL:withArguments:forceUserGesture:inFrame:inWorld:completionHandler:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+      dumpWebviewSettings(self, 'Javascript: '+javascript);
+
+    }
+  });
+
+  Interceptor.attach(WKWebView['- _evaluateJavaScript:asAsyncFunction:withSourceURL:withArguments:forceUserGesture:inFrame:inWorld:completionHandler:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+
+      dumpWebviewSettings(self, 'Javascript: '+javascript);
+
+    }
+  });
+
+  Interceptor.attach(WKWebView['- evaluateJavaScript:completionHandler:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+
+      dumpWebviewSettings(self, 'Javascript: '+javascript);
+
+    }
+  });
+
+  Interceptor.attach(WKWebView['- evaluateJavaScript:inFrame:inContentWorld:completionHandler:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+
+      dumpWebviewSettings(self, 'Javascript: '+javascript);
+
+    }
+  });
+
+  Interceptor.attach(WKWebView['- _evaluateJavaScriptWithoutUserGesture:completionHandler:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+      
+      dumpWebviewSettings(self, 'Javascript: '+javascript);
+
+    }
+  });
+
+  Interceptor.attach(WKWebView['- _evaluateJavaScript:inFrame:inContentWorld:completionHandler:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+      
+      dumpWebviewSettings(self, 'Javascript: '+javascript);
+
+    }
+  });
+
+  Interceptor.attach(WKWebView['- _evaluateJavaScript:withSourceURL:inFrame:inContentWorld:completionHandler:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+      
+      dumpWebviewSettings(self, 'Javascript: '+javascript);
+
+    }
+  });
+
+  Interceptor.attach(WKWebView['- _callAsyncJavaScript:arguments:inFrame:inContentWorld:completionHandler:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+      
+      dumpWebviewSettings(self, 'Javascript: '+javascript);
+
+    }
+  });
+
+  Interceptor.attach(WKWebView['- callAsyncJavaScript:arguments:inFrame:inContentWorld:completionHandler:'].implementation, {
+    onEnter: function(args) {
+
+      let self = new ObjC.Object(ptr(args[0]));
+      let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+      
+      dumpWebviewSettings(self, 'Javascript: '+javascript);
+
+    }
+  });
+
+
+
+
+  //----------------------WKUserContentController------------------------
+
+
+
+
+  var WKUserContentController = ObjC.classes['WKUserContentController'];
+
+
+  Interceptor.attach(WKUserContentController['- addScriptMessageHandlerWithReply:contentWorld:name:'].implementation, {
+    onEnter: function(args) {
+
+      let id = (new ObjC.Object(ptr(args[2]))).toString();
+      let world = (new ObjC.Object(ptr(args[3]))).toString();
+      let name = (new ObjC.Object(ptr(args[4]))).toString();
+      colorLog('[i] JS interface detected -------> '+'[i] name:'+name + ', id:'+id + ', contentWorld:'+world , {c: Color.Yellow});
+    }
+  });
+
+
+  Interceptor.attach(WKUserContentController['- _addScriptMessageHandler:name:contentWorld:'].implementation, {
+    onEnter: function(args) {
+      let id = (new ObjC.Object(ptr(args[2]))).toString();
+      let name = (new ObjC.Object(ptr(args[3]))).toString();
+      let world = (new ObjC.Object(ptr(args[4]))).toString();
     
-    dumpWebviewSettings(self, 'Javascript: '+javascript);
+      colorLog('[i] JS interface detected -------> '+'[i] name:'+name + ', id:'+id + ', contentWorld:'+world , {c: Color.Yellow});
+    }
+  });
 
-  }
-});
+  Interceptor.attach(WKUserContentController['- _addScriptMessageHandler:name:userContentWorld:'].implementation, {
+    onEnter: function(args) {
 
-Interceptor.attach(WKWebView['- _callAsyncJavaScript:arguments:inFrame:inContentWorld:completionHandler:'].implementation, {
-  onEnter: function(args) {
-
-    let self = new ObjC.Object(ptr(args[0]));
-    let javascript = (new ObjC.Object(ptr(args[2]))).toString();
+      let id = (new ObjC.Object(ptr(args[2]))).toString();
+      let name = (new ObjC.Object(ptr(args[3]))).toString();
+      let world = (new ObjC.Object(ptr(args[4]))).toString();
     
-    dumpWebviewSettings(self, 'Javascript: '+javascript);
+      colorLog('[i] JS interface detected -------> '+'[i] name:'+name + ', id:'+id + ', userContentWorld:'+world , {c: Color.Yellow});
+    }
+  });
 
-  }
-});
+  Interceptor.attach(WKUserContentController['- addScriptMessageHandler:name:'].implementation, {
+    onEnter: function(args) {
 
-Interceptor.attach(WKWebView['- callAsyncJavaScript:arguments:inFrame:inContentWorld:completionHandler:'].implementation, {
-  onEnter: function(args) {
+      let id = (new ObjC.Object(ptr(args[2]))).toString();
+      let name = (new ObjC.Object(ptr(args[3]))).toString();
+      colorLog('[i] JS interface detected -------> '+'[i] name:'+name + ', id:'+id , {c: Color.Yellow});
+    }
+  });
 
-    let self = new ObjC.Object(ptr(args[0]));
-    let javascript = (new ObjC.Object(ptr(args[2]))).toString();
-    
-    dumpWebviewSettings(self, 'Javascript: '+javascript);
+  Interceptor.attach(WKUserContentController['- addScriptMessageHandler:contentWorld:name:'].implementation, {
+    onEnter: function(args) {
+      let id = (new ObjC.Object(ptr(args[2]))).toString();
+      let world = (new ObjC.Object(ptr(args[3]))).toString();
+      let name = (new ObjC.Object(ptr(args[4]))).toString();
+      colorLog('[i] JS interface detected -------> '+'[i] name:'+name + ', id:'+id + ', contentWorld:'+world , {c: Color.Yellow});
+    }
+  });
 
-  }
-});
-
-
-
-
-//----------------------WKUserContentController------------------------
-
-
-
-
-var WKUserContentController = ObjC.classes['WKUserContentController'];
-
-
-Interceptor.attach(WKUserContentController['- addScriptMessageHandlerWithReply:contentWorld:name:'].implementation, {
-  onEnter: function(args) {
-
-    let id = (new ObjC.Object(ptr(args[2]))).toString();
-    let world = (new ObjC.Object(ptr(args[3]))).toString();
-    let name = (new ObjC.Object(ptr(args[4]))).toString();
-    colorLog('[i] JS interface detected -------> '+'[i] name:'+name + ', id:'+id + ', contentWorld:'+world , {c: Color.Yellow});
-  }
-});
-
-
-Interceptor.attach(WKUserContentController['- _addScriptMessageHandler:name:contentWorld:'].implementation, {
-  onEnter: function(args) {
-    let id = (new ObjC.Object(ptr(args[2]))).toString();
-    let name = (new ObjC.Object(ptr(args[3]))).toString();
-    let world = (new ObjC.Object(ptr(args[4]))).toString();
-  
-    colorLog('[i] JS interface detected -------> '+'[i] name:'+name + ', id:'+id + ', contentWorld:'+world , {c: Color.Yellow});
-  }
-});
-
-Interceptor.attach(WKUserContentController['- _addScriptMessageHandler:name:userContentWorld:'].implementation, {
-  onEnter: function(args) {
-
-    let id = (new ObjC.Object(ptr(args[2]))).toString();
-    let name = (new ObjC.Object(ptr(args[3]))).toString();
-    let world = (new ObjC.Object(ptr(args[4]))).toString();
-  
-    colorLog('[i] JS interface detected -------> '+'[i] name:'+name + ', id:'+id + ', userContentWorld:'+world , {c: Color.Yellow});
-  }
-});
-
-Interceptor.attach(WKUserContentController['- addScriptMessageHandler:name:'].implementation, {
-  onEnter: function(args) {
-
-    let id = (new ObjC.Object(ptr(args[2]))).toString();
-    let name = (new ObjC.Object(ptr(args[3]))).toString();
-    colorLog('[i] JS interface detected -------> '+'[i] name:'+name + ', id:'+id , {c: Color.Yellow});
-  }
-});
-
-Interceptor.attach(WKUserContentController['- addScriptMessageHandler:contentWorld:name:'].implementation, {
-  onEnter: function(args) {
-    let id = (new ObjC.Object(ptr(args[2]))).toString();
-    let world = (new ObjC.Object(ptr(args[3]))).toString();
-    let name = (new ObjC.Object(ptr(args[4]))).toString();
-    colorLog('[i] JS interface detected -------> '+'[i] name:'+name + ', id:'+id + ', contentWorld:'+world , {c: Color.Yellow});
-  }
-});
-
-
-
-
-
+}
 
 "
 }

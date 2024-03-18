@@ -3,176 +3,178 @@
     "Description": "Displays info of webview instances loaded by the application",
     "Help": "webviewHook traces call to basic api functions displaying infor about loaded URLs, javascript interfaces e.t.c.",
     "Code": "
-				console.log('\\n--------WebView hook module--------------');
-				console.log('----------twiter:@Ch0pin-------------------');
+				console.log('\\n--------WebView hook module by @Ch0pin--------------');
 
-var webView = Java.use('android.webkit.WebView');
-var webSettings = Java.use('android.webkit.WebSettings');
+{
 
-let overloadCount_1691770814 = webView['$init'].overloads.length;
-  colorLog('\\nTracing ' +'$init' + ' [' + overloadCount_1691770814 + 'overload(s)]',{ c: Color.Green });
+    var webView = Java.use('android.webkit.WebView');
+    var webSettings = Java.use('android.webkit.WebSettings');
 
-    for (let i = 0; i < overloadCount_1691770814; i++) {
-      webView['$init'].overloads[i].implementation = function() {
-      colorLog('[i] Entering Webview.' +'$init',{ c: Color.Green });
+    let overloadCount_1691770814 = webView['$init'].overloads.length;
+    colorLog('\\nTracing ' +'$init' + ' [' + overloadCount_1691770814 + 'overload(s)]',{ c: Color.Green });
+
+        for (let i = 0; i < overloadCount_1691770814; i++) {
+        webView['$init'].overloads[i].implementation = function() {
+        colorLog('[i] Entering Webview.' +'$init',{ c: Color.Green });
+            this.setWebContentsDebuggingEnabled(true);
+            if (arguments.length) console.log();
+            
+            let retval = this['$init'].apply(this, arguments);
+            colorLog('[i] exiting Webview.' + '$init',{ c: Color.Green });
+            return retval;
+    }
+    }
+
+    webSettings.setAllowContentAccess.implementation = function(allow){
+        console.log('[+] Content Access set to:' + allow);
+        return this.setAllowContentAccess(allow);
+
+    }
+    webSettings.setAllowFileAccess.implementation = function(allow){
+        console.log('[+] File Access within the webview set to:' + allow);
+        return this.setAllowFileAccess(allow);
+
+    }
+    webSettings.setAllowFileAccessFromFileURLs.implementation = function(allow){
+        console.log('[!] Allow File Access from file URLs set to:' + allow);
+        return this.setAllowFileAccessFromFileURLs(allow);
+
+    }
+
+    webSettings.setAllowUniversalAccessFromFileURLs.implementation = function(allow){
+        console.log('[!] Allow Universal  Access from file URLs set to:' + allow);
+        return this.setAllowUniversalAccessFromFileURLs(allow);
+
+    }
+    webSettings.setJavaScriptEnabled.implementation = function(allow){
+        console.log('[!] Java Script Enabled:' + allow);
+        return this.setJavaScriptEnabled(allow);
+
+    }
+
+    webView.setVisibility.implementation = function(a){
+        if(a == 2){
+            console.log('Webview visibility set to Gone');
+            //console.log('Cancelling ...' );
+        }
+        else if (a == 1){
+            console.log('Webview visibility set to Hidden');
+            //console.log('Cancelling....');
+        }
+            
+        return this.setVisibility(a);
+        
+    }
+    webView.addJavascriptInterface.implementation = function(object, name){
+        colorLog('[i] Javascript interface detected:' + object.$className + ' instatiated as: ' + name,{c:Color.Red});
+        this.addJavascriptInterface(object,name);
+    }
+
+
+    webView.evaluateJavascript.implementation = function(script, resultCallback){
+        colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
+        console.log('[i] evaluateJavascript called with the following script: '+script);
+        this.evaluateJavascript(script,resultCallback);
+    }
+
+    webView.getOriginalUrl.implementation = function(){
+        console.log('[i] Original URL: ' + this.getOriginalUrl());
+        return this.getOriginalUrl();
+    }
+
+    function dumpWebview(wv){
+        colorLog('[i] ---------------- Dumping webview settings -------------------:',{c:Color.Yellow});
+        colorLog('=====> Class Name: '+wv.$className,{c:Color.Gray});
+        colorLog('=====> WebView Client: '+wv.getWebViewClient(),{c:Color.Gray});
+        highlight('     Allows Content Access: ',wv.getSettings().getAllowContentAccess());
+        highlight('     Allows Javascript execution: ',wv.getSettings().getJavaScriptEnabled());
+        highlight('     Allows File Access: ',wv.getSettings().getAllowFileAccess());
+        highlight('     Allows File Access From File URLs: ',wv.getSettings().getAllowFileAccessFromFileURLs());
+        highlight('     Allows Universal Access from File URLs: ',wv.getSettings().getAllowUniversalAccessFromFileURLs());
+        colorLog('[i] ---------------- Dumping webview settings EOF ---------------].',{c:Color.Yellow});
+
+    }
+
+    function highlight(tag, flag){
+    if(flag)
+        colorLog(tag + flag,{c:Color.Red});
+    else 
+        console.log(tag+flag);
+
+    }
+
+    webView.getUrl.implementation = function(){
+        dumpWebview(this);
+        colorLog('[i] Current Loaded url:' + this.getUrl(),{c:Color.Blue});
+        return this.getUrl();
+    }
+
+    webView.setWebContentsDebuggingEnabled.implementation=function(tf){
+        colorLog('[i] setWebContentsDebuggingEnabled(' + tf + ') -> setting webview debuggable to true.',{c:Color.Blue});
         this.setWebContentsDebuggingEnabled(true);
-        if (arguments.length) console.log();
-        
-        let retval = this['$init'].apply(this, arguments);
-        colorLog('[i] exiting Webview.' + '$init',{ c: Color.Green });
-        return retval;
-  }
-}
-
-webSettings.setAllowContentAccess.implementation = function(allow){
-    console.log('[+] Content Access set to:' + allow);
-    return this.setAllowContentAccess(allow);
-
-}
-webSettings.setAllowFileAccess.implementation = function(allow){
-    console.log('[+] File Access within the webview set to:' + allow);
-    return this.setAllowFileAccess(allow);
-
-}
-webSettings.setAllowFileAccessFromFileURLs.implementation = function(allow){
-    console.log('[!] Allow File Access from file URLs set to:' + allow);
-    return this.setAllowFileAccessFromFileURLs(allow);
-
-}
-
-webSettings.setAllowUniversalAccessFromFileURLs.implementation = function(allow){
-    console.log('[!] Allow Universal  Access from file URLs set to:' + allow);
-    return this.setAllowUniversalAccessFromFileURLs(allow);
-
-}
-webSettings.setJavaScriptEnabled.implementation = function(allow){
-    console.log('[!] Java Script Enabled:' + allow);
-    return this.setJavaScriptEnabled(allow);
-
-}
-
-webView.setVisibility.implementation = function(a){
-    if(a == 2){
-        console.log('Webview visibility set to Gone');
-        //console.log('Cancelling ...' );
-    }
-    else if (a == 1){
-        console.log('Webview visibility set to Hidden');
-        //console.log('Cancelling....');
-    }
-        
-    return this.setVisibility(a);
-    
-}
-webView.addJavascriptInterface.implementation = function(object, name){
-    colorLog('[i] Javascript interface detected:' + object.$className + ' instatiated as: ' + name,{c:Color.Red});
-    this.addJavascriptInterface(object,name);
-}
-
-
-webView.evaluateJavascript.implementation = function(script, resultCallback){
-    colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
-    console.log('[i] evaluateJavascript called with the following script: '+script);
-    this.evaluateJavascript(script,resultCallback);
-}
-
-webView.getOriginalUrl.implementation = function(){
-    console.log('[i] Original URL: ' + this.getOriginalUrl());
-    return this.getOriginalUrl();
-}
-
-function dumpWebview(wv){
-    colorLog('[i] ---------------- Dumping webview settings -------------------:',{c:Color.Yellow});
-    colorLog('=====> Class Name: '+wv.$className,{c:Color.Gray});
-    colorLog('=====> WebView Client: '+wv.getWebViewClient(),{c:Color.Gray});
-    highlight('     Allows Content Access: ',wv.getSettings().getAllowContentAccess());
-    highlight('     Allows Javascript execution: ',wv.getSettings().getJavaScriptEnabled());
-    highlight('     Allows File Access: ',wv.getSettings().getAllowFileAccess());
-    highlight('     Allows File Access From File URLs: ',wv.getSettings().getAllowFileAccessFromFileURLs());
-    highlight('     Allows Universal Access from File URLs: ',wv.getSettings().getAllowUniversalAccessFromFileURLs());
-    colorLog('[i] ---------------- Dumping webview settings EOF ---------------].',{c:Color.Yellow});
-
-}
-
-function highlight(tag, flag){
-  if(flag)
-    colorLog(tag + flag,{c:Color.Red});
-  else 
-    console.log(tag+flag);
-
-}
-
-webView.getUrl.implementation = function(){
-    dumpWebview(this);
-    colorLog('[i] Current Loaded url:' + this.getUrl(),{c:Color.Blue});
-    return this.getUrl();
-}
-
-webView.setWebContentsDebuggingEnabled.implementation=function(tf){
-    colorLog('[i] setWebContentsDebuggingEnabled(' + tf + ') -> setting webview debuggable to true.',{c:Color.Blue});
-    this.setWebContentsDebuggingEnabled(true);
-}
-
-webView.loadData.implementation = function(data,mimeType, encoding){
-    dumpWebview(this);
-    console.log('[i] Load data called with the following parameters:\\n' + 'Data:' + data + '\\nMime type: '+mimeType+'\\nEncoding: '+ encoding);
-    this.loadData(data,mimeType,encoding);
-}
-
-webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,  encoding,  historyUrl){
-    dumpWebview(this);
-    console.log('[i] loadDataWithBaseURL call detected, having the following parameters:'+
-    '\\nBaseUrl: ' + baseUrl +
-    '\\nData: ' + data+
-    '\\nmimeType: ' + mimeType+
-    '\\nhistory URL' + historyUrl);
-    this.loadDataWithBaseURL(baseUrl,data,mimeType,encoding,historyUrl);
-}
-
-webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
-    dumpWebview(this);
-    var iterator = additionalHttpHeaders.entrySet().iterator();
-    console.log('=======Aditional headers contents:=========');
-    while(iterator.hasNext()) {
-        var entry = Java.cast(iterator.next(), Java.use('java.util.Map$Entry'));
-        console.log(entry.getKey() + ': ' + entry.getValue());
-    }
-    console.log('[i] Loading URL: ' + url);
-    console.log('===========================================');
-    this.loadUrl(url,additionalHttpHeaders);
-}
-
-webView.loadUrl.overload('java.lang.String').implementation = function(url){
-    dumpWebview(this);
-    console.log('[i] Loading URL:' + url);
-    this.loadUrl(url);
-}
-
-webView.postUrl.implementation = function (url,postData){
-    dumpWebview(this);
-    var buffer = Java.array('byte', postData);
-    var result = \"\";
-    for(var i = 0; i < buffer.length; ++i){
-        result+= (String.fromCharCode(buffer[i]));
     }
 
-    console.log('[i] Post request using the webview detected ' + '\\nURL: '+url+'Post data:'+result);
-    this.postUrl(url,postData);
-}
+    webView.loadData.implementation = function(data,mimeType, encoding){
+        dumpWebview(this);
+        console.log('[i] Load data called with the following parameters:\\n' + 'Data:' + data + '\\nMime type: '+mimeType+'\\nEncoding: '+ encoding);
+        this.loadData(data,mimeType,encoding);
+    }
 
-webView.removeJavascriptInterface.implementation = function(name){
-    console.log('The ' + name + ' Javascript interface removed');
-    this.removeJavascriptInterface(name);
-}
-/*
-webView.setWebChromeClient.implementation = function(client){
-    colorLog('WebChromeClient: ' + client.$className + flag,{c:Color.Cyan});
-    this.setWebChromeClient(client);
-}
+    webView.loadDataWithBaseURL.implementation = function(baseUrl,  data,  mimeType,  encoding,  historyUrl){
+        dumpWebview(this);
+        console.log('[i] loadDataWithBaseURL call detected, having the following parameters:'+
+        '\\nBaseUrl: ' + baseUrl +
+        '\\nData: ' + data+
+        '\\nmimeType: ' + mimeType+
+        '\\nhistory URL' + historyUrl);
+        this.loadDataWithBaseURL(baseUrl,data,mimeType,encoding,historyUrl);
+    }
 
-webView.setWebViewClient.implementation = function(client){
-    colorLog('WebviewClient: ' + client.$className + flag,{c:Color.Cyan});
-    this.setWebViewClient(client);
-}*/
+    webView.loadUrl.overload('java.lang.String', 'java.util.Map').implementation = function(url,additionalHttpHeaders){
+        dumpWebview(this);
+        var iterator = additionalHttpHeaders.entrySet().iterator();
+        console.log('=======Aditional headers contents:=========');
+        while(iterator.hasNext()) {
+            var entry = Java.cast(iterator.next(), Java.use('java.util.Map$Entry'));
+            console.log(entry.getKey() + ': ' + entry.getValue());
+        }
+        console.log('[i] Loading URL: ' + url);
+        console.log('===========================================');
+        this.loadUrl(url,additionalHttpHeaders);
+    }
+
+    webView.loadUrl.overload('java.lang.String').implementation = function(url){
+        dumpWebview(this);
+        console.log('[i] Loading URL:' + url);
+        this.loadUrl(url);
+    }
+
+    webView.postUrl.implementation = function (url,postData){
+        dumpWebview(this);
+        var buffer = Java.array('byte', postData);
+        var result = \"\";
+        for(var i = 0; i < buffer.length; ++i){
+            result+= (String.fromCharCode(buffer[i]));
+        }
+
+        console.log('[i] Post request using the webview detected ' + '\\nURL: '+url+' Post Body:'+result);
+        this.postUrl(url,postData);
+    }
+
+    webView.removeJavascriptInterface.implementation = function(name){
+        console.log('The ' + name + ' Javascript interface removed');
+        this.removeJavascriptInterface(name);
+    }
+    /*
+    webView.setWebChromeClient.implementation = function(client){
+        colorLog('WebChromeClient: ' + client.$className + flag,{c:Color.Cyan});
+        this.setWebChromeClient(client);
+    }
+
+    webView.setWebViewClient.implementation = function(client){
+        colorLog('WebviewClient: ' + client.$className + flag,{c:Color.Cyan});
+        this.setWebViewClient(client);
+    }*/
+}
 "
 }

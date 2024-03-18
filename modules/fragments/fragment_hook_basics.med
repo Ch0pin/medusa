@@ -3,8 +3,9 @@
     "Description": "Basic hooks for fragment class calls",
     "Help": "https://developer.android.com/reference/android/app/Fragment",
     "Code": "
-				console.log('\\n--------Fragments Get Init Arguments--------------');
-				console.log('----------twiter:@Ch0pin-------------------');
+				console.log('\\n--------Fragments Get Init Arguments by @Ch0pin--------------');
+
+            {    
 
 
                 let hook_1694084398 = Java.use('androidx.fragment.app.Fragment');
@@ -48,9 +49,8 @@
                         let retval = this['startActivityForResult'].apply(this, arguments);
             
                         return retval;
-                    }
-                
-
+                    }              
                 }
+            }
 
 "}

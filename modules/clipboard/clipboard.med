@@ -5,7 +5,7 @@
     "Code": "
 console.log('\\n\\n--------Clipboard monitor by Nishant Das Patnaik----------');
 
-
+{
 /**
  * Copyright (c) 2016 Nishant Das Patnaik.
  *
@@ -114,5 +114,6 @@ var Context = Java.use(\"android.content.Context\");
     }
     return this.setPrimaryClip.apply(this, arguments);
   }
+}
 "
 }

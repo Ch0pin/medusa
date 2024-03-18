@@ -3,7 +3,8 @@
     "Description": "Intercept http3 requests/responses",
     "Help": "https://codeshare.frida.re/@owen800q/okhttp3-interceptor/",
     "Code": "
-console.log('\\n\\n--------------------okhtt3 interception modified by @ch0pin----------------------');
+{
+    console.log('\\n\\n--------------------okhtt3 interception modified by @ch0pin----------------------');
         var ByteString = Java.use(\"okio.ByteString\");
         var Buffer = Java.use(\"okio.Buffer\");
         var Interceptor = Java.use(\"okhttp3.Interceptor\");
@@ -124,5 +125,6 @@ console.log('\\n\\n--------------------okhtt3 interception modified by @ch0pin--
             return this.checkNameAndValue(key,value);
 
         }
+    }
 "
 }

@@ -3,7 +3,8 @@
     "Description": "Monitor File access for arbitrary code execution on Android",
     "Help": "This Frida script helps dynamically identify accessed zip files on external media (possible file traversal vulnerability) and existence of .so (native libraries) files on internal media that might be overwritten and executed. Such combination could lead to arbitrary code execution",
     "Code": "
-console.log('\\n-----------File Exists Monitor by @androidmalware ---------\\n');
+{
+    console.log('\\n-----------File Exists Monitor by @androidmalware ---------\\n');
 
 
     var file = Java.use(\"java.io.File\")
@@ -43,5 +44,6 @@ console.log('\\n-----------File Exists Monitor by @androidmalware ---------\\n')
         }
         return this.$init(a)
     }
+}
 "
 }

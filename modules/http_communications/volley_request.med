@@ -3,54 +3,56 @@
     "Description": "Hooks API calls of the Volley HTTP Library",
     "Help": "https://developer.android.com/training/volley",
     "Code": "
-console.log('-----------------Volley Request Monitor by @ch0pin-----------------------');
-
-var request = Java.use('com.android.volley.Request');
-var networkResponse = Java.use('com.android.volley.toolbox.StringRequest');
-
-networkResponse.deliverResponse.overloads[0].implementation = function(respStr)
 {
-    colorLog('Parsing volley Network Response:',{c: Color.Red});
-    console.log(respStr.toString())
-    colorLog('<<===============EOF=============',{c: Color.Red});
-    this.deliverResponse(respStr);
+    console.log('-----------------Volley Request Monitor by @ch0pin-----------------------');
 
-    
-}
+    var request = Java.use('com.android.volley.Request');
+    var networkResponse = Java.use('com.android.volley.toolbox.StringRequest');
 
+    networkResponse.deliverResponse.overloads[0].implementation = function(respStr)
+    {
+        colorLog('Parsing volley Network Response:',{c: Color.Red});
+        console.log(respStr.toString())
+        colorLog('<<===============EOF=============',{c: Color.Red});
+        this.deliverResponse(respStr);
 
-
-
-request.$init.overloads[0].implementation = function(mMethod1,mUrl1,errorListener1){
-    var req = this.$init(mMethod1,mUrl1,errorListener1);
-
-    colorLog('[+] Application is initialiazing a volley request:',{c: Color.Green});
-    colorLog('[+] Url: '+mUrl1,{c: Color.Blue});
-    if(mMethod1 == 1)
-        console.log('[+] Method: POST');
-    else if(mMethod1 == 0)
-        console.log(\"[+] Method: GET\");
-    else console.log(\"[+] Method: \"+mMethod1);
-    
-    return req;
-}
-
-
-
-request.encodeParameters.implementation = function(hashmap, param){
-
-    colorLog('[+]========Dumping Request Parameters===========',{c: Color.Red});
-    var HashMapNode = Java.use('java.util.HashMap$Node');
-
-    var iterator = hashmap.entrySet().iterator();
-
-    while (iterator.hasNext()) {
-        var entry = Java.cast(iterator.next(), HashMapNode);
-        colorLog('\t[->]'+entry.getKey() + ' : '+ entry.getValue(), {c: Color.Blue});
-
+        
     }
-    colorLog('[+]===================EOF====================>>',{c: Color.Red});
-    return this.encodeParameters(hashmap,param);
+
+
+
+
+    request.$init.overloads[0].implementation = function(mMethod1,mUrl1,errorListener1){
+        var req = this.$init(mMethod1,mUrl1,errorListener1);
+
+        colorLog('[+] Application is initialiazing a volley request:',{c: Color.Green});
+        colorLog('[+] Url: '+mUrl1,{c: Color.Blue});
+        if(mMethod1 == 1)
+            console.log('[+] Method: POST');
+        else if(mMethod1 == 0)
+            console.log(\"[+] Method: GET\");
+        else console.log(\"[+] Method: \"+mMethod1);
+        
+        return req;
+    }
+
+
+
+    request.encodeParameters.implementation = function(hashmap, param){
+
+        colorLog('[+]========Dumping Request Parameters===========',{c: Color.Red});
+        var HashMapNode = Java.use('java.util.HashMap$Node');
+
+        var iterator = hashmap.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            var entry = Java.cast(iterator.next(), HashMapNode);
+            colorLog('\t[->]'+entry.getKey() + ' : '+ entry.getValue(), {c: Color.Blue});
+
+        }
+        colorLog('[+]===================EOF====================>>',{c: Color.Red});
+        return this.encodeParameters(hashmap,param);
+    }
 }
 "
 }

@@ -3,37 +3,39 @@
     "Description": "Use this module to monitor asset file operations (used usually for Dynamic code loading)",
     "Help": "Hooks the following calls\n- openNonAssetFd\n- openFd\n- open",
     "Code": "
-var assetManager = Java.use('android.content.res.AssetManager');
+
+{
+    var assetManager = Java.use('android.content.res.AssetManager');
 
 
-assetManager.open.overloads[0].implementation = function(filename,accessMode){
-    colorLog('[+] Application is opening the asset (access_mode): '+filename ,{c: Color.Blue});
-    return this.open(filename,accessMode);
+    assetManager.open.overloads[0].implementation = function(filename,accessMode){
+        colorLog('[+] Application is opening the asset (access_mode): '+filename ,{c: Color.Blue});
+        return this.open(filename,accessMode);
+    }
+
+    assetManager.open.overloads[1].implementation = function(filename){
+        colorLog('[+] Application is opening the asset: '+filename ,{c: Color.Blue});
+        return this.open(filename);
+    }
+
+    assetManager.openFd.implementation = function(filename){
+        colorLog('[+] Application is opening the (uncompressed) asset: '+filename ,{c: Color.Blue});
+        return this.openFd(filename);
+    }
+
+
+    assetManager.openNonAssetFd.overload('java.lang.String').implementation = function(filename){
+        colorLog('[+] Application is opening the asset: '+filename ,{c: Color.Blue});
+        return this.openNonAssetFd(filename);
+    }
+
+
+    assetManager.openNonAssetFd.overload('int', 'java.lang.String').implementation = function(cookie, filename){
+        colorLog('[+] Application is opening the asset: '+filename ,{c: Color.Blue});
+        return this.openNonAssetFd(cookie,filename);
+    }
+
+    //traceClass('android.content.res.AssetManager');
 }
-
-assetManager.open.overloads[1].implementation = function(filename){
-    colorLog('[+] Application is opening the asset: '+filename ,{c: Color.Blue});
-    return this.open(filename);
-}
-
-assetManager.openFd.implementation = function(filename){
-    colorLog('[+] Application is opening the (uncompressed) asset: '+filename ,{c: Color.Blue});
-    return this.openFd(filename);
-}
-
-
-assetManager.openNonAssetFd.overload('java.lang.String').implementation = function(filename){
-    colorLog('[+] Application is opening the asset: '+filename ,{c: Color.Blue});
-    return this.openNonAssetFd(filename);
-}
-
-
-assetManager.openNonAssetFd.overload('int', 'java.lang.String').implementation = function(cookie, filename){
-    colorLog('[+] Application is opening the asset: '+filename ,{c: Color.Blue});
-    return this.openNonAssetFd(cookie,filename);
-}
-
-
-//traceClass('android.content.res.AssetManager');
 "
 }

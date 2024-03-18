@@ -3,7 +3,7 @@
     "Description": "beta",
     "Help": "beta",
     "Code": "
-
+{
     console.log('\\n-----------------------get_loaded_modules by ch0pin--------------\\n');
 
     let hook_1694936490 = Java.use('com.facebook.react.ReactInstanceManagerBuilder');
@@ -18,7 +18,7 @@
     return retval;
     }
     }
-
+}
 
 "
 }

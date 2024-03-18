@@ -3,74 +3,75 @@
     "Description": "Use this module to monitor pending intent creation",
     "Help": "Displays a message with the pending intent parameters",
     "Code": "
-console.log('\\n----------Pending Intent monitor by @ch0p1n------------');
+{
+       console.log('\\n----------Pending Intent monitor by @ch0p1n------------');
 
 
-var pendingIntent = Java.use('android.app.PendingIntent');
+       var pendingIntent = Java.use('android.app.PendingIntent');
 
 
-pendingIntent.getActivity.overloads[0].implementation = function(context, requestCode, intent, flags){
-        colorLog('[+] calling PENDING_INTENT.getActivity('+intent.getAction()+')',{c:Color.Red});     
-       console.log(\"BASE Intent toString: \" + intent.toString());
-       console.log(\"BASE Intent getExtras: \" + intent.getExtras());
-       console.log(\"BASE Intent getFlags: \" + intent.getFlags());
-       colorLog('[-] ----------------------------------------',{c:Color.Red});
-       return this.getActivity(context, requestCode, intent, flags);    
+       pendingIntent.getActivity.overloads[0].implementation = function(context, requestCode, intent, flags){
+              colorLog('[+] calling PENDING_INTENT.getActivity('+intent.getAction()+')',{c:Color.Red});     
+              console.log(\"BASE Intent toString: \" + intent.toString());
+              console.log(\"BASE Intent getExtras: \" + intent.getExtras());
+              console.log(\"BASE Intent getFlags: \" + intent.getFlags());
+              colorLog('[-] ----------------------------------------',{c:Color.Red});
+              return this.getActivity(context, requestCode, intent, flags);    
+
+       }
+
+       pendingIntent.getActivity.overloads[1].implementation = function(context, requestCode, intent, flags, bundle){
+              colorLog('[+] calling PENDING_INTENT.getActivity('+intent.getAction()+','+bundle+')',{c:Color.Red});
+              console.log(\"BASE Intent toString: \" + intent.toString());
+              console.log(\"BASE Intent getExtras: \" + intent.getExtras());
+              console.log(\"BASE Intent getFlags: \" + intent.getFlags());
+              console.log(\"Bundle: \" + bundle);
+              colorLog('[-] ----------------------------------------',{c:Color.Red});     
+              return this.getActivity(context, requestCode, intent, flags,bundle); 
+       }
+
+       pendingIntent.getBroadcast.implementation = function(context, requestCode, intent, flags){
+              colorLog('[+] calling PENDING_INTENT.getBroadcast('+intent.getAction()+')',{c:Color.Red}); 
+              console.log(\"BASE Intent toString: \" + intent.toString());
+              console.log(\"BASE Intent getExtras: \" + intent.getExtras());
+              console.log(\"BASE Intent getFlags: \" + intent.getFlags());
+              colorLog('[-] ----------------------------------------',{c:Color.Red});     
+              return this.getBroadcast(context, requestCode, intent, flags); 
+       }
+
+       pendingIntent.getService.implementation = function(context, requestCode, intent, flags){
+              colorLog('[+] calling PENDING_INTENT.getService('+intent.getAction()+')',{c:Color.Red}); 
+              console.log(\"BASE Intent toString: \" + intent.toString());
+              console.log(\"BASE Intent getExtras: \" + intent.getExtras());
+              console.log(\"BASE Intent getFlags: \" + intent.getFlags());
+              colorLog('[-] ----------------------------------------',{c:Color.Red});     
+              return this.getService(context, requestCode, intent, flags); 
+       }
+
+       pendingIntent.getActivities.overloads[0].implementation = function(context, requestCode, intent, flags){
+
+              for (let value of intent)
+              dumpIntent(value)     
+              return this.getService(context, requestCode, intent, flags); 
+       }
+
+       pendingIntent.getActivities.overloads[1].implementation = function(context, requestCode, intent, flags,bundle){
+
+              for (let value of intent)
+              dumpIntent(value)     
+              return this.getService(context, requestCode, intent, flags,bundle); 
+       }
+
+       function dumpIntent (intent){
+              colorLog('Begin of dumping intent:',{c:Color.Red}); 
+              colorLog('[+]('+intent.getAction()+')',{c:Color.Red}); 
+              console.log(\"BASE Intent toString: \" + intent.toString());
+              console.log(\"BASE Intent getExtras: \" + intent.getExtras());
+              console.log(\"BASE Intent getFlags: \" + intent.getFlags());
+              colorLog('[-] ----------------------------------------',{c:Color.Red});     
+              return this.getService(context, requestCode, intent, flags); 
+       }
 
 }
-
-pendingIntent.getActivity.overloads[1].implementation = function(context, requestCode, intent, flags, bundle){
-       colorLog('[+] calling PENDING_INTENT.getActivity('+intent.getAction()+','+bundle+')',{c:Color.Red});
-       console.log(\"BASE Intent toString: \" + intent.toString());
-       console.log(\"BASE Intent getExtras: \" + intent.getExtras());
-       console.log(\"BASE Intent getFlags: \" + intent.getFlags());
-       console.log(\"Bundle: \" + bundle);
-       colorLog('[-] ----------------------------------------',{c:Color.Red});     
-       return this.getActivity(context, requestCode, intent, flags,bundle); 
-}
-
-pendingIntent.getBroadcast.implementation = function(context, requestCode, intent, flags){
-       colorLog('[+] calling PENDING_INTENT.getBroadcast('+intent.getAction()+')',{c:Color.Red}); 
-       console.log(\"BASE Intent toString: \" + intent.toString());
-       console.log(\"BASE Intent getExtras: \" + intent.getExtras());
-       console.log(\"BASE Intent getFlags: \" + intent.getFlags());
-       colorLog('[-] ----------------------------------------',{c:Color.Red});     
-       return this.getBroadcast(context, requestCode, intent, flags); 
-}
-
-pendingIntent.getService.implementation = function(context, requestCode, intent, flags){
-       colorLog('[+] calling PENDING_INTENT.getService('+intent.getAction()+')',{c:Color.Red}); 
-       console.log(\"BASE Intent toString: \" + intent.toString());
-       console.log(\"BASE Intent getExtras: \" + intent.getExtras());
-       console.log(\"BASE Intent getFlags: \" + intent.getFlags());
-       colorLog('[-] ----------------------------------------',{c:Color.Red});     
-       return this.getService(context, requestCode, intent, flags); 
-}
-
-pendingIntent.getActivities.overloads[0].implementation = function(context, requestCode, intent, flags){
-
-       for (let value of intent)
-            dumpIntent(value)     
-       return this.getService(context, requestCode, intent, flags); 
-}
-
-pendingIntent.getActivities.overloads[1].implementation = function(context, requestCode, intent, flags,bundle){
-
-       for (let value of intent)
-            dumpIntent(value)     
-       return this.getService(context, requestCode, intent, flags,bundle); 
-}
-
-function dumpIntent (intent){
-       colorLog('Begin of dumping intent:',{c:Color.Red}); 
-       colorLog('[+]('+intent.getAction()+')',{c:Color.Red}); 
-       console.log(\"BASE Intent toString: \" + intent.toString());
-       console.log(\"BASE Intent getExtras: \" + intent.getExtras());
-       console.log(\"BASE Intent getFlags: \" + intent.getFlags());
-       colorLog('[-] ----------------------------------------',{c:Color.Red});     
-       return this.getService(context, requestCode, intent, flags); 
-}
-
-
 "
 }

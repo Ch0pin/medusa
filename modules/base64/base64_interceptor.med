@@ -5,65 +5,68 @@
     "Code":"
 console.log('\\n-----------base64 encode / decode monitor by @chopin----------');
 
-var base64 = Java.use('android.util.Base64');
+{
+    var base64 = Java.use('android.util.Base64');
 
 
-base64.decode.overloads[0].implementation = function(endString, flags){
+    base64.decode.overloads[0].implementation = function(endString, flags){
+        
+        colorLog('[+] Base64 decode called:',{c: Color.Yellow});
+        colorLog('   [-] INPUT:'+endString,{c: Color.Blue});    
+        colorLog('      [-] OUTPUT:'+byteArrayToString(this.decode(endString,flags),{c: Color.Green}));
+        return this.decode(endString,flags);
+    }
+
+    // base64.decode.overloads[1].implementation = function(byteString, flags){
     
-    colorLog('[+] Base64 decode called:',{c: Color.Yellow});
-    colorLog('   [-] INPUT:'+endString,{c: Color.Blue});    
-    colorLog('      [-] OUTPUT:'+byteArrayToString(this.decode(endString,flags),{c: Color.Green}));
-    return this.decode(endString,flags);
+    //     colorLog('[+] Base64 decode called:',{c: Color.Yellow});
+    //     colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue}); 
+    //     colorLog('      [-] OUTPUT:'+byteArrayToString(this.decode(byteString,flags),{c: Color.Green}));
+    //     return this.decode(byteString,flags);;
+    // }
+
+    // base64.decode.overloads[2].implementation = function(byteString, offset,ln,flags){
+    
+
+    //     colorLog('[+] Base64 decode called:',{c: Color.Yellow});
+    //     colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue});
+    //     colorLog('      [-] OUTPUT:'+byteArrayToString(this.decode(byteString,offset,ln,flags),{c: Color.Green}));
+    //     return this.decode(byteString,offset,ln,flags);;
+    // }
+
+    base64.encode.overloads[0].implementation = function(byteString, flags){
+    
+
+        colorLog('[+] Base64 encode called:',{c: Color.Yellow});
+        colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue});
+        colorLog('      [-] OUTPUT:'+byteArrayToString(this.encode(byteString,flags),{c: Color.Green}));
+        return this.encode(byteString,flags);
+    }
+
+    base64.encode.overloads[1].implementation = function(byteString, offset,ln,flags){
+    
+
+        colorLog('[+] Base64 encode called:',{c: Color.Yellow});
+        colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue});
+        colorLog('      [-] OUTPUT:'+byteArrayToString(this.encode(byteString,offset,ln,flags),{c: Color.Green}));
+        return this.encode(byteString,offset,ln,flags);
+    }
+
+    // base64.encodeToString.overloads[0].implementation = function(byteString, offset,ln,flags){
+    
+    //     colorLog('[+] Base64 encodeToString called:',{c: Color.Yellow});
+    //     colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue});
+    //     colorLog('      [-] OUTPUT:'+this.encodeToString(byteString,offset,ln,flags),{c: Color.Green});
+    //     return this.encodeToString(byteString,offset,ln,flags);
+    // }
+
+    base64.encodeToString.overloads[1].implementation = function(byteString,flags){
+
+        colorLog('[+] Base64 encodeToString called:',{c: Color.Yellow});
+        colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue});
+        colorLog('      [-] OUTPUT:'+this.encodeToString(byteString,flags),{c: Color.Green});
+        return this.encodeToString(byteString,flags);
+    }
 }
-
-// base64.decode.overloads[1].implementation = function(byteString, flags){
- 
-//     colorLog('[+] Base64 decode called:',{c: Color.Yellow});
-//     colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue}); 
-//     colorLog('      [-] OUTPUT:'+byteArrayToString(this.decode(byteString,flags),{c: Color.Green}));
-//     return this.decode(byteString,flags);;
-// }
-
-// base64.decode.overloads[2].implementation = function(byteString, offset,ln,flags){
-  
-
-//     colorLog('[+] Base64 decode called:',{c: Color.Yellow});
-//     colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue});
-//     colorLog('      [-] OUTPUT:'+byteArrayToString(this.decode(byteString,offset,ln,flags),{c: Color.Green}));
-//     return this.decode(byteString,offset,ln,flags);;
-// }
-
-base64.encode.overloads[0].implementation = function(byteString, flags){
-   
-
-    colorLog('[+] Base64 encode called:',{c: Color.Yellow});
-    colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue});
-    colorLog('      [-] OUTPUT:'+byteArrayToString(this.encode(byteString,flags),{c: Color.Green}));
-    return this.encode(byteString,flags);
-}
-
-base64.encode.overloads[1].implementation = function(byteString, offset,ln,flags){
- 
-
-    colorLog('[+] Base64 encode called:',{c: Color.Yellow});
-    colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue});
-    colorLog('      [-] OUTPUT:'+byteArrayToString(this.encode(byteString,offset,ln,flags),{c: Color.Green}));
-    return this.encode(byteString,offset,ln,flags);
-}
-
-// base64.encodeToString.overloads[0].implementation = function(byteString, offset,ln,flags){
-  
-//     colorLog('[+] Base64 encodeToString called:',{c: Color.Yellow});
-//     colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue});
-//     colorLog('      [-] OUTPUT:'+this.encodeToString(byteString,offset,ln,flags),{c: Color.Green});
-//     return this.encodeToString(byteString,offset,ln,flags);
-// }
-
-base64.encodeToString.overloads[1].implementation = function(byteString,flags){
-
-    colorLog('[+] Base64 encodeToString called:',{c: Color.Yellow});
-    colorLog('   [-] INPUT:'+byteArrayToString(byteString),{c: Color.Blue});
-    colorLog('      [-] OUTPUT:'+this.encodeToString(byteString,flags),{c: Color.Green});
-    return this.encodeToString(byteString,flags);
-}"
+"
 }

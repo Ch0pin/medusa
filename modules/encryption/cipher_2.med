@@ -3,126 +3,128 @@
     "Description": "Encryption Monitor, dump Key, IV, Data and instance",
     "Help": "Intercepts calls of the core class of the Java Cryptographic Extension (JCE) framework (javax.crypto.Cipher). Attempts to dump cryptographic parameters as well as the encryption/decryption data",
     "Code": "
-console.log(\"---------------Monitoring of ENCRYPTION/DECRYPTION process BY @ch0pin-----------\");
+{
+    console.log(\"---------------Monitoring of ENCRYPTION/DECRYPTION process BY @ch0pin-----------\");
 
 
-var cipher = Java.use('javax.crypto.Cipher');
+    var cipher = Java.use('javax.crypto.Cipher');
 
 
-cipher.init.overload('int', 'java.security.Key').implementation = function(mode,key){
+    cipher.init.overload('int', 'java.security.Key').implementation = function(mode,key){
 
-    var operation = '';
-    var algorithm = this.getAlgorithm();
+        var operation = '';
+        var algorithm = this.getAlgorithm();
 
-    if(mode == 1)
-        operation = \"Encrypting\";
-    else if(mode == 2)
-        operation = \"Decrypting\";
+        if(mode == 1)
+            operation = \"Encrypting\";
+        else if(mode == 2)
+            operation = \"Decrypting\";
 
-    colorLog('[+] Algorithm: '+ algorithm+ ' Operation: '+operation, {c:Color.Blue});
-    colorLog('\t[-] Key (hex): '+ byteArraytoHexString(key.getEncoded()), {c:Color.Gray});
-    if (algorithm.startsWith('AES') || algorithm.startsWith(\"RC4\") || algorithm.startsWith(\"DES\")){
-        colorLog('\t[-] Key (Ascii): '+ byteArrayToStringE(key.getEncoded()), {c:Color.Red});
+        colorLog('[+] Algorithm: '+ algorithm+ ' Operation: '+operation, {c:Color.Blue});
+        colorLog('\t[-] Key (hex): '+ byteArraytoHexString(key.getEncoded()), {c:Color.Gray});
+        if (algorithm.startsWith('AES') || algorithm.startsWith(\"RC4\") || algorithm.startsWith(\"DES\")){
+            colorLog('\t[-] Key (Ascii): '+ byteArrayToStringE(key.getEncoded()), {c:Color.Red});
+        }
+
+        return this.init(mode,key);
     }
 
-    return this.init(mode,key);
-}
 
+    cipher.init.overload('int', 'java.security.Key', 'java.security.spec.AlgorithmParameterSpec').implementation = function(mode,key,paramsec){
+        var operation = '';
+        var algorithm = this.getAlgorithm();
+        var castedToIv = Java.cast(paramsec, Java.use('javax.crypto.spec.IvParameterSpec'));
 
-cipher.init.overload('int', 'java.security.Key', 'java.security.spec.AlgorithmParameterSpec').implementation = function(mode,key,paramsec){
-    var operation = '';
-    var algorithm = this.getAlgorithm();
-    var castedToIv = Java.cast(paramsec, Java.use('javax.crypto.spec.IvParameterSpec'));
+        if(mode == 1)
+            operation = \"Encrypting\";
+        else if(mode == 2)
+            operation = \"Decrypting\";
 
-    if(mode == 1)
-        operation = \"Encrypting\";
-    else if(mode == 2)
-        operation = \"Decrypting\";
-
-    colorLog('[+] Algorithm: '+ algorithm+ ' Operation: '+operation, {c:Color.Blue});
-    colorLog('\t[-] Key (hex): '+ byteArraytoHexString(key.getEncoded()), {c:Color.Gray});
-    if (algorithm.startsWith('AES') || algorithm.startsWith(\"RC4\") || algorithm.startsWith(\"DES\")){
-        colorLog('\t\t[-] Key (Ascii): '+ byteArrayToStringE(key.getEncoded()), {c:Color.Red});
+        colorLog('[+] Algorithm: '+ algorithm+ ' Operation: '+operation, {c:Color.Blue});
+        colorLog('\t[-] Key (hex): '+ byteArraytoHexString(key.getEncoded()), {c:Color.Gray});
+        if (algorithm.startsWith('AES') || algorithm.startsWith(\"RC4\") || algorithm.startsWith(\"DES\")){
+            colorLog('\t\t[-] Key (Ascii): '+ byteArrayToStringE(key.getEncoded()), {c:Color.Red});
+        }
+        colorLog('\t[-] IV (hex): '+ byteArraytoHexString(castedToIv.getIV()), {c:Color.Gray});
+        return this.init(mode,key,paramsec); 
     }
-    colorLog('\t[-] IV (hex): '+ byteArraytoHexString(castedToIv.getIV()), {c:Color.Gray});
-    return this.init(mode,key,paramsec); 
-}
 
 
 
-cipher.init.overload('int', 'java.security.Key', 'java.security.AlgorithmParameters', 'java.security.SecureRandom').implementation = function(mode,key,paramsec,secRnd){
-    var operation = '';
-    var algorithm = this.getAlgorithm();
-    var castedToIv = Java.cast(paramsec, Java.use('javax.crypto.spec.IvParameterSpec'));
+    cipher.init.overload('int', 'java.security.Key', 'java.security.AlgorithmParameters', 'java.security.SecureRandom').implementation = function(mode,key,paramsec,secRnd){
+        var operation = '';
+        var algorithm = this.getAlgorithm();
+        var castedToIv = Java.cast(paramsec, Java.use('javax.crypto.spec.IvParameterSpec'));
 
-    if(mode == 1)
-        operation = \"Encrypting\";
-    else if(mode == 2)
-        operation = \"Decrypting\";
+        if(mode == 1)
+            operation = \"Encrypting\";
+        else if(mode == 2)
+            operation = \"Decrypting\";
 
-    colorLog('[+] Algorithm: '+ algorithm+ ' Operation: '+operation, {c:Color.Blue});
-    colorLog('\t[-] Key (hex): '+ byteArraytoHexString(key.getEncoded()), {c:Color.Gray});
-    if (algorithm.startsWith('AES') || algorithm.startsWith(\"RC4\") || algorithm.startsWith(\"DES\")){
-        colorLog('\t\t[-] Key (Ascii): '+ byteArrayToStringE(key.getEncoded()), {c:Color.Red});
+        colorLog('[+] Algorithm: '+ algorithm+ ' Operation: '+operation, {c:Color.Blue});
+        colorLog('\t[-] Key (hex): '+ byteArraytoHexString(key.getEncoded()), {c:Color.Gray});
+        if (algorithm.startsWith('AES') || algorithm.startsWith(\"RC4\") || algorithm.startsWith(\"DES\")){
+            colorLog('\t\t[-] Key (Ascii): '+ byteArrayToStringE(key.getEncoded()), {c:Color.Red});
+        }
+        colorLog('\t[-] IV (hex): '+ byteArraytoHexString(castedToIv.getIV()), {c:Color.Gray});
+        return this.init(mode,key,paramsec,secRnd); 
     }
-    colorLog('\t[-] IV (hex): '+ byteArraytoHexString(castedToIv.getIV()), {c:Color.Gray});
-    return this.init(mode,key,paramsec,secRnd); 
-}
 
 
-//DO FINAL--------------------------------
+    //DO FINAL--------------------------------
 
 
 
-cipher.doFinal.overload('[B').implementation = function(byteArray){
+    cipher.doFinal.overload('[B').implementation = function(byteArray){
 
-    var txtIn = byteArrayToString(byteArray);
-    
-    colorLog('[ -------------------- ByteArray IN (Ascii) ------------------- :\\n'+txtIn, {c:Color.Green});
+        var txtIn = byteArrayToString(byteArray);
+        
+        colorLog('[ -------------------- ByteArray IN (Ascii) ------------------- :\\n'+txtIn, {c:Color.Green});
 
-    return this.doFinal(byteArray);
-}
-
-
-cipher.doFinal.overload('[B', 'int').implementation = function(byteArray,outputOffset){
-
-    var txt = byteArrayToString(byteArray);
-    colorLog('[ -------------------- ByteArray IN (Ascii) ------------------- :\\n'+txt, {c:Color.Green});
-    
-
-    return this.doFinal(byteArray,outputOffset);
-}
+        return this.doFinal(byteArray);
+    }
 
 
+    cipher.doFinal.overload('[B', 'int').implementation = function(byteArray,outputOffset){
 
-cipher.doFinal.overload('[B', 'int', 'int').implementation = function(byteArray,outputOffset,inputlen){
+        var txt = byteArrayToString(byteArray);
+        colorLog('[ -------------------- ByteArray IN (Ascii) ------------------- :\\n'+txt, {c:Color.Green});
+        
 
-    var txt = byteArrayToString(byteArray);
-    colorLog('[ -------------------- ByteArray IN (Ascii) ------------------- :\\n'+txt, {c:Color.Green});
+        return this.doFinal(byteArray,outputOffset);
+    }
 
-    this.doFinal(byteArray,outputOffset,inputlen);
-}
 
-cipher.doFinal.overload('[B', 'int', 'int', '[B').implementation = function(byteArray,outputOffset,inputlen,output){
 
-    var txtIn = byteArrayToString(byteArray);
-    var txtout = byteArrayToString(output);
+    cipher.doFinal.overload('[B', 'int', 'int').implementation = function(byteArray,outputOffset,inputlen){
 
-    colorLog('[ -------------------- BytesIN (Ascii) ------------------- :\\n'+txtIn, {c:Color.Green});
-    colorLog('[ -------------------- BytesOUT (Ascii) ------------------- :\\n'+txtout, {c:Color.Green});
+        var txt = byteArrayToString(byteArray);
+        colorLog('[ -------------------- ByteArray IN (Ascii) ------------------- :\\n'+txt, {c:Color.Green});
 
-    this.doFinal(byteArray,outputOffset,inputlen,output);
-}
+        this.doFinal(byteArray,outputOffset,inputlen);
+    }
 
-cipher.doFinal.overload('[B', 'int', 'int', '[B', 'int').implementation = function(byteArray,outputOffset,inputlen,output,outoffset){
+    cipher.doFinal.overload('[B', 'int', 'int', '[B').implementation = function(byteArray,outputOffset,inputlen,output){
 
-    var txtIn = byteArrayToString(byteArray);
-    var txtout = byteArrayToString(output);
+        var txtIn = byteArrayToString(byteArray);
+        var txtout = byteArrayToString(output);
 
-    colorLog('[ -------------------- BytesIN (Ascii) ------------------- :\\n'+txtIn, {c:Color.Green});
-    colorLog('[ -------------------- BytesOUT (Ascii) ------------------- :\\n'+txtout, {c:Color.Green});
+        colorLog('[ -------------------- BytesIN (Ascii) ------------------- :\\n'+txtIn, {c:Color.Green});
+        colorLog('[ -------------------- BytesOUT (Ascii) ------------------- :\\n'+txtout, {c:Color.Green});
 
-    this.doFinal(byteArray,outputOffset,inputlen,output,outoffset);
+        this.doFinal(byteArray,outputOffset,inputlen,output);
+    }
+
+    cipher.doFinal.overload('[B', 'int', 'int', '[B', 'int').implementation = function(byteArray,outputOffset,inputlen,output,outoffset){
+
+        var txtIn = byteArrayToString(byteArray);
+        var txtout = byteArrayToString(output);
+
+        colorLog('[ -------------------- BytesIN (Ascii) ------------------- :\\n'+txtIn, {c:Color.Green});
+        colorLog('[ -------------------- BytesOUT (Ascii) ------------------- :\\n'+txtout, {c:Color.Green});
+
+        this.doFinal(byteArray,outputOffset,inputlen,output,outoffset);
+    }
 }
 "
 }

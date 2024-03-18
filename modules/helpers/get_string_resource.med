@@ -3,19 +3,20 @@
     "Description": "See https://developer.android.com/reference/android/content/Context#getString(int)",
     "Help": "Returns a localized string from the application's package's default string table.",
     "Code": "
-console.log('\\n----------Get String Resources by @ch0p1n------------');
+{
+  console.log('\\n----------Get String Resources by @ch0p1n------------');
 
-var app_Context_0 = Java.use('android.content.Context'); 
+  var app_Context_0 = Java.use('android.content.Context'); 
 
-app_Context_0.getString.overload('int').implementation=function(resid){
-  colorLog('Resource id: ' + resid+ ', value: '+ this.getString(resid),{c: Color.Gray});
-  return this.getString(resid)
+  app_Context_0.getString.overload('int').implementation=function(resid){
+    colorLog('Resource id: ' + resid+ ', value: '+ this.getString(resid),{c: Color.Gray});
+    return this.getString(resid)
+  }
+
+  app_Context_0.getString.overload('int','[Ljava.lang.Object;').implementation=function(resid,obj){
+    colorLog('Resource id: ' + resid+ ', value: '+ this.getString(resid,obj),{c: Color.Gray});
+    return this.getString(resid,obj)
+  }
 }
-
-app_Context_0.getString.overload('int','[Ljava.lang.Object;').implementation=function(resid,obj){
-  colorLog('Resource id: ' + resid+ ', value: '+ this.getString(resid,obj),{c: Color.Gray});
-  return this.getString(resid,obj)
-}
-
 "
 }

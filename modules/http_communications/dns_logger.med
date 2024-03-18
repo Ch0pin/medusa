@@ -2,15 +2,18 @@
     "Name": "http_communications/dns_logger",
     "Description": "Print DNS lookups created by the application",
     "Help": "Prints host from getAllByName. Reference: https://developer.android.com/reference/java/net/InetAddress",
-    "Code": "console.log('\\n[+] loading ------- DNS Logger by @giorgosioak -------\\n')
+    "Code": "
 
-    Java.perform(function () {
+    {
+        console.log('\\n[+] loading ------- DNS Logger by @giorgosioak -------\\n')
         var InetAddress = Java.use('java.net.InetAddress');
 
         // Intercept InetAddress.getAllByName(String host)
         InetAddress['getAllByName'].implementation = function (host) {
             console.log('[*] DNS lookup for: ' + host);
             return this.getAllByName(host);
-        };
-    });"
+        }
+    }
+    
+"
 }

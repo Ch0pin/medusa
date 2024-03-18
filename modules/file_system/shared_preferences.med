@@ -3,148 +3,150 @@
     "Description": "Monitors file operations in the shared preferences folder",
     "Help": "https://developer.android.com/reference/android/content/SharedPreferences",
     "Code": "
-console.log('\\n----------Shared preferences monitor by @Chopin-------------');
+{
+  console.log('\\n----------Shared preferences monitor by @Chopin-------------');
 
-		 
-var SharedPreferencesImpl = Java.use(\"android.app.SharedPreferencesImpl\");
- var SharedPreferencesImpl_EditorImpl = Java.use(\"android.app.SharedPreferencesImpl$EditorImpl\");
- 
- SharedPreferencesImpl.contains.implementation = function(key) {
-   var value = this.contains(key);
-
-   colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
-   console.log(\" \\- Key: \"+key);
-   console.log(\"  \\- Value: \"+value)
-   return value;
- };
-
- SharedPreferencesImpl.getInt.implementation = function(key, defValue) {
-   var value = this.getInt(key, defValue);
-
-   colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
-   console.log(\" \\- Key: \"+key);
-   console.log(\"  \\- Default: \"+defValue);
-   console.log(\"   \\- Value: \"+value)
-   return value;
- };
-
- SharedPreferencesImpl.getFloat.implementation = function(key, defValue) {
-   
-   var value = this.getFloat(key, defValue);
-
-   colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
-   console.log(\" \\- Key: \"+key);
-   console.log(\"  \\- Default: \"+defValue);
-   console.log(\"   \\- Value: \"+value)
-   return value;
- };
-
- SharedPreferencesImpl.getLong.implementation = function(key, defValue) {
-   var value = this.getLong(key, defValue);
-
-   colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
-   console.log(\" \\- Key: \"+key);
-   console.log(\"  \\- Default: \"+defValue);
-   console.log(\"   \\- Value: \"+value)
-   return value;
- };
-
- SharedPreferencesImpl.getBoolean.implementation = function(key, defValue) {
-
-   var value = this.getBoolean(key, defValue);
-
-   colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
-   console.log(\" \\- Key: \"+key);
-   console.log(\"  \\- Default: \"+defValue);
-   console.log(\"   \\- Value: \"+value)
-   return value;
- };
-
- SharedPreferencesImpl.getString.implementation = function(key, defValue) {
-   var value = this.getString(key, defValue);
-
-   colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
-   console.log(\" \\- Key: \"+key);
-   console.log(\"  \\- Default: \"+defValue);
-   console.log(\"   \\- Value: \"+value)
-   return value;
- };
-
- SharedPreferencesImpl.getStringSet.implementation = function(key, defValue) {
-
- var value = this.getStringSet(key, defValue);
-
- colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
- console.log(\" \\- Key: \"+key);
- console.log(\"  \\- Returns a string set\");
-
-   return value;
- };
-
- SharedPreferencesImpl_EditorImpl.putString.implementation = function(key, value) {
+      
+  var SharedPreferencesImpl = Java.use(\"android.app.SharedPreferencesImpl\");
+  var SharedPreferencesImpl_EditorImpl = Java.use(\"android.app.SharedPreferencesImpl$EditorImpl\");
   
+  SharedPreferencesImpl.contains.implementation = function(key) {
+    var value = this.contains(key);
+
+    colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
+    console.log(\" \\- Key: \"+key);
+    console.log(\"  \\- Value: \"+value)
+    return value;
+  };
+
+  SharedPreferencesImpl.getInt.implementation = function(key, defValue) {
+    var value = this.getInt(key, defValue);
+
+    colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
+    console.log(\" \\- Key: \"+key);
+    console.log(\"  \\- Default: \"+defValue);
+    console.log(\"   \\- Value: \"+value)
+    return value;
+  };
+
+  SharedPreferencesImpl.getFloat.implementation = function(key, defValue) {
+    
+    var value = this.getFloat(key, defValue);
+
+    colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
+    console.log(\" \\- Key: \"+key);
+    console.log(\"  \\- Default: \"+defValue);
+    console.log(\"   \\- Value: \"+value)
+    return value;
+  };
+
+  SharedPreferencesImpl.getLong.implementation = function(key, defValue) {
+    var value = this.getLong(key, defValue);
+
+    colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
+    console.log(\" \\- Key: \"+key);
+    console.log(\"  \\- Default: \"+defValue);
+    console.log(\"   \\- Value: \"+value)
+    return value;
+  };
+
+  SharedPreferencesImpl.getBoolean.implementation = function(key, defValue) {
+
+    var value = this.getBoolean(key, defValue);
+
+    colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
+    console.log(\" \\- Key: \"+key);
+    console.log(\"  \\- Default: \"+defValue);
+    console.log(\"   \\- Value: \"+value)
+    return value;
+  };
+
+  SharedPreferencesImpl.getString.implementation = function(key, defValue) {
+    var value = this.getString(key, defValue);
+
+    colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
+    console.log(\" \\- Key: \"+key);
+    console.log(\"  \\- Default: \"+defValue);
+    console.log(\"   \\- Value: \"+value)
+    return value;
+  };
+
+  SharedPreferencesImpl.getStringSet.implementation = function(key, defValue) {
+
+  var value = this.getStringSet(key, defValue);
+
+  colorLog(\"[<-] Shared prefs settings read:\", {c: Color.Green});
+  console.log(\" \\- Key: \"+key);
+  console.log(\"  \\- Returns a string set\");
+
+    return value;
+  };
+
+  SharedPreferencesImpl_EditorImpl.putString.implementation = function(key, value) {
+    
+    colorLog(\"[->] Shared prefs settings write:\", {c: Color.Blue});
+    console.log(\" \\- Key: \"+key);
+    console.log(\"  \\- Value: \"+value)	
+
+    return this.putString(key,value);
+  };
+
+  SharedPreferencesImpl_EditorImpl.putStringSet.implementation = function(key, values) {
+
+    colorLog(\"[->] Shared prefs settings write:\", {c: Color.Blue});
+    console.log(\" \\- Key: \"+key);
+    console.log(\"  \\- Value: StringSet\")	
+    return this.putStringSet(key,values);
+  };
+
+  SharedPreferencesImpl_EditorImpl.putInt.implementation = function(key, value) {
+    
+    
+    colorLog(\"[->] Shared prefs settings write:\", {c: Color.Blue});
+    console.log(\" \\- Key: \"+key);
+    console.log(\"  \\- Value: \"+value)	
+
+    return this.putInt(key,value);
+  };
+
+  SharedPreferencesImpl_EditorImpl.putFloat.implementation = function(key, value) {
+    
+    
+    /*   --- Payload Header --- */
+    colorLog(\"[->] Shared prefs settings write:\", {c: Color.Blue});
+    console.log(\" \\- Key: \"+key);
+    console.log(\"  \\- Value: \"+value)	
+
+    return this.putFloat(key,value);
+  };
+
+  SharedPreferencesImpl_EditorImpl.putBoolean.implementation = function(key, value) {
+    
+    /*   --- Payload Header --- */
   colorLog(\"[->] Shared prefs settings write:\", {c: Color.Blue});
   console.log(\" \\- Key: \"+key);
   console.log(\"  \\- Value: \"+value)	
 
-   return this.putString(key,value);
- };
+    return this.putBoolean(key,value);
+  };
 
- SharedPreferencesImpl_EditorImpl.putStringSet.implementation = function(key, values) {
-
-  colorLog(\"[->] Shared prefs settings write:\", {c: Color.Blue});
-   console.log(\" \\- Key: \"+key);
-   console.log(\"  \\- Value: StringSet\")	
-   return this.putStringSet(key,values);
- };
-
- SharedPreferencesImpl_EditorImpl.putInt.implementation = function(key, value) {
-   
-   
+  SharedPreferencesImpl_EditorImpl.putLong.implementation = function(key, value) {
+    
+    
   colorLog(\"[->] Shared prefs settings write:\", {c: Color.Blue});
   console.log(\" \\- Key: \"+key);
   console.log(\"  \\- Value: \"+value)	
 
-   return this.putInt(key,value);
- };
+    return this.putLong(key,value);
+  };
 
- SharedPreferencesImpl_EditorImpl.putFloat.implementation = function(key, value) {
-   
-   
-   /*   --- Payload Header --- */
-   colorLog(\"[->] Shared prefs settings write:\", {c: Color.Blue});
-   console.log(\" \\- Key: \"+key);
-   console.log(\"  \\- Value: \"+value)	
+  SharedPreferencesImpl_EditorImpl.remove.implementation = function(key) {
+    
+  colorLog(\"[<-] Shared prefs settings Remove:\", {c: Color.Red});
+  console.log(\"\\- Key: \"+key);
 
-   return this.putFloat(key,value);
- };
-
- SharedPreferencesImpl_EditorImpl.putBoolean.implementation = function(key, value) {
-   
-   /*   --- Payload Header --- */
- colorLog(\"[->] Shared prefs settings write:\", {c: Color.Blue});
- console.log(\" \\- Key: \"+key);
- console.log(\"  \\- Value: \"+value)	
-
-   return this.putBoolean(key,value);
- };
-
- SharedPreferencesImpl_EditorImpl.putLong.implementation = function(key, value) {
-   
-   
- colorLog(\"[->] Shared prefs settings write:\", {c: Color.Blue});
- console.log(\" \\- Key: \"+key);
- console.log(\"  \\- Value: \"+value)	
-
-   return this.putLong(key,value);
- };
-
- SharedPreferencesImpl_EditorImpl.remove.implementation = function(key) {
-   
- colorLog(\"[<-] Shared prefs settings Remove:\", {c: Color.Red});
- console.log(\"\\- Key: \"+key);
-
-   return this.remove(key);
- };
+    return this.remove(key);
+  };
+ }
 "
 }

@@ -3,8 +3,9 @@
     "Description": "Use this module to translate UI text to english",
     "Help": "Hooks the setText, setMessage, setTitle functions of basic android UI components and translates the applied text using google's translation API",
     "Code": "
-console.log('\\n----------TRANSLATOR SCRIPT -------------');
-console.log('----------twiter:@Ch0pin-------------------');
+{
+    console.log('\\n----------TRANSLATOR SCRIPT -------------');
+    console.log('----------twiter:@Ch0pin-------------------');
    
     var textViewClass = Java.use(\"android.widget.TextView\");
     var alertDialog = Java.use(\"android.app.AlertDialog\");
@@ -90,5 +91,6 @@ console.log('----------twiter:@Ch0pin-------------------');
         return this.setText(castTostring);
  
     }
+}
 "
 }

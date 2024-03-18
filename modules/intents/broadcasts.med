@@ -4,9 +4,8 @@
     "Help": "",
     "Code": "
 
+  {
     console.log('\\n----------Broadcast monitor by @ch0p1n------------------------');
-
-
 
     let hook_1703795516 = Java.use('android.content.ContextWrapper');
     
@@ -134,12 +133,6 @@
           this.registerReceiver(receiver, filter, broadcastPermission, scheduler,flags);
         };
     
-
-
-
-
-
-    
                     let overloadCount_1703795516 = hook_1703795516['sendBroadcastAsUser'].overloads.length;
                     colorLog('\\nTracing ' +'sendBroadcastAsUser' + ' [' + overloadCount_1703795516 + ' overload(s)]',{ c: Color.Yellow });
                         
@@ -213,7 +206,7 @@
                     }
                     
 
-
+}
     
 "
 }

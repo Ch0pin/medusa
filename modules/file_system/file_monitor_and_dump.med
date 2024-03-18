@@ -3,7 +3,8 @@
     "Description": "Use this module to monitor file operations and dump their content",
     "Help": "Edit the agent.js to modify the configuration (see var CONFIG below). Warning: it can become very noicy and freeze the app. The original script can be found here: https://github.com/FrenchYeti/frida-trick/blob/master/scripts/file_access.js",
     "Code": "
-console.log('-------file monitor and dump by @FrenchYeti--------------\\n');
+{
+    console.log('-------file monitor and dump by @FrenchYeti--------------\\n');
 
     // ============= Config
     var CONFIG = {
@@ -448,6 +449,6 @@ console.log('-------file monitor and dump by @FrenchYeti--------------\\n');
     function modulus(x, n) {
         return ((x % n) + n) % n;
     }
-
+}
 "
 }

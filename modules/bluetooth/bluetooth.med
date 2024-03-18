@@ -5,7 +5,7 @@
     "Code":"
 
 console.log('\\n\\n------------Bluetooth monitor by Nishant Das Patnaik--------------');
- 
+ {
  /**
  * Copyright (c) 2016 Nishant Das Patnaik.
  *
@@ -63,6 +63,7 @@ console.log('\\n\\n------------Bluetooth monitor by Nishant Das Patnaik---------
     // send(JSON.stringify(send_data));
     return this.setValue.overload(\"[B\").apply(this, arguments);
   };
+  }
   "
   }
   

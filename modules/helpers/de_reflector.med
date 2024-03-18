@@ -3,7 +3,8 @@
     "Description": "De-reflection observation script",
     "Help": "https://codeshare.frida.re/@dzonerzy/dereflector/",
     "Code": "
-console.log('-----De reflection script by @dzonerzy + mods by @ch0pin-----------------');
+{
+    console.log('-----De reflection script by @dzonerzy + mods by @ch0pin-----------------');
 
     var internalClasses = [\"android.\", \"com.android\", \"java.lang\", \"java.io\",\"org.chromium\",\"com.google\",\"android.\", \"java.util\",\"java.nio\",\"java.sequrity\"]; // comment this for no filtering
     var classDef = Java.use('java.lang.Class');
@@ -69,5 +70,6 @@ console.log('-----De reflection script by @dzonerzy + mods by @ch0pin-----------
         }
         return this.loadClass(class_name);
     }
+}
 "
 }

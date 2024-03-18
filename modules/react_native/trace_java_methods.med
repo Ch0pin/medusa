@@ -3,7 +3,7 @@
     "Description": "beta",
     "Help": "If you want to exclude methods from tracing, add the full name including the \\nclass name , function name, to the \"except\" arrary in the hook_print function.",
     "Code": "
-
+{
     console.log('\\n-----------------------trace_java_methods by ch0pin--------------\\n');
 
     let hook_1694938082 = Java.use('com.facebook.react.bridge.JavaMethodWrapper');
@@ -79,6 +79,6 @@
             return retval;
         }
     }
-
+  }
 "
 }

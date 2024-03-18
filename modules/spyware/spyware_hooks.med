@@ -3,379 +3,376 @@
     "Description": "Use this script to hook content provider queries",
     "Help": "Hooks API calls related to spyware software, including \n- Context provider queries\n- Record audio and media\n- Monitor clipboard\n- Location tracking\n- Screen capture",
     "Code": "
-console.log('\\n---------------Spyware Hooks by @ch0pin------------------');
+{
+        console.log('\\n---------------Spyware Hooks by @ch0pin------------------');
+
+        var mediaRecorder = Java.use('android.media.MediaRecorder');
+        var audioRecord = Java.use('android.media.AudioRecord');
+        var abstractCursor = Java.use('android.database.AbstractCursor');
+        var cursor = Java.use('android.database.Cursor');
+        var clipboardManager = Java.use('android.content.ClipboardManager');
+        var Location = Java.use('android.location.Location');
+        var telephonyManager = Java.use('android.telephony.TelephonyManager');
+        var contextWrapper = Java.use('android.content.ContextWrapper');
+        var locationListener = Java.use('android.location.LocationListener');
+        var locationManager = Java.use('android.location.LocationManager');
+        var accessibilityNodeInfo = Java.use('android.view.accessibility.AccessibilityNodeInfo');
+        var systemProperties = Java.use('android.os.SystemProperties');
+        var screenCapture = Java.use('android.media.projection.MediaProjectionManager');
+        var uri = Java.use('android.net.Uri');
+        var contentResolver = Java.use('android.content.ContentResolver');
+        var camera = Java.use('android.hardware.Camera');
 
 
-var mediaRecorder = Java.use('android.media.MediaRecorder');
-var audioRecord = Java.use('android.media.AudioRecord');
-var abstractCursor = Java.use('android.database.AbstractCursor');
-var cursor = Java.use('android.database.Cursor');
-var clipboardManager = Java.use('android.content.ClipboardManager');
-var Location = Java.use('android.location.Location');
-var telephonyManager = Java.use('android.telephony.TelephonyManager');
-var contextWrapper = Java.use(\"android.content.ContextWrapper\");
-var locationListener = Java.use(\"android.location.LocationListener\");
-var locationManager = Java.use('android.location.LocationManager');
-var accessibilityNodeInfo = Java.use('android.view.accessibility.AccessibilityNodeInfo');
-var systemProperties = Java.use('android.os.SystemProperties');
-var screenCapture = Java.use('android.media.projection.MediaProjectionManager');
-var uri = Java.use('android.net.Uri');
-var contentResolver = Java.use('android.content.ContentResolver');
-var camera = Java.use('android.hardware.Camera');
+        camera.open.overload.implementation = function(){
+
+                colorLog('[+]Call to Camera.Open',{c: Color.Red});
+                return this.open();
+
+        }
+        camera.open.overload('int').implementation = function(cmNUm){
+
+                colorLog('[+]Call to Camera'+cmNUm+'.Open',{c: Color.Red});
+                return this.open(cmNUm);
+
+        }
+        camera.startPreview.implementation = function(){
+                colorLog('[+]Call to Camera.startPreview',{c: Color.Red});
+                return this.startPreview();  
+        }
 
 
-camera.open.overload.implementation = function(){
+        contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'android.os.Bundle', 'android.os.CancellationSignal').implementation = function(uri, projection,queryArgs, cancelationSignal) {
+                colorLog('[+] Content Resolver Query for URI: '+uri,{c: Color.Red});
+                return this.query(uri, projection,queryArgs, cancelationSignal); 
+        }
+        contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'java.lang.String', '[Ljava.lang.String;', 'java.lang.String', 'android.os.CancellationSignal').implementation = function( uri, 
+                projection, 
+                selection, 
+                selectionArgs, 
+                ortOrder, 
+                cancellationSignal) {
+                colorLog('[+] Content Resolver Query for URI: '+uri+' with selection: '+selection,{c: Color.Red});
+                return this.query(uri, 
+                        projection, 
+                        selection, 
+                        selectionArgs, 
+                        ortOrder, 
+                        cancellationSignal); 
+        }
+        contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'java.lang.String', '[Ljava.lang.String;', 'java.lang.String').implementation = function( uri, 
+                projection, 
+                selection, 
+                selectionArgs, 
+                sortOrder) {
+                colorLog('[+] Content Resolver Query for URI: '+uri+' with selection: '+selection,{c: Color.Red});
+                return this.query(uri,projection, 
+                        selection, 
+                        selectionArgs, 
+                        sortOrder); 
+        }
+        
+        uri.parse.implementation = function(queryW){
+                colorLog('[+] uri parse for '+queryW,{c: Color.Red});
+                return this.parse(queryW);   
+        }
+        //SCREEN CAPTURE
 
-        colorLog('[+]Call to Camera.Open',{c: Color.Red});
-        return this.open();
+        screenCapture.createScreenCaptureIntent.implementation = function(){
+                colorLog('[+] ScreeenCapture intent was created',{c: Color.Red});
+                return this.createScreenCaptureIntent();
+        }
 
-}
-camera.open.overload('int').implementation = function(cmNUm){
+        screenCapture.getMediaProjection.implementation = function(resultCode, resultData){
+                colorLog('[+] ScreeenCapture started',{c: Color.Red});
+                return this.getMediaProjection(resultCode,resultData);
 
-        colorLog('[+]Call to Camera'+cmNUm+'.Open',{c: Color.Red});
-        return this.open(cmNUm);
-
-}
-camera.startPreview.implementation = function(){
-        colorLog('[+]Call to Camera.startPreview',{c: Color.Red});
-        return this.startPreview();  
-}
-
-
-
-
-
-
- contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'android.os.Bundle', 'android.os.CancellationSignal').implementation = function(uri, projection,queryArgs, cancelationSignal) {
-         colorLog('[+] Content Resolver Query for URI: '+uri,{c: Color.Red});
-         return this.query(uri, projection,queryArgs, cancelationSignal); 
- }
- contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'java.lang.String', '[Ljava.lang.String;', 'java.lang.String', 'android.os.CancellationSignal').implementation = function( uri, 
-        projection, 
-         selection, 
-         selectionArgs, 
-         ortOrder, 
-         cancellationSignal) {
-        colorLog('[+] Content Resolver Query for URI: '+uri+' with selection: '+selection,{c: Color.Red});
-         return this.query(uri, 
-                 projection, 
-                  selection, 
-                  selectionArgs, 
-                  ortOrder, 
-                  cancellationSignal); 
- }
- contentResolver.query.overload('android.net.Uri', '[Ljava.lang.String;', 'java.lang.String', '[Ljava.lang.String;', 'java.lang.String').implementation = function( uri, 
-         projection, 
-         selection, 
-         selectionArgs, 
-          sortOrder) {
-          colorLog('[+] Content Resolver Query for URI: '+uri+' with selection: '+selection,{c: Color.Red});
-          return this.query(uri,projection, 
-                 selection, 
-                 selectionArgs, 
-                  sortOrder); 
-  }
-  
- uri.parse.implementation = function(queryW){
-         colorLog('[+] uri parse for '+queryW,{c: Color.Red});
-         return this.parse(queryW);   
- }
-//SCREEN CAPTURE
-
-screenCapture.createScreenCaptureIntent.implementation = function(){
-        colorLog('[+] ScreeenCapture intent was created',{c: Color.Red});
-        return this.createScreenCaptureIntent();
-}
-
-screenCapture.getMediaProjection.implementation = function(resultCode, resultData){
-        colorLog('[+] ScreeenCapture started',{c: Color.Red});
-        return this.getMediaProjection(resultCode,resultData);
-
-}
+        }
 
 
-//DEVICE RECON:
+        //DEVICE RECON:
 
 
-systemProperties.get.overload('java.lang.String').implementation = function(key){
+        systemProperties.get.overload('java.lang.String').implementation = function(key){
+                console.log('[+] Get system properties called using key: ' + key);
+                return this.get(key);
+                
+        }
+        
+
+        telephonyManager.getLine1Number.overloads[0].implementation = function() {
+                colorLog('[+] Application is fetching the phone number',{c: Color.Green});
+                return this.getLine1Number();
+        }
+
+
+
+        telephonyManager.getSimOperator.overload().implementation = function(){
+                console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
+                return this.getSimOperator();
+        }
+                telephonyManager.getSimOperator.overload('int').implementation = function(sm){
+                console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
+                return this.getSimOperator(sm);
+        }
+
+
+
+        //KEYLOGGER HOOKS
+
+        accessibilityNodeInfo.getText.implementation = function(){
+                ret = this.getText();
+                colorLog('[+] App Gets the text of the accesiblity node: ' +ret, {c:Color.Green});
+                return ret;  
+        }
+
+        //-----------LOCATION API CALLS------------------------
+
+        locationManager.getLastKnownLocation.implementation = function(provider){
+                console.log('[+] Application is asking for last known location from the provider: '+provider);
+                return this.getLastKnownLocation(provider);
+
+        } 
+
+
+        locationListener.onLocationChanged.implementation = function(location){
+                console.log('[i] Listener for location change triggered');
+                this.onLocationChanged(location);
+        }
+        locationListener.onProviderDisabled.implementation = function(provider){
+                console.log('Provider :'+provider+' has been disabled by the user');
+                this.onProviderDisabled(provider);
+
+        }
+        locationListener.onStatusChanged.implementation = function(provider,status,extras){
+                console.log('On status changed listener triggered ');
+                console.log('Data: ' +provider+' , status: '+status);
+                this.onProviderDisabled(provider,status,extras);
+        }
+        telephonyManager.getCallState.overloads[0].implementation = function(){
+                console.log('[i] Application asks for the state of all calls on the device ')
+                return this.getCallState();
+        }
+        telephonyManager.getCallState.overloads[1].implementation = function(state){
+                console.log('[i] Application asks for the state of all calls on the device ')
+                return this.getCallState(state);
+        }
+        telephonyManager.getDeviceId.overloads[0].implementation = function(){
+                console.log('[i] Application asks for device IMEI')
+                return this.getDeviceId();
+        }
+        telephonyManager.getDeviceId.overloads[1].implementation = function(slot){
+                console.log('[i] Application asks for device IMEI')
+                return this.getDeviceId(slot);
+        }
+
+        telephonyManager.getImei.overloads[0].implementation = function(){
+                console.log('[i] Application asks for device IMEI')
+                return this.getDeviceId();
+        }
+        telephonyManager.getImei.overloads[1].implementation = function(slot){
+                console.log('[i] Application asks for device IMEI')
+                return this.getDeviceId(slot);
+        }
+
+        systemProperties.get.overload('java.lang.String').implementation = function(key){
         console.log('[+] Get system properties called using key: ' + key);
         return this.get(key);
         
-    }
-    
-
-telephonyManager.getLine1Number.overloads[0].implementation = function() {
-        colorLog('[+] Application is fetching the phone number',{c: Color.Green});
-        return this.getLine1Number();
-}
+        }
 
 
+        Location.getLatitude.implementation = function() {
+                var lt = this.getLatitude();
+                console.log('[i] Application is getting latitude:' + lt);
 
-telephonyManager.getSimOperator.overload().implementation = function(){
-        console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
-        return this.getSimOperator();
-    }
-        telephonyManager.getSimOperator.overload('int').implementation = function(sm){
-        console.log('[!] A call to android.telephony.TelephonyManager.getSimOperator detected');
-        return this.getSimOperator(sm);
-    }
+                return lt;
+        }
+        Location.getLongitude.implementation = function() {
+                var lgt = this.getLongitude();
+                console.log('[i] Application is getting longitude:'+lgt);
+                return lgt;
+        }
 
 
 
-//KEYLOGGER HOOKS
-
-accessibilityNodeInfo.getText.implementation = function(){
-        ret = this.getText();
-        colorLog('[+] App Gets the text of the accesiblity node: ' +ret, {c:Color.Green});
-        return ret;  
-    }
-
-//-----------LOCATION API CALLS------------------------
-
-locationManager.getLastKnownLocation.implementation = function(provider){
-        console.log('[+] Application is asking for last known location from the provider: '+provider);
-        return this.getLastKnownLocation(provider);
-
-} 
-
-
-locationListener.onLocationChanged.implementation = function(location){
-        console.log('[i] Listener for location change triggered');
-        this.onLocationChanged(location);
-}
-locationListener.onProviderDisabled.implementation = function(provider){
-        console.log('Provider :'+provider+' has been disabled by the user');
-        this.onProviderDisabled(provider);
-
-}
-locationListener.onStatusChanged.implementation = function(provider,status,extras){
-        console.log('On status changed listener triggered ');
-        console.log('Data: ' +provider+' , status: '+status);
-        this.onProviderDisabled(provider,status,extras);
-}
-telephonyManager.getCallState.overloads[0].implementation = function(){
-        console.log('[i] Application asks for the state of all calls on the device ')
-        return this.getCallState();
-}
-telephonyManager.getCallState.overloads[1].implementation = function(state){
-        console.log('[i] Application asks for the state of all calls on the device ')
-        return this.getCallState(state);
-}
-telephonyManager.getDeviceId.overloads[0].implementation = function(){
-        console.log('[i] Application asks for device IMEI')
-        return this.getDeviceId();
-}
-telephonyManager.getDeviceId.overloads[1].implementation = function(slot){
-        console.log('[i] Application asks for device IMEI')
-        return this.getDeviceId(slot);
-}
-
-telephonyManager.getImei.overloads[0].implementation = function(){
-        console.log('[i] Application asks for device IMEI')
-        return this.getDeviceId();
-}
-telephonyManager.getImei.overloads[1].implementation = function(slot){
-        console.log('[i] Application asks for device IMEI')
-        return this.getDeviceId(slot);
-}
-
-systemProperties.get.overload('java.lang.String').implementation = function(key){
-    console.log('[+] Get system properties called using key: ' + key);
-    return this.get(key);
-    
-}
-
-
-Location.getLatitude.implementation = function() {
-        var lt = this.getLatitude();
-        console.log('[i] Application is getting latitude:' + lt);
-
-        return lt;
-}
-Location.getLongitude.implementation = function() {
-        var lgt = this.getLongitude();
-        console.log('[i] Application is getting longitude:'+lgt);
-        return lgt;
-}
+        //---------CAMERA RECORDING MONITORS------------------------------
 
 
 
-//---------CAMERA RECORDING MONITORS------------------------------
+        mediaRecorder.setOutputFile.overloads[0].implementation = function(fd){
+                console.log('[i] Application is setting the media record file: '+fd);
+
+                this.setOutputFile(fd);
+        }
+        mediaRecorder.setOutputFile.overloads[1].implementation = function(fd){
+                console.log('[i] Application is setting the media record file');
+
+                this.setOutputFile(fd);
+        }
+        mediaRecorder.setOutputFile.overloads[2].implementation = function(fd){
+                console.log('[i] Application is setting the media record file');
+
+                this.setOutputFile(fd);
+        }
 
 
+        mediaRecorder.setAudioSource.implementation = function(audioSource){
+                console.log('[i] Media recorder set audio source called');
+                this.setAudioSource(audioSource);
+        }
+        mediaRecorder.stop.implementation = function(){
+                console.log('[i] Media recording stopped');
+                this.stop();
+        }
 
-mediaRecorder.setOutputFile.overloads[0].implementation = function(fd){
-        console.log('[i] Application is setting the media record file: '+fd);
-
-        this.setOutputFile(fd);
-}
-mediaRecorder.setOutputFile.overloads[1].implementation = function(fd){
-        console.log('[i] Application is setting the media record file');
-
-        this.setOutputFile(fd);
-}
-mediaRecorder.setOutputFile.overloads[2].implementation = function(fd){
-        console.log('[i] Application is setting the media record file');
-
-        this.setOutputFile(fd);
-}
-
-
-mediaRecorder.setAudioSource.implementation = function(audioSource){
-        console.log('[i] Media recorder set audio source called');
-        this.setAudioSource(audioSource);
-}
-mediaRecorder.stop.implementation = function(){
-        console.log('[i] Media recording stopped');
-        this.stop();
-}
-
-mediaRecorder.start.implementation = function(){
-        console.log('[i] Media recording started');
-        this.start();
-}
-mediaRecorder.setCamera.implementation = function(camera){
-        console.log('[i] Application set a camera as an audio source');
-        this.setAudioSource(camera);
-}
-audioRecord.read.overloads[0].implementation = function(audioData, offsetInShorts, sizeInShorts,readMode){
-        console.log('[i] Application is reading audio data');
-        return this.read(audioData, offsetInShorts, sizeInShorts,readMode);
-}
-audioRecord.read.overloads[1].implementation = function(audioBuffer,sizeInBytes,readMode){
-        console.log('[i] Application is reading audio data');
-        return this.read(audioBuffer,sizeInBytes,readMode);
-}
-audioRecord.read.overloads[2].implementation = function(audioData,  offsetInShorts,  sizeInShorts){
-        console.log('[i] Application is getting active microphones');
-        return this.read(audioData,  offsetInShorts,  sizeInShorts);
-}
-audioRecord.read.overloads[3].implementation = function( audioData, 
-         offsetInFloats, 
-         sizeInFloats, 
-         readMod){
-        console.log('[i] Application is reading audio data');
-        return this.read(audioData, 
+        mediaRecorder.start.implementation = function(){
+                console.log('[i] Media recording started');
+                this.start();
+        }
+        mediaRecorder.setCamera.implementation = function(camera){
+                console.log('[i] Application set a camera as an audio source');
+                this.setAudioSource(camera);
+        }
+        audioRecord.read.overloads[0].implementation = function(audioData, offsetInShorts, sizeInShorts,readMode){
+                console.log('[i] Application is reading audio data');
+                return this.read(audioData, offsetInShorts, sizeInShorts,readMode);
+        }
+        audioRecord.read.overloads[1].implementation = function(audioBuffer,sizeInBytes,readMode){
+                console.log('[i] Application is reading audio data');
+                return this.read(audioBuffer,sizeInBytes,readMode);
+        }
+        audioRecord.read.overloads[2].implementation = function(audioData,  offsetInShorts,  sizeInShorts){
+                console.log('[i] Application is getting active microphones');
+                return this.read(audioData,  offsetInShorts,  sizeInShorts);
+        }
+        audioRecord.read.overloads[3].implementation = function( audioData, 
                 offsetInFloats, 
                 sizeInFloats, 
-                readMod);
-}
-audioRecord.read.overloads[4].implementation = function(audioData, 
-         offsetInBytes, 
-         sizeInBytes, 
-         readMode){
-        console.log('[i] Application is reading audio data');
-        return this.read(audioData, 
-                 offsetInBytes, 
-                 sizeInBytes, 
-                 readMode);
-}
-audioRecord.read.overloads[5].implementation = function(audioBuffer, 
-         sizeInBytes){
-        console.log('[i] Application is reading audio data');
-        return this.read(audioBuffer, 
-                 sizeInBytes);
-}
-audioRecord.read.overloads[6].implementation = function(audioData, 
-         offsetInBytes, 
-         sizeInBytes){
-        console.log('[i] Application is reading audio data');
-        return this.read(audioData, 
-                 offsetInBytes, 
-                 sizeInBytes);
-}
+                readMod){
+                console.log('[i] Application is reading audio data');
+                return this.read(audioData, 
+                        offsetInFloats, 
+                        sizeInFloats, 
+                        readMod);
+        }
+        audioRecord.read.overloads[4].implementation = function(audioData, 
+                offsetInBytes, 
+                sizeInBytes, 
+                readMode){
+                console.log('[i] Application is reading audio data');
+                return this.read(audioData, 
+                        offsetInBytes, 
+                        sizeInBytes, 
+                        readMode);
+        }
+        audioRecord.read.overloads[5].implementation = function(audioBuffer, 
+                sizeInBytes){
+                console.log('[i] Application is reading audio data');
+                return this.read(audioBuffer, 
+                        sizeInBytes);
+        }
+        audioRecord.read.overloads[6].implementation = function(audioData, 
+                offsetInBytes, 
+                sizeInBytes){
+                console.log('[i] Application is reading audio data');
+                return this.read(audioData, 
+                        offsetInBytes, 
+                        sizeInBytes);
+        }
 
-audioRecord.getActiveMicrophones.implementation = function(){
-        console.log('[i] Application is getting active microphones');
-        return this.getActiveMicrophones();
-}
+        audioRecord.getActiveMicrophones.implementation = function(){
+                console.log('[i] Application is getting active microphones');
+                return this.getActiveMicrophones();
+        }
 
-audioRecord.getAudioSource.implementation = function(){
-        console.log('[i] Application is getting audio source');
-        return this.getAudioSource();
-}
+        audioRecord.getAudioSource.implementation = function(){
+                console.log('[i] Application is getting audio source');
+                return this.getAudioSource();
+        }
 
-audioRecord.startRecording.overloads[0].implementation = function(){
-        console.log('[i] Application is recording audio');
-        this.startRecording();
-}
+        audioRecord.startRecording.overloads[0].implementation = function(){
+                console.log('[i] Application is recording audio');
+                this.startRecording();
+        }
 
-audioRecord.startRecording.overloads[1].implementation = function(syncEvent){
-        console.log('[i] Application is recording audio');
-        this.startRecording(syncEvent);
-}
-audioRecord.stop.implementation = function(){
-        console.log('[i] Recording stoped');
-        this.stop(syncvent);
-}
+        audioRecord.startRecording.overloads[1].implementation = function(syncEvent){
+                console.log('[i] Application is recording audio');
+                this.startRecording(syncEvent);
+        }
+        audioRecord.stop.implementation = function(){
+                console.log('[i] Recording stoped');
+                this.stop(syncvent);
+        }
 
-clipboardManager.getText.implementation = function(){
-        colorLog('[i] Application is trying to retrieve text from clipboard:',{c:Color.Red});
-        console.log('Text: '+this.getText());
-        return this.getText();
+        clipboardManager.getText.implementation = function(){
+                colorLog('[i] Application is trying to retrieve text from clipboard:',{c:Color.Red});
+                console.log('Text: '+this.getText());
+                return this.getText();
 
-}
+        }
 
-clipboardManager.getPrimaryClip.implementation = function(){
+        clipboardManager.getPrimaryClip.implementation = function(){
 
-        colorLog('[i] Application is trying to retrieve text from clipboard !',{c:Color.Red});
-        return this.getPrimaryClip();
+                colorLog('[i] Application is trying to retrieve text from clipboard !',{c:Color.Red});
+                return this.getPrimaryClip();
 
-}
+        }
 
-clipboardManager.hasPrimaryClip.implementation = function(){
-        colorLog('[i] Application is checking if the clipoard contains data!',{c:Color.Red});
-        return this.hasPrimaryClip();   
-}
-clipboardManager.hasText.implementation = function(){
+        clipboardManager.hasPrimaryClip.implementation = function(){
+                colorLog('[i] Application is checking if the clipoard contains data!',{c:Color.Red});
+                return this.hasPrimaryClip();   
+        }
+        clipboardManager.hasText.implementation = function(){
 
-        colorLog('[i] Application is checking if the clipoard contains data!',{c:Color.Red});
-        return this.hasText();
-}
-
-
-//-----------context queries
-
-cursor.getColumnIndex.implementation = function(columnName){
-        // console.log('[+-------Query Detected-----------+]');
-        //console.log(Java.use(\"android.util.Log\").getStackTraceString(Java.use(\"java.lang.Exception\").$new()));
- 
-         var res = '';
-         var index = this.getColumnIndex(columnName);
-         //this.moveToFirst();
-         if(!this.isAfterLast() && this != null)
-          res = this.getString(index);
-         
-        colorLog(\"[+] AbstractCursor DB Query for: \" + columnName ,{ c: Color.Red }); 
-        colorLog(\"[+] Result: \" + res,{ c: Color.Red } )
-         //this.moveToFirst();
-         return this.getColumnIndex(columnName);
- }
- 
- abstractCursor.getColumnIndex.implementation = function(columnName){
-        // console.log('[+-------Query Detected-----------+]');
-       // console.log(Java.use(\"android.util.Log\").getStackTraceString(Java.use(\"java.lang.Exception\").$new()));
- 
-         var res = '';
-         var index = this.getColumnIndex(columnName);
-         //this.moveToFirst();
-         if(!this.isAfterLast() && this != null)
-          res = this.getString(index);
-        console.log('----------------------------------------------------');
-        colorLog(\"[+] AbstractCursor DB Query for: \" + columnName ,{ c: Color.Red }); 
-        colorLog(\"[+] Result: \" + res,{ c: Color.Green } ) 
-         //this.moveToFirst();
-         return this.getColumnIndex(columnName);
- }
+                colorLog('[i] Application is checking if the clipoard contains data!',{c:Color.Red});
+                return this.hasText();
+        }
 
 
- contextWrapper.openFileInput.overload(\"java.lang.String\").implementation = function(fileName) {
-		          
-        /*   --- Payload Header --- */
-        console.log('[+] Application is opening the file: '+fileName+' for reading ');
-    
-        return this.openFileInput.overload(\"java.lang.String\").apply(this, arguments);
-     
+        //-----------context queries
+
+        cursor.getColumnIndex.implementation = function(columnName){
+                // console.log('[+-------Query Detected-----------+]');
+                //console.log(Java.use(\"android.util.Log\").getStackTraceString(Java.use(\"java.lang.Exception\").$new()));
+        
+                var res = '';
+                var index = this.getColumnIndex(columnName);
+                //this.moveToFirst();
+                if(!this.isAfterLast() && this != null)
+                res = this.getString(index);
+                
+                colorLog(\"[+] AbstractCursor DB Query for: \" + columnName ,{ c: Color.Red }); 
+                colorLog(\"[+] Result: \" + res,{ c: Color.Red } )
+                //this.moveToFirst();
+                return this.getColumnIndex(columnName);
+        }
+        
+        abstractCursor.getColumnIndex.implementation = function(columnName){
+                // console.log('[+-------Query Detected-----------+]');
+        // console.log(Java.use(\"android.util.Log\").getStackTraceString(Java.use(\"java.lang.Exception\").$new()));
+        
+                var res = '';
+                var index = this.getColumnIndex(columnName);
+                //this.moveToFirst();
+                if(!this.isAfterLast() && this != null)
+                res = this.getString(index);
+                console.log('----------------------------------------------------');
+                colorLog(\"[+] AbstractCursor DB Query for: \" + columnName ,{ c: Color.Red }); 
+                colorLog(\"[+] Result: \" + res,{ c: Color.Green } ) 
+                //this.moveToFirst();
+                return this.getColumnIndex(columnName);
+        }
+
+
+        contextWrapper.openFileInput.overload(\"java.lang.String\").implementation = function(fileName) {
+                                
+                /*   --- Payload Header --- */
+                console.log('[+] Application is opening the file: '+fileName+' for reading ');
+        
+                return this.openFileInput.overload(\"java.lang.String\").apply(this, arguments);
+        
+        }
 }
 "
 }

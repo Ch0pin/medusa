@@ -3,7 +3,8 @@
     "Description": "Use this module to monitor file output stream operations",
     "Help": "https://docs.oracle.com/javase/7/docs/api/java/io/FileOutputStream.html",
     "Code": "
-console.log('-------file output stream operations monitor by @chopin--------------');
+{
+  console.log('-------file output stream operations monitor by @chopin--------------');
 
       var fileOutputStream = Java.use('java.io.FileOutputStream');
  
@@ -58,7 +59,7 @@ console.log('-------file output stream operations monitor by @chopin------------
         return this.$init(filename,append);
 
       }
-
+  }
 "
 }
 

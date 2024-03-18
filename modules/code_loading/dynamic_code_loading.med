@@ -6,7 +6,7 @@
 console.log('\\n--------DCL hook module by @ch0pin--------------');
 
 
-
+{
     var pathClassLoader = Java.use(\"dalvik.system.PathClassLoader\")
 
     var dexclassLoader = Java.use(\"dalvik.system.DexClassLoader\");
@@ -120,5 +120,6 @@ pathClassLoader.$init.overloads[1].implementation=function( dexPath,  librarySea
     //  }
      
 // }
+}
 "
 }

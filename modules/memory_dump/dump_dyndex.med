@@ -4,6 +4,7 @@
     "Help": "original script: https://github.com/cryptax/misc-code/blob/master/frida_hooks/dex-dump.js",
     "Code": 
     "
+{
     const classLoader = Java.use('dalvik.system.DexClassLoader');
     const pathLoader = Java.use('dalvik.system.PathClassLoader');
     const memoryLoader = Java.use('dalvik.system.InMemoryDexClassLoader');
@@ -102,6 +103,8 @@
 	        console.log(\"[+] Dex dumped successfully in \"+filename);
 	    }
         return object;
-    }"
+    }
+}
+    "
 
 }

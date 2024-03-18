@@ -3,51 +3,49 @@
     "Description": "Missmatch of cookie manager's setcookie with uri parsed host",
     "Help": "N/a",
     "Code": "
-console.log('\\n-----------set_get_cookie by @chopin---------\\n');
+{
+	console.log('\\n-----------set_get_cookie by @chopin---------\\n');
 
+	let CookieManager1 = Java.use('android.webkit.CookieManager');
 
-
-
-let CookieManager1 = Java.use('android.webkit.CookieManager');
-
-CookieManager1.getInstance.implementation = function(){
-	colorLog('android.webkit.CookieManager.GetInstance called:',{c:Color.Green});
-	printBacktrace();
-	let CookieManagerImpl = this.getInstance();
-	hookGetSetcookie(CookieManagerImpl);
-	return CookieManagerImpl;
-}
-
-function hookGetSetcookie(cmimpl){
-	if(cmimpl != null){
-		console.log(\"Cookie manager implementation: \"+cmimpl)
-
-	
-		let overloadCount_1694935146 = cmimpl['setCookie'].overloads.length;
-		colorLog('\\nTracing ' +'setCookie' + ' [' + overloadCount_1694935146 + ' overload(s)]',{ c: Color.Green });
-		
-		for (let i = 0; i < overloadCount_1694935146; i++) {
-					cmimpl['setCookie'].overloads[i].implementation = function() {
-					console.log('\\x1b[43m\\x1b[31mRisky api call detected: setCookie '+'\\x1b[0m');
-					console.log(\"[+] Host: \"+arguments[0]);
-					console.log(\"    - Cookie value: \"+arguments[1]);
-				this['setCookie'].apply(this, arguments);
-			}
-		}
-		
-		let overloadCount_1694935194 = cmimpl['getCookie'].overloads.length;
-		colorLog('\\nTracing ' +'getCookie' + ' [' + overloadCount_1694935194 + ' overload(s)]',{ c: Color.Green });
-		
-		for (let i = 0; i < overloadCount_1694935194; i++) {
-				cmimpl['getCookie'].overloads[i].implementation = function() {
-				console.log('\\x1b[43m\\x1b[31mRisky api call detected: getCookie for host: '+arguments[0]+'\\x1b[0m');
-				this['getCookie'].apply(this, arguments);
-			}
-		}
-		
-	
+	CookieManager1.getInstance.implementation = function(){
+		colorLog('android.webkit.CookieManager.GetInstance called:',{c:Color.Green});
+		printBacktrace();
+		let CookieManagerImpl = this.getInstance();
+		hookGetSetcookie(CookieManagerImpl);
+		return CookieManagerImpl;
 	}
 
+	function hookGetSetcookie(cmimpl){
+		if(cmimpl != null){
+			console.log(\"Cookie manager implementation: \"+cmimpl)
+
+		
+			let overloadCount_1694935146 = cmimpl['setCookie'].overloads.length;
+			colorLog('\\nTracing ' +'setCookie' + ' [' + overloadCount_1694935146 + ' overload(s)]',{ c: Color.Green });
+			
+			for (let i = 0; i < overloadCount_1694935146; i++) {
+						cmimpl['setCookie'].overloads[i].implementation = function() {
+						console.log('\\x1b[43m\\x1b[31mRisky api call detected: setCookie '+'\\x1b[0m');
+						console.log(\"[+] Host: \"+arguments[0]);
+						console.log(\"    - Cookie value: \"+arguments[1]);
+					this['setCookie'].apply(this, arguments);
+				}
+			}
+			
+			let overloadCount_1694935194 = cmimpl['getCookie'].overloads.length;
+			colorLog('\\nTracing ' +'getCookie' + ' [' + overloadCount_1694935194 + ' overload(s)]',{ c: Color.Green });
+			
+			for (let i = 0; i < overloadCount_1694935194; i++) {
+					cmimpl['getCookie'].overloads[i].implementation = function() {
+					console.log('\\x1b[43m\\x1b[31mRisky api call detected: getCookie for host: '+arguments[0]+'\\x1b[0m');
+					this['getCookie'].apply(this, arguments);
+				}
+			}
+			
+		
+		}
+	}
 }
 "
 }

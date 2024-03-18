@@ -3,7 +3,9 @@
     "Description": "Use this module to monitor file input output operations associated with Context application package",
     "Help": "https://developer.android.com/reference/android/content/Context#openFileInput(java.lang.String)",
     "Code": "
-console.log('-------App context file input output operations monitor by @chopin--------------');
+  
+  {
+    console.log('-------App context file input output operations monitor by @chopin--------------');
 
       var contextWrapper= Java.use('android.content.ContextWrapper');
 
@@ -37,6 +39,7 @@ console.log('-------App context file input output operations monitor by @chopin-
           return this.deleteFile.overload(\"java.lang.String\").apply(this, arguments);
         };
       }
+  }
 "
 }
 

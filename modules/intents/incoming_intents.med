@@ -3,190 +3,192 @@
     "Description": "Use this module to monitor incoming intents",
     "Help": "Displays a message with the intent acction or extra data when it is feasible",
     "Code": "
-console.log('\\n----------Incoming Intent monitor by @ch0p1n------------');
+{
+    console.log('\\n----------Incoming Intent monitor by @ch0p1n------------');
 
-var intent1 = Java.use('android.content.Intent');
-var bundle1 = Java.use('android.os.Bundle');
-
-
-bundle1.getByte.overloads[0].implementation = function(key){
-    var ret = this.getByte(key);
-    console.log('Byte Bundle key:'+key + ', value:'+ret);
-    return ret;
-}
-bundle1.getByte.overloads[1].implementation = function(key,def){
-    var ret = this.getByte(key,def);
-    console.log('Byte Bundle key:'+key + ', value:'+ret);
-    return ret;
-}
-
-bundle1.getChar.overloads[0].implementation = function(key){
-    var ret = this.getChar(key);
-    console.log('getChar Bundle key:'+key + ', value:'+ret);
-    return ret;
-}
-bundle1.getChar.overloads[1].implementation = function(key,def){
-    var ret = this.getChar(key,def);
-    console.log('getChar Bundle key:'+key + ', value:'+ret);
-    return ret;
-}
-
-bundle1.getCharSequence.overloads[0].implementation = function(key){
-    var ret = this.getCharSequence(key);
-    console.log('getCharSequence Bundle key:'+key + ', value:'+ret);
-    return ret;
-}
-bundle1.getCharSequence.overloads[1].implementation = function(key,def){
-    var ret = this.getCharSequence(key,def);
-    console.log('getCharSequence Bundle key:'+key + ', value:'+ret);
-    return ret;
-}
-
-bundle1.getFloat.overloads[0].implementation = function(key){
-    var ret = this.getFloat(key);
-    console.log('getFloat Bundle key:'+key + ', value:'+ret);
-    return ret;
-}
-bundle1.getFloat.overloads[1].implementation = function(key,def){
-    var ret = this.getFloat(key,def);
-    console.log('getFloat Bundle key:'+key + ', value:'+ret);
-    return ret;
-}
-
-bundle1.getShort.overloads[0].implementation = function(key){
-    var ret = this.getShort(key);
-    console.log('getShort Bundle key:'+key + ', value:'+ret);
-    return ret;
-}
-bundle1.getShort.overloads[1].implementation = function(key,def){
-    var ret = this.getShort(key,def);
-    console.log('getShort Bundle key:'+key + ', value:'+ret);
-    return ret;
-}
-
-intent1.hasExtra.implementation = function(name){
-    colorLog('[+] Checking for Extra: '+name,{c:Color.Yellow});
-  
-    return this.hasExtra(name);
-}
+    var intent1 = Java.use('android.content.Intent');
+    var bundle1 = Java.use('android.os.Bundle');
 
 
-intent1.getSerializableExtra.overload('java.lang.String').implementation = function(name){
-    let ret = this.getSerializableExtra(name);
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
-    console.log('\t\\\\__Serializable Extra, name: '+ name + ' ,'+JSON.stringify(ret));
-    return this.getSerializableExtra(name);
-}
-if(Java.androidVersion > 12)
-    intent1.getSerializableExtra.overload('java.lang.String', 'java.lang.Class').implementation = function(name, clazz){
-        let ret = this.getSerializableExtra(name,clazz);
-        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
-        console.log('\t\\\\__Serializable Extra (name,class), name: '+ name + ' ,'+JSON.stringify(ret));
+    bundle1.getByte.overloads[0].implementation = function(key){
+        var ret = this.getByte(key);
+        console.log('Byte Bundle key:'+key + ', value:'+ret);
+        return ret;
+    }
+    bundle1.getByte.overloads[1].implementation = function(key,def){
+        var ret = this.getByte(key,def);
+        console.log('Byte Bundle key:'+key + ', value:'+ret);
         return ret;
     }
 
-intent1.getParcelableExtra.overload('java.lang.String').implementation = function(name){
-    let ret = this.getParcelableExtra(name);
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
-    console.log('\t\\\\__Parcelable Extra (name), name: '+ name+' ,'+JSON.stringify(ret));
-    return ret;
-}
-if(Java.androidVersion > 12)
-    intent1.getParcelableExtra.overload('java.lang.String', 'java.lang.Class').implementation = function(name,clazz){
-        let ret = this.getParcelableExtra (name,clazz);
-        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
-        console.log('\t\\\\__Parcelable Extra(name,class), name: '+ name + ' ,'+JSON.stringify(ret));
+    bundle1.getChar.overloads[0].implementation = function(key){
+        var ret = this.getChar(key);
+        console.log('getChar Bundle key:'+key + ', value:'+ret);
+        return ret;
+    }
+    bundle1.getChar.overloads[1].implementation = function(key,def){
+        var ret = this.getChar(key,def);
+        console.log('getChar Bundle key:'+key + ', value:'+ret);
         return ret;
     }
 
-intent1.getBooleanExtra.implementation = function(name,value){
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
-    console.log('\t\\\\__Boolean Extra, name: '+ name + ', value:'+value);
-    return this.getBooleanExtra(name,value);
-}
+    bundle1.getCharSequence.overloads[0].implementation = function(key){
+        var ret = this.getCharSequence(key);
+        console.log('getCharSequence Bundle key:'+key + ', value:'+ret);
+        return ret;
+    }
+    bundle1.getCharSequence.overloads[1].implementation = function(key,def){
+        var ret = this.getCharSequence(key,def);
+        console.log('getCharSequence Bundle key:'+key + ', value:'+ret);
+        return ret;
+    }
 
-intent1.getBundleExtra.implementation = function(bundlename){
-    let ret = this.getBundleExtra(bundlename);
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
-    console.log('\t\\\\__Bundle Extra, name: '+ bundlename +' ,'+JSON.stringify(ret.toString()));
-    return ret;
-}
+    bundle1.getFloat.overloads[0].implementation = function(key){
+        var ret = this.getFloat(key);
+        console.log('getFloat Bundle key:'+key + ', value:'+ret);
+        return ret;
+    }
+    bundle1.getFloat.overloads[1].implementation = function(key,def){
+        var ret = this.getFloat(key,def);
+        console.log('getFloat Bundle key:'+key + ', value:'+ret);
+        return ret;
+    }
 
-intent1.getByteArrayExtra.implementation = function(name){
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+    bundle1.getShort.overloads[0].implementation = function(key){
+        var ret = this.getShort(key);
+        console.log('getShort Bundle key:'+key + ', value:'+ret);
+        return ret;
+    }
+    bundle1.getShort.overloads[1].implementation = function(key,def){
+        var ret = this.getShort(key,def);
+        console.log('getShort Bundle key:'+key + ', value:'+ret);
+        return ret;
+    }
 
-    console.log('\t\\\\__Byte Array Extra, name: '+ name);
-    return this.getByteArrayExtra(name);
-}
+    intent1.hasExtra.implementation = function(name){
+        colorLog('[+] Checking for Extra: '+name,{c:Color.Yellow});
+    
+        return this.hasExtra(name);
+    }
 
-intent1.getByteExtra.implementation = function(name,value){
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
-    console.log('\t\\\\__Byte Extra, name: '+ name + ', value:'+value);
-    return this.getByteExtra(name,value);
-}
+    intent1.getSerializableExtra.overload('java.lang.String').implementation = function(name){
+        let ret = this.getSerializableExtra(name);
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+        console.log('\t\\\\__Serializable Extra, name: '+ name + ' ,'+JSON.stringify(ret));
+        return this.getSerializableExtra(name);
+    }
+    if(Java.androidVersion > 12)
+        intent1.getSerializableExtra.overload('java.lang.String', 'java.lang.Class').implementation = function(name, clazz){
+            let ret = this.getSerializableExtra(name,clazz);
+            colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+            console.log('\t\\\\__Serializable Extra (name,class), name: '+ name + ' ,'+JSON.stringify(ret));
+            return ret;
+        }
 
-intent1.getCharArrayExtra.implementation = function(name){
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+    intent1.getParcelableExtra.overload('java.lang.String').implementation = function(name){
+        let ret = this.getParcelableExtra(name);
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+        console.log('\t\\\\__Parcelable Extra (name), name: '+ name+' ,'+JSON.stringify(ret));
+        return ret;
+    }
+    if(Java.androidVersion > 12)
+        intent1.getParcelableExtra.overload('java.lang.String', 'java.lang.Class').implementation = function(name,clazz){
+            let ret = this.getParcelableExtra (name,clazz);
+            colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+            console.log('\t\\\\__Parcelable Extra(name,class), name: '+ name + ' ,'+JSON.stringify(ret));
+            return ret;
+        }
 
-    console.log('\t\\\\__Char Array Extra, name: '+ name);
-    return this.getCharArrayExtra(name);
-}
+    intent1.getBooleanExtra.implementation = function(name,value){
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+        console.log('\t\\\\__Boolean Extra, name: '+ name + ', value:'+value);
+        return this.getBooleanExtra(name,value);
+    }
 
-intent1.getCharExtra.implementation = function(name,value){
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+    intent1.getBundleExtra.implementation = function(bundlename){
+        let ret = this.getBundleExtra(bundlename);
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+        console.log('\t\\\\__Bundle Extra, name: '+ bundlename +' ,'+JSON.stringify(ret.toString()));
+        return ret;
+    }
 
-    var ret =  this.getCharExtra(name,value);
-    console.log('\t\\\\__Char Extra, name: '+ name, ', '+ret);
-    return ret;
-}
+    intent1.getByteArrayExtra.implementation = function(name){
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
-intent1.getData.implementation = function(){
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+        console.log('\t\\\\__Byte Array Extra, name: '+ name);
+        return this.getByteArrayExtra(name);
+    }
 
-    var ret = this.getData();
-    console.log('\t\\\\__ Data URI:'+ret);
-    return ret;
+    intent1.getByteExtra.implementation = function(name,value){
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
-}
+        console.log('\t\\\\__Byte Extra, name: '+ name + ', value:'+value);
+        return this.getByteExtra(name,value);
+    }
 
-intent1.getDataString.implementation = function(){
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+    intent1.getCharArrayExtra.implementation = function(name){
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
-    var ret = this.getDataString();
-    console.log('\t\\\\__ data URI:'+ret);
-    return ret;
+        console.log('\t\\\\__Char Array Extra, name: '+ name);
+        return this.getCharArrayExtra(name);
+    }
 
-}
+    intent1.getCharExtra.implementation = function(name,value){
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
-intent1.getDoubleArrayExtra.implementation = function(name){
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+        var ret =  this.getCharExtra(name,value);
+        console.log('\t\\\\__Char Extra, name: '+ name, ', '+ret);
+        return ret;
+    }
 
-    console.log('\t\\\\__ Double Array Extra, name: '+ name);
-    return this.getDoubleArrayExtra(name);
-}
-intent1.getDoubleExtra.implementation = function(name,value){
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+    intent1.getData.implementation = function(){
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
-    var ret =  this.getDoubleExtra(name,value);
-    console.log('\t\\\\__ Double Extra, name: '+ name, ', '+ret);
-    return ret;
-}
+        var ret = this.getData();
+        console.log('\t\\\\__ Data URI:'+ret);
+        return ret;
 
-intent1.getStringExtra.implementation = function(name){
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+    }
 
-    var ret =  this.getStringExtra(name);
-    console.log('\t\\\\__ String Extra, name: '+ name, ', '+ret);
-    return ret;
-}
+    intent1.getDataString.implementation = function(){
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
 
-intent1.getPackage.implementation = function(){
-    colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+        var ret = this.getDataString();
+        console.log('\t\\\\__ data URI:'+ret);
+        return ret;
 
-    var ret =  this.getPackage();
-    console.log('\t\\\\__ intent package origin:'+ret);
-    return ret;
+    }
+
+    intent1.getDoubleArrayExtra.implementation = function(name){
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+
+        console.log('\t\\\\__ Double Array Extra, name: '+ name);
+        return this.getDoubleArrayExtra(name);
+    }
+    intent1.getDoubleExtra.implementation = function(name,value){
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+
+        var ret =  this.getDoubleExtra(name,value);
+        console.log('\t\\\\__ Double Extra, name: '+ name, ', '+ret);
+        return ret;
+    }
+
+    intent1.getStringExtra.implementation = function(name){
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+
+        var ret =  this.getStringExtra(name);
+        console.log('\t\\\\__ String Extra, name: '+ name, ', '+ret);
+        return ret;
+    }
+
+    intent1.getPackage.implementation = function(){
+        colorLog('[+] INCOMING INTENT: '+this,{c:Color.Green});
+
+        var ret =  this.getPackage();
+        console.log('\t\\\\__ intent package origin:'+ret);
+        return ret;
+    }
 }
 "
 }

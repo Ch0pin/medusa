@@ -3,12 +3,14 @@
     "Description": "Prevent file from being deleted observation script",
     "Help": "https://codeshare.frida.re/@dzonerzy/dereflector/",
     "Code": "
-console.log('\\n-----------Loading Un-Delete prevention module---------');
+{
+  console.log('\\n-----------Loading Un-Delete prevention module---------');
 
   var File_1705489393 = Java.use('java.io.File');
   File_1705489393.delete.implementation = function() {
     colorLog('[+] Un-deleting ' + this.getAbsolutePath(),{c:Color.Red});
     return true;  // true means \"deleted successfully\"
   }
+}
 "
 }

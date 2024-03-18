@@ -4,69 +4,71 @@
     "Help": "Hooks the following log types:\n- ASSERT\n- DEBUG\n- ERROR \n- INFO \n- VERBOSE \n- WARN",
     "Code": "
 
-console.log('-------Debug log monitor by @chopin--------------');
+{
+    console.log('-------Debug log monitor by @chopin--------------');
 
-var hook = Java.use('android.util.Log');
+    var hook = Java.use('android.util.Log');
 
 
-var overloadCount1 = hook['i'].overloads.length;
-for (var i = 0; i < overloadCount1; i++) {
-    hook['i'].overloads[i].implementation = function() {
-        colorLog('[+] Logcat.INFO:',{ c: Color.Yellow });
-        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
-        var retval = this['i'].apply(this, arguments);
-        return retval;
+    var overloadCount1 = hook['i'].overloads.length;
+    for (var i = 0; i < overloadCount1; i++) {
+        hook['i'].overloads[i].implementation = function() {
+            colorLog('[+] Logcat.INFO:',{ c: Color.Yellow });
+            console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+            var retval = this['i'].apply(this, arguments);
+            return retval;
+        }
     }
-}
 
 
-var overloadCount2 = hook['d'].overloads.length;
-for (var i = 0; i < overloadCount2; i++) {
-    hook['d'].overloads[i].implementation = function() {
-        colorLog('[+] Logcat.DEBUG: ',{ c: Color.Yellow });
-        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
-        var retval = this['d'].apply(this, arguments);
-        return retval;
+    var overloadCount2 = hook['d'].overloads.length;
+    for (var i = 0; i < overloadCount2; i++) {
+        hook['d'].overloads[i].implementation = function() {
+            colorLog('[+] Logcat.DEBUG: ',{ c: Color.Yellow });
+            console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+            var retval = this['d'].apply(this, arguments);
+            return retval;
+        }
     }
-}
 
-var overloadCount3 = hook['e'].overloads.length;
-for (var i = 0; i < overloadCount3; i++) {
-    hook['e'].overloads[i].implementation = function() {
-        colorLog('[+] Logcat.ERROR:',{ c: Color.Yellow });
-        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
-        var retval = this['e'].apply(this, arguments);
-        return retval;
+    var overloadCount3 = hook['e'].overloads.length;
+    for (var i = 0; i < overloadCount3; i++) {
+        hook['e'].overloads[i].implementation = function() {
+            colorLog('[+] Logcat.ERROR:',{ c: Color.Yellow });
+            console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+            var retval = this['e'].apply(this, arguments);
+            return retval;
+        }
     }
-}
 
-var overloadCount4 = hook['v'].overloads.length;
-for (var i = 0; i < overloadCount4; i++) {
-    hook['v'].overloads[i].implementation = function() {
-        colorLog('[+] Logcat.VERBOSE:',{ c: Color.Yellow });
-        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
-        var retval = this['v'].apply(this, arguments);
-        return retval;
+    var overloadCount4 = hook['v'].overloads.length;
+    for (var i = 0; i < overloadCount4; i++) {
+        hook['v'].overloads[i].implementation = function() {
+            colorLog('[+] Logcat.VERBOSE:',{ c: Color.Yellow });
+            console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+            var retval = this['v'].apply(this, arguments);
+            return retval;
+        }
     }
-}
 
-var overloadCount5 = hook['w'].overloads.length;
-for (var i = 0; i < overloadCount5; i++) {
-    hook['w'].overloads[i].implementation = function() {
-        colorLog('[+] Logcat.WARN:',{ c: Color.Yellow });
-        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
-        var retval = this['w'].apply(this, arguments);
-        return retval;
+    var overloadCount5 = hook['w'].overloads.length;
+    for (var i = 0; i < overloadCount5; i++) {
+        hook['w'].overloads[i].implementation = function() {
+            colorLog('[+] Logcat.WARN:',{ c: Color.Yellow });
+            console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+            var retval = this['w'].apply(this, arguments);
+            return retval;
+        }
     }
-}
 
-var overloadCount6 = hook['wtf'].overloads.length;
-for (var i = 0; i < overloadCount6; i++) {
-    hook['wtf'].overloads[i].implementation = function() {
-        colorLog('[+] Logcat.TERRIBLE_FAILURE:',{ c: Color.RED });
-        console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
-        var retval = this['wtf'].apply(this, arguments);
-        return retval;
+    var overloadCount6 = hook['wtf'].overloads.length;
+    for (var i = 0; i < overloadCount6; i++) {
+        hook['wtf'].overloads[i].implementation = function() {
+            colorLog('[+] Logcat.TERRIBLE_FAILURE:',{ c: Color.RED });
+            console.log('Tag:'+arguments[0]+' MST:'+arguments[1])
+            var retval = this['wtf'].apply(this, arguments);
+            return retval;
+        }
     }
 }
 "

@@ -3,59 +3,18 @@
     "Description": "Print URIs created by the application",
     "Help": "original script https://github.com/CreditTone/hooker/blob/master/js/url.js",
     "Code": " 
-console.log(\"\\n-----------------------https://github.com/CreditTone/hooker/blob/master/js/url.js-------------------------\");
+{
+  console.log(\"\\n-----------------------https://github.com/CreditTone/hooker/blob/master/js/url.js-------------------------\");
 
-var url_g = ''
-var uriParseClz = Java.use('java.net.URI');
-var uriParseClzConstruct = uriParseClz.$init.overload(\"java.lang.String\");
-uriParseClzConstruct.implementation = function(url) {
-    var result = uriParseClzConstruct.call(this, url);
-    var executor = this.hashCode();
-    var beatText = \"[+] URL:\" + url;
-    var beat = newMethodBeat(beatText, executor);
-    if (url != url_g)
-      if (check(url)){
-        colorLog(\"--------------------------------------------------------------------------\",{c:Color.Blue});
-        if(url.startsWith('http'))
-          printBeat(beat);
-        else colorLog(beat,{c: Color.Red})
-        url_g = url;
-      }
-    return result;
-};
-
-// URL
-var URLClz = Java.use('java.net.URL');
-var androidLogClz = Java.use(\"android.util.Log\");
-var exceptionClz = Java.use(\"java.lang.Exception\");
-var urlConstruct = URLClz.$init.overload(\"java.lang.String\");
-urlConstruct.implementation = function(url) {
-    var result = urlConstruct.call(this, url);
-    var executor = this.hashCode();
-    var beatText = \"[+] URL:\" + url;
-    var beat = newMethodBeat(beatText, executor);
-    if (url != url_g)
-      if (check(url)){
-        colorLog(\"--------------------------------------------------------------------------\",{c:Color.Blue});
-        if(url.startsWith('http'))
-          printBeat(beat);
-        else colorLog(beat,{c: Color.Red})
-        url_g = url;
-      }
-    return result;
-};
-
-//ok系统原生支持
-var sysBuilderClz = tryGetClass('com.android.okhttp.Request$Builder');
-if (sysBuilderClz) {
-    sysBuilderClz.build.implementation = function() {
-        var okRequestResult = this.build();
-        var httpUrl = okRequestResult.url();
-        var url = httpUrl.toString();
-        var executor = this.hashCode();
-        var beatText = \"[+] URL:\" + url;
-        var beat = newMethodBeat(beatText, executor);
-        if (url != url_g)
+  var url_g = ''
+  var uriParseClz = Java.use('java.net.URI');
+  var uriParseClzConstruct = uriParseClz.$init.overload(\"java.lang.String\");
+  uriParseClzConstruct.implementation = function(url) {
+      var result = uriParseClzConstruct.call(this, url);
+      var executor = this.hashCode();
+      var beatText = \"[+] URL:\" + url;
+      var beat = newMethodBeat(beatText, executor);
+      if (url != url_g)
         if (check(url)){
           colorLog(\"--------------------------------------------------------------------------\",{c:Color.Blue});
           if(url.startsWith('http'))
@@ -63,22 +22,20 @@ if (sysBuilderClz) {
           else colorLog(beat,{c: Color.Red})
           url_g = url;
         }
-        return okRequestResult
-    };
-}
+      return result;
+  };
 
-//ok本地依赖
-var builderClz = tryGetClass('okhttp3.Request$Builder');
-if (builderClz) {
-    var buildFunc = builderClz.build.overload();
-    buildFunc.implementation = function() {
-        var okRequestResult = buildFunc.call(this);
-        var httpUrl = okRequestResult.url();
-        var url = httpUrl.toString();
-        var executor = this.hashCode();
-        var beatText = \"[+] URL:\" + url;
-        var beat = newMethodBeat(beatText, executor);
-        if (url != url_g)
+  // URL
+  var URLClz = Java.use('java.net.URL');
+  var androidLogClz = Java.use(\"android.util.Log\");
+  var exceptionClz = Java.use(\"java.lang.Exception\");
+  var urlConstruct = URLClz.$init.overload(\"java.lang.String\");
+  urlConstruct.implementation = function(url) {
+      var result = urlConstruct.call(this, url);
+      var executor = this.hashCode();
+      var beatText = \"[+] URL:\" + url;
+      var beat = newMethodBeat(beatText, executor);
+      if (url != url_g)
         if (check(url)){
           colorLog(\"--------------------------------------------------------------------------\",{c:Color.Blue});
           if(url.startsWith('http'))
@@ -86,26 +43,71 @@ if (builderClz) {
           else colorLog(beat,{c: Color.Red})
           url_g = url;
         }
-        return okRequestResult
-    };
-}
+      return result;
+  };
 
-var android_net_Uri_clz = Java.use('android.net.Uri');
-var android_net_Uri_clz_method_parse_u5rj = android_net_Uri_clz.parse.overload('java.lang.String');
-android_net_Uri_clz_method_parse_u5rj.implementation = function(url) {
-    var executor = 'Class';
-    var beatText = \"[+] URL:\" + url;
-    var beat = newMethodBeat(beatText, executor);
-    var ret = android_net_Uri_clz_method_parse_u5rj.call(android_net_Uri_clz, url);
-    if (url != url_g)
-      if (check(url)){
-        colorLog(\"--------------------------------------------------------------------------\",{c:Color.Blue});
-        if(url.startsWith('http'))
-          printBeat(beat);
-        else colorLog(beat,{c: Color.Red})
-        url_g = url;
-      }
-    return ret;
-};
+  //ok系统原生支持
+  var sysBuilderClz = tryGetClass('com.android.okhttp.Request$Builder');
+  if (sysBuilderClz) {
+      sysBuilderClz.build.implementation = function() {
+          var okRequestResult = this.build();
+          var httpUrl = okRequestResult.url();
+          var url = httpUrl.toString();
+          var executor = this.hashCode();
+          var beatText = \"[+] URL:\" + url;
+          var beat = newMethodBeat(beatText, executor);
+          if (url != url_g)
+          if (check(url)){
+            colorLog(\"--------------------------------------------------------------------------\",{c:Color.Blue});
+            if(url.startsWith('http'))
+              printBeat(beat);
+            else colorLog(beat,{c: Color.Red})
+            url_g = url;
+          }
+          return okRequestResult
+      };
+  }
+
+  //ok本地依赖
+  var builderClz = tryGetClass('okhttp3.Request$Builder');
+  if (builderClz) {
+      var buildFunc = builderClz.build.overload();
+      buildFunc.implementation = function() {
+          var okRequestResult = buildFunc.call(this);
+          var httpUrl = okRequestResult.url();
+          var url = httpUrl.toString();
+          var executor = this.hashCode();
+          var beatText = \"[+] URL:\" + url;
+          var beat = newMethodBeat(beatText, executor);
+          if (url != url_g)
+          if (check(url)){
+            colorLog(\"--------------------------------------------------------------------------\",{c:Color.Blue});
+            if(url.startsWith('http'))
+              printBeat(beat);
+            else colorLog(beat,{c: Color.Red})
+            url_g = url;
+          }
+          return okRequestResult
+      };
+  }
+
+  var android_net_Uri_clz = Java.use('android.net.Uri');
+  var android_net_Uri_clz_method_parse_u5rj = android_net_Uri_clz.parse.overload('java.lang.String');
+  android_net_Uri_clz_method_parse_u5rj.implementation = function(url) {
+      var executor = 'Class';
+      var beatText = \"[+] URL:\" + url;
+      var beat = newMethodBeat(beatText, executor);
+      var ret = android_net_Uri_clz_method_parse_u5rj.call(android_net_Uri_clz, url);
+      if (url != url_g)
+        if (check(url)){
+          colorLog(\"--------------------------------------------------------------------------\",{c:Color.Blue});
+          if(url.startsWith('http'))
+            printBeat(beat);
+          else colorLog(beat,{c: Color.Red})
+          url_g = url;
+        }
+      return ret;
+  };
+}
 "
 }

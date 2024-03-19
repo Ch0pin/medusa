@@ -393,17 +393,42 @@ class parser(cmd2.Cmd):
     def do_install(self, line):
         """Usage: install /full/path/to/foobar.apk
         Install an apk to the device."""
-
-        try:
-            if len(line.split(' ')):
-                apk_file = line.split(' ')[0]
-
+        
+        if len(line.arg_list) > 0:
+            try:
+                apk_file = line.arg_list[0]
                 if os.path.exists(apk_file):
                     self.do_adb('adb', f'install {apk_file}', True)
                 else:
-                    print(Fore.RED + f"[!] Error: can't find: {apk_file} " + Fore.RESET)
-        except Exception as e:
-            print(e)
+                    raise FileNotFoundError(Fore.RED + f"[!] Error: can't find: {apk_file}. App not installed" + Fore.RESET)
+            except FileNotFoundError as e:
+                print(e)
+        else:
+            print('[!] Usage: install /full/path/to/foobar.apk')
+
+
+    def do_installmultiple(self,line):
+        """Usage: installmultiple /full/path/to/foobar.apk /full/path/to/foobar2.apk ...
+        Install multiple apks for a single package on the device."""
+
+        if len(line.arg_list) > 1:
+            try:
+                apk_files = line.arg_list
+                adb_command = 'install-multiple'
+                for apk_file in apk_files:
+                    if os.path.exists(apk_file):
+                        adb_command += f' {apk_file}'
+                    else:
+                        raise FileNotFoundError(Fore.RED + f"[!] Error: can't find: {apk_file}. App not installed" + Fore.RESET)
+                
+                self.do_adb('adb',adb_command,True)
+            except FileNotFoundError as e:
+                print(e)
+        else:
+            print('[!] Usage: installmultiple /full/path/to/foobar.apk /full/path/to/foobar2.apk ...')
+
+
+
 
     def do_installagent(self, line):
         """Usage: installagent

@@ -660,6 +660,7 @@ $adb remount
         else:
             print("[!] File doesn't exist.")
 
+
     def do_playstore(self, line):
         """Usage: playstore package_name
         Search the playstore for the app with the given id."""
@@ -702,37 +703,42 @@ $adb remount
             print(e)
 
     def do_pull(self, line):
-        """Usage: pull com.foo.bar
+        """Usage: pull [-a] com.foo.bar
         Extracts an apk from the device and saves it as 'base.apk' in the working directory.
         Use it in combination with the tab key to see available packages
         '-a' flag to pull all the split_config* apks"""
 
-        switch = line.split(' ')[0]
-        pull_all = False
+        if len(line.arg_list) > 0:
 
-        if '-a' in switch:
-            package = line.split(' ')[1]
-            pull_all = True
+            pull_all = False
+            package = ''
+
+            if line.arg_list[0] =='-a':
+                package = line.arg_list[1]
+                pull_all = True
+            else:
+                package = line.arg_list[0]
+
+            try:
+                base_apk = os.popen(
+                    f"adb -s {self.device.id} shell pm path {package} | grep base.apk | cut -d ':' -f 2").read()
+                print("Extracting: " + base_apk)
+                output = os.popen("adb -s {} pull {}".format(self.device.id, base_apk, package)).read()
+                print(output)
+                if pull_all:
+                    split_apks = os.popen(
+                    f"adb -s {self.device.id} shell pm path {package} | grep split | cut -d ':' -f 2").read().splitlines()
+                    for split_apk in split_apks:
+                        print("Extracting: " + split_apk)
+                        output = os.popen("adb -s {} pull {}".format(self.device.id, split_apk, package)).read()
+                        print(output)
+                if Polar('Do you want to import the application?').ask():
+                    self.do_import('base.apk')
+            except Exception as e:
+                print(e)
         else:
-            package = line.split(' ')[0]
-
-        try:
-            base_apk = os.popen(
-                f"adb -s {self.device.id} shell pm path {package} | grep base.apk | cut -d ':' -f 2").read()
-            print("Extracting: " + base_apk)
-            output = os.popen("adb -s {} pull {}".format(self.device.id, base_apk, package)).read()
-            print(output)
-            if pull_all:
-                split_apks = os.popen(
-                f"adb -s {self.device.id} shell pm path {package} | grep split | cut -d ':' -f 2").read().splitlines()
-                for split_apk in split_apks:
-                    print("Extracting: " + split_apk)
-                    output = os.popen("adb -s {} pull {}".format(self.device.id, split_apk, package)).read()
-                    print(output)
-            if Polar('Do you want to import the application?').ask():
-                self.do_import('base.apk')
-        except Exception as e:
-            print(e)
+            print('[!] Usage: pull [-a] com.foo.bar')
+            
 
     def do_query(self, line):
         """Usage: query SELECT * FROM [table name]

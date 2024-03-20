@@ -496,7 +496,7 @@ $adb remount
     def do_load(self, line):
         """Usage: load [package_name]
         Load an application which allready exists in the current (working) database."""
-        self.real_load_app(line.strip('"').split(':')[1])
+        self.real_load_app(line.split(':')[1])
         return
 
     def do_loaddevice(self, line) -> None:
@@ -1005,7 +1005,7 @@ $adb remount
         res = self.database.query_db("SELECT packageName, sha256, versionName from Application order by packagename asc;")
         appSha256 = []
         for entry in res:
-            appSha256.append(entry[0] + ':' + entry[1]+ ' (V.'+entry[2]+')')
+            appSha256.append(entry[0] + ':' + entry[1])
 
         if not text:
             completions = appSha256[:]

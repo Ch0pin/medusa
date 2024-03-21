@@ -810,6 +810,8 @@ class Parser(cmd2.Cmd):
                     int(Numeric('\nEnter the index of the device to use:', lbound=0, ubound=len(devices) - 1).ask())]
                 android_dev = android_device(self.device.id)
                 android_dev.print_dev_properties()
+            elif self.is_remote_device(self.device_id):
+                self.device = frida.get_remote_device(self.device_id)
             else:
                 self.device = frida.get_device(self.device_id)
         except:
@@ -1415,14 +1417,29 @@ class Parser(cmd2.Cmd):
         print(
             "\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
-        # aclass = line.split(' ')[0]
-        # if  aclass == '':
-        #     print('[i] Usage: hookall [class name]')
-        # else:
-        #     className = aclass
-        #     codejs = "traceClass('"+className+"');\n"
-        #     self.edit_scratchpad(codejs, 'a')
-        #     print("\nHooks have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
+    def is_remote_device(self, ip_or_ip_with_port):
+        # Regular expression pattern to match IPv4 addresses with optional port number
+        ipv4_or_ipv4_with_port_pattern = r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?$'
+        # Check if the string matches the IPv4 or IPv4 with port pattern
+        if re.match(ipv4_or_ipv4_with_port_pattern, ip_or_ip_with_port):
+            # Split the IP and port parts
+            parts = ip_or_ip_with_port.split(':')
+            ip = parts[0]
+            port = int(parts[1]) if len(parts) == 2 else None
+    
+            # Check if each octet of the IP is within the valid range (0-255)
+            octets = ip.split('.')
+            for octet in octets:
+                if not (0 <= int(octet) <= 255):
+                    return False
+            
+            # Check if the port is within the valid range (1-65535)
+            if port is not None and not (1 <= port <= 65535):
+                return False
+            
+            return True
+        else:
+            return False
 
     def frida_session_handler(self, con_device, force, pkg, pid=-1):
         time.sleep(1)

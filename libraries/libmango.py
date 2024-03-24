@@ -703,21 +703,14 @@ $adb remount
             print(e)
 
     def do_pull(self, line):
-        """Usage: pull [-a] com.foo.bar
+        """Usage: pull com.foo.bar
         Extracts an apk from the device and saves it as 'base.apk' in the working directory.
-        Use it in combination with the tab key to see available packages
-        '-a' flag to pull all the split_config* apks"""
+        Use it in combination with the tab key to see available packages"""
 
         if len(line.arg_list) > 0:
 
-            pull_all = False
-            package = ''
+            package = line.arg_list[0]
 
-            if line.arg_list[0] =='-a':
-                package = line.arg_list[1]
-                pull_all = True
-            else:
-                package = line.arg_list[0]
 
             try:
                 base_apk = os.popen(
@@ -725,20 +718,37 @@ $adb remount
                 print("Extracting: " + base_apk)
                 output = os.popen("adb -s {} pull {}".format(self.device.id, base_apk, package)).read()
                 print(output)
-                if pull_all:
-                    split_apks = os.popen(
-                    f"adb -s {self.device.id} shell pm path {package} | grep split | cut -d ':' -f 2").read().splitlines()
-                    for split_apk in split_apks:
-                        print("Extracting: " + split_apk)
-                        output = os.popen("adb -s {} pull {}".format(self.device.id, split_apk, package)).read()
-                        print(output)
+
                 if Polar('Do you want to import the application?').ask():
                     self.do_import('base.apk')
             except Exception as e:
                 print(e)
         else:
-            print('[!] Usage: pull [-a] com.foo.bar')
+            print('[!] Usage: pull com.foo.bar')
+
+    def do_pullmultiple(self, line):
+        """Usage: pullmultiple com.foo.bar
+        Extracts an apk and all the split_config* apk packages (from bundled apk)
+        from the device and saves it as 'base.apk' and 'split_config*'
+        in the working directory.
+        Use it in combination with the tab key to see available packages"""
+        
+        if len(line.arg_list) > 0:
+            self.do_pull(line)
+            package = line.arg_list[0]
             
+            try:
+                split_apks = os.popen(
+                f"adb -s {self.device.id} shell pm path {package} | grep split | cut -d ':' -f 2").read().splitlines()
+                for split_apk in split_apks:
+                    print("Extracting: " + split_apk)
+                    output = os.popen("adb -s {} pull {}".format(self.device.id, split_apk, package)).read()
+                    print(output)
+            except Exception as e:
+                print(e)
+        else:
+            print('[!] Usage: pullmultiple com.foo.bar')
+
 
     def do_query(self, line):
         """Usage: query SELECT * FROM [table name]
@@ -1074,6 +1084,9 @@ $adb remount
         return completions
 
     def complete_pull(self, text, line, begidx, endidx):
+        return self.get_packages_starting_with(text)
+
+    def complete_pullmultiple(self, text, line, begidx, endidx):
         return self.get_packages_starting_with(text)
 
     def complete_show(self, text, line, begidx, endidx):

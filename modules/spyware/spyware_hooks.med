@@ -78,10 +78,14 @@
         }
         //SCREEN CAPTURE
 
-        screenCapture.createScreenCaptureIntent.implementation = function(){
-                colorLog('[+] ScreeenCapture intent was created',{c: Color.Red});
-                return this.createScreenCaptureIntent();
-        }
+        let createScreenCaptureIntent_overloads = screenCapture.createScreenCaptureIntent.overloads;
+        createScreenCaptureIntent_overloads.forEach(function(overload) {
+                overload.implementation = function() {
+                        colorLog('[+] ScreeenCapture intent was created',{c: Color.Red});
+                        return this['createScreenCaptureIntent'].apply(this,arguments);
+
+                };
+            });
 
         screenCapture.getMediaProjection.implementation = function(resultCode, resultData){
                 colorLog('[+] ScreeenCapture started',{c: Color.Red});
@@ -128,17 +132,23 @@
 
         //-----------LOCATION API CALLS------------------------
 
-        locationManager.getLastKnownLocation.implementation = function(provider){
-                console.log('[+] Application is asking for last known location from the provider: '+provider);
-                return this.getLastKnownLocation(provider);
 
-        } 
+        let getLastKnownLocation_overloads = locationManager.getLastKnownLocation.overloads;
+        getLastKnownLocation_overloads.forEach(function(overload) {
+                overload.implementation = function() {
+                        console.log('[+] Application is asking for last known location from the provider: '+arguments[0]);
+                        return this['getLastKnownLocation'].apply(this,arguments);
+                };
+            });
 
-
-        locationListener.onLocationChanged.implementation = function(location){
-                console.log('[i] Listener for location change triggered');
-                this.onLocationChanged(location);
-        }
+        let onLocationChanged_overloads = locationListener.onLocationChanged.overloads;
+        onLocationChanged_overloads.forEach(function(overload) {
+                overload.implementation = function() {
+                        console.log('[i] Listener for location change triggered');
+                        return this['onLocationChanged'].apply(this,arguments);
+                };
+        });
+    
         locationListener.onProviderDisabled.implementation = function(provider){
                 console.log('Provider :'+provider+' has been disabled by the user');
                 this.onProviderDisabled(provider);

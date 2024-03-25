@@ -8,6 +8,10 @@
     console.log('\\n----------Broadcast monitor by @ch0p1n------------------------');
 
     let hook_1703795516 = Java.use('android.content.ContextWrapper');
+    const VERSION = Java.use('android.os.Build$VERSION');
+
+    // Get the SDK_INT property
+    const apiLevel = VERSION.SDK_INT.value;
     
     function dumpIntentFilter(intentFilter){
       
@@ -110,27 +114,27 @@
       
     
         hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter').implementation = function(receiver, filter) {
-          colorLog('[+] The application registers the receiver:'+receiver,{c:Color.Green});
-          dumpIntentFilter(filter)
+          colorLog('[+] The application registers the receiver:'+receiver,{c:Color.Cyan});
           this.registerReceiver(receiver, filter);
+          dumpIntentFilter(filter)
         };
     
         hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter', 'int').implementation = function(receiver, filter, flags) {
-          colorLog('[+] The application registers the receiver:'+receiver ,{c:Color.Green});
+          colorLog('[+] The application registers the receiver:'+receiver ,{c:Color.Cyan});
+          this.registerReceiver(receiver, filter, flags);
           dumpIntentFilter(filter)
-          this.registerReceiver(receiver, filter);
         };
     
         hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter', 'java.lang.String', 'android.os.Handler').implementation = function(receiver, filter, broadcastPermission, scheduler) {
-          colorLog('[+] The application registers the receiver:'+receiver + ' protected by permission: '+broadcastPermission,{c:Color.Green});
-          dumpIntentFilter(filter)
+          colorLog('[+] The application registers the receiver:'+receiver + ' protected by permission: '+broadcastPermission,{c:Color.Cyan});
           this.registerReceiver(receiver, filter, broadcastPermission, scheduler);
+          dumpIntentFilter(filter)
         };
     
         hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter', 'java.lang.String', 'android.os.Handler', 'int').implementation = function(receiver, filter, broadcastPermission, scheduler,flags) {
-          colorLog('[+] The application registers the receiver:'+receiver + ' protected by permission: '+broadcastPermission,{c:Color.Green});
-          dumpIntentFilter(filter)
+          colorLog('[+] The application registers the receiver:'+receiver + ' protected by permission: '+broadcastPermission,{c:Color.Cyan});
           this.registerReceiver(receiver, filter, broadcastPermission, scheduler,flags);
+          dumpIntentFilter(filter)
         };
     
                     let overloadCount_1703795516 = hook_1703795516['sendBroadcastAsUser'].overloads.length;
@@ -151,22 +155,25 @@
                     }
                     }
                     
-                    let overloadCount_1703795552 = hook_1703795516['sendBroadcastWithMultiplePermissions'].overloads.length;
-                    colorLog('\\nTracing ' +'sendBroadcastWithMultiplePermissions' + ' [' + overloadCount_1703795552 + ' overload(s)]',{ c: Color.Yellow });
-                        
-                        for (let i = 0; i < overloadCount_1703795552; i++) {
-                            hook_1703795516['sendBroadcastWithMultiplePermissions'].overloads[i].implementation = function() {
-                            colorLog('*** entered ' +'sendBroadcastWithMultiplePermissions',{ c: Color.Yellow });
+                    if(apiLevel >= 30){
 
-                    if (arguments.length) console.log();
-                    for (let j = 0; j < arguments.length; j++) {
-                        console.log('arg[' + j + ']: ' + arguments[j]);
-                    }
-                    let retval = this['sendBroadcastWithMultiplePermissions'].apply(this, arguments); 
-                    console.log('retval: ' + retval);
-                    colorLog('*** exiting ' + 'sendBroadcastWithMultiplePermissions',{ c: Color.Yellow });
-                    return retval;
-                    }
+                      let overloadCount_1703795552 = hook_1703795516['sendBroadcastWithMultiplePermissions'].overloads.length;
+                      colorLog('\\nTracing ' +'sendBroadcastWithMultiplePermissions' + ' [' + overloadCount_1703795552 + ' overload(s)]',{ c: Color.Yellow });
+                          
+                          for (let i = 0; i < overloadCount_1703795552; i++) {
+                              hook_1703795516['sendBroadcastWithMultiplePermissions'].overloads[i].implementation = function() {
+                              colorLog('*** entered ' +'sendBroadcastWithMultiplePermissions',{ c: Color.Yellow });
+
+                      if (arguments.length) console.log();
+                      for (let j = 0; j < arguments.length; j++) {
+                          console.log('arg[' + j + ']: ' + arguments[j]);
+                      }
+                        let retval = this['sendBroadcastWithMultiplePermissions'].apply(this, arguments); 
+                        console.log('retval: ' + retval);
+                        colorLog('*** exiting ' + 'sendBroadcastWithMultiplePermissions',{ c: Color.Yellow });
+                        return retval;
+                        }
+                      }
                     }
                     
                     let overloadCount_1703795567 = hook_1703795516['sendOrderedBroadcast'].overloads.length;

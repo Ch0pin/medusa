@@ -54,6 +54,23 @@
     //   colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
     //   this.startActivityIfNeeded(intent,requestCode,bundle);
     // }
+
+    activity.setResult.overload('int','android.content.Intent').implementation = function(requestCode,intent){
+        colorLog('\\nsetResult '+this+' ====> setResult('+intent.getComponent()+')',{c:Color.Purple});  
+        dumpIntent(intent);
+         colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
+  
+        this.setResult(requestCode,intent);
+  
+     }
+     activity.setResult.overload('int').implementation = function(requestCode){
+        colorLog('\\nsetResult '+this+' ====> setResult('+ requestCode +')',{c:Color.Purple});  
+        colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
+        this.setResult(requestCode);
+  
+     }
+
+
 }    
 "
 }

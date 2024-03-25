@@ -1383,15 +1383,18 @@ $adb remount
 
     def continue_session(self, guava):
         self.guava = guava
-        res, index = self.print_avail_apps(True)
-        if res:
-            chosen_index = int(Numeric(Style.RESET_ALL + '\nEnter the index of  application to load:', lbound=0,
-                                       ubound=index - 1).ask())
-            chosen_sha256 = res[chosen_index][0]
-            self.init_application_info(self.database, chosen_sha256)
-        else:
-            print(Fore.RED + Style.BRIGHT + "[!] No Entries found in the given database !" + Style.RESET_ALL)
-        return
+        try:
+            res, index = self.print_avail_apps(True)
+            if res:
+                chosen_index = int(Numeric(Style.RESET_ALL + '\nEnter the index of  application to load:', lbound=0,
+                                        ubound=index - 1).ask())
+                chosen_sha256 = res[chosen_index][0]
+                self.init_application_info(self.database, chosen_sha256)
+            else:
+                print(Fore.RED + Style.BRIGHT + "[!] No Entries found in the given database !" + Style.RESET_ALL)
+            return
+        except TypeError:
+            print("Database is empty.")
 
     def create_script(self, opsys, line):
         switch = line.split(' ')[0].strip()

@@ -9,8 +9,10 @@ console.log('\\n----------URI parsing monitor by @ch0p1n------------');
   var Uri = Java.use('android.net.Uri'); 
 
   const commonSchemes = ['http', 'https', 'content', 'file', 'android-app'];
+  const show_common = true; //set it to false to exclude the above shcemes from the logs 
 
   var currentUri = '';
+
 
   Uri.getQueryParameter.implementation = function(key)
   {
@@ -46,9 +48,9 @@ console.log('\\n----------URI parsing monitor by @ch0p1n------------');
 
   Uri.parse.implementation = function(uriString){
     var ret = this.parse(uriString);
-    if(commonSchemes.includes(ret.getScheme()))
+    if(commonSchemes.includes(ret.getScheme()) && show_common)
       log('[+] Uri parse with Uri String: '+uriString)
-    else
+    else if(!commonSchemes.includes(ret.getScheme()))
       styleLog('[+] Uri with custom scheme: '+uriString,['custom scheme:',uriString.split(':/')[0]],StyleLogColorset.cyan,StyleLogColorset.black);
 
     return ret;

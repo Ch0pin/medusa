@@ -384,17 +384,32 @@ class Parser(cmd2.Cmd):
                         var field = jClass.class.getDeclaredField('"""+field+"""')
                         field.setAccessible(true); 
                         var rvalue = field.get(instance);
-                        try {
-                            var isIter = Java.cast(rvalue, IterableClass);
-                            if(isIter){
-                                console.log('Iterable detected. Trying to dump:')
-                                var iter = isIter.iterator();
-                                while(iter.hasNext()){    
-                                    console.log('\t'+iter.next())
-                                    }
-                                } 
-                            }catch(e){ 
-                        }
+                        try{
+                        var isIter = Java.cast(rvalue, IterableClass);
+                        if(isIter){
+                            console.log('Iterable detected. Trying to dump:')
+                            var iter = isIter.iterator();
+                            while(iter.hasNext()){
+                                console.log('	'+iter.next())
+                                }
+                            }
+                        } catch(e){ }
+                    
+                        try{
+                            var hashMap = Java.cast(rvalue, Java.use('java.util.HashMap'));
+                            if(hashMap){
+                            console.log('Instance is a HashMap. Dumping entries:');
+                            var entrySet = hashMap.entrySet();
+                            var iterator = entrySet.iterator();
+                            while (iterator.hasNext()) {
+                                var entry = Java.cast(iterator.next(), Java.use('java.util.Map$Entry'));
+                                var key = entry.getKey().toString();
+                                var value = entry.getValue().toString();
+                                console.log('Key: ' + key + ', Value: ' + value);
+                            }
+                            }
+                        } catch(e){ }
+
                     }, onComplete: function() {
                 }
             })

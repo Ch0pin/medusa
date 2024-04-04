@@ -393,17 +393,42 @@ class parser(cmd2.Cmd):
     def do_install(self, line):
         """Usage: install /full/path/to/foobar.apk
         Install an apk to the device."""
-
-        try:
-            if len(line.split(' ')):
-                apk_file = line.split(' ')[0]
-
+        
+        if len(line.arg_list) > 0:
+            try:
+                apk_file = line.arg_list[0]
                 if os.path.exists(apk_file):
                     self.do_adb('adb', f'install {apk_file}', True)
                 else:
-                    print(Fore.RED + f"[!] Error: can't find: {apk_file} " + Fore.RESET)
-        except Exception as e:
-            print(e)
+                    raise FileNotFoundError(Fore.RED + f"[!] Error: can't find: {apk_file}. App not installed" + Fore.RESET)
+            except FileNotFoundError as e:
+                print(e)
+        else:
+            print('[!] Usage: install /full/path/to/foobar.apk')
+
+
+    def do_installmultiple(self,line):
+        """Usage: installmultiple /full/path/to/foobar.apk /full/path/to/foobar2.apk ...
+        Install multiple apks for a single package on the device."""
+
+        if len(line.arg_list) > 1:
+            try:
+                apk_files = line.arg_list
+                adb_command = 'install-multiple'
+                for apk_file in apk_files:
+                    if os.path.exists(apk_file):
+                        adb_command += f' {apk_file}'
+                    else:
+                        raise FileNotFoundError(Fore.RED + f"[!] Error: can't find: {apk_file}. App not installed" + Fore.RESET)
+                
+                self.do_adb('adb',adb_command,True)
+            except FileNotFoundError as e:
+                print(e)
+        else:
+            print('[!] Usage: installmultiple /full/path/to/foobar.apk /full/path/to/foobar2.apk ...')
+
+
+
 
     def do_installagent(self, line):
         """Usage: installagent
@@ -635,6 +660,7 @@ $adb remount
         else:
             print("[!] File doesn't exist.")
 
+
     def do_playstore(self, line):
         """Usage: playstore package_name
         Search the playstore for the app with the given id."""
@@ -681,17 +707,48 @@ $adb remount
         Extracts an apk from the device and saves it as 'base.apk' in the working directory.
         Use it in combination with the tab key to see available packages"""
 
-        package = line.split(' ')[0]
-        try:
-            base_apk = os.popen(
-                f"adb -s {self.device.id} shell pm path {package} | grep base.apk | cut -d ':' -f 2").read()
-            print("Extracting: " + base_apk)
-            output = os.popen("adb -s {} pull {}".format(self.device.id, base_apk, package)).read()
-            print(output)
-            if Polar('Do you want to import the application?').ask():
-                self.do_import('base.apk')
-        except Exception as e:
-            print(e)
+        if len(line.arg_list) > 0:
+
+            package = line.arg_list[0]
+
+
+            try:
+                base_apk = os.popen(
+                    f"adb -s {self.device.id} shell pm path {package} | grep base.apk | cut -d ':' -f 2").read()
+                print("Extracting: " + base_apk)
+                output = os.popen("adb -s {} pull {}".format(self.device.id, base_apk, package)).read()
+                print(output)
+
+                if Polar('Do you want to import the application?').ask():
+                    self.do_import('base.apk')
+            except Exception as e:
+                print(e)
+        else:
+            print('[!] Usage: pull com.foo.bar')
+
+    def do_pullmultiple(self, line):
+        """Usage: pullmultiple com.foo.bar
+        Extracts an apk and all the split_config* apk packages (from bundled apk)
+        from the device and saves it as 'base.apk' and 'split_config*'
+        in the working directory.
+        Use it in combination with the tab key to see available packages"""
+        
+        if len(line.arg_list) > 0:
+            self.do_pull(line)
+            package = line.arg_list[0]
+            
+            try:
+                split_apks = os.popen(
+                f"adb -s {self.device.id} shell pm path {package} | grep split | cut -d ':' -f 2").read().splitlines()
+                for split_apk in split_apks:
+                    print("Extracting: " + split_apk)
+                    output = os.popen("adb -s {} pull {}".format(self.device.id, split_apk, package)).read()
+                    print(output)
+            except Exception as e:
+                print(e)
+        else:
+            print('[!] Usage: pullmultiple com.foo.bar')
+
 
     def do_query(self, line):
         """Usage: query SELECT * FROM [table name]
@@ -1027,6 +1084,9 @@ $adb remount
         return completions
 
     def complete_pull(self, text, line, begidx, endidx):
+        return self.get_packages_starting_with(text)
+
+    def complete_pullmultiple(self, text, line, begidx, endidx):
         return self.get_packages_starting_with(text)
 
     def complete_show(self, text, line, begidx, endidx):

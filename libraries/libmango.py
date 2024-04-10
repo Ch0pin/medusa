@@ -191,7 +191,7 @@ class parser(cmd2.Cmd):
     schemes = set()
     pathPrefixes = set()
     manifest = None
-
+    libraries = None
     strings = []
     packages = []
 
@@ -898,6 +898,8 @@ $adb remount
                     print(self.manifest[0][0].decode('utf-8'))
                 elif 'strings' in what:
                     self.print_strings()
+                elif 'libraries' in what:
+                    self.print_libraries()
                 elif 'exposure' in what:
                     print(
                         "|----------------------------------- [ ⚠️  ] Potential attack targets [ ⚠️  ] ---------------------------------------|\n[+] Deeplinks:")
@@ -1095,7 +1097,7 @@ $adb remount
         else:
             components = sorted(
                 ['exposure', 'applications', 'activityAlias', 'info', 'permissions', 'activities', 'services',
-                 'receivers', 'intentFilters', 'providers', 'deeplinks', 'strings', 'database', 'manifest'])
+                 'receivers', 'intentFilters', 'providers', 'deeplinks', 'strings', 'database', 'manifest', 'libraries'])
         if not text:
             completions = components[:]
         else:
@@ -1187,12 +1189,13 @@ $adb remount
 |    Debuggable        :{}
 |    Allow Backup      :{}
 |    Evasion Tactics   :{}
+|    Dev. Framework    :{}
 [------------------------------------------------------------------------------------------]
 |                          Type 'help' or 'man' for a list of commands                     |
 [------------------------------------------------------------------------------------------]
         """.format(info[0][14], info[0][1], info[0][2], info[0][3], info[0][4],
                    info[0][5], info[0][6], info[0][7], info[0][0], info[0][10], info[0][11],
-                   info[0][15]) + Style.RESET_ALL)
+                   info[0][15], info[0][16]) + Style.RESET_ALL)
         print(BLUE + "[i] Notes:" + RESET)
         notes = self.database.get_all_notes(info[0][0])
         if len(notes) == 0:
@@ -1211,7 +1214,6 @@ $adb remount
                 print("{c: <25} {t: <15}".format(c=column[1], t=column[2]))
 
     def print_deeplinks(self, quite=False):
-        display_text = ''
         component = ''
         schmlst = []
         hostlst = []
@@ -1288,7 +1290,6 @@ $adb remount
             self.total_deep_links += tmplst
 
     def print_intent_filters(self):
-        display_text = ''
         for attribs in self.intent_filters:
             l = len(attribs[0])
             print(Fore.GREEN + '-' * l + f'\nComponent:{attribs[0]}' + Fore.RESET)
@@ -1300,6 +1301,9 @@ $adb remount
 
             print(Fore.GREEN + '-' * l + Fore.RESET)
         print(Style.RESET_ALL)
+
+    def print_libraries(self):
+        print('Application Libraries: ' + ' '.join(str(entry) for entry in self.libraries))
 
     def print_permissions(self):
         display_text = ''
@@ -1426,15 +1430,16 @@ $adb remount
     ###################################################### rest of defs start ############################################################
 
     def print_avail_apps(self, count_pkg=False):
-        res = self.database.query_db("SELECT sha256, packageName, versionName from Application order by packagename asc;")
+        res = self.database.query_db("SELECT sha256, packageName, versionName, framework from Application order by packagename asc;")
         index = 0
         if res:
             print(
-                Fore.GREEN + "[i] Availlable applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 70 + " " + "-" * 57 + "\n {0} {1:^68} {2:^60}\n".format(
-                    "index", "sha256", "Package Name") + "-" * 7 + " " + "-" * 70 + " " + "-" * 57)
+                Fore.GREEN + "[i] Availlable applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 65 + "  " + "-" * 57 + "\n {0} {1:^68}  {2:^60}\n".format(
+                    "index", "sha256", "Package Name (Version) / Dev. Framework") + "-" * 7 + " " + "-" * 65 + "  " + "-" * 57)
             for entry in res:
-                sha256, package_name, version = entry
-                print(Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^68}\t {2:<60}".format(index, sha256, package_name + f" {Fore.LIGHTGREEN_EX+'(V.'+version})",))
+                sha256, package_name, version, framework = entry
+                framework = '' if framework == 'None Detected' else '/ ' + framework
+                print(Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(index, sha256, package_name + f" {Fore.LIGHTGREEN_EX+'(V.'+version}) {framework}",))
                 index += 1
                 if count_pkg:
                     self.total_apps.append(package_name + ":" + sha256)
@@ -1506,6 +1511,7 @@ $adb remount
             self.info = application_database.get_app_info(app_sha256)
             self.print_application_info(self.info)
             self.activities = application_database.get_all_activities(app_sha256)
+            self.libraries = application_database.get_libraries(app_sha256)
             self.permissions = application_database.get_all_permissions(app_sha256)
             self.services = application_database.get_all_services(app_sha256)
             self.activityallias = application_database.get_all_alias_activities(app_sha256)

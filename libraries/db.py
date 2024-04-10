@@ -12,7 +12,7 @@ class apk_db:
             self.create_db()
 
     def create_db(self):
-        self.cursor.execute("""CREATE TABLE Application(sha256 TEXT, name TEXT, packageName TEXT, versionCode TEXT, versionName TEXT, minSdkVersion TEXT, targetSdkVersion TEXT, maxSdkVersion TEXT,permissions TEXT, libraries TEXT, debuggable TEXT, allowbackup TEXT, androidManifest TEXT, stringResources TEXT, original_filename TEXT, tampered TEXT)""")
+        self.cursor.execute("""CREATE TABLE Application(sha256 TEXT, name TEXT, packageName TEXT, versionCode TEXT, versionName TEXT, minSdkVersion TEXT, targetSdkVersion TEXT, maxSdkVersion TEXT,permissions TEXT, libraries TEXT, debuggable TEXT, allowbackup TEXT, androidManifest TEXT, stringResources TEXT, original_filename TEXT, tampered TEXT, framework TEXT)""")
 
         self.cursor.execute("""CREATE TABLE Permissions(app_sha256 TEXT, permission TEXT, type TEXT, shortDescription TEXT, fullDescription TEXT)""")
 
@@ -85,7 +85,7 @@ class apk_db:
         return self.cursor.fetchall()
 
     def get_deeplinks(self, sha256):
-        sql = f"""SELECT componentName,dataList from IntentFilters WHERE app_sha256='{sha256}' AND dataList !=''"""
+        sql = f"""SELECT componentName, dataList from IntentFilters WHERE app_sha256='{sha256}' AND dataList !=''"""
         self.cursor.execute(sql)
         return self.cursor.fetchall()
 
@@ -93,9 +93,14 @@ class apk_db:
         sql = f"""SELECT name from Activities WHERE app_sha256='{sha256}' AND enabled LIKE 'true%' AND exported LIKE 'true%'"""
         self.cursor.execute(sql)
         return self.cursor.fetchall()
+    
+    def get_libraries(self, sha256):
+        sql = f"""SELECT libraries from Application WHERE sha256='{sha256}'"""
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
 
     def get_intent_filters(self, sha256):
-        sql = f"""SELECT componentName,actionList,categoryList from IntentFilters WHERE app_sha256='{sha256}'"""
+        sql = f"""SELECT componentName, actionList, categoryList from IntentFilters WHERE app_sha256='{sha256}'"""
         self.cursor.execute(sql)
         return self.cursor.fetchall()
 
@@ -126,7 +131,7 @@ class apk_db:
 
     def update_application(self, attribs):
         sql = """INSERT INTO Application(sha256,name,packageName,versionCode,versionName,minSdkVersion,
-        targetSdkVersion,maxSdkVersion,permissions,libraries, debuggable, allowbackup,androidManifest,stringResources,original_filename,tampered) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
+        targetSdkVersion, maxSdkVersion, permissions, libraries, debuggable, allowbackup, androidManifest, stringResources, original_filename, tampered, framework) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
         self.execute_update(sql, attribs)
 
     def update_intent_filters(self, attribs):

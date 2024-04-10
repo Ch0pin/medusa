@@ -6,7 +6,7 @@ from apkInspector.indicators import apk_tampering_check
 
 from libraries.IntentFilter import *
 from libraries.db import *
-import hashlib
+import hashlib, fnmatch
 
 NS_ANDROID_URI = "http://schemas.android.com/apk/res/android"
 NS_ANDROID = '{http://schemas.android.com/apk/res/android}'
@@ -114,11 +114,11 @@ class Guava:
                           parsed_apk.get_androidversion_code(), parsed_apk.get_androidversion_name(),
                           parsed_apk.get_min_sdk_version(), parsed_apk.get_target_sdk_version(),
                           parsed_apk.get_max_sdk_version(), '|'.join(parsed_apk.get_permissions()),
-                          '|'.join(parsed_apk.get_libraries())) + (
+                          ' '.join(parsed_apk.get_libraries())) + (
                              application.get(NS_ANDROID + "debuggable"), application.get(NS_ANDROID + "allowBackup"),
                              parsed_apk.get_android_manifest_axml().get_xml(),
                              arsc.get_string_resources(arsc.get_packages_names()[0]), original_filename,
-                             self.detect_tampering(parsed_apk))
+                             self.detect_tampering(parsed_apk), self.detect_framework(parsed_apk))
 
         self.application_database.update_application(app_attributes)
 
@@ -222,6 +222,17 @@ class Guava:
 
     def delete_note(self, index):
         self.application_database.delete_note(index)
+    
+    def detect_framework(self, parsed_apk):
+        assets = parsed_apk.get_files()
+        for entry in assets:
+            if 'index.android.bundle' in entry:
+                return 'React Native'
+            elif fnmatch.fnmatch(entry, '*cordova*.js') or ('www/index.html' in entry and 'www/js/index.js' in entry):
+                return 'Ionic Cordova'
+            
+        return 'None Detected'
+
 
     def detect_tampering(self, parsed_apk):
         tamperings = apk_tampering_check(io.BytesIO(parsed_apk.get_raw()), False)

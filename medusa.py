@@ -1104,6 +1104,9 @@ class Parser(cmd2.Cmd):
                     pattern = r'\b\d+\b'
                     get_pid = re.findall(pattern, option)
                     self.run_frida(False, False, '', self.device, get_pid[0], host, port)
+                elif flags[0] == '-F':
+                    pid = self.device.get_frontmost_application().pid
+                    self.run_frida(False, False, "", self.device, pid, host, port)
                 else:
                     self.run_frida(False, False, line, self.device, -1, host, port)
 

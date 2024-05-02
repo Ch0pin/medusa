@@ -228,8 +228,12 @@ class Guava:
         for entry in assets:
             if 'index.android.bundle' in entry:
                 return 'React Native'
-            elif fnmatch.fnmatch(entry, '*cordova*.js') or ('www/index.html' in entry and 'www/js/index.js' in entry):
+            elif fnmatch.fnmatch(entry, '*cordova*.js') or ('www/index.html' in assets and 'www/js/index.js' in assets):
                 return 'Ionic Cordova'
+            elif fnmatch.fnmatch(entry, '*libflutter.so'):
+                for fEntry in assets:
+                    if fnmatch.fnmatch(fEntry, '*libapp.so'):
+                        return 'Flutter'
             
         return 'None Detected'
 

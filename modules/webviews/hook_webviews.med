@@ -126,7 +126,7 @@
         '\\nBaseUrl: ' + baseUrl +
         '\\nData: ' + data+
         '\\nmimeType: ' + mimeType+
-        '\\nhistory URL' + historyUrl);
+        '\\nhistory URL: ' + historyUrl);
         this.loadDataWithBaseURL(baseUrl,data,mimeType,encoding,historyUrl);
     }
 

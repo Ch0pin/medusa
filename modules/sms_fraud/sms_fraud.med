@@ -160,7 +160,7 @@
             }
         }
         category = category != null ? category : 'Not short code';
-        countryCode = countryCode != null ? country : '';
+        countryCode = countryCode != null ? countryCode : '';
         return [category, countryCode];
     }
 

@@ -838,9 +838,9 @@ $adb remount
           Adding the '-e' option the command will print only exported components.
         - receivers -d: prints dynamically registered receivers"""
 
-        what = line.split(' ')[0]
-        if len(line.split(' ')) > 1:
-            flag = line.split(' ')[1]
+        what = line.arg_list[0]
+        if len(line.arg_list) > 1:
+            flag = line.arg_list[1]
         else:
             flag = ''
 
@@ -913,7 +913,8 @@ $adb remount
                     self.print_receivers(False)
                     print("[+] Exported providers:")
                     self.print_providers(False)
-
+                    print("[+] Custom permissions:")
+                    self.print_permissions(True)
                 else:
                     print(
                         '[i] Usage: show [activities, activityAlias, applications, database, deeplinks, exposure, info, intentFilters, manifest, permissions, providers, receivers, services, strings]')
@@ -1305,14 +1306,27 @@ $adb remount
     def print_libraries(self):
         print('Application Libraries: ' + ' '.join(str(entry) for entry in self.libraries))
 
-    def print_permissions(self):
+    def print_permissions(self, custom_only=False):
         display_text = ''
-        for permission in self.permissions:
-            print("#" * 92)
-            display_text = Fore.GREEN + 'Name:' + Fore.RESET + permission[1] + '\n'
-            display_text += Fore.GREEN + 'Type:' + Fore.RESET + permission[2] + '\n'
-            display_text += Fore.GREEN + 'Description:' + Fore.RESET + permission[4] + '\n'
-            print(display_text)
+        if custom_only:
+            for permission in self.permissions:
+                if "Unknown permission" in permission[4] and not permission[1].startswith(("android.permission.", "com.google.")):
+                    display_text = Fore.GREEN + 'Name:' + Fore.RESET + permission[1] 
+                    display_text += Fore.GREEN + ', Type:'
+                    if "normal" in permission[2]:
+                        display_text += Fore.RED + ' potentially forgotten protectionLevel entry -> '
+                    else:
+                        display_text += Fore.RESET
+                    display_text += permission[2] + Fore.RESET + '\n'
+                print(display_text, end='')
+                display_text = ''
+        else:
+            for permission in self.permissions:
+                print("#" * 92)
+                display_text = Fore.GREEN + 'Name:' + Fore.RESET + permission[1] + '\n'
+                display_text += Fore.GREEN + 'Type:' + Fore.RESET + permission[2] + '\n'
+                display_text += Fore.GREEN + 'Description:' + Fore.RESET + permission[4] + '\n'
+                print(display_text)
 
     def print_providers(self, all=True):
         try:

@@ -123,10 +123,27 @@ class Guava:
         self.application_database.update_application(app_attributes)
 
     def fill_permissions(self, parsed_apk, sha256):
+
+        app_declared_permissions = parsed_apk.get_declared_permissions_details()
         app_permissions = parsed_apk.get_details_permissions()
+        protection_levels=['normal', 'dangerous', 'signature', 'signature or system', 'internal', 'other']
+
         for permission in app_permissions:
-            entry = (sha256, permission,) + tuple(app_permissions[permission])
+            custom = False
+            for c_permission in app_declared_permissions:
+                if permission == c_permission and not permission.startswith(("android.permission.", "com.google.")):
+                    custom = True
+                    level = app_declared_permissions[permission]['protectionLevel']
+                    if level == 'None': 
+                        p_level = 0
+                    else:
+                        p_level = int(level, 16)
+                    if  p_level > 5: p_level=5
+                    entry = (sha256, permission, protection_levels[p_level], ) + tuple(app_permissions[permission][1:]) 
+            if not custom:
+                entry = (sha256, permission,) + tuple(app_permissions[permission])
             self.application_database.update_permissions(entry)
+            
 
     def fill_providers(self, application, sha256):
 
@@ -226,7 +243,7 @@ class Guava:
     def detect_framework(self, parsed_apk):
         assets = parsed_apk.get_files()
         for entry in assets:
-            if 'index.android.bundle' in entry:
+            if 'index.android.bundle' in entry or fnmatch.fnmatch(entry, '*libreactnative*.so') :
                 return 'React Native'
             elif fnmatch.fnmatch(entry, '*cordova*.js') or ('www/index.html' in assets and 'www/js/index.js' in assets):
                 return 'Ionic Cordova'
@@ -234,7 +251,10 @@ class Guava:
                 for fEntry in assets:
                     if fnmatch.fnmatch(fEntry, '*libapp.so'):
                         return 'Flutter'
-            
+            elif fnmatch.fnmatch(entry, '*assemblies.manifest'):
+                for xEntry in assets:
+                    if fnmatch.fnmatch(xEntry, '*assemblies.blob'):
+                        return 'Xamarin'   
         return 'None Detected'
 
 

@@ -341,7 +341,7 @@ class parser(cmd2.Cmd):
             if os.path.isfile('./script.sh'):
                 if Polar(f"\t (!) Delete {path + '/script.sh'} ?").ask():
                     os.remove('script.sh')
-            if os.path.isfile('.\script.bat'):
+            if os.path.isfile('.\\script.bat'):
                 if Polar('\t(!) Do you want to delete the trace script file?').ask():
                     os.remove('./script.bat')
             if os.path.exists('__handlers__/'):

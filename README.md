@@ -15,17 +15,26 @@ $ pip install -r requirements.txt
 ```
 ## Known issues
 
-In macOS installation you may encounter the following issue:
+# macOS Installation
+
+During installation on macOS, you might encounter the following issue:
 
 >Readline features including tab completion have been disabled because
 no supported version of readline was found. To resolve this, install
 pyreadline3 on Windows or gnureadline on Linux/Mac.
 
-You can resolve this by installing python's gnureadline:
+To resolve this issue on macOS, install the gnureadline package for Python:
 
 ```
 pip install gnureadline
 ```
+
+For Python 3.12, use the following command to install gnureadline from a specific commit:
+
+```
+pip install git+https://github.com/ludwigschwardt/python-gnureadline.git@8474e5583d4473f96b42745393c3492e2cb49224
+```
+
 
 ## Using docker
 

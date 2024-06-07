@@ -1066,7 +1066,7 @@ class Parser(cmd2.Cmd):
         Options:
 
         run [package name]       : Initiate a Frida session and attach to the selected package
-             -f                  : Initiate a Frida session and attach to the topmost application
+             -t                  : Initiate a Frida session and attach to the topmost application
              -f [package name]   : Initiate a Frida session and spawn the selected package
              -n [package number] : Initiate a Frida session and spawn the 3rd party package using its index returned by the 'list' command
              -p [pid]            : Initiate a Frida session using a process id
@@ -1105,7 +1105,7 @@ class Parser(cmd2.Cmd):
                     pattern = r'\b\d+\b'
                     get_pid = re.findall(pattern, option)
                     self.run_frida(False, False, '', self.device, get_pid[0], host, port)
-                elif flags[0] == '-f':
+                elif flags[0] == '-t':
                     pid = self.device.get_frontmost_application().pid
                     self.run_frida(False, False, "", self.device, pid, host, port)
                 else:

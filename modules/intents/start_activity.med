@@ -55,21 +55,24 @@
     //   this.startActivityIfNeeded(intent,requestCode,bundle);
     // }
 
-    activity.setResult.overload('int','android.content.Intent').implementation = function(requestCode,intent){
-        colorLog('\\nsetResult '+this+' ====> setResult('+intent.getComponent()+')',{c:Color.Purple});  
-        dumpIntent(intent);
-         colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
-  
-        this.setResult(requestCode,intent);
-  
-     }
-     activity.setResult.overload('int').implementation = function(requestCode){
-        colorLog('\\nsetResult '+this+' ====> setResult('+ requestCode +')',{c:Color.Purple});  
-        colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
-        this.setResult(requestCode);
-  
-     }
 
+    activity.setResult.overload('int','android.content.Intent').implementation = function(requestCode,intent){
+      let output = '\\nsetResult '+this+' ====> setResult('+requestCode+','+intent+')';
+      styleLog(output, ['setResult', this], StyleLogColorset.white, StyleLogColorset.red);
+      dumpIntent(intent);
+      colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
+
+      this.setResult(requestCode,intent);
+
+   }
+   activity.setResult.overload('int').implementation = function(requestCode){
+      let output = '\\nsetResult '+this+' ====> setResult('+requestCode+')';
+      styleLog(output, ['setResult', this], StyleLogColorset.white, StyleLogColorset.red);
+      colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
+      this.setResult(requestCode);
+
+   }
+   
 
 }    
 "

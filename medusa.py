@@ -344,7 +344,7 @@ class Parser(cmd2.Cmd):
 
     def do_get(self, line):
         """
-        Print the current value of a fields of a class instance
+        Print the value of a class's field 
         Usage: get package_name full.path.to.class.field
         """
         try:

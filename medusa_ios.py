@@ -1017,8 +1017,8 @@ Data container: {self.app_info.parameters['containers']['data']}\n""" + RESET)
                         found = True
                         for match in matches:
                             click.secho(f'[+] Match found for {id_value}', fg='white', bg='red')
-                            click.secho(f'  \_[+] Severity: {severity_value}', fg='red')
-                            click.secho(f'  \_[+] Match value: {id_value}: {match}', fg='red')
+                            click.secho(f'  \\_[+] Severity: {severity_value}', fg='red')
+                            click.secho(f'  \\_[+] Match value: {id_value}: {match}', fg='red')
             return found
         except Exception as e:
             print(f'Error while parsing the json data:{e}')

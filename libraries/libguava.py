@@ -11,6 +11,39 @@ import hashlib, fnmatch
 NS_ANDROID_URI = "http://schemas.android.com/apk/res/android"
 NS_ANDROID = '{http://schemas.android.com/apk/res/android}'
 
+protection_flags_to_attributes = {
+        "0x00000000": "normal",
+        "0x00000001": "dangerous",
+        "0x00000002": "signature",
+        "0x00000003": "signature or system",
+        "0x00000004": "internal",
+        "0x00000010": "privileged",
+        "0x00000020": "development",
+        "0x00000040": "appop",
+        "0x00000080": "pre23",
+        "0x00000100": "installer",
+        "0x00000200": "verifier",
+        "0x00000400": "preinstalled",
+        "0x00000800": "setup",
+        "0x00001000": "instant",
+        "0x00002000": "runtime only",
+        "0x00004000": "oem",
+        "0x00008000": "vendor privileged",
+        "0x00010000": "system text classifier",
+        "0x00020000": "wellbeing",
+        "0x00040000": "documenter",
+        "0x00080000": "configurator",
+        "0x00100000": "incident report approver",
+        "0x00200000": "app predictor",
+        "0x00400000": "module",
+        "0x00800000": "companion",
+        "0x01000000": "retail demo",
+        "0x02000000": "recents",
+        "0x04000000": "role",
+        "0x08000000": "known signer"
+        }
+
+
 # Silence Loguru from Androguard
 util.set_log("ERROR")
 
@@ -123,11 +156,8 @@ class Guava:
         self.application_database.update_application(app_attributes)
 
     def fill_permissions(self, parsed_apk, sha256):
-
         app_declared_permissions = parsed_apk.get_declared_permissions_details()
         app_permissions = parsed_apk.get_details_permissions()
-        protection_levels=['normal', 'dangerous', 'signature', 'signature or system', 'internal', 'other']
-
         for permission in app_permissions:
             custom = False
             for c_permission in app_declared_permissions:
@@ -135,11 +165,8 @@ class Guava:
                     custom = True
                     level = app_declared_permissions[permission]['protectionLevel']
                     if level == 'None': 
-                        p_level = 0
-                    else:
-                        p_level = int(level, 16)
-                    if  p_level > 5: p_level=5
-                    entry = (sha256, permission, protection_levels[p_level], ) + tuple(app_permissions[permission][1:]) 
+                        level = "0x00000000"
+                    entry = (sha256, permission, protection_flags_to_attributes[level], ) + tuple(app_permissions[permission][1:]) 
             if not custom:
                 entry = (sha256, permission,) + tuple(app_permissions[permission])
             self.application_database.update_permissions(entry)
@@ -243,7 +270,7 @@ class Guava:
     def detect_framework(self, parsed_apk):
         assets = parsed_apk.get_files()
         for entry in assets:
-            if 'index.android.bundle' in entry or fnmatch.fnmatch(entry, '*libreactnative*.so') :
+            if 'index.android.bundle' in entry:
                 return 'React Native'
             elif fnmatch.fnmatch(entry, '*cordova*.js') or ('www/index.html' in assets and 'www/js/index.js' in assets):
                 return 'Ionic Cordova'

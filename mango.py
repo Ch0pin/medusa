@@ -2,8 +2,13 @@ from libraries.libmango import *
 from libraries.Questions import *
 from libraries.libguava import *
 from libraries.libadb import *
+from libraries.logging_config import setup_logging
 import sys, os.path
+import logging
 
+logging.getLogger().handlers = []  
+setup_logging() 
+logger = logging.getLogger(__name__)
 
 def print_logo():
     print(Style.BRIGHT + BLUE + """
@@ -21,29 +26,6 @@ def print_logo():
                                     Y8b d88P         
                                     "Y88P"           """ + Style.RESET_ALL + RESET)
 
-
-def get_device_or_emulator_id():
-    try:
-        print(Fore.GREEN)
-        print("[i] Available devices:\n")
-        devices = frida.enumerate_devices()
-        i = 0
-
-        for dv in devices:
-            print(f'{i}) {dv}')
-            i += 1
-        print(Fore.RESET)
-        j = int(Numeric('\nEnter the index of the device you want to use:', lbound=0, ubound=i - 1).ask())
-        device = devices[int(j)]
-        android_dev = android_device(device.id)
-        android_dev.print_dev_properties()
-        print(Fore.RESET)
-        return device
-    except Exception as e:
-        print(e)
-        return None
-
-
 def start_session(db_session, existing=False):
     application_database = apk_db(db_session)
     guava = Guava(application_database)
@@ -52,29 +34,25 @@ def start_session(db_session, existing=False):
     p.guava = guava
     if existing:
         p.continue_session(guava)
-
-    p.device = get_device_or_emulator_id()
+    p.device = p.get_device()
     p.cmdloop()
 
 
 if __name__ == "__main__":
-
     print_logo()
-
     if len(sys.argv) > 1:
         session = sys.argv[1]
 
         if os.path.exists(session):
             start_session(session, True)
         else:
-            print(Fore.RED + f"[!] Fatal: can't find: {session} " + Fore.RESET)
+            logger.error(f"Can't find: {session} ")
             sys.exit()
     else:
         menu = {}
         menu['1'] = "Start a new session"
         menu['2'] = "Continue an existing session"
         menu['3'] = "Exit"
-
         while True:
             print("-" * 50 + "\n[?] What do you want to do ?\n" + "-" * 50)
             options = menu.keys()
@@ -92,10 +70,10 @@ if __name__ == "__main__":
                 if os.path.exists(session):
                     start_session(session, True)
                 else:
-                    print(Fore.RED + f"[!] Fatal: can't find: {session} " + Fore.RESET)
+                    logger.error(f"Can't find: {session} ")
                     sys.exit()
                 break
             elif selection == '3':
                 sys.exit()
             else:
-                print("[!] Unknown Option Selected!")
+                logger.warning("Unknown Option Selected!")

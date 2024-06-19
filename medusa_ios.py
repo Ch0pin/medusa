@@ -58,6 +58,27 @@ class Parser(cmd2.Cmd):
             allow_cli_args=False
         )
 
+        self._callback = None 
+        self.bind_to(self.observe_device_change)
+
+    @property
+    def device(self):
+        return self._device
+
+    @device.setter
+    def device(self, new_device):
+        self._device = new_device
+        if self._callback:
+            self._callback(new_device)
+
+    def bind_to(self, callback):
+        self._callback = callback
+    
+    def observe_device_change(self, _device):
+        if self._device is not None:
+            self.prompt = BLUE +  f'({self._device.id})(ios) medusa➤' + RESET
+
+
     def refreshPackages(self, option=""):
         self.package_range = "- Installed applications"
         self.packages = frida.get_device(self.device.id).enumerate_applications(scope="full")

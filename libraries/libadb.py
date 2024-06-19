@@ -32,7 +32,7 @@ class android_device:
         return self.run_command(["adb", "-s", self.id, "shell", "pidof", "-s", f"{package_name}"])
 
     def print_dev_properties(self):
-        print('\nDevice properties:\n')
+        print(Fore.GREEN+'\nDevice properties:\n'+Fore.RESET)
         self.print_dev_property('ro.product.manufacturer')
         self.print_dev_property('ro.product.name')
         self.print_dev_property('ro.build.version.')

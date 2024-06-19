@@ -41,7 +41,7 @@ class Parser(cmd2.Cmd):
     app_info = {}
     show_commands = ['mods', 'categories', 'all', 'snippets']
     prompt = BLUE + 'medusa➤' + RESET
-    device = None
+    _device = None
     modified = False
     translator = google_translator()
     script = None
@@ -67,6 +67,26 @@ class Parser(cmd2.Cmd):
         super().__init__(
             allow_cli_args=False
         )
+        self._callback = None 
+        self.bind_to(self.observe_device_change)
+
+    @property
+    def device(self):
+        return self._device
+
+    @device.setter
+    def device(self, new_device):
+        self._device = new_device
+        if self._callback:
+            self._callback(new_device)
+
+    def bind_to(self, callback):
+        self._callback = callback
+    
+    def observe_device_change(self, _device):
+        if self._device is not None:
+            self.prompt = BLUE +  f'({self._device.id}) medusa➤' + RESET
+
 
     def refreshPackages(self, option=""):
 

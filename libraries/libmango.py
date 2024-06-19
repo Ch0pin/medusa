@@ -2,7 +2,8 @@
 import subprocess, frida, shutil
 import cmd2, os, sys, platform, requests
 import time
-# import readline, logging, time, rlcompleter
+import logging
+from libraries.logging_config import setup_logging
 from libraries.Questions import Polar
 from libraries.libadb import android_device
 from libraries.libguava import *
@@ -10,14 +11,18 @@ from libraries.Questions import *
 from shutil import which
 from colorama import Fore, Back, Style
 
-BASE = os.path.dirname(__file__)
 
+logging.getLogger().handlers = []  
+setup_logging() 
+logger = logging.getLogger(__name__)
+
+current_dir = os.getcwd()
+
+BASE = os.path.dirname(__file__)
 APKTOOL_URL = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.2.jar"
 MEDUSA_AGENT_URL = "https://github.com/Ch0pin/medusa/files/13833921/agent.zip"
-
 APKTOOL = os.path.abspath(os.path.join(BASE, '../dependencies/apktool.jar'))
 MEDUSA_AGENT = os.path.abspath(os.path.join(BASE, '../dependencies/agent.apk'))
-
 DEBUGGABLE_APK = os.getcwd() + "/debuggable.apk"
 ALLIGNED_APK = os.getcwd() + "/debuggable_alligned_signed.apk"
 TMP_FOLDER = os.getcwd() + "/tmp_dir"
@@ -35,7 +40,6 @@ REVERSE = "\033[;7m"
 
 # readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
 BUSSY_BOX_URL = "https://busybox.net/downloads/binaries/1.31.0-defconfig-multiarch-musl/"
-
 HELP_MESSAGE = "\nSYNOPSIS:" + """
     mango➤[command] <parameters> <flags> """ + """
 
@@ -159,12 +163,8 @@ DESCRIPTION """ + """
  
     """
 
-current_dir = os.getcwd()
-
-
 class parser(cmd2.Cmd):
-    NO_APP_LOADED_MSG = "[i] No application is loaded, type 'import /path/to/foo.apk' to load one"
-
+    NO_APP_LOADED_MSG = "No application is loaded, type 'import /path/to/foo.apk' to load one"
     base_directory = os.path.dirname(__file__)
     prompt = Fore.BLUE + Style.BRIGHT + 'mango➤' + Fore.RESET + Style.RESET_ALL
     current_app_sha256 = None
@@ -172,7 +172,7 @@ class parser(cmd2.Cmd):
     database = None
     guava = None
     INSTALL = False
-    device = None
+    _device = None
     package = None
     permissions = None
     activities = None
@@ -200,6 +200,26 @@ class parser(cmd2.Cmd):
             allow_cli_args=False
 
         )
+        self._callback = None 
+        self.bind_to(self.observe_device_change)
+
+    @property
+    def device(self):
+        return self._device
+
+    @device.setter
+    def device(self, new_device):
+        self._device = new_device
+        if self._callback:
+            self._callback(new_device)
+
+    def bind_to(self, callback):
+        self._callback = callback
+    
+    def observe_device_change(self, _device):
+        if self._device is not None:
+            self.prompt = Fore.BLUE + Style.BRIGHT +  f'({self._device.id}) mango➤' + Fore.RESET + Style.RESET_ALL
+
 
     ###################################################### do_ defs start ############################################################
 
@@ -207,7 +227,7 @@ class parser(cmd2.Cmd):
         """Start an interactive adb prompt."""
 
         if cmd is None:
-            print("[i] Type 'exit' to return ")
+            logger.info("Type 'exit' to return ")
             cmd = input(GREEN + f'{self.device.id}:adb:' + RESET)
 
         while cmd != 'exit':
@@ -234,19 +254,18 @@ class parser(cmd2.Cmd):
             download = Polar("[!] Can't find Bussybox in this device, do you want to download it ?").ask()
             if download:
                 try:
-                    print("[i] Attempting to download the file...")
+                    logger.info("Attempting to download the file...")
                     self.download_file(BUSSY_BOX_URL + binary, './busybox.tmp')
                     # print(self.run_command(["curl", BUSSY_BOX_URL+binary, "--output", "busybox.tmp"]).decode('utf-8'))
                     if os.path.exists("./busybox.tmp"):
-                        print(
-                            f"[i] Download successful, pushing the binary to the device as '/data/local/tmp/{binary}'")
+                        logger.info(f"Download successful, pushing the binary to the device as '/data/local/tmp/{binary}'")
                         print(self.run_command(["adb", "-s", f"{self.device.id}", "push", "./busybox.tmp",
                                                 f"/data/local/tmp/{binary}"]).decode('utf-8'))
-                        print("[i] Deleting local file...")
+                        logger.info("Deleting local file...")
                         print(self.run_command(["rm", "./busybox.tmp"]).decode('utf-8'))
                         print(self.run_command(["adb", "-s", f"{self.device.id}", "shell", "chmod", "+x",
                                                 f"/data/local/tmp/{binary}"]).decode('utf-8'))
-                        print("[i] Setting the aliases file...")
+                        logger.info("Setting the aliases file...")
                         shellfile = os.path.abspath(os.path.join(self.base_directory, '../utils/busybox.sh'))
                         with open(shellfile, 'r') as sf:
                             data = sf.read()
@@ -262,7 +281,7 @@ class parser(cmd2.Cmd):
                     print(e)
             else:
                 return
-        print("[i] Busybox support has already been installed.\n[i] Type: source /data/local/tmp/busybox.sh")
+        logger.info("Busybox support has already been installed.\nType: source /data/local/tmp/busybox.sh")
         self.do_adb("adb", "shell", True)
 
     def do_c(self, line):
@@ -406,7 +425,6 @@ class parser(cmd2.Cmd):
         else:
             print('[!] Usage: install /full/path/to/foobar.apk')
 
-
     def do_installmultiple(self,line):
         """Usage: installmultiple /full/path/to/foobar.apk /full/path/to/foobar2.apk ...
         Install multiple apks for a single package on the device."""
@@ -426,9 +444,6 @@ class parser(cmd2.Cmd):
                 print(e)
         else:
             print('[!] Usage: installmultiple /full/path/to/foobar.apk /full/path/to/foobar2.apk ...')
-
-
-
 
     def do_installagent(self, line):
         """Usage: installagent
@@ -527,24 +542,7 @@ $adb remount
     def do_loaddevice(self, line) -> None:
         """Usage: loaddevice
         Start a new session using the selected device."""
-        try:
-            print(Fore.GREEN)
-            print("[i] Available devices:\n")
-            devices = frida.enumerate_devices()
-            i = 0
-
-            for dv in devices:
-                print(f'{i}) {dv}')
-                i += 1
-            print(Fore.RESET)
-            j = int(Numeric('\nEnter the index of the device you want to use:', lbound=0, ubound=i - 1).ask())
-            device = devices[int(j)]
-            android_dev = android_device(device.id)
-            android_dev.print_dev_properties()
-            print(Fore.RESET)
-            self.device = device
-        except Exception as e:
-            print(e)
+        self.device = self.get_device()
 
     def do_logcat(self, line):
         """Usage: logcat [package name]
@@ -600,7 +598,6 @@ $adb remount
         except Exception as e:
             print(e)
 
-    # mark for tests
     def do_patch(self, line):
         """Usage: patch /full/path/to/foo.apk
         Changes the debuggable flage of the AndroidManifest.xml to true for a given apk. 
@@ -659,7 +656,6 @@ $adb remount
 
         else:
             print("[!] File doesn't exist.")
-
 
     def do_playstore(self, line):
         """Usage: playstore package_name
@@ -748,7 +744,6 @@ $adb remount
                 print(e)
         else:
             print('[!] Usage: pullmultiple com.foo.bar')
-
 
     def do_query(self, line):
         """Usage: query SELECT * FROM [table name]
@@ -848,6 +843,8 @@ $adb remount
             self.print_database_structure()
         elif 'applications' in what:
             self.load_or_remove_application()
+        elif 'device' in what:
+            self.print_device_info()
         else:
             if self.current_app_sha256 is None:
                 print(self.NO_APP_LOADED_MSG)
@@ -916,8 +913,8 @@ $adb remount
                     print("[+] Custom permissions:")
                     self.print_permissions(True)
                 else:
-                    print(
-                        '[i] Usage: show [activities, activityAlias, applications, database, deeplinks, exposure, info, intentFilters, manifest, permissions, providers, receivers, services, strings]')
+                    logger.info(
+                        'Usage: show [activities, activityAlias, applications, database, deeplinks, exposure, info, intentFilters, manifest, permissions, providers, receivers, services, strings]')
 
     def do_spawn(self, package):
         """Usage: spawn [package name]
@@ -1098,7 +1095,8 @@ $adb remount
         else:
             components = sorted(
                 ['exposure', 'applications', 'activityAlias', 'info', 'permissions', 'activities', 'services',
-                 'receivers', 'intentFilters', 'providers', 'deeplinks', 'strings', 'database', 'manifest', 'libraries'])
+                 'receivers', 'intentFilters', 'providers', 'deeplinks', 'strings', 'database', 'manifest', 
+                 'libraries', 'device'])
         if not text:
             completions = components[:]
         else:
@@ -1289,6 +1287,12 @@ $adb remount
                     print(lnk)
 
             self.total_deep_links += tmplst
+
+    def print_device_info(self):   
+        if self.device is not None:
+            android_device(self.device.id).print_dev_properties()
+        else:
+            logger.info("No loaded device found!")
 
     def print_intent_filters(self):
         for attribs in self.intent_filters:
@@ -1512,6 +1516,24 @@ $adb remount
         local_filename = to_local_file
         r = requests.get(url, allow_redirects=True)
         open(local_filename, 'wb').write(r.content)
+
+    def get_device(self) -> device:
+        try:
+            logger.info("Available devices:\n")
+            devices = frida.enumerate_devices()
+            i = 0
+            for dv in devices:
+                print(f'{i}) {dv}')
+                i += 1
+            j = int(Numeric('\nEnter the index of the device you want to use:', lbound=0, ubound=i - 1).ask())
+            device = devices[int(j)]
+            android_dev = android_device(device.id)
+            android_dev.print_dev_properties()
+            return device
+        except Exception as e:
+            logger.error(e)
+            return None
+
 
     def highlight(self, word, str):
         if word.casefold() in str.casefold():

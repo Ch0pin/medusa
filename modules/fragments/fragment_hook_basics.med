@@ -19,6 +19,13 @@
 
                 }
 
+                hook_1694084398.setArguments.implementation = function(){
+                  this['setArguments'].apply(this, arguments);
+                  colorLog('[+] '+this.getActivity()+'/'+this+' setArguments called:',{c: Color.Cyan });
+                  console.log('\t\\\\__ Arguments:' + arguments[0]);
+
+              }
+
                 let overloadCount_1694088233 = hook_1694084398['startActivity'].overloads.length;
 
                 for (let i = 0; i < overloadCount_1694088233; i++) {

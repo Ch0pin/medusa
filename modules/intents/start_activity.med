@@ -22,15 +22,37 @@
       //       colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
       //     this.startActivity(intent);
       //  }
-    
-       activity.startActivityForResult.overload('android.content.Intent','int').implementation = function(intent,requestCode){
-          colorLog('\\nA_SAFR'+this+' ====> startActivityForResult('+intent.getComponent()+')',{c:Color.Purple});  
-          dumpIntent(intent);
-           colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
+
+       activity.startActivityForResult.overload('android.content.Intent','int').implementation = function(intent, requestCode){
+        let output = '\\nA_SAFR'+this+' ====> startActivityForResult('+intent.getComponent()+')'
+        styleLog(output, ['startActivityForResult', this], StyleLogColorset.white, StyleLogColorset.maroon);
+        dumpIntent(intent);
+        colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
     
           this.startActivityForResult(intent,requestCode);
     
        }
+     
+       activity.startActivityForResult.overload('android.content.Intent','int','android.os.Bundle').implementation = function(intent, requestCode, bundle){
+        let output = '\\nA_SAFR'+this+' ====> startActivityForResult('+intent.getComponent()+')'
+        styleLog(output, ['startActivityForResult', this], StyleLogColorset.white, StyleLogColorset.maroon);
+
+        dumpIntent(intent);
+        console.log('Bundle options:'+bundle)
+        colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
+        this.startActivityForResult(intent,requestCode,bundle);
+     }
+    
+
+    
+      //  activity.startActivityForResult.overload('android.content.Intent','int').implementation = function(intent,requestCode){
+      //     colorLog('\\nA_SAFR'+this+' ====> startActivityForResult('+intent.getComponent()+')',{c:Color.Purple});  
+      //     dumpIntent(intent);
+      //      colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
+    
+      //     this.startActivityForResult(intent,requestCode);
+    
+      //  }
      
     //    activity.startActivityForResult.overload('android.content.Intent','int','android.os.Bundle').implementation = function(intent,requestCode, bundle){
     //     colorLog('\\nA_SAFR'+this+' ====> startActivityForResult('+intent.getComponent()+')',{c:Color.Purple});  

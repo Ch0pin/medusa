@@ -138,6 +138,9 @@
             var entry = Java.cast(iterator.next(), Java.use('java.util.Map$Entry'));
             console.log(entry.getKey() + ': ' + entry.getValue());
         }
+        if (url.startsWith('data:') && url.length > 20) {
+          url = url.substring(0, 20);
+        }
         console.log('[i] Loading URL: ' + url);
         console.log('===========================================');
         this.loadUrl(url,additionalHttpHeaders);
@@ -145,6 +148,9 @@
 
     webView.loadUrl.overload('java.lang.String').implementation = function(url){
         dumpWebview(this);
+        if (url.startsWith('data:') && url.length > 20) {
+          url = url.substring(0, 20);
+        }
         console.log('[i] Loading URL:' + url);
         this.loadUrl(url);
     }

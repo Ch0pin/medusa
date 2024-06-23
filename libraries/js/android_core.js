@@ -97,20 +97,20 @@ function dumpIntent(intent, redump=true){
 
     if(intent.getStringExtra("marked_as_dumped") && redump === false)
         return;
-
-    var bundle_clz = intent.getExtras();
-    var data = intent.getData();
-    var action = intent.getAction();
+    let bundle_clz = intent.getExtras();
+    let data = intent.getData();
+    let action = intent.getAction();
+    let flags = intent.getFlags();
     colorLog(intent, {c:Color.Cyan});
 
-    var exported = isActivityExported(intent);
-    var str = "(The intent is targeting";
+    let exported = isActivityExported(intent);
+    let str = "(The intent is targeting";
     if(exported)
         colorLog(str+ " an EXPORTED component)", {c:Color.Red});
     else
         colorLog(str+ " a NON EXPORTED component)", {c:Color.Green});
 
-    var type = null;
+        let type = null;
     if(data != null){
         colorLog('\t\\_data: ', {c:Color.Cyan})
         colorLog('\t\t'+data, {c:Color.Yellow})
@@ -122,16 +122,16 @@ function dumpIntent(intent, redump=true){
 
     if(bundle_clz != null){
         colorLog('\t\\_Extras: ', {c:Color.Cyan})
-        var keySet = bundle_clz.keySet();
-        var iter = keySet.iterator();
+        let keySet = bundle_clz.keySet();
+        let iter = keySet.iterator();
         while(iter.hasNext()) {
-        var currentKey = iter.next();
-        var currentValue = bundle_clz.get(currentKey);
+        let currentKey = iter.next();
+        let currentValue = bundle_clz.get(currentKey);
         if (currentValue!=null)
             type =  currentValue.getClass().toString();
         else type = 'undefined'
         
-        var t = type.substring(type.lastIndexOf('.')+1,type.length)
+        let t = type.substring(type.lastIndexOf('.')+1,type.length)
         if(currentKey!='marked_as_dumped'){
             if(filterKeyWords.some(word => currentKey.toString().toLowerCase().includes(word)))
             colorLog('\t\t('+t+ ') '+ currentKey + ' = ' + currentValue, {c: Color.Red});
@@ -140,6 +140,9 @@ function dumpIntent(intent, redump=true){
         }
             //console.log( '\t\t('+t+ ') '+ currentKey + ' = ' + currentValue);
         }
+    }
+    if(flags != null){
+      colorLog('\t\\_Flags: 0x' + flags.toString(16), {c: Color.Cyan});
     }
     intent.putExtra("marked_as_dumped","marked");
 }

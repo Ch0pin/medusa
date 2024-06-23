@@ -76,8 +76,7 @@ class Parser(cmd2.Cmd):
     
     def observe_device_change(self, _device):
         if self._device is not None:
-            self.prompt = BLUE +  f'({self._device.id})(ios) medusa➤' + RESET
-
+            self.prompt = f'({self._device.id}) '+ BLUE + '(ios) medusa➤' + RESET
 
     def refreshPackages(self, option=""):
         self.package_range = "- Installed applications"

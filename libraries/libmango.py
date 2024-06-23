@@ -218,8 +218,7 @@ class parser(cmd2.Cmd):
     
     def observe_device_change(self, _device):
         if self._device is not None:
-            self.prompt = Fore.BLUE + Style.BRIGHT +  f'({self._device.id}) mango➤' + Fore.RESET + Style.RESET_ALL
-
+            self.prompt = f'({self._device.id}) ' + Fore.BLUE + Style.BRIGHT + 'mango➤' + Fore.RESET + Style.RESET_ALL
 
     ###################################################### do_ defs start ############################################################
 

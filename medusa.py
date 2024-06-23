@@ -85,8 +85,7 @@ class Parser(cmd2.Cmd):
     
     def observe_device_change(self, _device):
         if self._device is not None:
-            self.prompt = BLUE +  f'({self._device.id}) medusa➤' + RESET
-
+            self.prompt = f'({self._device.id}) '+ BLUE + 'medusa➤' + RESET
 
     def refreshPackages(self, option=""):
 

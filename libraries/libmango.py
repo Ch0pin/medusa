@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import subprocess, frida, shutil
-import cmd2, os, sys, platform, requests
+import cmd2, os, sys, platform, requests, re
 import time
 import logging
 from libraries.logging_config import setup_logging
@@ -246,7 +246,7 @@ class parser(cmd2.Cmd):
         elif 'v7' in arch:
             binary = "busybox-armv7l"
         else:
-            print("Arch is not supported !")
+            logger.error("Arch is not supported !")
             return
         output = self.run_command(f"adb -s {self.device.id} shell ls /data/local/tmp/{binary}".split())
         if b'No such file' in output:
@@ -274,10 +274,10 @@ class parser(cmd2.Cmd):
                         subprocess.run(f"""adb -s {self.device.id} push {shellfile} /data/local/tmp/busybox.sh""",
                                        shell=True)
                     else:
-                        print("[!] Download Failed !")
+                        logger.error("Download Failed !")
                         return
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
             else:
                 return
         logger.info("Busybox support has already been installed.\nType: source /data/local/tmp/busybox.sh")
@@ -777,23 +777,61 @@ $adb remount
 
     def do_search(self, line):
 
-        """Usage: search 'string' [APK file]
-        Searches for a given string in the apk's extracted xml files.
-        Adding an apk file as a third parameter, it will use this (instead
-        of the currently loaded app) using aapt2 (supports regular expressions)"""
+        """This command searches for occurrences of a specified string or resource ID within the XML resource files of an APK. It supports searching both within a specified APK file and the currently loaded APK in the Mango framework.
 
-        if self.current_app_sha256 is None:
-            print(self.NO_APP_LOADED_MSG)
-        else:
-            try:
-                inp = line.split(' ')
-                what = inp[0]
-                if len(inp) > 1:
-                    pkg = inp[1]
-                    print(RED + 'Searching Strings using aapt2:' + RESET)
-                    subprocess.Popen(f'aapt2 dump strings {pkg} | grep {what} --color', shell=True)
-                    return
+        Parameters:
+        - string or ID: The string or resource ID you want to search for. Supports regular expressions for advanced search capabilities.
+        - /full/path/to/apk (optional): The full path to the APK file you want to search. If provided, the command will search within this APK's resource files.
 
+        Behavior:
+        - With APK Path: If a full path to an APK file is provided, the command uses aapt2 to search the resource files of the specified APK for instances of the given resource ID.
+        - Without APK Path: If no APK path is provided, the command will search the strings/activities, etc., of the APK that is currently loaded in Mango.
+
+        Example Usage:
+        - Search within a specific APK: 
+        search <ID> /path/to/example.apk
+        - Search within the currently loaded APK: 
+        search 'exampleString'
+        """
+        try:
+
+            what = line.arg_list[0]
+            if len(line.arg_list) > 1:
+                try:
+                    if what.startswith('0x'):
+                        int_value = int(what, 16)
+                    else:
+                        int_value = int(what)
+                        what = hex(int_value)
+                    hex_string = f"0x{int_value:x}"
+                except ValueError:
+                    logger.error(f"Invalid input: {what}, only resource IDs supported.")
+
+                apk_path = line.arg_list[1]
+                logger.info(f"Searching for {hex_string} at {apk_path} using aapt2")
+                command = ['aapt2', 'dump', 'resources', apk_path]
+                result = subprocess.run(command, capture_output=True, text=True)
+
+                if result.returncode != 0:
+                    logger.error(f"Error running aapt: {result.stderr}")
+
+                lines = result.stdout.splitlines()
+                found = False
+                for i, line in enumerate(lines):
+                    if hex_string in line:
+                        # Search for the next line that contains the string value
+                        for j in range(i+1, min(i+3, len(lines))):  # Look max 2 lines ahead
+                            match = re.search(r'".*"', lines[j])
+                            if match:
+                                print(f"Found resource {hex_string}: {match.group(0)}")
+                                found = True
+                                break 
+                if not found:
+                    logger.info(f"Resource {hex_string} not found in {apk_path}")
+
+            else:
+                if self.current_app_sha256 is None:
+                    logger.error(self.NO_APP_LOADED_MSG) 
                 print(RED + 'Searching Activities:' + RESET)
                 if not self.real_search(what, self.activities):
                     print(f'No Activities found containing: {what} !')
@@ -810,16 +848,16 @@ $adb remount
                 if not self.real_search(what, self.providers):
                     print(f'No Providers found containing: {what} !')
 
-                print(RED + 'Searching in res:' + RESET)
+                print(RED + 'Searching in resources:' + RESET)
                 found = False
                 for line1 in self.strings.split('\n'):
                     if what.casefold() in line1:
                         print(line1.replace(what.casefold(), Fore.GREEN + what.casefold() + Fore.RESET))
                         found = True
                 if not found:
-                    print(f'No Strings found containing: {what} !')
-            except Exception as e:
-                print(e)
+                    logger.info(f'No Strings found containing: {what} !')
+        except Exception as e:
+            logger.error(e)
 
     def do_show(self, line):
         """Usage: show [applications | database | exposure | info | manifest_entry | manifest ]
@@ -982,32 +1020,30 @@ $adb remount
                 print(e)
 
     def do_trace(self, line):
-        """Usage: trace -j, -n, -a [full class name]
+        """\nInitiate a frida-trace session for the mango-loaded application 
+        Usage: trace [-F] -j, -n, -a [full class name]
         Examples:
-        trace -j com.myapp.name*:\tTrace all the functions of the com.myapp.name* class
-        trace -n foo:\t\t\tTrace a native function
-        trace -a library.so:\t\tTrace the functions of the library.so
-        Starts a new frida-trace instance with the given options (it opens a new window)
-        """
+        trace -j com.myapp.name*\tSpawn the app (currently) loaded in mango and trace the methods of the com.myapp.name* class
+        trace -n foo\t\t\tTrace native functions starting with 'foo'
+        trace -a library.so\t\tTrace all the functions of library.so
 
+        Use -F to attach to the frontmost application.
+        Example: trace -F -a library.so\t\tTrace all the functions of library.so\n
+        """
         if self.current_app_sha256 is None:
-            print(self.NO_APP_LOADED_MSG)
+            logger.error(self.NO_APP_LOADED_MSG)
         else:
             try:
-
                 opsys = platform.system()
-                script = self.create_script(opsys, line)
-
-                if 'Error' not in script:
+                script = self.create_script(line)
+                if script is not None:
                     if 'Darwin' in opsys:
                         subprocess.run(f"""osascript -e 'tell application "Terminal" to do script "{script}" ' """,
                                        shell=True)
                     elif 'Linux' in opsys:
                         subprocess.run(f"""x-terminal-emulator -e {script}""")
-                    elif 'Windows' in opsys:
-                        subprocess.call(f'start /wait {script}', shell=True)
             except Exception as e:
-                print(e)
+                logger.error(e)
 
     def do_type(self, line):
         """Usage: type
@@ -1478,35 +1514,37 @@ $adb remount
         except TypeError:
             print("Database is empty.")
 
-    def create_script(self, opsys, line):
-        switch = line.split(' ')[0].strip()
-        valid = True
-        if '-j' in switch:
-            param1 = line.split(' ')[1] + '*!*'
-            param = f"""frida-trace -D {self.device.id} -f {self.info[0][2]} -j '{param1}' """
-        elif '-n' in switch:
-            param1 = line.split(' ')[1] + '*'
-            param = f"""frida-trace -D {self.device.id} -i '{param1}' {self.info[0][2]}"""
-        elif '-a' in switch:
-            param1 = line.split(' ')[1].strip()
-            param = f"""frida-trace -D {self.device.id} -I '{param1}' {self.info[0][2]}"""
-        else:
-            print('[E] Invalid command, run help for options!')
-            valid = False
-        if valid:
-            path = os.getcwd()
-            if 'Windows' in opsys:
-                script = path + '/script.bat'
-                with open(script, 'w') as file:
-                    file.write(param)
+    def create_script(self, line):
+        try:
+            frida_trace_cmd = f'frida-trace -D {self.device.id} '
+            attach_to_frontmost = '-F' in line.arg_list
+            target_app = self.info[0][2]
+            index = 2 if attach_to_frontmost else 1
+
+            if '-j' in line.arg_list:
+                trace_command = f'-j {line.arg_list[index]}*!*'
+            elif '-n' in line.arg_list:
+                trace_command = f'-i {line.arg_list[index]}*'
+            elif '-a' in line.arg_list:
+                trace_command = f'-I {line.arg_list[index]}'
             else:
-                script = path + '/script.sh'
-                with open(script, 'w') as file:
-                    file.write(param)
-                os.chmod(script, 0o775)
-        else:
-            script = 'Error'
-        return script
+                logger.error("Unsupported frida-trace command.")
+                return None
+
+            if attach_to_frontmost:
+                full_command = f'-F {trace_command}'
+            else:
+                full_command = f'{trace_command} -f {target_app}'
+
+            script_path = os.path.join(os.getcwd(), 'script.sh')
+            with open(script_path, 'w') as script_file:
+                script_file.write(frida_trace_cmd + full_command)
+            
+            os.chmod(script_path, 0o775)
+            return script_path
+        except Exception as e:
+            logger.error(f"An error occurred while creating the script: {e}")
+            return None
 
     def does_exist(self, name):
         return which(name) is not None
@@ -1613,11 +1651,11 @@ $adb remount
     def transproxy(self, ip, port):
         trasnproxy_path = os.path.join(self.base_directory, '../utils/transproxy.sh')
         try:
-            print('[i] Pushing transproxy script !')
+            logger.info('Pushing transproxy script !')
             os.popen(f"adb -s {self.device.id} push {trasnproxy_path} /data/local/tmp/transproxy.sh").read()
-            print('[i] Executing script')
+            logger.info('Executing script')
             os.popen(
                 f"adb -s {self.device.id} shell 'chmod +x /data/local/tmp/transproxy.sh; echo \"/data/local/tmp/transproxy.sh {ip} {port}\" | su; rm /data/local/tmp/transproxy.sh'").read()
             self.print_proxy()
         except Exception as e:
-            print(e)
+            logger.error(e)

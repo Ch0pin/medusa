@@ -3,7 +3,7 @@
     "Description": "Basic hooks for fragment class calls",
     "Help": "https://developer.android.com/reference/android/app/Fragment",
     "Code": "
-				console.log('\\n--------Fragments Get Init Arguments by @Ch0pin--------------');
+				console.log('\\n--------Fragments Get/Init Arguments by @Ch0pin--------------');
 
             {    
 

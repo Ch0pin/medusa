@@ -7,14 +7,32 @@
 	console.log('\\n-----------set_get_cookie by @chopin---------\\n');
 
 	let CookieManager1 = Java.use('android.webkit.CookieManager');
+	let cookieManagerInstances = [];
 
-	CookieManager1.getInstance.implementation = function(){
-		colorLog('android.webkit.CookieManager.GetInstance called:',{c:Color.Green});
-		printBacktrace();
-		let CookieManagerImpl = this.getInstance();
-		hookGetSetcookie(CookieManagerImpl);
-		return CookieManagerImpl;
+	function containsInstance(array, hashCode) {
+		try {
+			return array.includes(hashCode);
+		} catch (e) {
+			console.error('Error during instance comparison:', e);
+			return false;
+		}
 	}
+
+
+	CookieManager1.getInstance.implementation = function() {
+		let cookieManagerImpl = this.getInstance();
+		// Retain the Java object to prevent it from being disposed
+		Java.retain(cookieManagerImpl);
+		let instanceHashCode = cookieManagerImpl.hashCode();
+		// Check for uniqueness using hash codes
+		if (!containsInstance(cookieManagerInstances, instanceHashCode)) {
+			colorLog('android.webkit.CookieManager.getInstance called:' + cookieManagerImpl, { c: Color.Green });
+			cookieManagerInstances.push(instanceHashCode);
+			hookGetSetcookie(cookieManagerImpl);
+		}
+		return cookieManagerImpl;
+	};
+
 
 	function hookGetSetcookie(cmimpl){
 		if(cmimpl != null){

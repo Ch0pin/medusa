@@ -33,7 +33,7 @@
 		try {
 			// Override the init method, specifying the custom TrustManager
 			SSLContext_init.implementation = function(keyManager, trustManager, secureRandom) {
-				console.log('[+] Bypassing Trustmanager (Android < 7) pinner');
+				//console.log('[+] Bypassing Trustmanager (Android < 7) pinner');
 				SSLContext_init.call(this, keyManager, TrustManagers, secureRandom);
 			};
 		} catch (err) {
@@ -124,7 +124,7 @@
 			// Bypass Trustkit {3}
 			var trustkit_PinningTrustManager = Java.use('com.datatheorem.android.trustkit.pinning.PinningTrustManager');
 			trustkit_PinningTrustManager.checkServerTrusted.overload('[Ljava.security.cert.X509Certificate;', 'java.lang.String').implementation = function(chain, authType) {
-				console.log('[+] Bypassing Trustkit {3}');
+				//console.log('[+] Bypassing Trustkit {3}');
 				//return;
 			};
 		} catch (err) {
@@ -170,7 +170,7 @@
 		try {
 			var appcelerator_PinningTrustManager = Java.use('appcelerator.https.PinningTrustManager');
 			appcelerator_PinningTrustManager.checkServerTrusted.implementation = function(chain, authType) {
-				console.log('[+] Bypassing Appcelerator PinningTrustManager');
+				//console.log('[+] Bypassing Appcelerator PinningTrustManager');
 				return;
 			};
 		} catch (err) {
@@ -186,7 +186,7 @@
 		try {
 			var fabric_PinningTrustManager = Java.use('io.fabric.sdk.android.services.network.PinningTrustManager');
 			fabric_PinningTrustManager.checkServerTrusted.implementation = function(chain, authType) {
-				console.log('[+] Bypassing Fabric PinningTrustManager');
+				//console.log('[+] Bypassing Fabric PinningTrustManager');
 				return;
 			};
 		} catch (err) {
@@ -202,7 +202,7 @@
 		try {
 			var OpenSSLSocketImpl = Java.use('com.android.org.conscrypt.OpenSSLSocketImpl');
 			OpenSSLSocketImpl.verifyCertificateChain.implementation = function(certRefs, JavaObject, authMethod) {
-				console.log('[+] Bypassing OpenSSLSocketImpl Conscrypt {1}');
+				//console.log('[+] Bypassing OpenSSLSocketImpl Conscrypt {1}');
 			};
 		} catch (err) {
 			//console.log('[-] OpenSSLSocketImpl Conscrypt {1} pinner not found');
@@ -211,7 +211,7 @@
 		try {
 			var OpenSSLSocketImpl = Java.use('com.android.org.conscrypt.OpenSSLSocketImpl');
 			OpenSSLSocketImpl.verifyCertificateChain.implementation = function(certChain, authMethod) {
-				console.log('[+] Bypassing OpenSSLSocketImpl Conscrypt {2}');
+				//console.log('[+] Bypassing OpenSSLSocketImpl Conscrypt {2}');
 			};
 		} catch (err) {
 			//console.log('[-] OpenSSLSocketImpl Conscrypt {2} pinner not found');
@@ -241,7 +241,7 @@
 		try {
 			var OpenSSLSocketImpl_Harmony = Java.use('org.apache.harmony.xnet.provider.jsse.OpenSSLSocketImpl');
 			OpenSSLSocketImpl_Harmony.verifyCertificateChain.implementation = function(asn1DerEncodedCertificateChain, authMethod) {
-				console.log('[+] Bypassing OpenSSLSocketImpl Apache Harmony');
+				//console.log('[+] Bypassing OpenSSLSocketImpl Apache Harmony');
 			};
 		} catch (err) {
 			//console.log('[-] OpenSSLSocketImpl Apache Harmony pinner not found');
@@ -489,7 +489,7 @@
 			// Bypass WebViewClient {1} (deprecated from Android 6)
 			var AndroidWebViewClient_Activity_1 = Java.use('android.webkit.WebViewClient');
 			AndroidWebViewClient_Activity_1.onReceivedSslError.overload('android.webkit.WebView', 'android.webkit.SslErrorHandler', 'android.net.http.SslError').implementation = function(obj1, obj2, obj3) {
-				console.log('[+] Bypassing Android WebViewClient check {1}');
+				//console.log('[+] Bypassing Android WebViewClient check {1}');
 			};
 		} catch (err) {
 			//console.log('[-] Android WebViewClient {1} check not found');
@@ -499,7 +499,7 @@
 			// Bypass WebViewClient {2}
 			var AndroidWebViewClient_Activity_2 = Java.use('android.webkit.WebViewClient');
 			AndroidWebViewClient_Activity_2.onReceivedSslError.overload('android.webkit.WebView', 'android.webkit.WebResourceRequest', 'android.webkit.WebResourceError').implementation = function(obj1, obj2, obj3) {
-				console.log('[+] Bypassing Android WebViewClient check {2}');
+				//console.log('[+] Bypassing Android WebViewClient check {2}');
 			};
 		} catch (err) {
 			//console.log('[-] Android WebViewClient {2} check not found');
@@ -509,7 +509,7 @@
 			// Bypass WebViewClient {3}
 			var AndroidWebViewClient_Activity_3 = Java.use('android.webkit.WebViewClient');
 			AndroidWebViewClient_Activity_3.onReceivedError.overload('android.webkit.WebView', 'int', 'java.lang.String', 'java.lang.String').implementation = function(obj1, obj2, obj3, obj4) {
-				console.log('[+] Bypassing Android WebViewClient check {3}');
+				//console.log('[+] Bypassing Android WebViewClient check {3}');
 			};
 		} catch (err) {
 			//console.log('[-] Android WebViewClient {3} check not found');
@@ -519,7 +519,7 @@
 			// Bypass WebViewClient {4}
 			var AndroidWebViewClient_Activity_4 = Java.use('android.webkit.WebViewClient');
 			AndroidWebViewClient_Activity_4.onReceivedError.overload('android.webkit.WebView', 'android.webkit.WebResourceRequest', 'android.webkit.WebResourceError').implementation = function(obj1, obj2, obj3) {
-				console.log('[+] Bypassing Android WebViewClient check {4}');
+				//console.log('[+] Bypassing Android WebViewClient check {4}');
 			};
 		} catch (err) {
 			//console.log('[-] Android WebViewClient {4} check not found');

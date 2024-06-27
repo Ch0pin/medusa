@@ -829,7 +829,7 @@
             try {
                 var AndroidWebViewClient_Activity_1 = Java.use('android.webkit.WebViewClient');
                 AndroidWebViewClient_Activity_1.onReceivedSslError.overload('android.webkit.WebView', 'android.webkit.SslErrorHandler', 'android.net.http.SslError').implementation = function(obj1, obj2, obj3) {
-                    console.log('[+] Bypassing Android WebViewClient check {1}');
+                    //console.log('[+] Bypassing Android WebViewClient check {1}');
                 };
             } catch (err) {
                 console.log('[-] Android WebViewClient {1} check not found');
@@ -837,7 +837,7 @@
             try {
                 var AndroidWebViewClient_Activity_2 = Java.use('android.webkit.WebViewClient');
                 AndroidWebViewClient_Activity_2.onReceivedSslError.overload('android.webkit.WebView', 'android.webkit.WebResourceRequest', 'android.webkit.WebResourceError').implementation = function(obj1, obj2, obj3) {
-                    console.log('[+] Bypassing Android WebViewClient check {2}');
+                    //console.log('[+] Bypassing Android WebViewClient check {2}');
                 };
             } catch (err) {
                 console.log('[-] Android WebViewClient {2} check not found');
@@ -845,7 +845,7 @@
             try {
                 var AndroidWebViewClient_Activity_3 = Java.use('android.webkit.WebViewClient');
                 AndroidWebViewClient_Activity_3.onReceivedError.overload('android.webkit.WebView', 'int', 'java.lang.String', 'java.lang.String').implementation = function(obj1, obj2, obj3, obj4) {
-                    console.log('[+] Bypassing Android WebViewClient check {3}');
+                    //console.log('[+] Bypassing Android WebViewClient check {3}');
                 };
             } catch (err) {
                 console.log('[-] Android WebViewClient {3} check not found');
@@ -853,7 +853,7 @@
             try {
                 var AndroidWebViewClient_Activity_4 = Java.use('android.webkit.WebViewClient');
                 AndroidWebViewClient_Activity_4.onReceivedError.overload('android.webkit.WebView', 'android.webkit.WebResourceRequest', 'android.webkit.WebResourceError').implementation = function(obj1, obj2, obj3) {
-                    console.log('[+] Bypassing Android WebViewClient check {4}');
+                    //console.log('[+] Bypassing Android WebViewClient check {4}');
                 };
             } catch (err) {
                 console.log('[-] Android WebViewClient {4} check not found');

@@ -1021,6 +1021,20 @@ class Parser(cmd2.Cmd):
             code = draft.read()
         self.edit_scratchpad(code)
 
+    def do_redirect(self, line) -> None:
+        destination_class = input("Destination Activity:")
+        new_destination_package = input("New destination package name:")
+        new_destination_activity_name = input("New destination activity name:")
+        base_script = self.base_directory+"/snippets/redirect_intent.js"
+        with open(base_script, "r") as file:
+            code = file.read()
+        code = code.replace("DESTINATION", destination_class)\
+            .replace("NEW_D_ESTINATION_PACKAGE", new_destination_package)\
+            .replace("NEW_DESTINAT_ION_ACTIVITY", new_destination_activity_name)
+        
+        self.edit_scratchpad(code, "a")
+
+
     def do_reload(self, line) -> None:
         """
         Reload the medusa modules (in case of a module edit)

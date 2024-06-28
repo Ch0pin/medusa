@@ -7,61 +7,38 @@
 
 {
    var activity = Java.use('android.app.Activity');
-   //https://cs.android.com/android/platform/superproject/main/+/main:frameworks/base/core/java/android/app/Activity.java;drc=c33d8a06dd84bd1c4e2f65aa8fc2577dbecb3f86;l=6261
-   // activity.startActivity.overload('android.content.Intent').implementation = function(intent){
-   //    colorLog('\\nA_SA_0'+this+' ====> startActivity(' + intent + ')',{c:Color.Purple});  
-   //    dumpIntent(intent);   
-   //    colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
-   //    this.startActivity(intent);
-   // }
-    
+
    activity.startActivity.overload('android.content.Intent', 'android.os.Bundle').implementation = function(intent, bundle){
-      colorLog('\\nA_SA_1'+this+' ====> startActivity(' + intent + ')', {c:Color.Purple});  
+      colorLog('\\nA_SA'+this+' ====> startActivity(' + intent + ')', {c:Color.Purple});  
       console.log('Options:'+bundle)
       dumpIntent(intent);   
       colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
       this.startActivity(intent, bundle);
    }
-   // https://cs.android.com/android/platform/superproject/main/+/main:frameworks/base/core/java/android/app/Activity.java;drc=d5137445c0d4067406cb3e38aade5507ff2fcd16;l=5700
-   // activity.startActivityForResult.overload('android.content.Intent','int').implementation = function(intent, requestCode){
-   //    let output = '\\nA_SAFR_0'+this+' ====> startActivityForResult(' + intent + ')'
-   //    styleLog(output, ['startActivityForResult', this], StyleLogColorset.white, StyleLogColorset.maroon);
-   //    dumpIntent(intent);
-   //    colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
-   //    this.startActivityForResult(intent,requestCode);
-   // }
-     
-   activity.startActivityForResult.overload('android.content.Intent', 'int', 'android.os.Bundle').implementation = function(intent, requestCode, bundle){
-      let output = '\\nA_SAFR_1'+this+' ====> startActivityForResult(' + intent + ')'
-      styleLog(output, ['startActivityForResult', this], StyleLogColorset.white, StyleLogColorset.maroon);
+
+   activity.startActivities.overload('[Landroid.content.Intent;', 'android.os.Bundle').implementation = function(intents, bundle){
+      colorLog('\\nA_SAs'+this+' ====> startActivities:', {c:Color.Purple});  
       console.log('Options:'+bundle)
-      dumpIntent(intent);
+      for (var i = 0; i < intents.length; i++) {
+                  dumpIntent(intents[i]);  
+      }
       colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
+      this.startActivities(intents, bundle);
+   }
+
+
+   activity.startActivityForResult.overload('android.content.Intent', 'int', 'android.os.Bundle').implementation = function(intent, requestCode, bundle){
+      let output = '\\nA_SAFR'+this+' ====> startActivityForResult(' + intent + ')'
+      if( requestCode != -1){
+
+         styleLog(output, ['startActivityForResult', this], StyleLogColorset.white, StyleLogColorset.maroon);
+         console.log('Options:'+bundle)
+         dumpIntent(intent);
+         colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
+      }
       this.startActivityForResult(intent,requestCode, bundle);
      }
-    
-   // activity.startActivityForResult.overload('android.content.Intent', 'int').implementation = function(intent, requestCode){
-   //    colorLog('\\nA_SAFR_2'+this+' ====> startActivityForResult(' + intent + ')',{c:Color.Purple});  
-   //    dumpIntent(intent);
-   //    colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
-   //    this.startActivityForResult(intent, requestCode);
-   // }
-     
-   // activity.startActivityForResult.overload('android.content.Intent','int','android.os.Bundle').implementation = function(intent, requestCode, bundle){
-   //    colorLog('\\nA_SAFR_3'+this+' ====> startActivityForResult(' + intent + ')',{c:Color.Purple});  
-   //    console.log('Options:'+bundle)
-   //    dumpIntent(intent);
-   //    colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
-   //    this.startActivityForResult(intent, requestCode, bundle);
-   //   }
-    
-   // activity.startActivityIfNeeded.overload('android.content.Intent','int').implementation = function(intent,requestCode){
-   //    colorLog('\\nA_SAIN_0'+this+' ====> startActivityIfNeeded(' + intent + ')',{c:Color.Purple});  
-   //    dumpIntent(intent);
-   //    colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
-   //    this.startActivityIfNeeded(intent,requestCode);
-   //  }
-    
+
    activity.startActivityIfNeeded.overload('android.content.Intent', 'int', 'android.os.Bundle').implementation = function(intent, requestCode, bundle){
       colorLog('\\nA_SAIN_1'+this+' ====> startActivityIfNeeded(' + intent + ')',{c:Color.Purple});  
       console.log('Options:'+bundle)

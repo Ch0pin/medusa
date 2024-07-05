@@ -5,59 +5,62 @@
     "Code": "
 				console.log('\\n--------Fragments Get/Init Arguments by @Ch0pin--------------');
 
-            {    
+            {
+                try {    
+                        let hook_1694084398 = Java.use('androidx.fragment.app.Fragment');
 
+                        hook_1694084398.getArguments.implementation = function(){
 
-                let hook_1694084398 = Java.use('androidx.fragment.app.Fragment');
+                            let retval = this['getArguments'].apply(this, arguments);
+                            colorLog('[+] '+this.getActivity()+'/'+this+' getArguments called:',{c: Color.Blue });
+                            console.log('\t\\\\__ Returns:' + retval);
+                            return retval;
 
-                hook_1694084398.getArguments.implementation = function(){
-
-                    let retval = this['getArguments'].apply(this, arguments);
-                    colorLog('[+] '+this.getActivity()+'/'+this+' getArguments called:',{c: Color.Blue });
-                    console.log('\t\\\\__ Returns:' + retval);
-                    return retval;
-
-                }
-
-                hook_1694084398.setArguments.implementation = function(){
-                  this['setArguments'].apply(this, arguments);
-                  colorLog('[+] '+this.getActivity()+'/'+this+' setArguments called:',{c: Color.Cyan });
-                  console.log('\t\\\\__ Arguments:' + arguments[0]);
-
-              }
-
-                let overloadCount_1694088233 = hook_1694084398['startActivity'].overloads.length;
-
-                for (let i = 0; i < overloadCount_1694088233; i++) {
-                        hook_1694084398['startActivity'].overloads[i].implementation = function() {
-                            colorLog('[+] '+this.getActivity()+'/'+this+' startActivity called:',{ c: Color.Blue });
-                        for (let j = 0; j < arguments.length; j++) {
-                            console.log('\targ[' + j + ']: ' + arguments[j]);
                         }
-                        dumpIntent(arguments[0]);
-                        let retval = this['startActivity'].apply(this, arguments);
-            
-                        return retval;
+
+                        hook_1694084398.setArguments.implementation = function(){
+                        this['setArguments'].apply(this, arguments);
+                        colorLog('[+] '+this.getActivity()+'/'+this+' setArguments called:',{c: Color.Cyan });
+                        console.log('\t\\\\__ Arguments:' + arguments[0]);
+
                     }
 
-                }
+                        let overloadCount_1694088233 = hook_1694084398['startActivity'].overloads.length;
 
+                        for (let i = 0; i < overloadCount_1694088233; i++) {
+                                hook_1694084398['startActivity'].overloads[i].implementation = function() {
+                                    colorLog('[+] '+this.getActivity()+'/'+this+' startActivity called:',{ c: Color.Blue });
+                                for (let j = 0; j < arguments.length; j++) {
+                                    console.log('\targ[' + j + ']: ' + arguments[j]);
+                                }
+                                dumpIntent(arguments[0]);
+                                let retval = this['startActivity'].apply(this, arguments);
+                    
+                                return retval;
+                            }
 
-                let overloadCount_1694088234 = hook_1694084398['startActivityForResult'].overloads.length;
-
-                for (let i = 0; i < overloadCount_1694088234; i++) {
-                        hook_1694084398['startActivityForResult'].overloads[i].implementation = function() {
-                            colorLog('[+] '+this.getActivity()+'/'+this+' startActivityForResult called:',{ c: Color.Blue });
-                        for (let j = 0; j < arguments.length; j++) {
-                            console.log('\targ[' + j + ']: ' + arguments[j]);
                         }
-                        dumpIntent(arguments[0]);
 
-                        let retval = this['startActivityForResult'].apply(this, arguments);
-            
-                        return retval;
-                    }              
-                }
+
+                        let overloadCount_1694088234 = hook_1694084398['startActivityForResult'].overloads.length;
+
+                        for (let i = 0; i < overloadCount_1694088234; i++) {
+                                hook_1694084398['startActivityForResult'].overloads[i].implementation = function() {
+                                    colorLog('[+] '+this.getActivity()+'/'+this+' startActivityForResult called:',{ c: Color.Blue });
+                                for (let j = 0; j < arguments.length; j++) {
+                                    console.log('\targ[' + j + ']: ' + arguments[j]);
+                                }
+                                dumpIntent(arguments[0]);
+
+                                let retval = this['startActivityForResult'].apply(this, arguments);
+                    
+                                return retval;
+                            }              
+                        }
             }
+                catch (e) {
+                    console.log(e);
+            }
+        }
 
 "}

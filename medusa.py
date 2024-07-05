@@ -8,6 +8,7 @@ from libraries.natives import *
 from libraries.libadb import *
 from libraries.Questions import *
 from libraries.Modules import *
+from libraries.soc_server import *
 from pick import pick
 
 RED = "\033[1;31m"
@@ -53,7 +54,7 @@ class Parser(cmd2.Cmd):
     libname = None
     modManager = ModuleManager()
     package_range = ''
-
+    server = None
     interactive=True 
     time_to_run = None
     package_name = None
@@ -326,6 +327,9 @@ class Parser(cmd2.Cmd):
         """
         Exit MEDUSA
         """
+        if self.server:
+            self.server.stop()
+
         agent_path = os.path.join(self.base_directory, agent_script)
         scratchpad_path = os.path.join(self.base_directory, scratchpad_module)
 
@@ -1022,17 +1026,20 @@ class Parser(cmd2.Cmd):
         self.edit_scratchpad(code)
 
     def do_redirect(self, line) -> None:
-        destination_class = input("Destination Activity:")
-        new_destination_package = input("New destination package name:")
-        new_destination_activity_name = input("New destination activity name:")
-        base_script = self.base_directory+"/snippets/redirect_intent.js"
-        with open(base_script, "r") as file:
-            code = file.read()
-        code = code.replace("DESTINATION", destination_class)\
-            .replace("NEW_D_ESTINATION_PACKAGE", new_destination_package)\
-            .replace("NEW_DESTINAT_ION_ACTIVITY", new_destination_activity_name)
-        
-        self.edit_scratchpad(code, "a")
+        try:
+            destination_class = input("Destination Activity:")
+            new_destination_package = input("New destination package name:")
+            new_destination_activity_name = input("New destination activity name:")
+            base_script = self.base_directory+"/snippets/redirect_intent.js"
+            with open(base_script, "r") as file:
+                code = file.read()
+            code = code.replace("DESTINATION", destination_class)\
+                .replace("NEW_D_ESTINATION_PACKAGE", new_destination_package)\
+                .replace("NEW_DESTINAT_ION_ACTIVITY", new_destination_activity_name)
+            
+            self.edit_scratchpad(code, "a")
+        except Exception as e:
+            print(e)
 
 
     def do_reload(self, line) -> None:
@@ -1040,7 +1047,7 @@ class Parser(cmd2.Cmd):
         Reload the medusa modules (in case of a module edit)
         Use the -r filename option to load a saved session or recipe 
         """
-        print("[i] Loading modules...")
+        logger.info("Loading modules...")
         self.modManager = ModuleManager()
         self.snippets = []
         for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'modules')):
@@ -1057,7 +1064,8 @@ class Parser(cmd2.Cmd):
         if "-r" in line.split(' ')[0]:
             self.modManager.reset()
             self.write_recipe(line.split(' ')[1])
-        print(f"[i] Done....\n[i] Total modules available {self.modManager.get_number_of_modules()}")
+        logger.info(f"Total modules available {self.modManager.get_number_of_modules()}")
+        logger.info("All one....")
 
     def do_rem(self, mod, redirect_output=False) -> None:
         """
@@ -1267,7 +1275,39 @@ class Parser(cmd2.Cmd):
             self.modified = True
         except Exception as e:
             print(e)
+    
+    def do_startserver(self, line):
+        """
+        Start a socket server to connect with Medusa's intent monitor.
 
+        Address and port are optional. Default values are localhost and 1711.
+
+        Usage:
+            startserver [address] [port]
+
+        Examples:
+            startserver
+            startserver localhost 1234
+        """
+        try:
+            if len(line.arg_list) == 2:
+                self.server = TCPServer(line.arg_list[0], int(line.arg_list[1]))
+            else:
+                self.server = TCPServer()
+            self.server.start()
+        except Exception as e:
+            logger.error(f"Error starting server: {e}")
+    
+    def do_stopserver(self, line):
+        """
+        Stop the socket server.
+        """
+        try:
+            if self.server:
+                self.server.stop()
+        except Exception as e:
+            logger.error(f"Error stoping server: {e}")     
+        
     def do_status(self, line) -> None:
         """
         Prints the loaded device id, libraries, native functions of the last loaded package.
@@ -1669,7 +1709,6 @@ catch (err) {
 
     def my_message_handler(self, message, payload) -> None:
         if message["type"] == "send":
-
             data = message["payload"].split(":")[0].strip()
             if "trscrpt|" in data:
                 result = self.translator.translate(data[data.index("trscrpt|") + len("trscrpt|"):])
@@ -1685,6 +1724,9 @@ catch (err) {
                         filename = 'tlskeylog-' + package_name + '-' + time + '.txt'
                         with open(filename,'a') as file:
                             file.write(key+"\n")
+            elif "IntentMsg" in data:
+                if self.server:
+                    self.server.broadcast(message["payload"].split(":")[1]+"\n")
             else:
                 self.fill_app_info(message["payload"])
 

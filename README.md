@@ -13,9 +13,33 @@
 ```
 $ pip install -r requirements.txt
 ```
+
+# Using Stheno (Σθενώ) with Medusa
+
+[Stheno](https://github.com/Ch0pin/stheno) is a subproject of Medusa, specifically designed for intent monitoring within this framework. Below is a quick guide on how to set up and use Stheno effectively.
+
+<p align="center">
+  <img src="https://github.com/Ch0pin/stheno/assets/4659186/fd49c39e-865b-4dc3-b2d1-59a0f4594028" alt="monitor" width="400"/>
+</p>
+
+1. **Include the Intent Module**:
+   Add the `intents/start_activity` module to your Medusa project:
+   ```bash
+   medusa> add intents/start_activity
+   ```
+
+2. **Run the Socket Server**:
+   Start the Medusa socket server to facilitate communication:
+   ```bash
+   medusa> startserver
+   ```
+
+3. **Launch Stheno**:
+   Open Stheno and navigate to the Intent Monitor menu, then click on **Start** to begin monitoring intents.
+
 ## Known issues
 
-# macOS Installation
+### macOS Installation
 
 During installation on macOS, you might encounter the following issue:
 

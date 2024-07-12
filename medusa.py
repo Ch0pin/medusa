@@ -28,7 +28,7 @@ medusa_logo="""
     ██╔████╔██║█████╗  ██║  ██║██║   ██║███████╗███████║
     ██║╚██╔╝██║██╔══╝  ██║  ██║██║   ██║╚════██║██╔══██║
     ██║ ╚═╝ ██║███████╗██████╔╝╚██████╔╝███████║██║  ██║
-    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (Android) Version: 2.8.6  
+    ╚═╝     ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝ (Android) Version: dev  
                                     
  🪼 Type help for options 🪼 \n\n
 """
@@ -842,7 +842,7 @@ class Parser(cmd2.Cmd):
         """
         try:
             if self.interactive:
-                print('Available devices:\n')
+                logger.info('Available devices:\n')
                 devices = frida.enumerate_devices()
 
                 for i in range(len(devices)):
@@ -1726,12 +1726,12 @@ catch (err) {
                             file.write(key+"\n")
             elif "IntentMsg" in data:
                 if self.server:
-                    self.server.broadcast(message["payload"].split(":")[1]+"\n")
+                    self.server.broadcast(message["payload"].split("|")[1]+"\n")
             else:
                 self.fill_app_info(message["payload"])
 
     def on_detached(self, reason) -> None:
-        print("Session is detached due to:", reason)
+        logger.info("Session is detached due to:", reason)
         self.detached = True
 
     def prepare_native(self, operation) -> None:

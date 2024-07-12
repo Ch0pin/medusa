@@ -27,6 +27,8 @@ DEBUGGABLE_APK = os.getcwd() + "/debuggable.apk"
 ALLIGNED_APK = os.getcwd() + "/debuggable_alligned_signed.apk"
 TMP_FOLDER = os.getcwd() + "/tmp_dir"
 SIGNATURE = os.path.abspath(os.path.join(BASE, '../dependencies/common.jks'))
+PLAYSTORE_VERSION_PATTERN_0 = re.compile(r'\[\[\["([0-9]+\.[0-9]+\.[0-9]+)"\]\],\[\[\[33\]\],\[\[\[23,"[0-9]+\.[0-9]+"\]\]\]\]')
+PLAYSTORE_VERSION_PATTERN_1 = re.compile(r'\[\[\["([0-9]+\.[0-9]+(\.[0-9]+)?)"\]\],')
 
 RED = "\033[1;31m"
 BLUE = "\033[1;34m"
@@ -659,8 +661,36 @@ $adb remount
     def do_playstore(self, line):
         """Usage: playstore package_name
         Search the playstore for the app with the given id."""
-        print(os.popen(
-            f"adb -s {self.device.id} shell am start -W -a android.intent.action.VIEW -d market://details?id={line.split(' ')[0]}").read())
+        
+        if len(line.arg_list) > 0:
+            app_id = line.arg_list[0]
+            url = f'https://play.google.com/store/apps/details?id={app_id}'
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+            }
+
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                page_content = response.text
+                match = PLAYSTORE_VERSION_PATTERN_0.search(page_content)
+                
+                if match:
+                    latest_version = match.group(1).strip()
+                    print(f"{app_id} latest version: {latest_version}")
+                else:
+                    match = PLAYSTORE_VERSION_PATTERN_1.search(page_content)
+                    if match:
+                        latest_version = match.group(1).strip()
+                        logger.info(f"{app_id} latest version: {latest_version}")
+                    else:
+                        logger.error("Version information not found")
+            else:
+                logger.error(f"Failed to retrieve the page. Status code: {response.status_code}")
+
+            print(os.popen(
+                f"adb -s {self.device.id} shell am start -W -a android.intent.action.VIEW -d market://details?id={line.split(' ')[0]}").read())
+        else:
+            logger.error("Wrong arguments given.")
 
     def do_proxy(self, line):
         """Usage: proxy [get | reset | set] [ip:port] 
@@ -693,9 +723,9 @@ $adb remount
                     time.sleep(2)
                     self.print_proxy()
             else:
-                print('[!] Usage: proxy [set,get,reset] [<ip>:<port>] [-t]')
+                logger.info('[!] Usage: proxy [set,get,reset] [<ip>:<port>] [-t]')
         except Exception as e:
-            print(e)
+            logger.error(e)
 
     def do_pull(self, line):
         """Usage: pull com.foo.bar
@@ -789,7 +819,9 @@ $adb remount
 
         Example Usage:
         - Search within a specific APK: 
-        search <ID> /path/to/example.apk
+        search 0x7F1300DA /path/to/example.apk
+        - Search within the currently loaded APK for a string with id 0x7F1300DA: 
+        search 0x7F1300DA /path/to/example.apk
         - Search within the currently loaded APK: 
         search 'exampleString'
         """
@@ -823,7 +855,7 @@ $adb remount
                         for j in range(i+1, min(i+3, len(lines))):  # Look max 2 lines ahead
                             match = re.search(r'".*"', lines[j])
                             if match:
-                                print(f"Found resource {hex_string}: {match.group(0)}")
+                                logger.info(f"Found resource {hex_string}: {match.group(0)}")
                                 found = True
                                 break 
                 if not found:
@@ -834,19 +866,19 @@ $adb remount
                     logger.error(self.NO_APP_LOADED_MSG) 
                 print(RED + 'Searching Activities:' + RESET)
                 if not self.real_search(what, self.activities):
-                    print(f'No Activities found containing: {what} !')
+                    logger.info(f'No Activities found containing: {what} !')
 
                 print(RED + 'Searching Services:' + RESET)
                 if not self.real_search(what, self.services):
-                    print(f'No Services found containing: {what} !')
+                    logger.info(f'No Services found containing: {what} !')
 
                 print(RED + 'Searching Receivers:' + RESET)
                 if not self.real_search(what, self.receivers):
-                    print(f'No Receivers found containing: {what} !')
+                    logger.info(f'No Receivers found containing: {what} !')
 
                 print(RED + 'Searching Providers:' + RESET)
                 if not self.real_search(what, self.providers):
-                    print(f'No Providers found containing: {what} !')
+                    logger.info(f'No Providers found containing: {what} !')
 
                 print(RED + 'Searching in resources:' + RESET)
                 found = False
@@ -1570,7 +1602,6 @@ $adb remount
         except Exception as e:
             logger.error(e)
             return None
-
 
     def highlight(self, word, str):
         if word.casefold() in str.casefold():

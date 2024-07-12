@@ -102,7 +102,6 @@ function dumpIntent(intent, redump=true){
     let action = intent.getAction();
     let flags = intent.getFlags();
     colorLog(intent, {c:Color.Cyan});
-    send('IntentMsg:'+intent.toString());
 
     let exported = isActivityExported(intent);
     let str = "(The intent is targeting";
@@ -145,7 +144,66 @@ function dumpIntent(intent, redump=true){
     if(flags != null){
       colorLog('\t\\_Flags: 0x' + flags.toString(16), {c: Color.Cyan});
     }
+    sendIntentToMonitor(intent);
     intent.putExtra("marked_as_dumped","marked");
+}
+
+function sendIntentToMonitor(intent){
+    
+    try{
+        let bundle_clz = intent.getExtras();
+        let data = intent.getData();
+        let action = intent.getAction();
+        let flags = intent.getFlags();
+        let exported = isActivityExported(intent);
+        let component  = intent.getComponent();
+        let itype = intent.getType();
+
+        let targetPackage = "";
+        let targetClassName = "";    
+        let dataToString ="";
+        let extras = "";
+        let type = "";
+    
+        if(data != null){
+            dataToString = data.toString();
+        }
+        
+        if(component != null){
+            targetPackage = component.getPackageName();
+            targetClassName = component.getClassName();
+        }
+
+        if(itype != null){
+            type = itype.toString();
+        }
+
+        if(bundle_clz != null){
+            let keySet = bundle_clz.keySet();
+            let iter = keySet.iterator();
+            while(iter.hasNext()) {
+                let currentKey = iter.next();
+                let currentValue = bundle_clz.get(currentKey);
+                if (currentValue!=null)
+                    type =  currentValue.getClass().toString();
+                else type = 'undefined'
+                let t = type.substring(type.lastIndexOf('.')+1,type.length)
+                if(currentKey!='marked_as_dumped'){
+                    extras += '\t('+t+ ') '+ currentKey + ' = ' + currentValue+'\n'
+                }
+            }
+            extras+='\n\n'
+        }
+      
+        let sentData = JSON.stringify({"description":intent.toString(), "targetPackageName":targetPackage, 
+            "targetClassName":targetClassName, "action":action, "data":dataToString, "type":type, "flags":flags, 
+            "extras":extras, "targetIsExported":exported});
+
+          send('IntentMsg|'+sentData);
+
+    } catch(error){
+        console.log(error);
+    }
 }
 
 function enumerateModules(){

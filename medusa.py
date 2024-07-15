@@ -1731,7 +1731,7 @@ catch (err) {
                 self.fill_app_info(message["payload"])
 
     def on_detached(self, reason) -> None:
-        logger.info("Session is detached due to:", reason)
+        logger.info(f"Session is detached due to:{reason}")
         self.detached = True
 
     def prepare_native(self, operation) -> None:

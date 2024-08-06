@@ -101,7 +101,7 @@ function dumpIntent(intent, redump=true){
     let data = intent.getData();
     let action = intent.getAction();
     let flags = intent.getFlags();
-    colorLog(intent, {c:Color.Cyan});
+    colorLog(`${intent}`, {c:Color.Cyan});
 
     let exported = isActivityExported(intent);
     let str = "(The intent is targeting";

@@ -8,6 +8,13 @@
 {
    var activity = Java.use('android.app.Activity');
 
+   activity.onNewIntent.overload('android.content.Intent').implementation = function(intent){
+      colorLog('\\nA_ON_NEW_INTENT'+this+' ====> startActivity(' + intent + ')', {c:Color.Purple});  
+      dumpIntent(intent);   
+      colorLog('[^] -------------------------------------------------------------------------------- [^]',{c:Color.Purple});     
+      this.onNewIntent(intent);
+   }
+
    activity.startActivity.overload('android.content.Intent', 'android.os.Bundle').implementation = function(intent, bundle){
       colorLog('\\nA_SA'+this+' ====> startActivity(' + intent + ')', {c:Color.Purple});  
       console.log('Options:'+bundle)

@@ -45,7 +45,7 @@ var Context = Java.use(\"android.content.Context\");
         data.value = clip.getItemAt(i).getIntent().toString();
         data.argSeq = 0;
         send_data.artifact.push(data);
-        send(JSON.stringify(send_data));
+        console.log(JSON.stringify(send_data));
       } else if (clip.getItemAt(i).getHtmlText()) {
         //console.log('getHtmlText: ' + clip.getItemAt(i).getHtmlText());
         /*   --- Payload Header --- */
@@ -61,7 +61,7 @@ var Context = Java.use(\"android.content.Context\");
         data.value = clip.getItemAt(i).getHtmlText().toString();
         data.argSeq = 0;
         send_data.artifact.push(data);
-        send(JSON.stringify(send_data));
+        console.log(JSON.stringify(send_data));
       } else if (clip.getItemAt(i).getUri()) {
         //console.log('getUri: ' + clip.getItemAt(i).getUri());
         /*   --- Payload Header --- */
@@ -77,7 +77,7 @@ var Context = Java.use(\"android.content.Context\");
         data.value = clip.getItemAt(i).getUri().toString();
         data.argSeq = 0;
         send_data.artifact.push(data);
-        send(JSON.stringify(send_data));
+        console.log(JSON.stringify(send_data));
       } else if (clip.getItemAt(i).getText()) {
         //console.log('getText: ' + clip.getItemAt(i).getText());
         /*   --- Payload Header --- */
@@ -93,7 +93,7 @@ var Context = Java.use(\"android.content.Context\");
         data.value = clip.getItemAt(i).getText().toString();
         data.argSeq = 0;
         send_data.artifact.push(data);
-        send(JSON.stringify(send_data));
+        console.log(JSON.stringify(send_data));
       } else {
         //console.log('toString: ' + clip.getItemAt(i).toString());
         /*   --- Payload Header --- */
@@ -109,7 +109,7 @@ var Context = Java.use(\"android.content.Context\");
         data.value = clip.getItemAt(i).toString();
         data.argSeq = 0;
         send_data.artifact.push(data);
-        send(JSON.stringify(send_data));
+        console.log(JSON.stringify(send_data));
       }
     }
     return this.setPrimaryClip.apply(this, arguments);

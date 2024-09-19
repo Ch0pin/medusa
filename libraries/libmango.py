@@ -1217,6 +1217,8 @@ $adb remount
                 display_text += Fore.RED + ' | enabled = ' + attribs[2] + ' |' + Fore.RESET
             if attribs[3]:
                 display_text += Fore.GREEN + ' | exported = ' + attribs[3] + Fore.RESET
+            if attribs[7]:
+                display_text += Fore.CYAN + ' | permission = ' + attribs[7] + Fore.RESET
             if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                 continue
             else:
@@ -1231,6 +1233,8 @@ $adb remount
                 display_text += Fore.RED + ' | enabled = ' + attribs[2] + ' |' + Fore.RESET
             if attribs[3]:
                 display_text += Fore.GREEN + ' | exported = ' + attribs[3] + ' |' + Fore.RESET
+            if attribs[4]:
+                display_text += Fore.GREEN + ' | permission = ' + attribs[4] + ' |' + Fore.RESET 
             if attribs[5]:
                 display_text += Fore.CYAN + ' | Target = ' + attribs[5] + Fore.RESET
 
@@ -1444,7 +1448,7 @@ $adb remount
                 if attribs[2]:
                     display_text += Fore.RED + ' | enabled = ' + attribs[2] + ' |' + Fore.RESET
                 if attribs[3]:
-                    display_text += Fore.GREEN + ' | exported = ' + attribs[3] + ' |' + Fore.RESET
+                    display_text += Fore.GREEN + ' | exported = ' + attribs[3] + Fore.RESET
                 if attribs[4]:
                     display_text += Fore.CYAN + ' | permission = ' + attribs[4] + Fore.RESET
 

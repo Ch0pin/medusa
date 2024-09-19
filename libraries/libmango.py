@@ -1523,17 +1523,26 @@ $adb remount
         index = 0
         if res:
             print(
-                Fore.GREEN + "[i] Availlable applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 65 + "  " + "-" * 57 + "\n {0} {1:^68}  {2:^60}\n".format(
-                    "index", "sha256", "Package Name (Version) / Dev. Framework") + "-" * 7 + " " + "-" * 65 + "  " + "-" * 57)
+                Fore.GREEN + "[i] Availlable applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65 + "\n {0} {1:^68}  {2:^65}\n".format(
+                    "index", "sha256", "Package Name (Version), Exposure (A|S|R|P) / Dev. Framework") + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65)
             for entry in res:
                 sha256, package_name, version, framework = entry
                 framework = '' if framework == 'None Detected' else '/ ' + framework
-                print(Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(index, sha256, package_name + f" {Fore.LIGHTGREEN_EX+'(V.'+version}) {framework}",))
+                exposure = self.print_exposure_summary(sha256)
+                print(Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(index, sha256, package_name + f" {Fore.LIGHTGREEN_EX+'(V.'+version}) {exposure} {framework}",))
+                
                 index += 1
                 if count_pkg:
                     self.total_apps.append(package_name + ":" + sha256)
             return res, index
         return None
+
+    def print_exposure_summary(self, sha256):
+        exported_activities = len(self.database.get_exported_activities(sha256))
+        exported_services = len(self.database.get_exported_services(sha256))
+        exported_receivers = len(self.database.get_exported_receivers(sha256))
+        exported_providers = len(self.database.get_exported_providers(sha256))
+        return f'{Fore.RED}{exported_activities}|{exported_services}|{exported_receivers}|{exported_providers}{Fore.RESET}'
 
     def continue_session(self, guava):
         self.guava = guava

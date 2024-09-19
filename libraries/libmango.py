@@ -1519,23 +1519,41 @@ $adb remount
     ###################################################### rest of defs start ############################################################
 
     def print_avail_apps(self, count_pkg=False):
-        res = self.database.query_db("SELECT sha256, packageName, versionName, framework from Application order by packagename asc;")
+        res = self.database.query_db(
+            "SELECT sha256, packageName, versionName, framework from Application order by packageName asc;"
+        )
         index = 0
         if res:
             print(
-                Fore.GREEN + "[i] Availlable applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65 + "\n {0} {1:^68}  {2:^65}\n".format(
-                    "index", "sha256", "Package Name (Version), Exposure (A|S|R|P) / Dev. Framework") + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65)
+                Fore.GREEN + "[i] Available applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
+            )
+            print(
+                " {0} {1:^68}  {2:^65}\n".format(
+                    "index", "sha256", "Package Name (Version), Exposure (A|S|R|P) / Dev. Framework"
+                ) + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
+            )
+
             for entry in res:
                 sha256, package_name, version, framework = entry
-                framework = '' if framework == 'None Detected' else '/ ' + framework
+                # Handle None values for version and framework
+                version = version if version is not None else "N/A"
+                framework = framework if framework and framework != 'None Detected' else ''
                 exposure = self.print_exposure_summary(sha256)
-                print(Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(index, sha256, package_name + f" {Fore.LIGHTGREEN_EX+'(V.'+version}) {exposure} {framework}",))
                 
+                # Corrected the string formatting mistake
+                print(
+                    Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(
+                        index, sha256, f"{package_name} (V.{version}) {exposure} {framework}"
+                    )
+                )
+
                 index += 1
                 if count_pkg:
-                    self.total_apps.append(package_name + ":" + sha256)
+                    self.total_apps.append(f"{package_name}:{sha256}")
+   
             return res, index
         return None
+
 
     def print_exposure_summary(self, sha256):
         exported_activities = len(self.database.get_exported_activities(sha256))

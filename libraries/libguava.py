@@ -151,6 +151,13 @@ class Guava:
 
     def fill_application_attributes(self, parsed_apk, sha256, application, original_filename):
         try:
+
+            try:
+                tampering = self.detect_tampering(parsed_apk)
+            except Exception as e:
+                logger.error(f"Error detecting tampering: {e}")
+                tampering = "N/A"
+
             arsc = parsed_apk.get_android_resources()
             app_attributes = (sha256, parsed_apk.get_app_name(), parsed_apk.get_package(),
                             parsed_apk.get_androidversion_code(), parsed_apk.get_androidversion_name(),
@@ -160,7 +167,7 @@ class Guava:
                                 application.get(NS_ANDROID + "debuggable"), application.get(NS_ANDROID + "allowBackup"),
                                 parsed_apk.get_android_manifest_axml().get_xml(),
                                 arsc.get_string_resources(arsc.get_packages_names()[0]), original_filename,
-                                self.detect_tampering(parsed_apk), self.detect_framework(parsed_apk))
+                                tampering, self.detect_framework(parsed_apk))
             self.application_database.update_application(app_attributes)
         except Exception as e:
             logger.error(e)
@@ -242,7 +249,7 @@ class Guava:
         app_sha256 = self.sha256sum(apkfile)
 
         print(f"[+] Analyzing apk with SHA256:{app_sha256}")
-        apk_r = apk.APK(apkfile)
+        apk_r = apk.APK(apkfile)            
         manifest = apk_r.get_android_manifest_axml().get_xml_obj()
         application = manifest.findall("application")[0]
         if print_info:

@@ -1245,6 +1245,9 @@ $adb remount
         print(Style.RESET_ALL)
 
     def print_application_info(self, info):
+        if len(info) == 0:
+            logger.error("APK entry is probably broken")
+            return
         print(Back.BLACK + Fore.RED + Style.BRIGHT + """
 [------------------------------------Package Details---------------------------------------]:
 |    Original Filename :{}

@@ -1704,6 +1704,8 @@ $adb remount
         APP_FOLDER = os.path.join(TMP_FOLDER, os.path.basename(file))
 
         if os.path.exists(file):
+            file_name, extension = os.path.splitext(file)
+            ALIGNED_APK = file_name + '_debuggable' + extension
             try:
                 if not self.does_exist("apksigner"):
                     print("[!] apksigner is not installed, quitting !")
@@ -1713,12 +1715,20 @@ $adb remount
                     return
                 if not os.path.exists(APKTOOL):
                     if Polar('[?] apktool has not been downloaded, do you want to do it now ?').ask():
+                        print(Fore.GREEN + '[+] Downloading apktool from ' + APKTOOL_URL + ' to ' +APKTOOL)
                         self.download_file(APKTOOL_URL, APKTOOL)
 
-                print(Fore.GREEN + '[+] Unpacking the apk....' + Fore.RESET)
+                print(Fore.GREEN + '[+] Unpacking the apk...' + Fore.RESET)
+                if os.path.exists(APP_FOLDER):
+                    if Polar('[?] Folder' + APP_FOLDER + ' already exists. Do you want to remove the old resources?').ask():
+                        print(Fore.GREEN + '[+] Removing old resources...' + Fore.RESET)
+                        shutil.rmtree(APP_FOLDER)
+                    else:
+                        print(Fore.RED + '[!] The application will use the existing directory' + Fore.RESET)
+
                 subprocess.run('java -jar ' + APKTOOL + f' d {file} -o {APP_FOLDER}', shell=True)
 
-                print(Fore.GREEN + '[+] Extracting the manifest....' + Fore.RESET)
+                print(Fore.GREEN + '[+] Extracting the manifest...' + Fore.RESET)
                 with open(APP_FOLDER + '/AndroidManifest.xml', 'rt') as f:
                     data = f.read()
 
@@ -1741,9 +1751,8 @@ $adb remount
                         shell=True)
                     print(Fore.GREEN + '[+] Removing the unsigned apk.....' + Fore.RESET)
                     os.remove(DEBUGGABLE_APK)
-                    print(Fore.GREEN + '[+] Backing up the original...' + Fore.RESET)
-                    shutil.move(file, 'original_' + file)
-                    shutil.move(ALIGNED_APK, file)
+                    print(Fore.GREEN + '[+] Original file: ' + file + Fore.RESET)
+                    print(Fore.GREEN + '[+] Debuggable file: ' + ALIGNED_APK + Fore.RESET) 
 
                 if not Polar('[?] Do you want to keep the extracted resources ?').ask():
                     shutil.rmtree(APP_FOLDER)

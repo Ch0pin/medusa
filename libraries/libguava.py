@@ -1,12 +1,20 @@
 import io
-
+import logging
+import hashlib, fnmatch
 from androguard.core import apk
 from androguard import util
 from apkInspector.indicators import apk_tampering_check
-
 from libraries.IntentFilter import *
 from libraries.db import *
-import hashlib, fnmatch
+from libraries.logging_config import setup_logging
+from libraries.Questions import Polar
+
+
+
+logging.getLogger().handlers = []  
+setup_logging() 
+logger = logging.getLogger(__name__)
+
 
 NS_ANDROID_URI = "http://schemas.android.com/apk/res/android"
 NS_ANDROID = '{http://schemas.android.com/apk/res/android}'
@@ -142,18 +150,28 @@ class Guava:
             self.application_database.update_activity_alias(activity_alias_attributes)
 
     def fill_application_attributes(self, parsed_apk, sha256, application, original_filename):
-        arsc = parsed_apk.get_android_resources()
-        app_attributes = (sha256, parsed_apk.get_app_name(), parsed_apk.get_package(),
-                          parsed_apk.get_androidversion_code(), parsed_apk.get_androidversion_name(),
-                          parsed_apk.get_min_sdk_version(), parsed_apk.get_target_sdk_version(),
-                          parsed_apk.get_max_sdk_version(), '|'.join(parsed_apk.get_permissions()),
-                          ' '.join(parsed_apk.get_libraries())) + (
-                             application.get(NS_ANDROID + "debuggable"), application.get(NS_ANDROID + "allowBackup"),
-                             parsed_apk.get_android_manifest_axml().get_xml(),
-                             arsc.get_string_resources(arsc.get_packages_names()[0]), original_filename,
-                             self.detect_tampering(parsed_apk), self.detect_framework(parsed_apk))
+        try:
 
-        self.application_database.update_application(app_attributes)
+            try:
+                tampering = self.detect_tampering(parsed_apk)
+            except Exception as e:
+                logger.error(f"Error detecting tampering: {e}")
+                tampering = "N/A"
+
+            arsc = parsed_apk.get_android_resources()
+            app_attributes = (sha256, parsed_apk.get_app_name(), parsed_apk.get_package(),
+                            parsed_apk.get_androidversion_code(), parsed_apk.get_androidversion_name(),
+                            parsed_apk.get_min_sdk_version(), parsed_apk.get_target_sdk_version(),
+                            parsed_apk.get_max_sdk_version(), '|'.join(parsed_apk.get_permissions()),
+                            ' '.join(parsed_apk.get_libraries())) + (
+                                application.get(NS_ANDROID + "debuggable"), application.get(NS_ANDROID + "allowBackup"),
+                                parsed_apk.get_android_manifest_axml().get_xml(),
+                                arsc.get_string_resources(arsc.get_packages_names()[0]), original_filename,
+                                tampering, self.detect_framework(parsed_apk))
+            self.application_database.update_application(app_attributes)
+        except Exception as e:
+            logger.error(e)
+            
 
     def fill_permissions(self, parsed_apk, sha256):
         app_declared_permissions = parsed_apk.get_declared_permissions_details()
@@ -231,7 +249,7 @@ class Guava:
         app_sha256 = self.sha256sum(apkfile)
 
         print(f"[+] Analyzing apk with SHA256:{app_sha256}")
-        apk_r = apk.APK(apkfile)
+        apk_r = apk.APK(apkfile)            
         manifest = apk_r.get_android_manifest_axml().get_xml_obj()
         application = manifest.findall("application")[0]
         if print_info:

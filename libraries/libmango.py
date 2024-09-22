@@ -1188,6 +1188,8 @@ $adb remount
                 display_text += Fore.RED + ' | enabled = ' + attribs[2] + ' |' + Fore.RESET
             if attribs[3]:
                 display_text += Fore.GREEN + ' | exported = ' + attribs[3] + Fore.RESET
+            if attribs[7]:
+                display_text += Fore.CYAN + ' | permission = ' + attribs[7] + Fore.RESET
             if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                 continue
             else:
@@ -1202,6 +1204,8 @@ $adb remount
                 display_text += Fore.RED + ' | enabled = ' + attribs[2] + ' |' + Fore.RESET
             if attribs[3]:
                 display_text += Fore.GREEN + ' | exported = ' + attribs[3] + ' |' + Fore.RESET
+            if attribs[4]:
+                display_text += Fore.GREEN + ' | permission = ' + attribs[4] + ' |' + Fore.RESET 
             if attribs[5]:
                 display_text += Fore.CYAN + ' | Target = ' + attribs[5] + Fore.RESET
 
@@ -1212,6 +1216,9 @@ $adb remount
         print(Style.RESET_ALL)
 
     def print_application_info(self, info):
+        if len(info) == 0:
+            logger.error("APK entry is probably broken")
+            return
         print(Back.BLACK + Fore.RED + Style.BRIGHT + """
 [------------------------------------Package Details---------------------------------------]:
 |    Original Filename :{}
@@ -1415,7 +1422,7 @@ $adb remount
                 if attribs[2]:
                     display_text += Fore.RED + ' | enabled = ' + attribs[2] + ' |' + Fore.RESET
                 if attribs[3]:
-                    display_text += Fore.GREEN + ' | exported = ' + attribs[3] + ' |' + Fore.RESET
+                    display_text += Fore.GREEN + ' | exported = ' + attribs[3] + Fore.RESET
                 if attribs[4]:
                     display_text += Fore.CYAN + ' | permission = ' + attribs[4] + Fore.RESET
 
@@ -1486,21 +1493,48 @@ $adb remount
     ###################################################### rest of defs start ############################################################
 
     def print_avail_apps(self, count_pkg=False):
-        res = self.database.query_db("SELECT sha256, packageName, versionName, framework from Application order by packagename asc;")
+        res = self.database.query_db(
+            "SELECT sha256, packageName, versionName, framework from Application order by packageName asc;"
+        )
         index = 0
         if res:
             print(
-                Fore.GREEN + "[i] Availlable applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 65 + "  " + "-" * 57 + "\n {0} {1:^68}  {2:^60}\n".format(
-                    "index", "sha256", "Package Name (Version) / Dev. Framework") + "-" * 7 + " " + "-" * 65 + "  " + "-" * 57)
+                Fore.GREEN + "[i] Available applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
+            )
+            print(
+                " {0} {1:^68}  {2:^65}\n".format(
+                    "index", "sha256", "Package Name (Version), Exposure (A|S|R|P) / Dev. Framework"
+                ) + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
+            )
+
             for entry in res:
                 sha256, package_name, version, framework = entry
-                framework = '' if framework == 'None Detected' else '/ ' + framework
-                print(Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(index, sha256, package_name + f" {Fore.LIGHTGREEN_EX+'(V.'+version}) {framework}",))
+                # Handle None values for version and framework
+                version = version if version is not None else "N/A"
+                framework = framework if framework and framework != 'None Detected' else ''
+                exposure = self.print_exposure_summary(sha256)
+                
+                # Corrected the string formatting mistake
+                print(
+                    Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(
+                        index, sha256, f"{package_name} (V.{version}) {exposure} {framework}"
+                    )
+                )
+
                 index += 1
                 if count_pkg:
-                    self.total_apps.append(package_name + ":" + sha256)
+                    self.total_apps.append(f"{package_name}:{sha256}")
+   
             return res, index
         return None
+
+
+    def print_exposure_summary(self, sha256):
+        exported_activities = len(self.database.get_exported_activities(sha256))
+        exported_services = len(self.database.get_exported_services(sha256))
+        exported_receivers = len(self.database.get_exported_receivers(sha256))
+        exported_providers = len(self.database.get_exported_providers(sha256))
+        return f'{Fore.RED}{exported_activities}|{exported_services}|{exported_receivers}|{exported_providers}{Fore.RESET}'
 
     def continue_session(self, guava):
         self.guava = guava

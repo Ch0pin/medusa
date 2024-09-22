@@ -90,7 +90,22 @@ class apk_db:
         return self.cursor.fetchall()
 
     def get_exported_activities(self, sha256):
-        sql = f"""SELECT name from Activities WHERE app_sha256='{sha256}' AND enabled LIKE 'true%' AND exported LIKE 'true%'"""
+        sql = f"""SELECT name from Activities WHERE app_sha256='{sha256}' AND exported LIKE 'true%' AND exported LIKE 'true%'"""
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
+
+    def get_exported_providers(self, sha256):
+        sql = f"""SELECT name from Providers WHERE app_sha256='{sha256}' AND exported LIKE 'true%' AND exported LIKE 'true%'"""
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
+    
+    def get_exported_receivers(self, sha256):
+        sql = f"""SELECT name from Receivers WHERE app_sha256='{sha256}' AND exported LIKE 'true%' AND exported LIKE 'true%'"""
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
+
+    def get_exported_services(self, sha256):
+        sql = f"""SELECT name from Services WHERE app_sha256='{sha256}' AND exported LIKE 'true%' AND exported LIKE 'true%'"""
         self.cursor.execute(sql)
         return self.cursor.fetchall()
     

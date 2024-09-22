@@ -8,7 +8,7 @@ console.log('\\n----------URI parsing monitor by @ch0p1n------------');
 {
   var Uri = Java.use('android.net.Uri'); 
 
-  const commonSchemes = ['http', 'https', 'content', 'file', 'android-app'];
+  const commonSchemes = ['http', 'https', 'content', 'file'];
   const show_common = false; //set it to true to exclude the above shcemes from the logs 
 
   var currentUri = '';

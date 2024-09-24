@@ -733,19 +733,28 @@ $adb remount
         Use it in combination with the tab key to see available packages"""
 
         if len(line.arg_list) > 0:
-
             package = line.arg_list[0]
-
 
             try:
                 base_apk = os.popen(
-                    f"adb -s {self.device.id} shell pm path {package} | grep base.apk | cut -d ':' -f 2").read()
-                print("Extracting: " + base_apk)
-                output = os.popen("adb -s {} pull {}".format(self.device.id, base_apk, package)).read()
-                print(output)
+                    f"adb -s {self.device.id} shell pm path {package} | grep base.apk | cut -d ':' -f 2").read().strip()
+                command = ["adb", "-s", self.device.id, "pull", base_apk]
+                result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-                if Polar('Do you want to import the application?').ask():
-                    self.do_import('base.apk')
+                if result.returncode == 0:
+                    logger.info(f"{base_apk} retrieved successfully !")
+                    if Polar('Do you want to import the application?').ask():
+                        self.do_import('base.apk')
+                else:
+                    logger.error(result.stderr)
+                # base_apk = os.popen(
+                #     f"adb -s {self.device.id} shell pm path {package} | grep base.apk | cut -d ':' -f 2").read()
+                # print("Extracting: " + base_apk)
+                # output = os.popen("adb -s {} pull {}".format(self.device.id, base_apk, package)).read()
+                # print(output)
+
+                # if Polar('Do you want to import the application?').ask():
+                #     self.do_import('base.apk')
             except Exception as e:
                 print(e)
         else:
@@ -1129,7 +1138,8 @@ $adb remount
         res = self.database.query_db("SELECT packageName, sha256, versionName from Application order by packagename asc;")
         appSha256 = []
         for entry in res:
-            appSha256.append(entry[0] + ':' + entry[1])
+            version_name = entry[2] if entry[2] is not None else ''
+            appSha256.append(entry[0] + ':' + entry[1] + ':' + version_name)
 
         if not text:
             completions = appSha256[:]
@@ -1417,6 +1427,8 @@ $adb remount
                     display_text += Fore.GREEN + ' | exported = ' + attribs[3] + ' |' + Fore.RESET
                 if attribs[4]:
                     display_text += Fore.CYAN + ' | grandUriPermission = ' + attribs[4] + Fore.RESET
+                if attribs[5]:
+                    display_text += Fore.CYAN + ' | permission = ' + attribs[5] + Fore.RESET
                 if attribs[9]:
                     display_text += Fore.CYAN + ' | authorities = ' + attribs[9] + Fore.RESET
                 if (not all) and (not attribs[3] or ('true' not in attribs[3])):
@@ -1472,6 +1484,8 @@ $adb remount
                     display_text += Fore.RED + ' | enabled = ' + attribs[2] + ' |' + Fore.RESET
                 if attribs[3]:
                     display_text += Fore.GREEN + ' | exported = ' + attribs[3] + Fore.RESET
+                if attribs[5]:
+                    display_text += Fore.GREEN + ' | permission = ' + attribs[5] + Fore.RESET
                 if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
@@ -1521,9 +1535,9 @@ $adb remount
 
     ###################################################### rest of defs start ############################################################
 
-    def print_avail_apps(self, count_pkg=False):
+    def print_avail_apps(self, count_pkg=False, sort_by_exposure=False):
         res = self.database.query_db(
-            "SELECT sha256, packageName, versionName, framework from Application order by packageName asc;"
+            "SELECT sha256, packageName, versionName, framework FROM Application;"
         )
         index = 0
         if res:
@@ -1532,43 +1546,112 @@ $adb remount
             )
             print(
                 " {0} {1:^68}  {2:^65}\n".format(
-                    "index", "sha256", "Package Name (Version), Exposure (A|S|R|P) / Dev. Framework"
+                    "index", "sha256", "Package Name (Version), Exposure (A|AL|S|R|P) / Dev. Framework"
                 ) + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
             )
 
+            app_list = []
             for entry in res:
                 sha256, package_name, version, framework = entry
                 # Handle None values for version and framework
                 version = version if version is not None else "N/A"
                 framework = framework if framework and framework != 'None Detected' else ''
-                exposure = self.print_exposure_summary(sha256)
-                
-                # Corrected the string formatting mistake
-                print(
-                    Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(
-                        index, sha256, f"{package_name} (V.{version}) {exposure} {framework}"
-                    )
-                )
+                exposure, total = self.print_exposure_summary(sha256)
+
+                # Append all necessary information to app_list
+                app_list.append({
+                    'index': index,
+                    'sha256': sha256,
+                    'package_name': package_name,
+                    'version': version,
+                    'framework': framework,
+                    'exposure': exposure,
+                    'total': total
+                })
 
                 index += 1
                 if count_pkg:
                     self.total_apps.append(f"{package_name}:{sha256}")
-   
-            return res, index
+
+            # Sort the app_list based on the sort_by_exposure flag
+            if sort_by_exposure:
+                # Sort by total exposure in descending order
+                app_list.sort(key=lambda x: x['total'], reverse=True)
+            else:
+                # Sort by package name in ascending order
+                app_list.sort(key=lambda x: x['package_name'])
+
+            # Reset index after sorting and rebuild res with sorted data
+            res_sorted = []
+            for idx, app in enumerate(app_list):
+                # Update the index in the app dictionary
+                app['index'] = idx
+
+                # Rebuild the res_sorted list with the sorted applications
+                res_sorted.append((app['sha256'], app['package_name'], app['version'], app['framework']))
+
+                print(
+                    Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(
+                        idx, app['sha256'], f"({app['total']}) {app['package_name']} (V.{app['version']}) {app['exposure']} {app['framework']}"
+                    )
+                )
+
+            # Return the sorted res list and the count
+            return res_sorted, len(app_list)
         return None
+
+
+
+    # def print_avail_apps(self, count_pkg=False):
+    #     res = self.database.query_db(
+    #         "SELECT sha256, packageName, versionName, framework from Application order by packageName asc;"
+    #     )
+    #     index = 0
+    #     if res:
+    #         print(
+    #             Fore.GREEN + "[i] Available applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
+    #         )
+    #         print(
+    #             " {0} {1:^68}  {2:^65}\n".format(
+    #                 "index", "sha256", "Package Name (Version), Exposure (A|AL|S|R|P) / Dev. Framework"
+    #             ) + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
+    #         )
+
+    #         for entry in res:
+    #             sha256, package_name, version, framework = entry
+    #             # Handle None values for version and framework
+    #             version = version if version is not None else "N/A"
+    #             framework = framework if framework and framework != 'None Detected' else ''
+    #             exposure, total = self.print_exposure_summary(sha256)
+                
+    #             # Corrected the string formatting mistake
+    #             print(
+    #                 Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(
+    #                     index, sha256, f"({total}) {package_name} (V.{version}) {exposure} {framework}"
+    #                 )
+    #             )
+
+    #             index += 1
+    #             if count_pkg:
+    #                 self.total_apps.append(f"{package_name}:{sha256}")
+   
+    #         return res, index
+    #     return None
 
 
     def print_exposure_summary(self, sha256):
         exported_activities = len(self.database.get_exported_activities(sha256))
+        exported_activity_aliases = len(self.database.get_exported_activity_aliases(sha256))
         exported_services = len(self.database.get_exported_services(sha256))
         exported_receivers = len(self.database.get_exported_receivers(sha256))
         exported_providers = len(self.database.get_exported_providers(sha256))
-        return f'{Fore.RED}{exported_activities}|{exported_services}|{exported_receivers}|{exported_providers}{Fore.RESET}'
+        total = exported_activities + exported_activity_aliases + exported_services + exported_receivers + exported_providers
+        return f'{Fore.RED}{exported_activities}|{exported_activity_aliases}|{exported_services}|{exported_receivers}|{exported_providers}{Fore.RESET}', total
 
     def continue_session(self, guava):
         self.guava = guava
         try:
-            res, index = self.print_avail_apps(True)
+            res, index = self.print_avail_apps(True, False)
             if res:
                 chosen_index = int(Numeric(Style.RESET_ALL + '\nEnter the index of  application to load:', lbound=0,
                                         ubound=index - 1).ask())
@@ -1679,7 +1762,9 @@ $adb remount
             self.packages.append(line1.split(':')[1].strip('\n'))
 
     def load_or_remove_application(self):
-        res,index = self.print_avail_apps(self)
+        #res,index = self.print_avail_apps(self)
+        sort_by_exposure = Polar("Sort by exposure (default by package name) ?", False).ask()
+        res,index = self.print_avail_apps(True, sort_by_exposure)
         if res:
             task = int(Numeric(
                 Style.RESET_ALL + '\n[i] Options: \n\t\t0 - Load an application \n\t\t1 - Delete an application \n\t\t2 - Exit this submenu\n\n[?] Please choose an option:',

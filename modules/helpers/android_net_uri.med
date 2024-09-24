@@ -8,9 +8,9 @@ console.log('\\n----------URI parsing monitor by @ch0p1n------------');
 {
   var Uri = Java.use('android.net.Uri'); 
 
-  const commonSchemes = ['http', 'https', 'content', 'file'];
+  const commonSchemes = ['http', 'https', 'content', 'file', 'gmsg'];
   const show_common = false; //set it to true to exclude the above shcemes from the logs 
-
+  const avoidLog = ['gmsg']
   var currentUri = '';
 
 
@@ -21,7 +21,8 @@ console.log('\\n----------URI parsing monitor by @ch0p1n------------');
       else
       {
         currentUri = this.toString();
-        colorLog('[+] getQueryParameter for Uri: '+currentUri,{c: Color.Green})
+        if(!avoidLog.includes(currentUri.getScheme()))
+          colorLog('[+] getQueryParameter for Uri: '+currentUri,{c: Color.Green})
       }
 
       if(filterKeyWords.some(word => key.toString().toLowerCase().includes(word)))
@@ -37,7 +38,8 @@ console.log('\\n----------URI parsing monitor by @ch0p1n------------');
     else
     {
       currentUri = this.toString();
-      colorLog('[+] getQueryParameters for Uri: '+currentUri,{c: Color.Green})
+      if(!avoidLog.includes(currentUri.getScheme()))
+        colorLog('[+] getQueryParameters for Uri: '+currentUri,{c: Color.Green})
     }
       if(filterKeyWords.some(word => key.toString().toLowerCase().includes(word)))
         colorLog('\t\\\\_key:'+key+', value:'+retval, {c: Color.Red});

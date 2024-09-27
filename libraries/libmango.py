@@ -24,7 +24,7 @@ MEDUSA_AGENT_URL = "https://github.com/Ch0pin/medusa/files/13833921/agent.zip"
 APKTOOL = os.path.abspath(os.path.join(BASE, '../dependencies/apktool.jar'))
 MEDUSA_AGENT = os.path.abspath(os.path.join(BASE, '../dependencies/agent.apk'))
 DEBUGGABLE_APK = os.getcwd() + "/debuggable.apk"
-ALLIGNED_APK = os.getcwd() + "/debuggable_alligned_signed.apk"
+ALIGNED_APK = os.getcwd() + "/debuggable_aligned_signed.apk"
 TMP_FOLDER = os.getcwd() + "/tmp_dir"
 SIGNATURE = os.path.abspath(os.path.join(BASE, '../dependencies/common.jks'))
 PLAYSTORE_VERSION_PATTERN_0 = re.compile(r'\[\[\["([0-9]+\.[0-9]+\.[0-9]+)"\]\],\[\[\[33\]\],\[\[\[23,"[0-9]+\.[0-9]+"\]\]\]\]')
@@ -601,62 +601,28 @@ $adb remount
 
     def do_patch(self, line):
         """Usage: patch /full/path/to/foo.apk
-        Changes the debuggable flage of the AndroidManifest.xml to true for a given apk. 
-        The command requires apksigner and zipallign to have been installed."""
+        Changes the debuggable flag of the AndroidManifest.xml to true for a given apk. 
+        The command requires apksigner and zipalign to have been installed."""
 
-        text_to_search = "<application"
-        replacement_text = '<application android:debuggable="true" '
-        file = line.split(' ')[0]
-
-        if os.path.exists(file):
-            try:
-                if not self.does_exist("apksigner"):
-                    print("[!] apksigner is not installed, quiting !")
-                    return
-                if not self.does_exist("zipalign"):
-                    print("[!] zipalign is not installed, quiting !")
-                    return
-                if not os.path.exists(APKTOOL):
-                    if Polar('[?] apktool has not been downloaded, do you want to do it now ?').ask():
-                        self.download_file(APKTOOL_URL, APKTOOL)
-
-                print(GREEN + '[+] Unpacking the apk....' + RESET)
-                subprocess.run('java -jar ' + APKTOOL + f' d {file} -o {TMP_FOLDER}', shell=True)
-
-                print(GREEN + '[+] Extracting the manifest....' + RESET)
-                with open(TMP_FOLDER + '/AndroidManifest.xml', 'rt') as f:
-                    data = f.read()
-
-                print(GREEN + '[+] Setting the debug flag to true...')
-
-                if 'android:debuggable="true"' in data:
-                    print(RED + "[!] Application is already debuggable !" + RESET)
-                else:
-                    data = data.replace(text_to_search, replacement_text)
-
-                    with open(TMP_FOLDER + '/AndroidManifest.xml', 'wt') as f:
-                        f.write(data)
-                    print(GREEN + '[+] Repacking the app...' + RESET)
-                    subprocess.run('java -jar ' + APKTOOL + f' b {TMP_FOLDER} -o {DEBUGGABLE_APK}', shell=True)
-                    print(GREEN + '[+] Alligning the apk file.....' + RESET)
-                    subprocess.run(f'zipalign -p -v 4 {DEBUGGABLE_APK} {ALLIGNED_APK}', shell=True)
-                    print(GREEN + '[+] Signing the apk.....' + RESET)
-                    subprocess.run(
-                        f'apksigner sign --ks {SIGNATURE} -ks-key-alias common --ks-pass pass:password --key-pass pass:password  {ALLIGNED_APK}',
-                        shell=True)
-                    print(GREEN + '[+] Removing the unsigned apk.....' + RESET)
-                    os.remove(DEBUGGABLE_APK)
-                    print(GREEN + '[+] Backing up the original...' + RESET)
-                    shutil.move(file, 'original_' + file)
-                    shutil.move(ALLIGNED_APK, file)
-
-                    if not Polar('[?] Do you want to keep the extracted resources ?').ask():
-                        shutil.rmtree(TMP_FOLDER)
-            except Exception as e:
-                print(e)
-
+        if len(line.arg_list) > 0:
+            self.patch_apk(line.arg_list[0])
         else:
-            print("[!] File doesn't exist.")
+            logger.error("[!] Usage: patch /full/path/to/foo.apk")
+        
+
+
+    def do_patchmultiple(self, line):
+        """Usage: patchmultiple /full/path/to/foo.apk /full/path/to/split_config.en.apk ...
+        Changes the debuggable flag of the AndroidManifest.xml to true for a given apks. It is used for bundled apk patching.
+        The command requires apksigner and zipalign to have been installed."""
+
+        if len(line.arg_list)>1:
+            for file in line.arg_list:
+                self.patch_apk(file)
+        else:
+            logger.error("[!] Usage: patchmultiple /full/path/to/foo.apk /full/path/to/split_config.en.apk ...")
+            
+
 
     def do_playstore(self, line):
         """Usage: playstore package_name
@@ -1206,6 +1172,11 @@ $adb remount
 
     def complete_uninstall(self, text, line, begidx, endidx):
         return self.get_packages_starting_with(text)
+    
+    complete_install = cmd2.Cmd.path_complete
+    complete_installmultiple = cmd2.Cmd.path_complete
+    complete_patch = cmd2.Cmd.path_complete
+    complete_patchmultiple = cmd2.Cmd.path_complete
 
     ###################################################### print defs start ############################################################
 
@@ -1809,3 +1780,72 @@ $adb remount
             self.print_proxy()
         except Exception as e:
             logger.error(e)
+
+
+    def patch_apk(self, file: str):
+        """Patches an apk to make it debuggable"""
+        text_to_search = "<application"
+        replacement_text = '<application android:debuggable="true" '
+        APP_FOLDER = os.path.join(TMP_FOLDER, os.path.basename(file))
+
+        if os.path.exists(file):
+            file_name, extension = os.path.splitext(file)
+            ALIGNED_APK = file_name + '_debuggable' + extension
+            try:
+                if not self.does_exist("apksigner"):
+                    logger.error("[!] apksigner is not installed, quitting !")
+                    return
+                if not self.does_exist("zipalign"):
+                    logger.error("[!] zipalign is not installed, quitting !")
+                    return
+                if not os.path.exists(APKTOOL):
+                    if Polar('[?] apktool has not been downloaded, do you want to do it now ?').ask():
+                        logger.info("[+] Downloading apktool from " + APKTOOL_URL + " to " +APKTOOL)
+                        self.download_file(APKTOOL_URL, APKTOOL)
+
+                logger.info("[+] Unpacking the apk...")
+                if os.path.exists(APP_FOLDER):
+                    if Polar('[?] Folder' + APP_FOLDER + ' already exists. Do you want to remove the old resources?').ask():
+                        logger.info("[+] Removing old resources...")
+                        shutil.rmtree(APP_FOLDER)
+                    else:
+                        logger.info("[!] The application will use the existing directory")
+
+                subprocess.run('java -jar ' + APKTOOL + f' d {file} -o {APP_FOLDER}', shell=True)
+
+                logger.info("[+] Extracting the manifest...")
+                with open(APP_FOLDER + '/AndroidManifest.xml', 'rt') as f:
+                    data = f.read()
+
+                logger.info("[+] Setting the debug flag to true...")
+
+                if 'android:debuggable="true"' in data:
+                    logger.error("[!] Application is already debuggable !")
+                else:
+                    data = data.replace(text_to_search, replacement_text)
+
+                    with open(APP_FOLDER + '/AndroidManifest.xml', 'wt') as f:
+                        f.write(data)
+                    logger.info("[+] Repacking the app...")
+                    subprocess.run('java -jar ' + APKTOOL + f' b {APP_FOLDER} -o {DEBUGGABLE_APK}', shell=True)
+                    logger.info("[+] Aligning the apk file...")
+                    subprocess.run(f'zipalign -p -v 4 {DEBUGGABLE_APK} {ALIGNED_APK}', shell=True)
+                    logger.info("[+] Signing the apk...")
+                    subprocess.run(
+                        f'apksigner sign --ks {SIGNATURE} -ks-key-alias common --ks-pass pass:password --key-pass pass:password  {ALIGNED_APK}',
+                        shell=True)
+                    logger.info("[+] Removing the unsigned apk...")
+                    os.remove(DEBUGGABLE_APK)
+                    logger.info("[+] Original file: " + file)
+                    logger.info("[+] Debuggable file: " + ALIGNED_APK)
+
+                if not Polar('[?] Do you want to keep the extracted resources ?').ask():
+                    shutil.rmtree(APP_FOLDER)
+                    if len(os.listdir(TMP_FOLDER)) == 0:
+                        logger.info(f"[+] {TMP_FOLDER} is empty, removing it...")
+                        shutil.rmtree(TMP_FOLDER)
+            except Exception as e:
+                logger.error(e)
+
+        else:
+            logger.error("[!] File doesn't exist.")

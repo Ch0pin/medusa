@@ -17,6 +17,7 @@ from typing import List, Optional
 import cmd2
 import frida
 import requests
+from cmd2.parsing import Statement
 from colorama import Back, Fore, Style
 
 # Local application/library specific imports
@@ -238,7 +239,7 @@ class parser(cmd2.Cmd):
 
     ###################################################### do_ defs start ############################################################
 
-    def do_adb(self, line: Optional[List[str]], cmd: Optional[str] = None, frombs: bool = False) -> None:
+    def do_adb(self, line: Optional[Statement], cmd: Optional[str] = None, frombs: bool = False) -> None:
         """Start an interactive adb prompt."""
         if cmd is None:
             logger.info("Type 'exit' to return ")
@@ -254,7 +255,7 @@ class parser(cmd2.Cmd):
                 return
             cmd = input(f"{GREEN}{self.device.id}:adb:{RESET}")
 
-    def do_box(self, line: Optional[List[str]] = None) -> None:
+    def do_box(self, line: Optional[Statement] = None) -> None:
             """Starts a BusyBox interactive shell."""
 
             arch = self.run_command([
@@ -321,7 +322,7 @@ class parser(cmd2.Cmd):
             logger.info("BusyBox support has already been installed.\nType: source /data/local/tmp/busybox.sh")
             self.do_adb("adb", "shell", True)
 
-    def do_c(self, line: Optional[List[str]]) -> None:
+    def do_c(self, line: Optional[Statement]) -> None:
         """Run a shell command on the host.
 
         Usage:
@@ -330,9 +331,9 @@ class parser(cmd2.Cmd):
         Args:
             line (str): The shell command to execute.
         """
-        subprocess.run(line, shell=True, check=True)
+        subprocess.run(line.arg_list, shell=True, check=True)
 
-    def do_cc(self, line: Optional[List[str]]) -> None:
+    def do_cc(self, line: Optional[Statement]) -> None:
         """
         Get an adb shell to the connected device.
 
@@ -348,36 +349,61 @@ class parser(cmd2.Cmd):
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to execute adb shell command: {e}")
 
-    def do_clear(self, line: Optional[List[str]]) -> None:
+    def do_clear(self, line: Optional[Statement]) -> None:
         """Clear the screen"""
         os.system('clear')
 
-    def do_note(self, line):
-        """Usage: note [add|show|del|update]
+    def do_note(self, line: Statement) -> None:
         """
-        try:
-            note_option = line.split()[0]
-            if note_option == 'add':
-                note = input("Note (press enter to commit): ")
-                self.guava.insert_note(self.current_app_sha256, note)
-                print("Note added.")
-            elif note_option == 'show':
-                notes = self.database.get_all_notes(self.current_app_sha256)
+        Manage notes for the current app.
+
+        Usage:
+            note [add|show|del|update]
+        """
+        if not line.arg_list:
+            logger.error("No option provided. Type 'help note' for usage summary")
+            return
+
+        note_option = line.arg_list[0].lower()
+
+        if note_option == 'add':
+            note = input("Note (press enter to commit): ")
+            self.guava.insert_note(self.current_app_sha256, note)
+            logger.info("Note added.")
+
+        elif note_option == 'show':
+            notes = self.database.get_all_notes(self.current_app_sha256)
+            if notes:
                 for index, sha256, cmt in notes:
-                    print(f'{index}) {cmt}')
-            elif note_option == 'del':
-                index = input("Enter the index of the note you want to delete:")
-                self.guava.delete_note(int(index))
-            elif note_option == 'update':
-                index = input("Enter the index of the note you want to update:")
-                note = input("Note (press enter to commit): ")
-                self.guava.update_note(index, note)
-                print("Note updated")
+                    logger.info(f'{index}) {cmt}')
             else:
-                print("[!] Invalid option !")
+                logger.info("No notes found.")
+
+        elif note_option in ('del', 'update'):
+            action = "delete" if note_option == 'del' else "update"
+            index_str = input(f"Enter the index of the note you want to {action}: ")
+            try:
+                index = int(index_str)
+            except ValueError:
+                logger.error("Invalid index entered.")
                 return
-        except Exception as e:
-            print(e)
+
+            if note_option == 'del':
+                try:
+                    self.guava.delete_note(index)
+                    logger.info("Note deleted.")
+                except Exception as e:
+                    logger.error(f"An error occurred while deleting the note: {e}", exc_info=True)
+            else:  # note_option == 'update'
+                note = input("Note (press enter to commit): ")
+                try:
+                    self.guava.update_note(index, note)
+                    logger.info("Note updated.")
+                except Exception as e:
+                    logger.error(f"An error occurred while updating the note: {e}", exc_info=True)
+
+        else:
+            logger.info("Invalid option!")
 
     def do_deeplink(self, line):
         """Usage: deeplink [deeplink] [--poc]

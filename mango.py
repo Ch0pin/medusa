@@ -1,10 +1,17 @@
+#!/usr/bin/env python3
+
+# Standard library imports
+import logging
+import os.path
+import sys
+
+# Local application/library specific imports
 from libraries.libmango import *
 from libraries.Questions import *
 from libraries.libguava import *
 from libraries.libadb import *
 from libraries.logging_config import setup_logging
-import sys, os.path
-import logging
+
 
 logging.getLogger().handlers = []  
 setup_logging() 

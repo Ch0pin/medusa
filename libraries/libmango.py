@@ -1,16 +1,30 @@
 #!/usr/bin/env python3
-import subprocess, frida, shutil
-import cmd2, os, sys, platform, requests, re
-import time
-import logging
-from libraries.logging_config import setup_logging
-from libraries.Questions import Polar
-from libraries.libadb import android_device
-from libraries.libguava import *
-from libraries.Questions import *
-from shutil import which
-from colorama import Fore, Back, Style
 
+# Standard library imports
+import logging
+import os
+import platform
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import time
+from shutil import which
+from typing import List, Optional
+
+# Third-party imports
+import cmd2
+import frida
+import requests
+from colorama import Back, Fore, Style
+
+# Local application/library specific imports
+from libraries.logging_config import setup_logging
+from libraries.libadb import android_device
+from libraries.Questions import Polar
+from libraries.Questions import *
+from libraries.libguava import *
 
 logging.getLogger().handlers = []  
 setup_logging() 
@@ -41,7 +55,7 @@ BOLD = "\033[;1m"
 REVERSE = "\033[;7m"
 
 # readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
-BUSSY_BOX_URL = "https://busybox.net/downloads/binaries/1.31.0-defconfig-multiarch-musl/"
+BUSYBOX_URL = "https://busybox.net/downloads/binaries/1.31.0-defconfig-multiarch-musl/"
 HELP_MESSAGE = "\nSYNOPSIS:" + """
     mango➤[command] <parameters> <flags> """ + """
 
@@ -224,79 +238,117 @@ class parser(cmd2.Cmd):
 
     ###################################################### do_ defs start ############################################################
 
-    def do_adb(self, line, cmd=None, frombs=False):
+    def do_adb(self, line: Optional[List[str]], cmd: Optional[str] = None, frombs: bool = False) -> None:
         """Start an interactive adb prompt."""
-
         if cmd is None:
             logger.info("Type 'exit' to return ")
             cmd = input(GREEN + f'{self.device.id}:adb:' + RESET)
 
         while cmd != 'exit':
-            if cmd != 'exit':
-                subprocess.run(f'adb -s {self.device.id} {cmd}', shell=True)
-                if frombs:
-                    return
-            cmd = input(GREEN + f'{self.device.id}:adb:' + RESET)
-
-    # mark for tests
-    def do_box(self, line):
-        """Starts a busybox interactive shell. """
-
-        arch = self.run_command(["adb", "-s", f'{self.device.id}', "shell", "getprop", "ro.product.cpu.abi"])
-        if b'v8' in arch:
-            binary = "busybox-armv8l"
-        elif 'v7' in arch:
-            binary = "busybox-armv7l"
-        else:
-            logger.error("Arch is not supported !")
-            return
-        output = self.run_command(f"adb -s {self.device.id} shell ls /data/local/tmp/{binary}".split())
-        if b'No such file' in output:
-            download = Polar("[!] Can't find Bussybox in this device, do you want to download it ?").ask()
-            if download:
-                try:
-                    logger.info("Attempting to download the file...")
-                    self.download_file(BUSSY_BOX_URL + binary, './busybox.tmp')
-                    # print(self.run_command(["curl", BUSSY_BOX_URL+binary, "--output", "busybox.tmp"]).decode('utf-8'))
-                    if os.path.exists("./busybox.tmp"):
-                        logger.info(f"Download successful, pushing the binary to the device as '/data/local/tmp/{binary}'")
-                        print(self.run_command(["adb", "-s", f"{self.device.id}", "push", "./busybox.tmp",
-                                                f"/data/local/tmp/{binary}"]).decode('utf-8'))
-                        logger.info("Deleting local file...")
-                        print(self.run_command(["rm", "./busybox.tmp"]).decode('utf-8'))
-                        print(self.run_command(["adb", "-s", f"{self.device.id}", "shell", "chmod", "+x",
-                                                f"/data/local/tmp/{binary}"]).decode('utf-8'))
-                        logger.info("Setting the aliases file...")
-                        shellfile = os.path.abspath(os.path.join(self.base_directory, '../utils/busybox.sh'))
-                        with open(shellfile, 'r') as sf:
-                            data = sf.read()
-                        data = data.replace('to_be_replaced', binary)
-                        with open(shellfile, 'w') as sf:
-                            sf.write(data)
-                        subprocess.run(f"""adb -s {self.device.id} push {shellfile} /data/local/tmp/busybox.sh""",
-                                       shell=True)
-                    else:
-                        logger.error("Download Failed !")
-                        return
-                except Exception as e:
-                    logger.error(e)
-            else:
+            try:
+                full_cmd = f'adb -s {self.device.id} {cmd}'
+                subprocess.run(shlex.split(full_cmd), check=True)
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Command failed with error: {e}")
+            if frombs:
                 return
-        logger.info("Busybox support has already been installed.\nType: source /data/local/tmp/busybox.sh")
-        self.do_adb("adb", "shell", True)
+            cmd = input(f"{GREEN}{self.device.id}:adb:{RESET}")
 
-    def do_c(self, line):
-        """Usage: c [shell command]
-        Run a shell command on the local host."""
-        subprocess.run(line, shell=True)
+    def do_box(self, line: Optional[List[str]] = None) -> None:
+            """Starts a BusyBox interactive shell."""
 
-    def do_cc(self, line):
+            arch = self.run_command([
+                "adb", "-s", f"{self.device.id}", "shell", "getprop", "ro.product.cpu.abi"
+            ])
+
+            if b'v8' in arch:
+                binary = "busybox-armv8l"
+            elif b'v7' in arch:
+                binary = "busybox-armv7l"
+            else:
+                logger.error("Architecture is not supported!")
+                return
+
+            binary_path = f"/data/local/tmp/{binary}"
+            output = self.run_command([
+                "adb", "-s", f"{self.device.id}", "shell", "ls", binary_path
+            ])
+
+            if b'No such file' in output:
+                download = Polar("[!] Can't find BusyBox on this device. Do you want to download it?").ask()
+                if download:
+                    try:
+                        logger.info("Attempting to download the file...")
+                        self.download_file(BUSYBOX_URL + binary, './busybox.tmp')
+
+                        if os.path.exists("./busybox.tmp"):
+                            logger.info(f"Download successful, pushing the binary to the device at '{binary_path}'")
+                            push_output = self.run_command([
+                                "adb", "-s", f"{self.device.id}", "push", "./busybox.tmp", binary_path
+                            ]).decode('utf-8')
+                            print(push_output)
+
+                            logger.info("Deleting local file...")
+                            os.remove("./busybox.tmp")
+
+                            chmod_output = self.run_command([
+                                "adb", "-s", f"{self.device.id}", "shell", "chmod", "+x", binary_path
+                            ]).decode('utf-8')
+                            print(chmod_output)
+
+                            logger.info("Setting up the aliases file...")
+                            shellfile = os.path.abspath(os.path.join(self.base_directory, '../utils/busybox.sh'))
+                            with open(shellfile, 'r') as sf:
+                                data = sf.read()
+
+                            data = data.replace('to_be_replaced', binary)
+
+                            with open(shellfile, 'w') as sf:
+                                sf.write(data)
+
+                            subprocess.run([
+                                "adb", "-s", f"{self.device.id}", "push", shellfile, "/data/local/tmp/busybox.sh"
+                            ], check=True)
+                        else:
+                            logger.error("Download failed!")
+                            return
+                    except Exception as e:
+                        logger.error(f"An error occurred: {e}")
+                        return
+                else:
+                    return
+
+            logger.info("BusyBox support has already been installed.\nType: source /data/local/tmp/busybox.sh")
+            self.do_adb("adb", "shell", True)
+
+    def do_c(self, line: Optional[List[str]]) -> None:
+        """Run a shell command on the host.
+
+        Usage:
+            c [shell command]
+
+        Args:
+            line (str): The shell command to execute.
         """
-        Get an adb shell to the connected device (no args)
-        """
-        subprocess.run(f'adb -s {self.device.id} shell {line}', shell=True)
+        subprocess.run(line, shell=True, check=True)
 
-    def do_clear(self, line):
+    def do_cc(self, line: Optional[List[str]]) -> None:
+        """
+        Get an adb shell to the connected device.
+
+        Args:
+            line (List[str]): Commands and arguments to execute on the device shell.
+
+        """
+        cmd = ['adb', '-s', self.device.id, 'shell']
+        if line.arg_list:
+            cmd += line.arg_list 
+        try:
+            subprocess.run(cmd, check=True)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to execute adb shell command: {e}")
+
+    def do_clear(self, line: Optional[List[str]]) -> None:
         """Clear the screen"""
         os.system('clear')
 

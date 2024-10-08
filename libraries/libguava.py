@@ -1,14 +1,18 @@
+import fnmatch
+import hashlib
 import io
 import logging
-import hashlib, fnmatch
+
+# Third-party imports
 from androguard.core import apk
 from androguard import util
 from apkInspector.indicators import apk_tampering_check
-from libraries.IntentFilter import *
-from libraries.db import *
+
+# Local application/library specific imports
+from libraries.db import apk_db
+from libraries.IntentFilter import IntentFilter
 from libraries.logging_config import setup_logging
 from libraries.Questions import Polar
-
 
 
 logging.getLogger().handlers = []  

@@ -1,15 +1,35 @@
 #!/usr/bin/env python3
-import subprocess, platform, os, sys, readline, time, argparse, requests, re
+
+# Standard library imports
+import argparse
+import os
+import platform
+import random
+import readline
+import re
+import subprocess
+import sys
+import time
+import traceback
 from urllib.parse import urlparse
-import cmd2, click, frida, random, yaml, sys, traceback
-from libraries.dumper import dump_pkg
-from utils.google_trans_new import google_translator
-from libraries.natives import *
-from libraries.libadb import *
-from libraries.Questions import *
-from libraries.Modules import *
-from libraries.soc_server import *
+
+# Third-party imports
+import cmd2
+import click
+import frida
+import requests
+import yaml
 from pick import pick
+
+# Local application/library specific imports
+from libraries.dumper import dump_pkg
+from libraries.libadb import *
+from libraries.Modules import *
+from libraries.natives import *
+from libraries.Questions import *
+from libraries.soc_server import *
+from utils.google_trans_new import google_translator
+
 
 RED = "\033[1;31m"
 BLUE = "\033[1;34m"

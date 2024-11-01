@@ -1,0 +1,38 @@
+{
+    "Name": "helpers/regexes",
+    "Description": "Hooks the kotlin.text.Regex constructor to trace matches on incoming uris",
+    "Help": "",
+    "Code": "
+{
+    console.log('\\n--------Kotlin.text.regex hook module--------------');
+
+    let Regex = Java.use('kotlin.text.Regex');
+    var constructors = Regex.$init;
+
+    // Loop through all overloads of the constructor
+    for (var i = 0; i < constructors.overloads.length; i++) {
+        (function(index) {
+            // Hook each overload of the constructor
+            constructors.overloads[index].implementation = function() {
+                // Create an array from the arguments
+                var args = Array.prototype.slice.call(arguments);
+                
+                // Log the arguments passed to the constructor
+                colorLog('Regex initialized with arguments: ' + args.map(function(arg) {
+                    return arg.toString();
+                }).join(', '), {c:Color.Yellow});
+                
+                // Call the original constructor with the provided arguments
+                return this.$init.apply(this, args);
+            };
+        })(i);
+    }
+
+    let UriMatcher = Java.use('android.content.UriMatcher');
+    UriMatcher['addURI'].implementation = function (authority, path, code) {
+        colorLog(`UriMatcher addURI called: uri=${authority+'/'+path}`, {c:Color.Yellow});
+        this['$init'](authority, path, code);
+    };
+}
+"
+}

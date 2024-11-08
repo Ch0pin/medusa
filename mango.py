@@ -44,43 +44,48 @@ def start_session(db_session, existing=False):
     p.device = p.get_device()
     p.cmdloop()
 
+def interactive_menu():
+    menu = {
+        '1': "Start a new session",
+        '2': "Continue an existing session",
+        '3': "Exit"
+    }
+    while True:
+        print("-" * 50 + "\n[?] What do you want to do?\n" + "-" * 50)
+        for key, option in menu.items():
+            print(f"{key}. {option}")
+        selection = input("\n[?] Enter your selection: ").strip()
+
+        if selection == '1':
+            session = input("\n[?] Enter a session name: ").strip()
+            start_session(session)
+            break
+        elif selection == '2':
+            session = input("\n[?] Enter the full path to the session file: ").strip()
+            if os.path.exists(session):
+                start_session(session, existing=True)
+            else:
+                logger.error(f"Can't find session file: {session}")
+            break
+        elif selection == '3':
+            print("Exiting...")
+            sys.exit()
+        else:
+            logger.warning("Unknown option selected. Please try again.")
 
 if __name__ == "__main__":
-    print_logo()
     if len(sys.argv) > 1:
-        session = sys.argv[1]
-
-        if os.path.exists(session):
-            start_session(session, True)
+        if sys.argv[1] == '-h':
+            print("Usage: mango [session file]\n\nOptions:\n  [session file]  Specify the path to an existing session file to continue.\n  -h              Show this help message and exit.")
+            sys.exit(0)
         else:
-            logger.error(f"Can't find: {session} ")
-            sys.exit()
-    else:
-        menu = {}
-        menu['1'] = "Start a new session"
-        menu['2'] = "Continue an existing session"
-        menu['3'] = "Exit"
-        while True:
-            print("-" * 50 + "\n[?] What do you want to do ?\n" + "-" * 50)
-            options = menu.keys()
-
-            for entry in options:
-                print(entry, menu[entry])
-            selection = input("\n[?] Enter your selection: ")
-
-            if selection == '1':
-                session = input("\n[?] Enter a session name: ")
-                start_session(session)
-                break
-            elif selection == '2':
-                session = input("\n[?] Enter full path to the session file: ")
-                if os.path.exists(session):
-                    start_session(session, True)
-                else:
-                    logger.error(f"Can't find: {session} ")
-                    sys.exit()
-                break
-            elif selection == '3':
-                sys.exit()
+            print_logo()
+            session = sys.argv[1]
+            if os.path.exists(session):
+                start_session(session, existing=True)
             else:
-                logger.warning("Unknown Option Selected!")
+                logger.error(f"Session file not found: {session}")
+                sys.exit(1)
+    else:
+        print_logo()
+        interactive_menu()

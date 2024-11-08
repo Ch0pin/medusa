@@ -12,6 +12,7 @@ import sys
 import time
 import traceback
 from urllib.parse import urlparse
+from typing import Optional
 
 # Third-party imports
 import cmd2
@@ -22,7 +23,6 @@ import yaml
 from pick import pick
 
 # Local application/library specific imports
-from libraries.dumper import dump_pkg
 from libraries.libadb import *
 from libraries.Modules import *
 from libraries.natives import *
@@ -80,6 +80,7 @@ class Parser(cmd2.Cmd):
     package_name = None
     save_to_file = None
     device_id = None
+    device_controller = None
 
     class NonInteractiveTypeError(Exception):
         pass
@@ -294,18 +295,6 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
 
-    def do_dump(self, line) -> None:
-        """
-        Dump the memory of a package name 
-        Usage:
-        dump [package name]
-        """
-        pkg = line.split(' ')[0].strip()
-        if pkg == '':
-            print('[i] Usage: dump package_name')
-        else:
-            dump_pkg(pkg)
-
     def do_enumerate(self, line) -> None:
         """
         Enumerates the exported functions of a native library.
@@ -485,7 +474,7 @@ class Parser(cmd2.Cmd):
                                                       list of stashed modules
                         - compile [-t X ms]         : Compile the stashed modules. Use -t X to add X ms delay
                         - import [snippet]          : Import a snippet to the scratchpad
-                        - info [module name]        : Display info about a module
+                        - info [module name]        : Display help about a module
                         - rem [module name]         : Remove a module from the stashed ones
                         - reload                    : Reload all the medusa modules
                         - reset                     : Remove all modules from the list of the stashed ones
@@ -869,12 +858,15 @@ class Parser(cmd2.Cmd):
                     print(f'{i}) {devices[i]}')
                 self.device = devices[
                     int(Numeric('\nEnter the index of the device to use:', lbound=0, ubound=len(devices) - 1).ask())]
-                android_dev = android_device(self.device.id)
-                android_dev.print_dev_properties()
+                self.device_controller = android_device(self.device.id)
+                self.device_controller.print_dev_properties()
+
             elif self.is_remote_device(self.device_id):
                 self.device = frida.get_remote_device(self.device_id)
+                self.device_controller = android_device(self.device.id)
             else:
                 self.device = frida.get_device(self.device_id)
+                self.device_controller = android_device(self.device.id)
         except:
             self.device = frida.get_remote_device()
             if not self.interactive:
@@ -1563,32 +1555,47 @@ class Parser(cmd2.Cmd):
 
     def frida_session_handler(self, con_device, force, pkg, pid=-1):
         time.sleep(1)
-        if not force:
-            if pid == -1:
-                self.pid = os.popen(f"adb -s {con_device.id} shell pidof {pkg}").read().strip()
+        try:
+            if not force:
+                if pid == -1:
+                    self.pid = self.device_controller.get_int_pid(pkg)
+                else:
+                    self.pid = pid
+                if self.pid == "":
+                    logger.error("Could not find process with this name.")
+                    return None
+                frida_session = con_device.attach(int(self.pid))
+                if frida_session:
+                    logger.info(f"Attaching frida session to PID - {frida_session._impl.pid}")
+                else:
+                    logger.error("Could not attach the requested process")
+            elif force:
+                try:
+                    self.pid = con_device.spawn([pkg])
+                except Exception as e:
+                    logger.error(f"An error occurred while attempting to start the requested package: {e}. Retrying with monkey command...")
+                    tmp_pid = self.device_controller.get_int_pid(pkg) 
+                    if tmp_pid:
+                        con_device.kill(tmp_pid)
+                    subprocess.run(
+                        ["adb", "-s", con_device.id, "shell", "monkey", "-p", pkg, "1"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )            
+                    self.pid = self.device_controller.get_int_pid(pkg) 
+                    
+                if self.pid:
+                    frida_session = con_device.attach(self.pid)
+                    logger.info(f"Spawned package : {pkg} on pid {frida_session._impl.pid}")
+                    # con_device.resume(pid)
+                else:
+                    logger.error("Could not spawn the requested package")
+                    return None
             else:
-                self.pid = pid
-
-            if self.pid == '':
-                print("[+] Could not find process with this name.")
                 return None
-            frida_session = con_device.attach(int(self.pid))
-            if frida_session:
-                print(WHITE + "Attaching frida session to PID - {0}".format(frida_session._impl.pid))
-            else:
-                print("Could not attach the requested process" + RESET)
-        elif force:
-            self.pid = con_device.spawn(pkg)
-            if self.pid:
-                frida_session = con_device.attach(self.pid)
-                print(WHITE + "Spawned package : {0} on pid {1}".format(pkg, frida_session._impl.pid))
-                # con_device.resume(pid)
-            else:
-                print(RED + "Could not spawn the requested package")
-                return None
-        else:
-            return None
-        return frida_session
+            return frida_session
+        except Exception as e:
+            logger.error(e)
 
     def hook_native(self) -> None:
         library = Open('Library name (e.g. libnative.so):').ask()
@@ -1843,9 +1850,11 @@ Apk Directory: {packageCodePath}\n""" + RESET)
             self.script.on("message", self.my_message_handler)  # register the message handler
             self.script.load()
             if force:
-                device.resume(self.pid)
+                try:
+                    device.resume(self.pid)
+                except Exception as e:
+                    pass
             s = ""
-
             while (s != 'e') and (not self.detached):
                 s = input(in_session_menu)
                 if s == 'r':
@@ -1944,7 +1953,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
                 self.script.unload()
 
         except Exception as e:
-            print(e)
+            logger.warning(e)
         print(RESET)
 
     def print_list(self, listName, message) -> None:

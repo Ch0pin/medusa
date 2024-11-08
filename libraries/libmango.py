@@ -134,6 +134,8 @@ DESCRIPTION """ + """
     search 'string'                 Search for a given string in the extracted components and strings.
                                     Example: search foobar
 
+    session 'session file'          Load a new mango-session file
+
     show [applications | database | exposure | info | manifest_entry | manifest ] [-e]             
 
                                     Print info about one of the following options:
@@ -944,6 +946,27 @@ $adb remount
         except Exception as e:
             logger.error(e)
 
+    def do_session(self, line):
+        """Usage: session /full/path/to/session.db
+        Load a new session file."""
+        
+        if len(line.arg_list) > 0:
+            try:
+                session_file = line.arg_list[0]
+                if os.path.exists(session_file):
+                    application_database = apk_db(session_file)
+                    guava = Guava(application_database)
+                    self.database = application_database
+                    self.guava = guava
+                    self.continue_session(guava)
+                    
+                else:
+                    raise FileNotFoundError(Fore.RED + f"[!] Error: can't find: {apk_file}. App not installed" + Fore.RESET)
+            except FileNotFoundError as e:
+                print(e)
+        else:
+            print('[!] Usage: install /full/path/to/foobar.apk')
+
     def do_show(self, line):
         """Usage: show [applications | database | exposure | info | manifest_entry | manifest ]
         - applications: prints the currently loaded applications and allows you to load another one
@@ -1251,10 +1274,12 @@ $adb remount
     def complete_uninstall(self, text, line, begidx, endidx):
         return self.get_packages_starting_with(text)
     
+    complete_import = cmd2.Cmd.path_complete
     complete_install = cmd2.Cmd.path_complete
     complete_installmultiple = cmd2.Cmd.path_complete
     complete_patch = cmd2.Cmd.path_complete
     complete_patchmultiple = cmd2.Cmd.path_complete
+    complete_session = cmd2.Cmd.path_complete
 
     ###################################################### print defs start ############################################################
 

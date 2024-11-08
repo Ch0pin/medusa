@@ -1,7 +1,13 @@
+import logging
 import subprocess
 import time
 from colorama import Fore
+from typing import Optional
+from libraries.logging_config import setup_logging
 
+logging.getLogger().handlers = []  
+setup_logging() 
+logger = logging.getLogger(__name__)
 
 class android_device:
     id = None
@@ -30,6 +36,29 @@ class android_device:
                 print(f"App '{package_name}' is not running yet. Retrying in {2} seconds...")
                 time.sleep(2)
         return self.run_command(["adb", "-s", self.id, "shell", "pidof", "-s", f"{package_name}"])
+    
+    def get_int_pid(self, pkg: str) -> Optional[int]:
+        """
+        Retrieves the PID of the specified package.
+        """
+        try:
+            result = subprocess.run(
+                ["adb", "-s", self.id, "shell", "pidof", pkg],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            pid_str = result.stdout.strip()
+            if pid_str:
+                return int(pid_str)
+            else:
+                return None
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"Error retrieving PID for package '{pkg}': {e}")
+            return None
+        except ValueError:
+            logger.warning(f"Received invalid PID value for package '{pkg}': '{pid_str}'")
+            return None
 
     def print_dev_properties(self):
         print(Fore.GREEN+'\nDevice properties:\n'+Fore.RESET)

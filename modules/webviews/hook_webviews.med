@@ -1,7 +1,15 @@
 {
     "Name": "webviews/hook_webviews",
-    "Description": "Displays info of webview instances loaded by the application",
-    "Help": "webviewHook traces call to basic api functions displaying infor about loaded URLs, javascript interfaces e.t.c.",
+    "Description": "Displays webview related info loaded by the application",
+    "Help": "This webview Hook monitors calls to basic API functions, displaying information about loaded URLs, JavaScript interfaces, and more.",
+    "Options": [
+        {
+            "name": "mode",
+            "help": "Set it to 'concise' to reduce noisy JS script dumps. The default value is 'verbose'.",
+            "type": "string",
+            "value": "verbose"
+        }
+    ],
     "Code": "
 				console.log('\\n--------WebView hook module by @Ch0pin--------------');
 
@@ -9,6 +17,8 @@
 
     var webView = Java.use('android.webkit.WebView');
     var webSettings = Java.use('android.webkit.WebSettings');
+
+    let __mode__ = 'verbose'
 
     let overloadCount_1691770814 = webView['$init'].overloads.length;
     colorLog('\\nTracing ' +'$init' + ' [' + overloadCount_1691770814 + 'overload(s)]',{ c: Color.Green });
@@ -73,7 +83,11 @@
 
     webView.evaluateJavascript.implementation = function(script, resultCallback){
         colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
-        console.log('[i] evaluateJavascript called with the following script: '+script);
+        let tmp_output = script;
+        if(__mode__ === 'concise'){
+            tmp_output = 'deducted';
+        }
+        console.log('[i] evaluateJavascript called with the following script: '+tmp_output);
         this.evaluateJavascript(script,resultCallback);
     }
 

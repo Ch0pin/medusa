@@ -8,7 +8,7 @@ class Module:
         self.Description = description
         self.Help = useCase
         self.Code = code
-        self.options = options
+        self.Options = options
 
     def save(self):
         with open(self.path, 'w') as mod:
@@ -30,7 +30,7 @@ class ModuleManager:
     def _parseModuleFile(self, modulePath):
         with open(modulePath, 'r', encoding='utf-8') as mod:
             contents = json.loads(mod.read(), strict=False)
-        options = contents.get('options', None)
+        options = contents.get('Options', None)
         mod = Module(modulePath, contents['Name'], contents['Description'], contents['Help'], contents['Code'], options)
         self.categories.add(mod.getCategory())
         return mod

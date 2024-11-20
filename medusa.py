@@ -12,7 +12,7 @@ import sys
 import time
 import traceback
 from urllib.parse import urlparse
-from typing import Optional
+from typing import Optional, Union
 
 # Third-party imports
 import cmd2
@@ -723,7 +723,6 @@ class Parser(cmd2.Cmd):
         for m in self.modManager.available:
             if m.Name == mod:
                 print(m.Help)
-
         return
 
     def do_libs(self, line) -> None:
@@ -1024,6 +1023,50 @@ class Parser(cmd2.Cmd):
 
         except Exception as e:
             print(e)
+
+    def do_options(self, mod) -> None:
+        """
+        Options that you can modify for a specific module.
+        Usage: 
+        options  'module name' 
+        """
+        for m in self.modManager.available:
+            if m.Name == mod:
+                if m.Options:
+                    option, index = pick(m.Options + ['Cancel'], "Available options:", indicator="*", default_index=0)
+                    
+                    if option == 'Cancel':
+                        return
+
+                    option_type = option.get("type")
+                    current_value = option.get("value")
+                    
+                    if option_type is None or current_value is None:
+                        logger.error("Invalid option selected.")
+                        return
+
+                    msg = f'Old Value: {current_value}, new value:'
+                    
+                    if option_type == 'boolean':
+                        new_val = Boolean(msg).ask()
+                    elif option_type == 'integer':
+                        new_val = Numeric(msg).ask()
+                    elif option_type == 'string':
+                        new_val = input(msg)
+                    else:
+                        logger.warning(f"Unsupported option type: {option_type}")
+                        return
+
+                    option['value'] = new_val
+                    m.Options[index] = option  
+                    logger.info(f"Updated value: {new_val}")
+                    m.Code = self.update_module(m.Code, f"__{option.get("name")}__", new_val)
+                else:
+                    logger.info("No options available")
+        return
+
+        pass
+
 
     def do_pad(self, line) -> None:
         """
@@ -1421,7 +1464,10 @@ class Parser(cmd2.Cmd):
 
     def complete_memmap(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
-
+    
+    def complete_options(self, text, line, begidx, endidx) -> list:
+        return self.get_modules_autocomplete_options(text)
+    
     def complete_rem(self, text, line, begidx, endidx) -> list:
         return [mod.Name for mod in self.modManager.staged if mod.Name.startswith(text)]
 
@@ -1439,10 +1485,14 @@ class Parser(cmd2.Cmd):
         return [package for package in self.packages if package.startswith(text)]
 
     def complete_use(self, text, line, begidx, endidx) -> list:
-        return [mod.Name for mod in self.modManager.available if mod.Name.startswith(text)]
+        return self.get_modules_autocomplete_options(text)
 
     def complete_info(self, text, line, begidx, endidx) -> list:
+        return self.get_modules_autocomplete_options(text)
+    
+    def get_modules_autocomplete_options(self, text) -> list:
         return [mod.Name for mod in self.modManager.available if mod.Name.startswith(text)]
+
 
     ###################################################### complete_ defs end ############################################################
 
@@ -2114,6 +2164,35 @@ Apk Directory: {packageCodePath}\n""" + RESET)
         except Exception as e:
             print(f"Error converting YAML to JSON: {e}")
             return None
+    
+    def update_module(self, js_code: str, variable_name: str, new_value: Union[bool, int, str]) -> str:
+        """
+        Update the value of a given variable in the JavaScript code.
+        The value can be a boolean, integer, or string.
+        
+        Args:
+            js_code (str): The JavaScript code snippet.
+            variable_name (str): The name of the variable to update.
+            new_value (Union[bool, int, str]): The new value to assign.
+        
+        Returns:
+            str: The updated JavaScript code.
+        """
+        if isinstance(new_value, bool):
+            new_value_str = 'true' if new_value else 'false'
+        elif isinstance(new_value, int):
+            new_value_str = str(new_value)
+        elif isinstance(new_value, str):
+            new_value_str = f'"{new_value}"'
+        else:
+            raise ValueError("Unsupported value type. Must be a boolean, integer, or string.")
+        
+        # Create a regex pattern to match the variable assignment
+        pattern = rf'({variable_name}\s*=\s*)(true|false|\d+|".*?"|\'.*?\')'
+        
+        # Use a lambda function to ensure the new value is inserted as a literal
+        updated_code = re.sub(pattern, lambda match: f"{match.group(1)}{new_value_str}", js_code)
+        return updated_code
 
     def write_recipe(self, filename) -> None:
         try:

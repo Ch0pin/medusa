@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # Standard library imports
+import glob
 import logging
 import os
 import platform
@@ -507,24 +508,45 @@ class parser(cmd2.Cmd):
             print('[!] Usage: install /full/path/to/foobar.apk')
 
     def do_installmultiple(self,line):
-        """Usage: installmultiple /full/path/to/foobar.apk /full/path/to/foobar2.apk ...
-        Install multiple apks for a single package on the device."""
+        """
+        Usage:
+            installmultiple <directory-containing-apk-files>
+            or
+            installmultiple /full/path/to/file1.apk /full/path/to/file2.apk ...
 
-        if len(line.arg_list) > 1:
+        Description:
+            Installs multiple APK files for a single package on the device.
+
+        Options:
+            - Provide a directory containing APK files to install all APKs in that directory.
+            - Alternatively, specify individual APK file paths separated by spaces.
+
+        Examples:
+            installmultiple /path/to/apk_folder
+            installmultiple /path/to/app1.apk /path/to/app2.apk /path/to/app3.apk
+        """
+        if len(line.arg_list) > 0:
             try:
                 apk_files = line.arg_list
                 adb_command = 'install-multiple'
                 for apk_file in apk_files:
-                    if os.path.exists(apk_file):
+                    if os.path.isdir(apk_file):
+                        expanded_files = glob.glob(os.path.join(apk_file, "*.apk"))
+                        if not expanded_files:
+                            print(f"[!] No APK files found in directory: {apk_file}")
+                            return
+                        for file in expanded_files:
+                            adb_command += f' {file}'
+                    elif os.path.isfile(apk_file):
                         adb_command += f' {apk_file}'
                     else:
                         raise FileNotFoundError(Fore.RED + f"[!] Error: can't find: {apk_file}. App not installed" + Fore.RESET)
                 
                 self.do_adb('adb',adb_command,True)
             except FileNotFoundError as e:
-                print(e)
+                logger.error(e)
         else:
-            print('[!] Usage: installmultiple /full/path/to/foobar.apk /full/path/to/foobar2.apk ...')
+            logger.info('Could not parse input, type "help installmultiple" for help')
 
     def do_installagent(self, line):
         """Usage: installagent
@@ -543,25 +565,15 @@ class parser(cmd2.Cmd):
 
     def do_installBurpCert(self, line):
         """Usage: installBurpCert
-        Install the Burp certificate to the mobile device.
-        Please note that the medusa agent must have been installed and running"""
-
+        Push a Burp certificate to the mobile device (/sdcard/burp.cer)."""
         install_script = os.path.join(self.base_directory, '../utils/installBurpCert.sh')
-        self.init_packages()
-        if 'com.medusa.agent' not in self.packages:
-            print("[!] Medusa Agent must be installed and running on the device, type 'installagent' to install it.")
-            return
         try:
             a = ''
             while a != 'y' and a != 'x':
                 a = input(
                     """[!] Make sure that burp is running on 127.0.0.1:8080\n\nType 'y' to continue or 'x' to cancel:""")
-
             if a == 'y':
                 os.popen(f"chmod +x {install_script}; {install_script} {self.device.id}").read()
-                os.popen(
-                    f"adb -s {self.device.id} shell am broadcast -a com.medusa.INSTALL_CERTIFICATE -n com.medusa.agent/.Receiver").read()
-
                 time.sleep(1)
                 print(GREEN + """
 -------------------------------------------------------------------

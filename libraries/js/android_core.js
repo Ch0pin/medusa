@@ -311,11 +311,14 @@ function printBeat(beat) {
     colorLog(beat.text,{c:Color.Gray});
 }
   
-function traceClass(targetClass,color='Purple'){
-    console.log('\n\x1b[43m\x1b[31m [?] Hooking methods of '+ targetClass +'\x1b[0m\n');
+var BRACKET_LEVEL = 0;
+
+// Trace Class
+function traceClass(targetClass){
+    console.log('\x1b[35m[?] Hooking methods of '+ targetClass +'\x1b[0m');
 	var hook = Java.use(targetClass);
 	var methods = hook.class.getDeclaredMethods();
-	var parsedMethods = ['$init']; 
+	var parsedMethods = ['$init'];
 	methods.forEach(function(method) {
         try{
             parsedMethods.push(method.toString().replace(targetClass + ".", "TOKEN").match(/\sTOKEN(.*)\(/)[1]);
@@ -332,7 +335,7 @@ function traceClass(targetClass,color='Purple'){
     console.log('Hooks '+parsedMethods.length+', (method name, number of overloads) => '+result)
 	targets.forEach(function(targetMethod) {
 		try{
-			traceMethod(targetClass + "." + targetMethod,color);
+			traceMethod(targetClass + "." + targetMethod);
 		}
 		catch(err){}
 	});
@@ -340,27 +343,66 @@ function traceClass(targetClass,color='Purple'){
     console.log();
 }
 
-function traceMethod(targetClassMethod,color){
+// Trace Method
+function traceMethod(targetClassMethod){
+    const separator = "│ ";
 	var delim = targetClassMethod.lastIndexOf(".");
 	if (delim === -1) return;
 	var targetClass = targetClassMethod.slice(0, delim)
 	var targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length)
 	var hook = Java.use(targetClass);
-	var overloadCount12 = hook[targetMethod].overloads.length;
+	var overloadCount = hook[targetMethod].overloads.length;
 
-	for (var i = 0; i < overloadCount12; i++) {
-		hook[targetMethod].overloads[i].implementation = function() {
-		  colorLog("\n[ ▶︎▶︎▶︎] Entering: " + targetClassMethod,{c: Color[color]});
-			for (var j = 0; j < arguments.length; j++) {
-				console.log("|\t\\_arg[" + j + "]: " + arguments[j]);
-			}
-			var retval = this[targetMethod].apply(this, arguments); 
-			colorLog("[ ◀︎◀︎◀︎ ] Exiting " + targetClassMethod ,{c: Color[color]});
-      
-            console.log('\t\\_Returns: '+retval+'\n');
-			return retval;
+	for (var i = 0; i < overloadCount; i++) {
+		hook[targetMethod].overloads[i].implementation = function(...args) {
+            var PRINT_BRACKETS_ENTRY = "\x1b[37m" + separator.repeat(BRACKET_LEVEL) + "┌ " + "\x1b[0m";
+            var PRINT_BRACKETS_EXIT  = "\x1b[37m" + separator.repeat(BRACKET_LEVEL) + "└ " + "\x1b[0m";
+            var PRINT_CLASS_METHOD   = "\x1b[34m" + targetClass + "\x1b[0m" + "::" + "\x1b[33m" + targetMethod + "\x1b[0m";
+            var PRINT_ARGS = "\x1b[37m" + args.join(", ") + "\x1b[0m";
+
+            // Print ENTRY
+            console.log( PRINT_BRACKETS_ENTRY + PRINT_CLASS_METHOD + " " + PRINT_ARGS );
+            BRACKET_LEVEL++;
+
+            var retval = this[targetMethod].apply(this,arguments);
+
+            var PRINT_RETVAL = "\x1b[38;5;240m" + "return" + "\x1b[0m" + " " + "\x1b[37m" + "<"  + typeof retval + "> " + formatRetval(retval) + "\x1b[0m";
+
+            // Print EXIT
+            console.log( PRINT_BRACKETS_EXIT +  PRINT_RETVAL);
+            BRACKET_LEVEL--;
+
+            return retval;
 		}
 	}
+}
+
+// Helper methods
+
+function formatRetval(retval) {
+    let formatted_retval;
+
+    if (typeof retval === 'object') {
+        try {
+            // Convert the object to a JSON string
+            formatted_retval = JSON.stringify(retval);
+        } catch (error) {
+            formatted_retval = 'Unserializable object';
+        }
+    } else if (retval === undefined) {
+        formatted_retval = '';
+    } else {
+        formatted_retval = retval;
+    }
+
+    // Attempt to prettify specific known output format
+    const match = formatted_retval.match(/<instance: ([^,]+), \$className: ([^>]+)>/);
+    if (match) {
+        formatted_retval = `Instance: ${match[1]}, Class: ${match[2]}`;
+    }
+
+//    return "<"  + typeof retval + "> " + formatted_retval;
+    return formatted_retval;
 }
 
 function tryGetClass(className){

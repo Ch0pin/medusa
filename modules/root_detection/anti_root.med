@@ -1,7 +1,15 @@
 {
     "Name": "root_detection/universal_root_detection_bypass",
     "Description": "Universal bypass root, debug detection",
-    "Help": "https://codeshare.frida.re/@dzonerzy/fridantiroot/\n- Overwrite: isDebuggerConnected",
+    "Help": "https://codeshare.frida.re/@dzonerzy/fridantiroot/\n- Overwrite: isDebuggerConnected", 
+    "Options": [
+        {
+            "name": "mode",
+            "help": "Set it to 'verbose' to view all the logs. The default value is 'concise'.",
+            "type": "string",
+            "value": "verbose"
+        }
+    ],
     "Code": "    
 {
         console.log('\\n---------LOADING ANTI ROOT DETECTION SCRIPT-------------------');
@@ -16,12 +24,13 @@
         }
 
     var hook = Java.use('android.provider.Settings$Secure');
-
     var overloadCount1 = hook['getInt'].overloads.length;
+    let __mode__ = 'concise';
 
     for (var i = 0; i < overloadCount1; i++) {
         hook['getInt'].overloads[i].implementation = function() {
-            colorLog('*** entered ' +'android.provider.Settings$Secure.getInt',{ c: Color.Green });
+            if(__mode__=='verbose')
+                colorLog('*** entered ' +'android.provider.Settings$Secure.getInt',{ c: Color.Green });
             //console.log('[i] Setting fetched:' + arguments[1]);
             var retval = this['getInt'].apply(this, arguments);
             var param = arguments[1];

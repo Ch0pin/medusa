@@ -237,7 +237,7 @@ class Parser(cmd2.Cmd):
             else:
                 if len(line.split(' ')) > 2:
                     if line.split(' ')[2].strip() == '--color':
-                        colors = ['Blue', 'Cyan', 'Gray', 'Green', 'Purple', 'Red', 'Yellow']
+                        colors = ['black', 'blue', 'brown', 'cyan', 'gold', 'gray', 'green', 'lime', 'magenta', 'maroon', 'navy', 'olive', 'orange', 'pink', 'purple', 'red', 'silver', 'teal', 'white', 'yellow']
                         option, index = pick(colors, "Available colors:", indicator="=>", default_index=0)
                         self.hookall(aclass, option)
                     else:
@@ -603,7 +603,7 @@ class Parser(cmd2.Cmd):
             print(f"An error occurred: {e}")
             return None
 
-    def hookall(self, className, color='Purple') -> None:
+    def hookall(self, className, color='purple') -> None:
         codejs = "setImmediate(ios_run_hook_all_methods_of_specific_ios_class('" + className + "','" + color + "'));\n"
         self.edit_scratchpad(codejs, 'a')
         print(

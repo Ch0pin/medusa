@@ -310,58 +310,139 @@ function notifyNewSharedPreference(key, value) {
 function printBeat(beat) {
     colorLog(beat.text,{c:Color.Gray});
 }
-  
-function traceClass(targetClass,color='Purple'){
-    console.log('\n\x1b[43m\x1b[31m [?] Hooking methods of '+ targetClass +'\x1b[0m\n');
-	var hook = Java.use(targetClass);
-	var methods = hook.class.getDeclaredMethods();
-	var parsedMethods = ['$init']; 
-	methods.forEach(function(method) {
-        try{
-            parsedMethods.push(method.toString().replace(targetClass + ".", "TOKEN").match(/\sTOKEN(.*)\(/)[1]);
-        }
-        catch(err){}
-    });
-	var targets = uniqBy(parsedMethods, JSON.stringify);
-    var result = '';
 
-    for (var key in parsedMethods){
+let callStackDepth_for_trace_method = 0;
+
+function traceClass(targetClass, color = 'purple') {
+   
+    styleLog(`\nHooking methods of:${targetClass}`, ["Hooking methods of", targetClass],  StyleLogColorset.white, StyleLogColorset.maroon);
+    let hook = Java.use(targetClass);
+    let methods = hook.class.getDeclaredMethods();
+    let parsedMethods = ['$init'];
+
+    methods.forEach(function (method) {
+    try {
+        parsedMethods.push(
+          method.toString().replace(targetClass + ".", "TOKEN").match(/\sTOKEN(.*)\(/)[1]
+            );
+        } catch (err) {}
+    });
+
+    let targets = uniqBy(parsedMethods, JSON.stringify);
+    let result = '';
+
+    for (let key in parsedMethods) {
         result += parsedMethods[key] + " (" + key + ") ";
     }
-
-    console.log('Hooks '+parsedMethods.length+', (method name, number of overloads) => '+result)
-	targets.forEach(function(targetMethod) {
-		try{
-			traceMethod(targetClass + "." + targetMethod,color);
-		}
-		catch(err){}
-	});
+    console.log('Hooks ' + parsedMethods.length + ', (method name, number of overloads) => ' + result);
+    targets.forEach(function (targetMethod) {
+    try {
+      traceMethod(targetClass + "." + targetMethod, color);
+    } catch (err) {}
+    });
     hook.$dispose();
     console.log();
 }
 
-function traceMethod(targetClassMethod,color){
-	var delim = targetClassMethod.lastIndexOf(".");
-	if (delim === -1) return;
-	var targetClass = targetClassMethod.slice(0, delim)
-	var targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length)
-	var hook = Java.use(targetClass);
-	var overloadCount12 = hook[targetMethod].overloads.length;
+function traceMethod(targetClassMethod, color) {
+    let delim = targetClassMethod.lastIndexOf(".");
+    if (delim === -1) return;
+    let targetClass = targetClassMethod.slice(0, delim);
+    let targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length);
+    let hook = Java.use(targetClass);
+    let overloadCount12 = hook[targetMethod].overloads.length;
 
-	for (var i = 0; i < overloadCount12; i++) {
-		hook[targetMethod].overloads[i].implementation = function() {
-		  colorLog("\n[ ▶︎▶︎▶︎] Entering: " + targetClassMethod,{c: Color[color]});
-			for (var j = 0; j < arguments.length; j++) {
-				console.log("|\t\\_arg[" + j + "]: " + arguments[j]);
-			}
-			var retval = this[targetMethod].apply(this, arguments); 
-			colorLog("[ ◀︎◀︎◀︎ ] Exiting " + targetClassMethod ,{c: Color[color]});
-      
-            console.log('\t\\_Returns: '+retval+'\n');
-			return retval;
-		}
-	}
+    for (let i = 0; i < overloadCount12; i++) {
+        hook[targetMethod].overloads[i].implementation = function () {
+          let prefix = '│ '.repeat(callStackDepth_for_trace_method);
+            styleLog(prefix + "┌ " + targetClassMethod, [targetClassMethod], StyleLogColorset[color], StyleLogColorset['black']);
+
+            callStackDepth_for_trace_method++;
+
+            for (let j = 0; j < arguments.length; j++) {
+                console.log(
+                    prefix + "│ + arg[" + j + "]: " + arguments[j]
+                );
+            }
+            let retval;
+            try {
+                retval = this[targetMethod].apply(this, arguments);
+            } finally {
+              callStackDepth_for_trace_method--;
+            }
+            let retOutput = '';
+            if (retval === undefined) {
+                retOutput = "-> Returns: (undefined)";
+            } else if (retval === null) {
+                retOutput = "-> Returns: null";
+            } else {
+              let type = typeof retval;
+                if (retval.$className) {
+                  retOutput = "-> Returns:" + JSON.stringify(retval);
+                } else if (type === "object") {
+                  retOutput = "-> Returns:" + JSON.stringify(retval);
+                } else {
+                  retOutput = "-> Returns:" + type + ": " + retval;
+                }
+            }
+            styleLog(prefix + "└ " + retOutput, ["Returns:"], StyleLogColorset[color], StyleLogColorset['black'])
+            return retval;
+        };
+    }
 }
+
+  
+// function traceClass(targetClass,color='Purple'){
+//     console.log('\n\x1b[43m\x1b[31m [?] Hooking methods of '+ targetClass +'\x1b[0m\n');
+// 	var hook = Java.use(targetClass);
+// 	var methods = hook.class.getDeclaredMethods();
+// 	var parsedMethods = ['$init']; 
+// 	methods.forEach(function(method) {
+//         try{
+//             parsedMethods.push(method.toString().replace(targetClass + ".", "TOKEN").match(/\sTOKEN(.*)\(/)[1]);
+//         }
+//         catch(err){}
+//     });
+// 	var targets = uniqBy(parsedMethods, JSON.stringify);
+//     var result = '';
+
+//     for (var key in parsedMethods){
+//         result += parsedMethods[key] + " (" + key + ") ";
+//     }
+
+//     console.log('Hooks '+parsedMethods.length+', (method name, number of overloads) => '+result)
+// 	targets.forEach(function(targetMethod) {
+// 		try{
+// 			traceMethod(targetClass + "." + targetMethod,color);
+// 		}
+// 		catch(err){}
+// 	});
+//     hook.$dispose();
+//     console.log();
+// }
+
+// function traceMethod(targetClassMethod,color){
+// 	var delim = targetClassMethod.lastIndexOf(".");
+// 	if (delim === -1) return;
+// 	var targetClass = targetClassMethod.slice(0, delim)
+// 	var targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length)
+// 	var hook = Java.use(targetClass);
+// 	var overloadCount12 = hook[targetMethod].overloads.length;
+
+// 	for (var i = 0; i < overloadCount12; i++) {
+// 		hook[targetMethod].overloads[i].implementation = function() {
+// 		  colorLog("\n[ ▶︎▶︎▶︎] Entering: " + targetClassMethod,{c: Color[color]});
+// 			for (var j = 0; j < arguments.length; j++) {
+// 				console.log("|\t\\_arg[" + j + "]: " + arguments[j]);
+// 			}
+// 			var retval = this[targetMethod].apply(this, arguments); 
+// 			colorLog("[ ◀︎◀︎◀︎ ] Exiting " + targetClassMethod ,{c: Color[color]});
+      
+//             console.log('\t\\_Returns: '+retval+'\n');
+// 			return retval;
+// 		}
+// 	}
+// }
 
 function tryGetClass(className){
     var clz = undefined;

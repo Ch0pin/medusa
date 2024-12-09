@@ -37,7 +37,7 @@ class android_device:
                 time.sleep(2)
         return self.run_command(["adb", "-s", self.id, "shell", "pidof", "-s", f"{package_name}"])
     
-    def get_int_pid(self, pkg: str) -> Optional[int]:
+    def get_int_pid(self, pkg: str, suppressWarning = False) -> Optional[int]:
         """
         Retrieves the PID of the specified package.
         """
@@ -54,10 +54,12 @@ class android_device:
             else:
                 return None
         except subprocess.CalledProcessError as e:
-            logger.warning(f"Error retrieving PID for package '{pkg}': {e}")
+            if not suppressWarning:
+                logger.warning(f"Error retrieving PID for package '{pkg}': {e}")
             return None
         except ValueError:
-            logger.warning(f"Received invalid PID value for package '{pkg}': '{pid_str}'")
+            if not suppressWarning:
+                logger.warning(f"Received invalid PID value for package '{pkg}': '{pid_str}'")
             return None
 
     def print_dev_properties(self):

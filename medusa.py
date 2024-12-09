@@ -508,11 +508,14 @@ class Parser(cmd2.Cmd):
 
                 Starting a session:
 
-                        - run        [package name] : Initiate a Frida session and attach to the selected package
-                        - run -f     [package name] : Initiate a Frida session and spawn the selected package
-                        - run -n     [package num]  : Initiate a Frida session and spawn the 3rd party package 
+                       - run         [package name] : Initiate a Frida session and attach to the selected package
+                              -f     [package name] : Initiate a Frida session and spawn the selected package
+                              -n     [package num]  : Initiate a Frida session and spawn the 3rd party package 
                                                       number num (listed by "list")
-
+                              -t                    : Initiate a Frida session and attach to the topmost application
+                              -w     [package name] : Wait for the package to launch and attach to it immediately
+                              -p [pid]              : Initiate a Frida session using a process id
+                        add --host ip:port   to specify the IP address and port of the remote Frida server to connect to. 
                 ===================================================================================================
 
                 Working with native libraries:
@@ -1164,6 +1167,7 @@ class Parser(cmd2.Cmd):
         run [package name]       : Initiate a Frida session and attach to the selected package
              -t                  : Initiate a Frida session and attach to the topmost application
              -f [package name]   : Initiate a Frida session and spawn the selected package
+             -w [package name]   : Wait for the package to launch and attach to it immediately
              -n [package number] : Initiate a Frida session and spawn the 3rd party package using its index returned by the 'list' command
              -p [pid]            : Initiate a Frida session using a process id
              add --host ip:port   to specify the IP address and port of the remote Frida server to connect to. 
@@ -1171,28 +1175,28 @@ class Parser(cmd2.Cmd):
         try:
             if not self.interactive:
                 self.do_compile(line)
-                self.run_frida_n_interactive(True, False, line.split(' ')[1], self.device, -1, '', '')
+                self.run_frida_n_interactive(True, False, line.arg_list[1], self.device, -1, '', '')
                 return
             
             if self.modified:
                 if Polar('Module list has been modified, do you want to recompile?').ask():
                     self.do_compile(line)
 
-            flags = line.split(' ')
-            # Extracting host and port if present
+            flags = line.arg_list
             if '--host' in flags:
                 host_index = flags.index('--host')
                 if host_index + 1 < len(flags):
                     host, port = flags[host_index + 1].split(':')
-                    # Remove host and port from flags
                     del flags[host_index:host_index + 2]
                 else:
                     host, port = '', ''
             else:
                 host, port = '', ''
 
-            if len(flags) == 1:
-                if flags[0] == '-p':
+            arg_num = len(line.arg_list)
+            if arg_num == 1:
+                flag = line.arg_list[0]
+                if flag == '-p':
                     runing_processes = os.popen(
                         f"""adb -s {self.device.id} shell 'echo "ps -A" | su'""").read().strip().split('\n')
                     title = "Running processes: "
@@ -1201,38 +1205,52 @@ class Parser(cmd2.Cmd):
                     pattern = r'\b\d+\b'
                     get_pid = re.findall(pattern, option)
                     self.run_frida(False, False, '', self.device, get_pid[0], host, port)
-                elif flags[0] == '-t':
-                    pid = self.device.get_frontmost_application().pid
+                elif flag == '-t':
+                    pid = self.device.get_frontmost_application().epid
                     self.run_frida(False, False, "", self.device, pid, host, port)
                 else:
                     self.run_frida(False, False, line, self.device, -1, host, port)
-
-            elif len(flags) == 2:
-                if flags[0] == '-f':
-                    self.run_frida(True, False, flags[1], self.device, -1, host, port)
-                elif flags[0] == '-n':
+            elif arg_num == 2:
+                flag = line.arg_list[0]
+                arg_two = line.arg_list[1]
+                if flag == '-w':
+                    spinner = ["|", "/", "-", "\\"]
+                    spinner_index = 0
+                    pid = None
+                    while not pid:
+                        process_name = arg_two
+                        sys.stdout.write(f"\rWaiting for process {spinner[spinner_index]}")
+                        sys.stdout.flush()
+                        spinner_index = (spinner_index + 1) % len(spinner) 
+                        pid = self.device_controller.get_int_pid(process_name, True)
+                        time.sleep(0.1)
+                    sys.stdout.write("\rProcess found! Applying hooks...        \n")
+                    sys.stdout.flush()
+                    self.run_frida(False, False, "", self.device, pid, host, port)
+                elif flag == '-f':
+                    self.run_frida(True, False, arg_two, self.device, -1, host, port)
+                elif flag == '-n':
                     try:
                         if len(self.packages) == 0:
                             self.refreshPackages()
-                        package_name = self.packages[int(flags[1])]
+                        package_name = self.packages[int(arg_two)]
                         self.run_frida(True, False, package_name, self.device, -1, host, port)
                     except (IndexError, TypeError) as error:
-                        print('Invalid package number')
-
-                elif flags[0] == '-p':
-                    self.run_frida(False, False, '', self.device, flags[1], host, port)
+                        logger.error('Invalid package number')
+                elif flag == '-p':
+                    self.run_frida(False, False, '', self.device, arg_two, host, port)
                     pass
                 else:
-                    print('Invalid flag given!')
+                    logger.error('Invalid flag given!')
 
             else:
-                print("Invalid arguments.")
+                logger.error("Invalid arguments.")
 
         except Exception as e:
             if not self.interactive:
                 raise self.NonInteractiveTypeError(e)
             else:
-                print(f"An error occurred: {e}")
+                logger.error(f"An error occurred: {e}")
 
     def do_snippet(self, line) -> None:
         """
@@ -1573,7 +1591,7 @@ class Parser(cmd2.Cmd):
             print(f"An error occurred: {e}")
             return None
 
-    def hookall(self, className, color='purple') -> None:
+    def hookall(self, className, color='green') -> None:
         codejs = "traceClass('" + className + "','" + color + "');\n"
         self.edit_scratchpad(codejs, 'a')
         print(
@@ -1955,7 +1973,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
                         if in_mute_cmd == '?':
                             sys.stderr.write("""\nAvailable commands:
     'use module_name'   add an additional module
-    'rm  module_name'   remove a module
+    'rem module_name'   remove a module
     'show mods'         show active modules
     'search keyword'    search for a module using a keyword
     'con'               continue the session
@@ -1963,7 +1981,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
                         elif in_mute_cmd.startswith('use '):
                             self.do_use(in_mute_cmd.split(' ')[1], True)
                             mod = True
-                        elif in_mute_cmd.startswith('rm '):
+                        elif in_mute_cmd.startswith('rem '):
                             self.do_rem(in_mute_cmd.split(' ')[1], True)
                             mod = True
                         elif in_mute_cmd == 'show mods':

@@ -858,6 +858,7 @@ class Parser(cmd2.Cmd):
 
                 for i in range(len(devices)):
                     print(f'{i}) {devices[i]}')
+                    
                 self.device = devices[
                     int(Numeric('\nEnter the index of the device to use:', lbound=0, ubound=len(devices) - 1).ask())]
                 self.device_controller = android_device(self.device.id)

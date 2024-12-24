@@ -1,0 +1,31 @@
+{
+    "Name": "fragments/nav_graphs",
+    "Description": "Hooking androidx.navigation.NavController",
+    "Help": "n.a.",
+    "Code": "
+
+        console.log('\\n--------- hooking androidx.navigation.NavController by jackds-------------------');
+
+        try {
+            var navController = Java.use('androidx.navigation.NavController');
+
+            navController.setGraph.overload('androidx.navigation.NavGraph', 'android.os.Bundle').implementation = function() {
+                colorLog('\\n>> '+this+' ====> setGraph(' + arguments[0] + ')', {c:Color.Purple});
+                console.log('\t\\\\__ Nodes:' + arguments[0].nodes.value)
+                let retval = this['setGraph'].apply(this, arguments);
+                return retval;
+            }
+
+            navController.handleDeepLink.implementation = function() {
+                colorLog('\\n>> '+this+' ====> handleDeepLink(' + arguments[0] + ')', {c:Color.Purple});
+                let retval = this['handleDeepLink'].apply(this, arguments);
+                console.log('\t\\\\__ Returns:' + retval);
+                return retval;
+            }
+
+        } catch (error) {
+            console.error('Error: ' + error);
+        }
+
+    "
+}

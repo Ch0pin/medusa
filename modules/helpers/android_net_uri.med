@@ -1,7 +1,21 @@
 {
     "Name": "helpers/android_net_uri",
     "Description": "Use this module to monitor Uri operations",
-    "Help": "Logs various Uri operations including query parameters, parsing e.t.c.",
+    "Help": "Logs various Uri operations including query parameters, parsing e.t.c.",    
+    "Options": [
+        {
+            "name": "show_common",
+            "help": "Set it to true in order to log common schemes (http/https e.t.c.). Default value = false",
+            "type": "boolean",
+            "value": "false"
+        },
+        {
+            "name": "show_all_query_params",
+            "help": "Set it to false in order to log only query parameters with specific keywords. Default value = true",
+            "type": "boolean",
+            "value": "true"
+        }
+    ],
     "Code": "
 console.log('\\n----------URI parsing monitor by @ch0p1n------------');
 
@@ -9,7 +23,8 @@ console.log('\\n----------URI parsing monitor by @ch0p1n------------');
   var Uri = Java.use('android.net.Uri'); 
 
   const commonSchemes = ['http', 'https', 'content', 'file', 'gmsg'];
-  const show_common = false; //set it to true to exclude the above shcemes from the logs 
+  const __show_common__ = false; //set it to true to exclude the above shcemes from the logs 
+  const __show_all_query_params__ = true;
   const avoidLog = ['gmsg']
   var currentUri = '';
 
@@ -28,7 +43,8 @@ console.log('\\n----------URI parsing monitor by @ch0p1n------------');
       if(filterKeyWords.some(word => key.toString().toLowerCase().includes(word)))
         colorLog('\t\\\\_key:'+key+', value:'+retval, {c: Color.Red});
       else
-        console.log('\t\\\\_key:'+key+', value:'+retval);
+        if(__show_all_query_params__)
+          console.log('\t\\\\_key:'+key+', value:'+retval);
       return retval;
   }
 
@@ -48,12 +64,14 @@ console.log('\\n----------URI parsing monitor by @ch0p1n------------');
       return retval;
   }
 
+
   Uri.parse.implementation = function(uriString){
-    var ret = this.parse(uriString);
-    if(commonSchemes.includes(ret.getScheme()) && show_common)
+    let ret = this.parse(uriString);
+    let scheme = ret.getScheme();
+    if(commonSchemes.includes(scheme) && __show_common__)
       log('[+] Uri parse with Uri String: '+uriString)
-    else if(!commonSchemes.includes(ret.getScheme()))
-      styleLog('[+] Uri with custom scheme: '+uriString,['custom scheme:',uriString.split(':/')[0]],StyleLogColorset.cyan,StyleLogColorset.black);
+    else if(!commonSchemes.includes(scheme) && scheme != null)
+      styleLog('[+] Uri with custom scheme: '+uriString,[uriString.split(':/')[0]].concat(filterKeyWords), StyleLogColorset.red, StyleLogColorset.black);
 
     return ret;
   }

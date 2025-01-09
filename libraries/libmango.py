@@ -6,6 +6,7 @@ import logging
 import os
 import platform
 import re
+import requests
 import shlex
 import shutil
 import subprocess
@@ -198,6 +199,7 @@ class parser(cmd2.Cmd):
     activities = None
     activity_names = None
     service_names = None
+    secrets = None
     activityallias = None
     info = None
     services = None
@@ -982,6 +984,7 @@ $adb remount
     def do_show(self, line):
         """Usage: show [applications | database | exposure | info | manifest_entry | manifest ]
         - applications: prints the currently loaded applications and allows you to load another one
+        - secrets: prints the application's secrets (API keys, passwords etc.)
         - database: prints the structure of the loaded database
         - exposure: prints the application's exposure points (exported activities, services, deeplinks etc.)
         - info: prints information about the loaded application
@@ -1014,6 +1017,10 @@ $adb remount
                         self.print_activities(False)
                     else:
                         self.print_activities()
+
+                elif 'secrets' in what:
+                    self.init_application_info(self.database, self.current_app_sha256)
+                    self.print_secrets()
 
                 elif 'services' in what:
                     if '-e' in flag:
@@ -1069,6 +1076,57 @@ $adb remount
                     self.print_providers(False)
                     print("[+] Custom permissions:")
                     self.print_permissions(True)
+                    print("\n[+] Other potentially interesting info:")
+                    found = False
+                    keywords = [
+                        ('google_app_id', 'google_app_id_value'),
+                        ('google_api_key', 'google_api_key_value'),
+                        ('gcm_defaultSenderId', 'gcm_defaultSenderId_value'),
+                        ('google_storage_bucket', 'google_storage_bucket_value'),
+                        ('project_id', 'project_id_value'),
+                        ('firebase_database_url', 'firebase_database_url_value')
+                    ]
+                    pattern = r'<string name="[^"]+">([^<]+)</string>' 
+                    extracted_values = {}
+
+                    for line1 in self.strings.split('\n'):
+                        for keyword, variable_name in keywords:
+                            if keyword in line1:
+                                match = re.search(pattern, line1)
+                                if match:
+                                    values = match.group(1)
+                                    extracted_values[keyword] = values
+                                    print(f'{keyword.ljust(25)}: {values}') 
+                                    found = True
+                    try:
+                        project_id = extracted_values.get('project_id')
+                        api_key = extracted_values.get('google_api_key')
+                        app_id = extracted_values.get('google_app_id')
+
+                        if project_id and api_key and app_id:
+                            logger.info('[+] Trying to fetch Firebase remote configuration....')
+
+                            url = f'https://firebaseremoteconfig.googleapis.com/v1/projects/{project_id}/namespaces/firebase:fetch?key={api_key}'
+                            json_data = {
+                                "appId": app_id,
+                                "appInstanceId": "PROD"
+                            }
+
+                            response = requests.post(url, json=json_data)
+                            print("Status Code:", response.status_code)
+
+                            try:
+                                print("Response Body:\n",json.dumps(response.json(), indent=4))
+                            except ValueError:
+                                print("Response Body is not JSON:", response.text)
+                        else:
+                            logger.error("Missing required values: project_id, google_api_key, or google_app_id.")
+
+                    except Exception as e:
+                        logger.error(f"Error fetching Firebase remote configuration: {e}")
+                    
+                    if not found:
+                        logger.info(f'Nothing interesting !')
                 else:
                     logger.info(
                         'Usage: show [activities, activityAlias, applications, database, deeplinks, exposure, info, intentFilters, manifest, permissions, providers, receivers, services, strings]')
@@ -1252,7 +1310,7 @@ $adb remount
             components = sorted(
                 ['exposure', 'applications', 'activityAlias', 'info', 'permissions', 'activities', 'services',
                  'receivers', 'intentFilters', 'providers', 'deeplinks', 'strings', 'database', 'manifest', 
-                 'libraries', 'device'])
+                 'libraries', 'device', 'secrets'])
         if not text:
             completions = components[:]
         else:
@@ -1580,9 +1638,36 @@ $adb remount
         except Exception as e:
             print(f"An error occurred: {e}")
 
-    def print_strings(self):
-        for string in self.strings.split('\n'):
-            print(string)
+    def print_secrets(self):
+        try:
+            logger.info("[+] Secrets stored:")
+            
+            if not self.secrets or not self.secrets[0]:
+                logger.info("No secrets found!")
+                return
+            
+            json_string = self.secrets[0][2]              
+            if not json_string.strip():
+                logger.info("No secrets found!")
+                return
+            
+            json_secrets = json.loads(json_string)
+            
+            if isinstance(json_secrets, list):
+                for secret in json_secrets:
+                    if isinstance(secret, dict):
+                        for key, value in secret.items():
+                            print(f"{key}: {value}")
+                        print()  # Add a blank line between secrets
+                    else:
+                        logger.warning(f"Unexpected secret format: {secret}")
+            else:
+                logger.warning("Secrets are not in the expected list format.")
+        
+        except json.JSONDecodeError as jde:
+            logger.error(f"Failed to decode secrets JSON: {jde}")
+        except Exception as e:
+            logger.error(f"An error occurred while printing secrets: {e}")
 
     ###################################################### real defs start ############################################################
 
@@ -1621,12 +1706,16 @@ $adb remount
 
     ###################################################### rest of defs start ############################################################
 
-    def print_avail_apps(self, count_pkg=False, sort_by_exposure=False):
+    def print_avail_apps(self, count_pkg=False, ask=False):
         res = self.database.query_db(
             "SELECT sha256, packageName, versionName, framework FROM Application;"
         )
         index = 0
         if res:
+            if ask:
+                sort_by_exposure = Polar("Sort by exposure (default by package name) ?", False).ask()
+            else:
+                sort_by_exposure = False
             print(
                 Fore.GREEN + "[i] Available applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
             )
@@ -1635,7 +1724,6 @@ $adb remount
                     "index", "sha256", "Package Name (Version), Exposure (A|AL|S|R|P) / Dev. Framework"
                 ) + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
             )
-
             app_list = []
             for entry in res:
                 sha256, package_name, version, framework = entry
@@ -1644,7 +1732,6 @@ $adb remount
                 framework = framework if framework and framework != 'None Detected' else ''
                 exposure, total = self.print_exposure_summary(sha256)
 
-                # Append all necessary information to app_list
                 app_list.append({
                     'index': index,
                     'sha256': sha256,
@@ -1658,72 +1745,23 @@ $adb remount
                 index += 1
                 if count_pkg:
                     self.total_apps.append(f"{package_name}:{sha256}")
-
-            # Sort the app_list based on the sort_by_exposure flag
             if sort_by_exposure:
-                # Sort by total exposure in descending order
                 app_list.sort(key=lambda x: x['total'], reverse=True)
             else:
-                # Sort by package name in ascending order
                 app_list.sort(key=lambda x: x['package_name'])
 
-            # Reset index after sorting and rebuild res with sorted data
             res_sorted = []
             for idx, app in enumerate(app_list):
-                # Update the index in the app dictionary
                 app['index'] = idx
-
-                # Rebuild the res_sorted list with the sorted applications
                 res_sorted.append((app['sha256'], app['package_name'], app['version'], app['framework']))
-
                 print(
                     Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(
                         idx, app['sha256'], f"({app['total']}) {app['package_name']} (V.{app['version']}) {app['exposure']} {app['framework']}"
                     )
                 )
-
-            # Return the sorted res list and the count
             return res_sorted, len(app_list)
-        return None
-
-
-
-    # def print_avail_apps(self, count_pkg=False):
-    #     res = self.database.query_db(
-    #         "SELECT sha256, packageName, versionName, framework from Application order by packageName asc;"
-    #     )
-    #     index = 0
-    #     if res:
-    #         print(
-    #             Fore.GREEN + "[i] Available applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
-    #         )
-    #         print(
-    #             " {0} {1:^68}  {2:^65}\n".format(
-    #                 "index", "sha256", "Package Name (Version), Exposure (A|AL|S|R|P) / Dev. Framework"
-    #             ) + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
-    #         )
-
-    #         for entry in res:
-    #             sha256, package_name, version, framework = entry
-    #             # Handle None values for version and framework
-    #             version = version if version is not None else "N/A"
-    #             framework = framework if framework and framework != 'None Detected' else ''
-    #             exposure, total = self.print_exposure_summary(sha256)
-                
-    #             # Corrected the string formatting mistake
-    #             print(
-    #                 Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(
-    #                     index, sha256, f"({total}) {package_name} (V.{version}) {exposure} {framework}"
-    #                 )
-    #             )
-
-    #             index += 1
-    #             if count_pkg:
-    #                 self.total_apps.append(f"{package_name}:{sha256}")
-   
-    #         return res, index
-    #     return None
-
+        else:
+            return None      
 
     def print_exposure_summary(self, sha256):
         exported_activities = len(self.database.get_exported_activities(sha256))
@@ -1739,12 +1777,12 @@ $adb remount
         try:
             res, index = self.print_avail_apps(True, False)
             if res:
-                chosen_index = int(Numeric(Style.RESET_ALL + '\nEnter the index of  application to load:', lbound=0,
+                chosen_index = int(Numeric(Style.RESET_ALL + '\nEnter the index of the application you want to load:', lbound=0,
                                         ubound=index - 1).ask())
                 chosen_sha256 = res[chosen_index][0]
                 self.init_application_info(self.database, chosen_sha256)
             else:
-                print(Fore.RED + Style.BRIGHT + "[!] No Entries found in the given database !" + Style.RESET_ALL)
+                logger.warning("[!] No Entries found in the given database !")
             return
         except TypeError:
             print("Database is empty.")
@@ -1838,6 +1876,7 @@ $adb remount
             self.package = self.info[0][2]
             self.deeplinks = application_database.get_deeplinks(app_sha256)
             self.notes = application_database.get_all_notes(app_sha256)
+            self.secrets = application_database.get_all_secrets(app_sha256)
             self.print_deeplinks(True)  # propagate the deeplink lists
             self.current_app_sha256 = app_sha256
         except Exception as e:
@@ -1848,10 +1887,8 @@ $adb remount
             self.packages.append(line1.split(':')[1].strip('\n'))
 
     def load_or_remove_application(self):
-        #res,index = self.print_avail_apps(self)
-        sort_by_exposure = Polar("Sort by exposure (default by package name) ?", False).ask()
-        res,index = self.print_avail_apps(True, sort_by_exposure)
-        if res:
+        try:
+            res,index = self.print_avail_apps(True, True)
             task = int(Numeric(
                 Style.RESET_ALL + '\n[i] Options: \n\t\t0 - Load an application \n\t\t1 - Delete an application \n\t\t2 - Exit this submenu\n\n[?] Please choose an option:',
                 lbound=0, ubound=2).ask())
@@ -1872,9 +1909,9 @@ $adb remount
                     self.real_remove_app(chosen_sha256)
             elif task == 2:
                 return
-        else:
-            print(Fore.RED + Style.BRIGHT + "[!] No Entries found in the given database !" + Style.RESET_ALL)
-        return
+        except TypeError:
+            logger.warning("[!] No Entries found in the given database !")
+            return
 
     def run_command(self, cmd):
         proccess = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

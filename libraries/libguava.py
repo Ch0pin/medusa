@@ -1,7 +1,12 @@
 import fnmatch
 import hashlib
 import io
+import json
 import logging
+import re
+import shutil
+import subprocess
+import threading
 
 # Third-party imports
 from androguard.core import apk
@@ -13,6 +18,7 @@ from libraries.db import apk_db
 from libraries.IntentFilter import IntentFilter
 from libraries.logging_config import setup_logging
 from libraries.Questions import Polar
+
 
 
 logging.getLogger().handlers = []  
@@ -229,6 +235,66 @@ class Guava:
             receiver_attribs = (sha256, receivername, enabled, exported, permission, process)
             self.application_database.update_receivers(receiver_attribs)
 
+    def fill_secrets(self, apkfile, sha256):
+        logger.info(f"Extracting secrets in the background: {apkfile} (sha256: {sha256})")
+        try:
+            if shutil.which("trufflehog") is None:
+                logger.warning("trufflehog is not installed. Secrets will not be extracted.")
+                secret = ""
+            else:
+                result = subprocess.run(
+                    ["trufflehog", "filesystem", apkfile],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                output = result.stdout
+
+                pattern = (
+                    r"Found unverified result 🐷🔑❓(?:\nVerification issue: (.+))?\n"  
+                    r"Detector Type: (.+)\n"
+                    r"Decoder Type: (.+)\n"
+                    r"Raw result: (.+?)(?=\nFile:|\Z)"  
+                    r"\nFile: (.+)\n"
+                    r"Line: (\d+)"
+                )
+                ansi_escape = re.compile(r'\x1b\[.*?m')
+                clean_output = ansi_escape.sub('', output)
+
+                matches = re.findall(pattern, clean_output, re.DOTALL)
+                entries = []
+
+                for match in matches:
+                    verification_issue = match[0] if match[0] else None  
+                    detector_type = match[1]
+                    decoder_type = match[2]
+                    raw_result = match[3].strip() 
+                    file = match[4]
+                    line = int(match[5])
+
+                    entry = {
+                        "unverified": True,
+                        "detector_type": detector_type,
+                        "decoder_type": decoder_type,
+                        "raw_result": raw_result,
+                        "file": file,
+                        "line": line,
+                    }
+
+                    if verification_issue:
+                        entry["verification_issue"] = verification_issue
+
+                    entries.append(entry)
+
+                secret = json.dumps(entries, indent=4)
+            self.application_database.insert_secret((sha256, secret))
+            logger.info(f"Secrets extracted from {apkfile} (sha256: {sha256}).")     
+
+        except Exception as e:
+            secret = ""
+            self.application_database.insert_secret((sha256, secret))
+            logger.error(f"Error extracting secrets from {apkfile} (sha256: {sha256}): {e}")
+
     def fill_services(self, application, sha256):
 
         for service in application.findall("service"):
@@ -252,16 +318,19 @@ class Guava:
 
         app_sha256 = self.sha256sum(apkfile)
 
-        print(f"[+] Analyzing apk with SHA256:{app_sha256}")
+        logger.info(f"[+] Analyzing apk with SHA256:{app_sha256}")
         apk_r = apk.APK(apkfile)            
         manifest = apk_r.get_android_manifest_axml().get_xml_obj()
         application = manifest.findall("application")[0]
         if print_info:
-            print("[+] Analysis finished.")
-            print("[+] Filling up the database....")
+            logger.info("[+] Analysis finished.")
+            logger.info("[+] Filling up the database....")
         self.filter_list = {}
         self.fill_application_attributes(apk_r, app_sha256, application, apkfile)
         self.fill_permissions(apk_r, app_sha256)
+        worker_thread = threading.Thread(target=self.fill_secrets, args=(apkfile, app_sha256))
+        worker_thread.start()
+        #self.fill_secrets(apkfile, app_sha256)
         self.fill_activities(application, app_sha256)
         self.fill_services(application, app_sha256)
         self.fill_providers(application, app_sha256)
@@ -269,7 +338,7 @@ class Guava:
         self.fill_activity_alias(application, app_sha256)
         self.fill_intent_filters(app_sha256)
         if print_info:
-            print("[+] Database Ready !")
+            logger.info("[+] Database Ready !")
 
     def fill_intent_filters(self, sha256):
         for filter in self.filter_list:

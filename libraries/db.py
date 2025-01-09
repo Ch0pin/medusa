@@ -4,7 +4,7 @@ import sqlite3
 class apk_db:
     def __init__(self, db_name):
         self.db_name = db_name
-        self.connection = sqlite3.connect(db_name)
+        self.connection = sqlite3.connect(db_name, check_same_thread=False)
         self.cursor = self.connection.cursor()
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
 
@@ -30,12 +30,14 @@ class apk_db:
 
         self.cursor.execute("""CREATE TABLE "Notes" ("index"	INTEGER NOT NULL UNIQUE, "app_sha256"	TEXT NOT NULL, "note"	TEXT, PRIMARY KEY("index" AUTOINCREMENT));""")
 
+        self.cursor.execute("""CREATE TABLE "Secrets" ("index"	INTEGER NOT NULL UNIQUE, "app_sha256"	TEXT NOT NULL, "secret"	TEXT, PRIMARY KEY("index" AUTOINCREMENT));""")
+
     def delete_application(self, sha256):
 
         sql1 = f"DELETE FROM Application WHERE sha256 = '{sha256}'"
         self.cursor.execute(sql1)
         tables_to_delete = ["Permissions", "Activities", "Services", "Providers", "Receivers",
-                            "ActivityAlias", "IntentFilters", "Notes"]
+                            "ActivityAlias", "IntentFilters", "Notes", "Secrets"]
 
         for table in tables_to_delete:
             query = f"DELETE FROM {table} WHERE app_sha256 = '{sha256}'"
@@ -58,6 +60,11 @@ class apk_db:
         sql = f"""SELECT * from ActivityAlias WHERE app_sha256='{sha256}'"""
         self.cursor.execute(sql)
         return self.cursor.fetchall()
+    
+    def get_all_notes(self, sha256):
+        sql = f"""SELECT * from Notes WHERE app_sha256='{sha256}'"""
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
 
     def get_all_permissions(self, sha256):
         sql = f"""SELECT * from Permissions WHERE app_sha256='{sha256}'"""
@@ -76,6 +83,11 @@ class apk_db:
 
     def get_all_services(self, sha256):
         sql = f"""SELECT * from Services WHERE app_sha256='{sha256}'"""
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
+    
+    def get_all_secrets(self, sha256):
+        sql = f"""SELECT * from Secrets WHERE app_sha256='{sha256}'"""
         self.cursor.execute(sql)
         return self.cursor.fetchall()
 
@@ -179,6 +191,10 @@ class apk_db:
     def insert_note(self, attribs):
         sql = """INSERT INTO Notes(app_sha256, note) values(?,?)"""
         self.execute_update(sql, attribs)
+    
+    def insert_secret(self, attribs):
+        sql = """INSERT INTO Secrets(app_sha256, secret) values(?,?)"""
+        self.execute_update(sql, attribs)
 
     def delete_note(self, index):
         sql = f"""DELETE FROM "Notes" WHERE _rowid_ IN ({index});"""
@@ -190,7 +206,4 @@ class apk_db:
         self.cursor.execute(sql)
         self.connection.commit()
 
-    def get_all_notes(self, sha256):
-        sql = f"""SELECT * from Notes WHERE app_sha256='{sha256}'"""
-        self.cursor.execute(sql)
-        return self.cursor.fetchall()
+

@@ -6,16 +6,35 @@ import os.path
 import sys
 
 # Local application/library specific imports
+from colorama import Fore, Style, init
 from libraries.libmango import *
 from libraries.Questions import *
 from libraries.libguava import *
 from libraries.libadb import *
 from libraries.logging_config import setup_logging
-
+from shutil import which
 
 logging.getLogger().handlers = []  
 setup_logging() 
 logger = logging.getLogger(__name__)
+init(autoreset=True)
+
+def check_cli_tools():
+    tools = ["adb", "jdb", "zipalign", "apksigner", "trufflehog"]
+    all_installed = True
+
+    logger.info("Checking required tools:")
+    for tool in tools:
+        if shutil.which(tool):
+            print(f"{Fore.GREEN}[✔] {tool}")
+        else:
+            print(f"{Fore.RED}[x] {tool}")
+            all_installed = False
+
+    if not all_installed:
+        logger.warning("Some tools are missing. Certain features may not work correctly.")
+    else:
+        logger.info("All tools are installed. You are good to go!")
 
 def print_logo():
     print(Style.BRIGHT + BLUE + """
@@ -80,6 +99,7 @@ if __name__ == "__main__":
             sys.exit(0)
         else:
             print_logo()
+            check_cli_tools()
             session = sys.argv[1]
             if os.path.exists(session):
                 start_session(session, existing=True)

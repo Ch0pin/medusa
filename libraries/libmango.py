@@ -1933,12 +1933,24 @@ $adb remount
         except Exception as e:
             logger.error(e)
 
+    def fix_res(self, file_name):
+        if not os.path.exists(file_name):
+            return
+        text_to_search = "@android:color"
+        replacement_text = "@*android:color"
+        with open(file_name, 'rt') as f:
+            data = f.read()
+        print('[+] Adding \'*\' to android private resources in: ' + file_name)
+        data = data.replace(text_to_search, replacement_text)
+        with open(file_name, 'wt') as f:
+            f.write(data)
 
     def patch_apk(self, file: str):
         """Patches an apk to make it debuggable"""
         text_to_search = "<application"
         replacement_text = '<application android:debuggable="true" '
         APP_FOLDER = os.path.join(TMP_FOLDER, os.path.basename(file))
+        alreadyDebuggable = False
 
         if os.path.exists(file):
             file_name, extension = os.path.splitext(file)
@@ -1973,11 +1985,15 @@ $adb remount
 
                 if 'android:debuggable="true"' in data:
                     logger.error("[!] Application is already debuggable !")
+                    alreadyDebuggable = True
                 else:
                     data = data.replace(text_to_search, replacement_text)
-
                     with open(APP_FOLDER + '/AndroidManifest.xml', 'wt') as f:
                         f.write(data)
+                    self.fix_res(APP_FOLDER + '/res/values-v31/colors.xml')
+                    self.fix_res(APP_FOLDER + '/res/values-v34/colors.xml')
+
+                if (not alreadyDebuggable) or Polar('[?] Do you want to build the previous decompiled apk ?').ask():    
                     logger.info("[+] Repacking the app...")
                     subprocess.run('java -jar ' + APKTOOL + f' b {APP_FOLDER} -o {DEBUGGABLE_APK}', shell=True)
                     logger.info("[+] Aligning the apk file...")

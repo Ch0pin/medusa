@@ -1102,7 +1102,42 @@ $adb remount
                         project_id = extracted_values.get('project_id')
                         api_key = extracted_values.get('google_api_key')
                         app_id = extracted_values.get('google_app_id')
+                        firebase_db_url = extracted_values.get('firebase_database_url')
+                        gcm_defaultSenderId = extracted_values.get('gcm_defaultSenderId')
+                        google_storage_bucket = extracted_values.get('google_storage_bucket')
 
+                        firebase_config = {
+                            "project_info": {
+                                "project_number": gcm_defaultSenderId,
+                                    "firebase_url": firebase_db_url,
+                                    "project_id": project_id,
+                                    "storage_bucket": google_storage_bucket
+                                },
+                                "client": [
+                                    {
+                                        "client_info": {
+                                            "mobilesdk_app_id": app_id,
+                                            "android_client_info": {
+                                                "package_name": self.package
+                                            }
+                                        },
+                                        "oauth_client": [],
+                                        "api_key": [
+                                            {
+                                                "current_key": api_key
+                                            }
+                                        ],
+                                        "services": {
+                                            "appinvite_service": {
+                                                "other_platform_oauth_client": []
+                                            }
+                                        }
+                                    }
+                                ],
+                                "configuration_version": "1"
+                            }
+                        logger.info(f"Firebase configuration:\n")
+                        print(json.dumps(firebase_config, indent=2))
                         if project_id and api_key and app_id:
                             logger.info('[+] Trying to fetch Firebase remote configuration....')
 
@@ -1119,8 +1154,14 @@ $adb remount
                                 print("Response Body:\n",json.dumps(response.json(), indent=4))
                             except ValueError:
                                 print("Response Body is not JSON:", response.text)
+                        
                         else:
-                            logger.error("Missing required values: project_id, google_api_key, or google_app_id.")
+                            logger.warning("Missing required values: project_id, google_api_key, or google_app_id.")
+                        if firebase_db_url:
+                            logger.info('[+] Checking for Firebase db misconfiguration....')
+                            response = requests.get(firebase_db_url+"/.json")
+                            print("Response Body:\n",json.dumps(response.json(), indent=4))
+                
 
                     except Exception as e:
                         logger.error(f"Error fetching Firebase remote configuration: {e}")

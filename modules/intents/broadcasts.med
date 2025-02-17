@@ -114,27 +114,36 @@
       
     
         hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter').implementation = function(receiver, filter) {
-          colorLog('[+] The application registers the receiver:'+receiver,{c:Color.Cyan});
+          if(receiver != null){
+            colorLog('[+] The application registers the receiver:'+receiver,{c:Color.Cyan});
+            dumpIntentFilter(filter)
+          }
           this.registerReceiver(receiver, filter);
-          dumpIntentFilter(filter)
         };
     
         hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter', 'int').implementation = function(receiver, filter, flags) {
-          colorLog('[+] The application registers the receiver:'+receiver ,{c:Color.Cyan});
+          if(receiver != null){
+            colorLog('[+] The application registers the receiver:'+receiver + ' and flags: '+flags,{c:Color.Cyan});
+            dumpIntentFilter(filter)
+          }
           this.registerReceiver(receiver, filter, flags);
-          dumpIntentFilter(filter)
         };
     
         hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter', 'java.lang.String', 'android.os.Handler').implementation = function(receiver, filter, broadcastPermission, scheduler) {
-          colorLog('[+] The application registers the receiver:'+receiver + ' protected by permission: '+broadcastPermission,{c:Color.Cyan});
+          
+          if(receiver != null){
+            colorLog('[+] The application registers the receiver:'+receiver + ' protected by permission: '+broadcastPermission,{c:Color.Cyan});
+            dumpIntentFilter(filter)
+          }
           this.registerReceiver(receiver, filter, broadcastPermission, scheduler);
-          dumpIntentFilter(filter)
         };
     
         hook_1703795516.registerReceiver.overload('android.content.BroadcastReceiver', 'android.content.IntentFilter', 'java.lang.String', 'android.os.Handler', 'int').implementation = function(receiver, filter, broadcastPermission, scheduler,flags) {
-          colorLog('[+] The application registers the receiver:'+receiver + ' protected by permission: '+broadcastPermission,{c:Color.Cyan});
+          if(receiver != null){
+            colorLog('[+] The application registers the receiver:'+receiver + ' protected by permission: '+broadcastPermission + ' and flags: '+flags,{c:Color.Cyan});
+            dumpIntentFilter(filter);
+          }
           this.registerReceiver(receiver, filter, broadcastPermission, scheduler,flags);
-          dumpIntentFilter(filter)
         };
     
                     let overloadCount_1703795516 = hook_1703795516['sendBroadcastAsUser'].overloads.length;

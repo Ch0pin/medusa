@@ -1,0 +1,55 @@
+{
+    "Name": "webviews/enable_webInspector",
+    "Description": "iOS Enable WebInspector",
+    "Help": "Enable WebView debugging for all iOS apps. Before running the script, enable Web Inspector in Safari settings. Original script: https://codeshare.frida.re/@leolashkevych/ios-enable-webinspector/",
+    "Code": " 
+  {   
+        console.log('\\n---------iOS Enable WebInspector by leolashkevych------------------');
+
+        const CFRelease = new NativeFunction(Module.findExportByName(null, 'CFRelease'), 'void', ['pointer']);
+        const CFStringGetCStringPtr = new NativeFunction(Module.findExportByName(null, 'CFStringGetCStringPtr'),
+            'pointer', ['pointer', 'uint32']);
+        const kCFStringEncodingUTF8 = 0x08000100;
+
+        const SecTaskCopyValueForEntitlement = Module.findExportByName(null, 'SecTaskCopyValueForEntitlement');
+
+        const entitlements = [
+            'com.apple.security.get-task-allow',
+            'com.apple.webinspector.allow',
+            'com.apple.private.webinspector.allow-remote-inspection',
+            'com.apple.private.webinspector.allow-carrier-remote-inspection'
+        ];
+
+        Interceptor.attach(SecTaskCopyValueForEntitlement, {
+            onEnter: function(args) {
+                const pEntitlement = CFStringGetCStringPtr(args[1], kCFStringEncodingUTF8)
+                const entitlement = Memory.readUtf8String(pEntitlement)
+                if (entitlements.indexOf(entitlement) > -1) {
+                    this.shouldOverride = true
+                    this.entitlement = entitlement
+                }
+            },
+            onLeave: function(retVal) {
+                if (this.shouldOverride) {
+                    colorLog('Overriding value for entitlement: ' + this.entitlement, {c:Color.Cyan})
+                    if (!retVal.isNull()) {
+                        colorLog('Old value: ' + retVal, {c:Color.Cyan})
+                        CFRelease(retVal)
+                    }
+                    retVal.replace(ObjC.classes.NSNumber.numberWithBool_(1));
+                    console.log('New value: ' + retVal, {c:Color.Cyan})
+                }
+            }
+        });
+
+
+
+}
+
+"
+}
+
+
+
+
+

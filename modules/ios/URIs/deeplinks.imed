@@ -11,7 +11,7 @@
   if (ObjC.available) {
 
     var openURL_1707494523 = ObjC.classes.NSURLComponents['+ componentsWithString:'];
-    var openURL_1707494523 = ObjC.classes.NSURLComponents['+ componentsWithURL:resolvingAgainstBaseURL:'];
+    var openURL_1707494524 = ObjC.classes.NSURLComponents['+ componentsWithURL:resolvingAgainstBaseURL:'];
     var queryItemWithName_1707494523 = ObjC.classes.NSURLQueryItem['+ queryItemWithName:value:'];
     var initWithName_1707494523 = ObjC.classes.NSURLQueryItem['- initWithName:value:'];
 
@@ -45,7 +45,7 @@
       }
     });
 
-    Interceptor.attach(openURL_1707494523.implementation, {
+    Interceptor.attach(openURL_1707494524.implementation, {
       onEnter: function(a) {
 
           colorLog('Entering : NSURLComponents + componentsWithURL:resolvingAgainstBaseURL:',{c:Color.Green})

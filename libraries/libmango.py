@@ -1405,39 +1405,47 @@ $adb remount
         return completions
 
     def print_activities(self, all=True):
-        display_text = ''
-        for attribs in self.activities:
-            display_text = attribs[1]
-            if attribs[2]:
-                display_text += Fore.RED + ' | enabled = ' + attribs[2] + ' |' + Fore.RESET
-            if attribs[3]:
-                display_text += Fore.GREEN + ' | exported = ' + attribs[3] + Fore.RESET
-            if attribs[7]:
-                display_text += Fore.CYAN + ' | permission = ' + attribs[7] + Fore.RESET
-            if (not all) and (not attribs[3] or ('true' not in attribs[3])):
-                continue
-            else:
-                print(display_text)
-        print(Style.RESET_ALL)
+        try:
+            display_text = ''
+            for attribs in self.activities:
+                display_text = attribs[1]
+                if attribs[2]:
+                    display_text += Fore.RED + ' | enabled = ' + attribs[2] + ' |' + Fore.RESET
+                if attribs[3]:
+                    display_text += Fore.GREEN + ' | exported = ' + attribs[3] + Fore.RESET
+                if attribs[7]:
+                    display_text += Fore.CYAN + ' | permission = ' + attribs[7] + Fore.RESET
+                if (not all) and (not attribs[3] or ('true' not in attribs[3])):
+                    continue
+                else:
+                    print(display_text)
+        except Exception as e:
+            logger.error(e)
+        finally:
+            print(Style.RESET_ALL)
 
     def print_activity_alias(self, all=True):
-        display_text = ''
-        for attribs in self.activityallias:
-            display_text = attribs[1]
-            if attribs[2]:
-                display_text += Fore.RED + ' | enabled = ' + attribs[2] + ' |' + Fore.RESET
-            if attribs[3]:
-                display_text += Fore.GREEN + ' | exported = ' + attribs[3] + ' |' + Fore.RESET
-            if attribs[4]:
-                display_text += Fore.GREEN + ' | permission = ' + attribs[4] + ' |' + Fore.RESET 
-            if attribs[5]:
-                display_text += Fore.CYAN + ' | Target = ' + attribs[5] + Fore.RESET
+        try:
+            display_text = ''
+            for attribs in self.activityallias:
+                display_text = attribs[1]
+                if attribs[2]:
+                    display_text += Fore.RED + ' | enabled = ' + attribs[2] + ' |' + Fore.RESET
+                if attribs[3]:
+                    display_text += Fore.GREEN + ' | exported = ' + attribs[3] + ' |' + Fore.RESET
+                if attribs[4]:
+                    display_text += Fore.GREEN + ' | permission = ' + attribs[4] + ' |' + Fore.RESET 
+                if attribs[5]:
+                    display_text += Fore.CYAN + ' | Target = ' + attribs[5] + Fore.RESET
 
-            if (not all) and (not attribs[3] or ('true' not in attribs[3])):
-                continue
-            else:
-                print(display_text)
-        print(Style.RESET_ALL)
+                if (not all) and (not attribs[3] or ('true' not in attribs[3])):
+                    continue
+                else:
+                    print(display_text)
+        except Exception as e:
+            logger.error(e)
+        finally:
+            print(Style.RESET_ALL)
 
     def print_application_info(self, info):
         if len(info) == 0:
@@ -1620,9 +1628,10 @@ $adb remount
                     continue
                 else:
                     print(display_text)
-            print(Style.RESET_ALL)
         except Exception as e:
-            print("An error occured")
+            logger.error(e)
+        finally:
+            print(Style.RESET_ALL)
 
     def print_proxy(self):
 
@@ -1656,9 +1665,10 @@ $adb remount
                     continue
                 else:
                     print(display_text)
-            print(Style.RESET_ALL)
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logger.error(e)
+        finally:
+            print(Style.RESET_ALL)
 
     def print_services(self, all=True):
         try:
@@ -1675,9 +1685,10 @@ $adb remount
                     continue
                 else:
                     print(display_text)
-            print(Style.RESET_ALL)
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logger.error(e)
+        finally:
+            print(Style.RESET_ALL)
 
     def print_secrets(self):
         try:

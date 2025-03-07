@@ -238,55 +238,53 @@ class Guava:
     def fill_secrets(self, apkfile, sha256):
         logger.info(f"Extracting secrets in the background: {apkfile} (sha256: {sha256})")
         try:
-            if shutil.which("trufflehog") is None:
-                logger.warning("trufflehog is not installed. Secrets will not be extracted.")
-                secret = ""
-            else:
-                result = subprocess.run(
-                    ["trufflehog", "filesystem", apkfile],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True
-                )
-                output = result.stdout
 
-                pattern = (
-                    r"Found unverified result 🐷🔑❓(?:\nVerification issue: (.+))?\n"  
-                    r"Detector Type: (.+)\n"
-                    r"Decoder Type: (.+)\n"
-                    r"Raw result: (.+?)(?=\nFile:|\Z)"  
-                    r"\nFile: (.+)\n"
-                    r"Line: (\d+)"
-                )
-                ansi_escape = re.compile(r'\x1b\[.*?m')
-                clean_output = ansi_escape.sub('', output)
+            result = subprocess.run(
+                ["trufflehog", "filesystem", apkfile],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            output = result.stdout
 
-                matches = re.findall(pattern, clean_output, re.DOTALL)
-                entries = []
+            pattern = (
+                r"Found unverified result 🐷🔑❓(?:\nVerification issue: (.+))?\n"  
+                r"Detector Type: (.+)\n"
+                r"Decoder Type: (.+)\n"
+                r"Raw result: (.+?)(?=\nFile:|\Z)"  
+                r"\nFile: (.+)\n"
+                r"Line: (\d+)"
+            )
+            ansi_escape = re.compile(r'\x1b\[.*?m')
+            clean_output = ansi_escape.sub('', output)
 
-                for match in matches:
-                    verification_issue = match[0] if match[0] else None  
-                    detector_type = match[1]
-                    decoder_type = match[2]
-                    raw_result = match[3].strip() 
-                    file = match[4]
-                    line = int(match[5])
+            matches = re.findall(pattern, clean_output, re.DOTALL)
+            entries = []
 
-                    entry = {
-                        "unverified": True,
-                        "detector_type": detector_type,
-                        "decoder_type": decoder_type,
-                        "raw_result": raw_result,
-                        "file": file,
-                        "line": line,
-                    }
+            for match in matches:
+                verification_issue = match[0] if match[0] else None  
+                detector_type = match[1]
+                decoder_type = match[2]
+                raw_result = match[3].strip() 
+                file = match[4]
+                line = int(match[5])
 
-                    if verification_issue:
-                        entry["verification_issue"] = verification_issue
+                entry = {
+                    "unverified": True,
+                    "detector_type": detector_type,
+                    "decoder_type": decoder_type,
+                    "raw_result": raw_result,
+                    "file": file,
+                    "line": line,
+                }
 
-                    entries.append(entry)
+                if verification_issue:
+                    entry["verification_issue"] = verification_issue
+                
+                entries.append(entry)
 
-                secret = json.dumps(entries, indent=4)
+            secret = json.dumps(entries, indent=4)
+
             self.application_database.insert_secret((sha256, secret))
             logger.info(f"Secrets extracted from {apkfile} (sha256: {sha256}).")     
 
@@ -328,8 +326,12 @@ class Guava:
         self.filter_list = {}
         self.fill_application_attributes(apk_r, app_sha256, application, apkfile)
         self.fill_permissions(apk_r, app_sha256)
-        worker_thread = threading.Thread(target=self.fill_secrets, args=(apkfile, app_sha256))
-        worker_thread.start()
+        if shutil.which("trufflehog") is None:
+            logger.warning("trufflehog is not installed. Secrets will not be extracted.")
+            self.application_database.insert_secret((app_sha256, ""))
+        else:
+            worker_thread = threading.Thread(target=self.fill_secrets, args=(apkfile, app_sha256))
+            worker_thread.start()
         #self.fill_secrets(apkfile, app_sha256)
         self.fill_activities(application, app_sha256)
         self.fill_services(application, app_sha256)

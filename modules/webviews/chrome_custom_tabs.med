@@ -1,0 +1,49 @@
+{
+    "Name": "webviews/chrome_custom_tabs",
+    "Description": "Use this module to hook subclasses of the androidx.browser.customtabs.CustomTabsCallback class",
+    "Help": "",
+    "Code": "
+    {
+        try {
+            let hook_1736862671 = Java.use('androidx.browser.customtabs.CustomTabsCallback');
+            let overloadCount_1736862671 = hook_1736862671['$init'].overloads.length;
+
+            for (let i = 0; i < overloadCount_1736862671; i++) {
+                hook_1736862671['$init'].overloads[i].implementation = function() {
+                    let bt = Java.use('android.util.Log').getStackTraceString(Java.use('java.lang.Exception').$new());
+                    let stackTraceArray = bt.split('\\n');
+
+                    if (stackTraceArray.length > 2) {
+                        const input = stackTraceArray[2];
+
+                        // Extract the part after 'at ' and before '.<init>'
+                        const atIndex = input.indexOf('at ') + 3;
+                        const initIndex = input.indexOf('.<init>(');
+                        const beneathAt = input.substring(atIndex, initIndex);
+
+                        // Extract the content inside parentheses after '<init>'
+                        const startParen = input.indexOf('(', initIndex) + 1;
+                        const endParen = input.indexOf(')', startParen);
+                        const initInfo = input.substring(startParen, endParen);
+
+                        if (beneathAt && initInfo) {
+                            colorLog('Found CustomTabsCallback implementation: ' + beneathAt, { c: Color.Blue });
+                            traceClass(beneathAt, 'yellow');
+                        } else {
+                            colorLog('No CustomTabsCallback implementation found', { c: Color.Blue });
+                        }
+                    } else {
+                        console.log('Stack trace does not have enough lines.');
+                    }
+                    let retval = this['$init'].apply(this, arguments); 
+                    return retval;
+                }
+            }
+        }
+        catch(error) {
+            console.log('Could not find androidx.browser.customtabs.CustomTabsCallback implementation');
+        
+        }
+    }
+    "
+}

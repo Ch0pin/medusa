@@ -8,7 +8,7 @@
 
     let hook_1735325965 = Java.use('java.util.regex.Pattern');
                         let overloadCount_1735325965 = hook_1735325965['matches'].overloads.length;
-                        colorLog('\nTracing ' +'matches' + ' [' + overloadCount_1735325965 + ' overload(s)]',{ c: Color.Green });
+                        colorLog('\\nTracing ' +'matches' + ' [' + overloadCount_1735325965 + ' overload(s)]',{ c: Color.Green });
 
                             for (let i = 0; i < overloadCount_1735325965; i++) {
                                 hook_1735325965['matches'].overloads[i].implementation = function() {

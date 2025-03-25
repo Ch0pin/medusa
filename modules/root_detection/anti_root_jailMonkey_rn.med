@@ -1,0 +1,25 @@
+{
+    "Name": "root_detection/jailMonkey_react_native",
+    "Description": "Bypass root for jailMonkey react native module",
+    "Help": "https://www.ayrx.me/gantix-jailmonkey-root-detection-bypass/",
+    "Code": "    
+    console.log('\\n---------LOADING jailMonkey_react_native-------------------');
+
+    {
+        const jailMonkeyModule = Java.use('com.gantix.JailMonkey.JailMonkeyModule');
+        const hashmap_class_1742323922 = Java.use('java.util.HashMap');
+        const false_obj_1742323922 = Java.use('java.lang.Boolean').FALSE.value;
+
+        jailMonkeyModule.getConstants.implementation = function () {
+            colorLog('[+] JailMonkeyModule.getConstants called. Overwriting values...', { c: Color.Green })
+            var h = hashmap_class_1742323922.$new();
+            h.put('isJailBroken', false_obj_1742323922);
+            h.put('hookDetected', false_obj_1742323922);
+            h.put('canMockLocation', false_obj_1742323922);
+            h.put('isOnExternalStorage', false_obj_1742323922);
+            h.put('AdbEnabled', false_obj_1742323922);
+            return h;
+        };
+    }
+"
+}

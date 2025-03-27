@@ -1,0 +1,224 @@
+{
+    "Name": "db_queries/sqlite_monitor",
+    "Description": "Monitor SQLiteDatabase operations",
+    "Help": "Monitors SQLite operations conducted with android.database.sqlite classes. Green marked parameters were inserted into the SQL query/statement via replaceable parameter ('?'-operator) and are thus not susceptible to SQL injection. All other parameters might be, if user-controlled.",
+    "Code": "
+{
+    console.log('\\n----------SQLiteDatabase Monitor by @loretanr (2025)------------');
+
+    // Adjust to your needs
+    const IGNORE_DATABASES = [
+        \"/data/user/0/com.example.app/databases/unity.db\",
+        \"/data/user/0/com.example.app/databases/google_app_measurement_local.db\"
+    ];
+    const LIMIT_ROW_NUM = 5;
+    const LIMIT_ROW_AND_SQL_STMT_LENGTH = 500;
+
+    const greenColor = '\\x1b[38;2;0;255;0m';
+    const blueColor = '\\x1b[1;38;2;51;153;255m';
+    const resetColor = '\\x1b[0m';
+
+    // Helper functions
+
+    const SQLiteCursor = Java.use(\"android.database.sqlite.SQLiteCursor\");
+    const SQLiteStatement = Java.use(\"android.database.sqlite.SQLiteStatement\");
+
+    // Helpers
+
+    const DatabaseUtils = Java.use(\"android.database.DatabaseUtils\");
+    const ContentValues = Java.use(\"android.content.ContentValues\");
+
+    function _toHexString(byteArray) {
+		return Array.from(byteArray?byteArray:[], function(byte) {
+			return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+		}).join('');
+	}
+
+    function _stripControlChars(input) {
+        return input == null ? \"null\" : String(input).replace(/[\\r\\n\\t]+/g, \"\");
+    }
+
+    function _stringFromContentValues(contentValues) {
+        if (contentValues == null) return \"null\";
+    
+        const keys = contentValues.keySet().toArray();
+        
+        const values = keys.map(key => {
+            const value = contentValues.getAsByteArray(key) 
+                ? _toHexString(contentValues.getAsByteArray(key)) 
+                : _stripControlChars(contentValues.get(key)); // strip control chars for e.g. HTML content
+            return `${key}: ${_clipString(value)}`;
+        });
+    
+        return _clipString(`{ ${values.join(\", \")} }`);
+    }
+
+    function _bindArguments(query, selectionArgs) {
+        let argIndex = 0;
+    
+        const replaceArg = () => {
+            if (argIndex >= selectionArgs.length) return \"?\";
+    
+            let argValue = selectionArgs[argIndex++];
+            if (!argValue) return \"NULL\";
+
+            argValue = (argValue.getClass().getName() === \"[B\")
+                ? _toHexString(Java.array('byte', argValue))
+                : _stripControlChars(argValue);
+    
+            return `'${greenColor}${argValue}${resetColor}'`;
+        };
+    
+        const finalQuery = query.replace(/\\?/g, replaceArg);
+        return finalQuery.replace(/\\n[\\s\\t]*/g, '\\n        ').trim();
+    }
+
+    function _clipString(inputString) {
+        if (!inputString) return \"\";
+        if (inputString.length > LIMIT_ROW_AND_SQL_STMT_LENGTH) {
+            return inputString.slice(0, LIMIT_ROW_AND_SQL_STMT_LENGTH) + resetColor + ' ... ';
+        }
+        return inputString;
+    }
+
+    function _logToConsole(logMessage, dbPath) {
+        if (!IGNORE_DATABASES.includes(dbPath)) {
+            console.log(logMessage);
+        }
+    }
+
+
+    // Core DB operations
+
+    SQLiteCursor.$init.overload('android.database.sqlite.SQLiteCursorDriver', 'java.lang.String', 'android.database.sqlite.SQLiteQuery').implementation = function (driver, editTable, query) {
+        // To monitor queries, we hook the SQLiteCursor constructor. If we hooked above that, we would
+        // miss the case when new selectionArgs are bound to existing queries before re-execution.
+
+        const databasePath = query.getDatabase().getPath();
+
+        // invoke original function
+        this.$init(driver, editTable, query);
+
+        // extract the cursor rows
+        const totalRowCount = this.getCount();
+        let returnedRows = \"\";
+        if (totalRowCount > 0) {
+            for (var currRow = 0; currRow < totalRowCount && currRow < LIMIT_ROW_NUM; currRow++) {
+                this.moveToPosition(currRow);
+                const cv = ContentValues.$new();
+                DatabaseUtils.cursorRowToContentValues(this, cv);
+                const rowData = _stringFromContentValues(cv);
+                returnedRows += `\\n        Row ${currRow}: ${_clipString(rowData)}`;
+            }
+        }
+        this.moveToPosition(-1); // restore the cursor position
+
+        const logMessage =
+            `\\n${blueColor}[*] Query -> SQLiteCursor.$init${resetColor}\\n` +
+            [
+                `Database: ${databasePath}`,
+                `Query: ${_clipString(_bindArguments(query.getSql(), query.getBindArgs()))}`,
+                `Returned Rows: ${totalRowCount}`
+            ]
+                .map(line => \"    \" + line)
+                .join(\"\\n\") +
+            returnedRows;
+        _logToConsole(logMessage, databasePath);
+    };
+
+    SQLiteStatement.executeInsert.overload().implementation = function () {
+        const databasePath = this.getDatabase().getPath();
+        const newRowIndex = this.executeInsert();
+        const logMessage =
+            `\\n${blueColor}[*] SQLiteStatement.executeInsert${resetColor}\\n` +
+            [
+                `Database: ${databasePath}`,
+                `Statement: ${_clipString(_bindArguments(this.getSql(), this.getBindArgs()))}`,
+                `Index of New Row: ${newRowIndex}`
+            ]
+                .map(line => \"    \" + line)
+                .join(\"\\n\");
+        _logToConsole(logMessage, databasePath);
+        return newRowIndex;
+    };
+
+    SQLiteStatement.executeUpdateDelete.overload().implementation = function () {
+        const databasePath = this.getDatabase().getPath();
+        const updateRes = this.executeUpdateDelete();
+        const logMessage =
+            `\\n${blueColor}[*] SQLiteStatement.executeUpdateDelete${resetColor}\\n` +
+            [
+                `Database: ${databasePath}`,
+                `Statement: ${_clipString(_bindArguments(this.getSql(), this.getBindArgs()))}`,
+                `Number of Affected Rows: ${updateRes}`
+            ]
+                .map(line => \"    \" + line)
+                .join(\"\\n\");
+        _logToConsole(logMessage, databasePath);
+        return updateRes;
+    };
+
+    SQLiteStatement.execute.overload().implementation = function () {
+        const databasePath = this.getDatabase().getPath();
+        this.execute();
+        const logMessage =
+            `\\n${blueColor}[*] SQLiteStatement.execute${resetColor}\\n` +
+            [
+                `Database: ${databasePath}`,
+                `Statement: ${_clipString(_bindArguments(this.getSql(), this.getBindArgs()))}`
+            ]
+                .map(line => \"    \" + line)
+                .join(\"\\n\");
+        _logToConsole(logMessage, databasePath);
+    };
+
+    SQLiteStatement.simpleQueryForLong.overload().implementation = function () {
+        const databasePath = this.getDatabase().getPath();
+        const queryRes = this.simpleQueryForLong();
+        const logMessage =
+            `\\n${blueColor}[*] SQLiteStatement.simpleQueryForLong${resetColor}\\n` +
+            [
+                `Database: ${databasePath}`,
+                `Statement: ${_clipString(_bindArguments(this.getSql(), this.getBindArgs()))}`,
+                `Query Result: ${queryRes}`
+            ]
+                .map(line => \"    \" + line)
+                .join(\"\\n\");
+        _logToConsole(logMessage, databasePath);
+        return queryRes;
+    };
+
+    SQLiteStatement.simpleQueryForString.overload().implementation = function () {
+        const databasePath = this.getDatabase().getPath();
+        const queryRes = this.simpleQueryForString();
+        const logMessage =
+            `\\n${blueColor}[*] SQLiteStatement.simpleQueryForString${resetColor}\\n` +
+            [
+                `Database: ${databasePath}`,
+                `Statement: ${_clipString(_bindArguments(this.getSql(), this.getBindArgs()))}`,
+                `Query Result: ${queryRes}`
+            ]
+                .map(line => \"    \" + line)
+                .join(\"\\n\");
+        _logToConsole(logMessage, databasePath);
+        return queryRes;
+    };
+
+    SQLiteStatement.simpleQueryForBlobFileDescriptor.overload().implementation = function () {
+        const databasePath = this.getDatabase().getPath();
+        const parcelFileDescriptor = this.simpleQueryForBlobFileDescriptor();
+        const logMessage =
+            `\\n${blueColor}[*] SQLiteStatement.simpleQueryForBlobFileDescriptor${resetColor}\\n` +
+            [
+                `Database: ${databasePath}`,
+                `Statement: ${_clipString(_bindArguments(this.getSql(), this.getBindArgs()))}`,
+                `File Descriptor: ${parcelFileDescriptor?.toString()}`
+            ]
+                .map(line => \"    \" + line)
+                .join(\"\\n\");
+        _logToConsole(logMessage, databasePath);
+        return parcelFileDescriptor;
+    };
+}    
+"
+}

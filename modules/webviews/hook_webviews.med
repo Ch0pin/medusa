@@ -119,8 +119,13 @@
 
     webView.getUrl.implementation = function(){
         dumpWebview(this);
-        colorLog('[i] Current Loaded url:' + this.getUrl(),{c:Color.Blue});
-        return this.getUrl();
+        let url = this.getUrl();
+        if (url && url.startsWith('data:') && url.length > 20) {
+            url = url.substring(0, 20) + '...✂️ [truncated]';
+        }
+ 
+        colorLog('[i] Current Loaded url:' + url,{c:Color.Blue});
+        return url;
     }
 
     webView.setWebContentsDebuggingEnabled.implementation=function(tf){
@@ -152,20 +157,28 @@
             var entry = Java.cast(iterator.next(), Java.use('java.util.Map$Entry'));
             console.log(entry.getKey() + ': ' + entry.getValue());
         }
+        let tmp = '';
         if (url.startsWith('data:') && url.length > 20) {
-          url = url.substring(0, 20);
+            tmp = url.substring(0, 20);
         }
-        console.log('[i] Loading URL: ' + url);
+        else {
+            tmp = url;
+        }
+        console.log('[i] Loading URL: ' + tmp);
         console.log('===========================================');
         this.loadUrl(url,additionalHttpHeaders);
     }
 
     webView.loadUrl.overload('java.lang.String').implementation = function(url){
         dumpWebview(this);
+        let tmp = '';
         if (url.startsWith('data:') && url.length > 20) {
-          url = url.substring(0, 20);
+          tmp = url.substring(0, 20);
         }
-        console.log('[i] Loading URL:' + url);
+        else {
+            tmp = url;
+        }
+        console.log('[i] Loading URL:' + tmp);
         this.loadUrl(url);
     }
 

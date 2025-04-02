@@ -26,6 +26,7 @@
         for (let i = 0; i < overloadCount_1691770814; i++) {
         webView['$init'].overloads[i].implementation = function() {
         colorLog('[i] Entering Webview.' +'$init',{ c: Color.Green });
+            colorLog('(Forced) setWebContentsDebuggingEnabled',{c:Color.Red});
             this.setWebContentsDebuggingEnabled(true);
             if (arguments.length) console.log();
             
@@ -129,7 +130,7 @@
     }
 
     webView.setWebContentsDebuggingEnabled.implementation=function(tf){
-        colorLog('[i] setWebContentsDebuggingEnabled(' + tf + ') -> setting webview debuggable to true.',{c:Color.Blue});
+        styleLog('[i] setWebContentsDebuggingEnabled(' + tf + ') -> setting webview debuggable to '+tf, ['setWebContentsDebuggingEnabled', tf], StyleLogColorset.white, StyleLogColorset.red);
         this.setWebContentsDebuggingEnabled(true);
     }
 

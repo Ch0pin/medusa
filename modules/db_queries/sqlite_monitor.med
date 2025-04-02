@@ -2,15 +2,26 @@
     "Name": "db_queries/sqlite_monitor",
     "Description": "Monitor SQLiteDatabase operations",
     "Help": "Monitors SQLite operations conducted with android.database.sqlite classes. Green marked parameters were inserted into the SQL query/statement via replaceable parameter ('?'-operator) and are thus not susceptible to SQL injection. All other parameters might be, if user-controlled.",
+    "Options": [
+        {
+            "name": "db_ignore",
+            "help": "A comma-separated list of database names to exclude from monitoring (e.g. database1, database2, database3)",
+            "type": "string",
+            "value": ""
+        }
+    ],
     "Code": "
 {
     console.log('\\n----------SQLiteDatabase Monitor by @loretanr (2025)------------');
 
-    // Adjust to your needs
-    const IGNORE_DATABASES = [
-        \"/data/user/0/com.example.app/databases/unity.db\",
-        \"/data/user/0/com.example.app/databases/google_app_measurement_local.db\"
-    ];
+    const __db_ignore__ = '';
+
+    let total_db_to_ignore = 'com.google.android.datatransport.event, androidx.work.workdb, com.amplitude.api, google_app_measurement_local.db, OneSignal.db,' + __db_ignore__;
+    
+    const IGNORE_DATABASES = total_db_to_ignore.split(',').map(name => name.trim()).filter(name => name !== '');
+    colorLog('[i] Ingoring the following databases:\\n'+IGNORE_DATABASES, {c: Color.Cyan})
+
+
     const LIMIT_ROW_NUM = 5;
     const LIMIT_ROW_AND_SQL_STMT_LENGTH = 500;
 
@@ -81,11 +92,17 @@
         return inputString;
     }
 
-    function _logToConsole(logMessage, dbPath) {
-        if (!IGNORE_DATABASES.includes(dbPath)) {
-            console.log(logMessage);
-        }
+
+    function shouldBePrinted(inputStr, candidates) {
+      return !candidates.some(candidate => inputStr.includes(candidate));
     }
+    
+    function _logToConsole(logMessage, dbPath) {
+      if (shouldBePrinted(dbPath, IGNORE_DATABASES)) {
+        console.log(logMessage);
+      }
+    }
+
 
 
     // Core DB operations

@@ -987,10 +987,12 @@ $adb remount
         - secrets: prints the application's secrets (API keys, passwords etc.)
         - database: prints the structure of the loaded database
         - exposure: prints the application's exposure points (exported activities, services, deeplinks etc.)
+          Adding the '-v' flag the command will print additional info, including potential firebase configuration, 
+          keys e.t.c.
         - info: prints information about the loaded application
         - manifest_entry: prints information about the loaded application's manifest entries, including:
           activities, services, activityAlias, receivers, deeplinks, providers and intentFilters.
-          Adding the '-e' option the command will print only exported components.
+          Adding the '-e' flag the command will print only exported components.
         - receivers -d: prints dynamically registered receivers"""
 
         what = line.arg_list[0]
@@ -1076,98 +1078,99 @@ $adb remount
                     self.print_providers(False)
                     print("[+] Custom permissions:")
                     self.print_permissions(True)
-                    print("\n[+] Other potentially interesting info:")
-                    found = False
-                    keywords = [
-                        ('google_app_id', 'google_app_id_value'),
-                        ('google_api_key', 'google_api_key_value'),
-                        ('gcm_defaultSenderId', 'gcm_defaultSenderId_value'),
-                        ('google_storage_bucket', 'google_storage_bucket_value'),
-                        ('project_id', 'project_id_value'),
-                        ('firebase_database_url', 'firebase_database_url_value')
-                    ]
-                    pattern = r'<string name="[^"]+">([^<]+)</string>' 
-                    extracted_values = {}
+                    if '-v' in flag:
+                        print("\n[+] Other potentially interesting info:")
+                        found = False
+                        keywords = [
+                            ('google_app_id', 'google_app_id_value'),
+                            ('google_api_key', 'google_api_key_value'),
+                            ('gcm_defaultSenderId', 'gcm_defaultSenderId_value'),
+                            ('google_storage_bucket', 'google_storage_bucket_value'),
+                            ('project_id', 'project_id_value'),
+                            ('firebase_database_url', 'firebase_database_url_value')
+                        ]
+                        pattern = r'<string name="[^"]+">([^<]+)</string>' 
+                        extracted_values = {}
 
-                    for line1 in self.strings.split('\n'):
-                        for keyword, variable_name in keywords:
-                            if keyword in line1:
-                                match = re.search(pattern, line1)
-                                if match:
-                                    values = match.group(1)
-                                    extracted_values[keyword] = values
-                                    print(f'{keyword.ljust(25)}: {values}') 
-                                    found = True
-                    try:
-                        project_id = extracted_values.get('project_id')
-                        api_key = extracted_values.get('google_api_key')
-                        app_id = extracted_values.get('google_app_id')
-                        firebase_db_url = extracted_values.get('firebase_database_url')
-                        gcm_defaultSenderId = extracted_values.get('gcm_defaultSenderId')
-                        google_storage_bucket = extracted_values.get('google_storage_bucket')
+                        for line1 in self.strings.split('\n'):
+                            for keyword, variable_name in keywords:
+                                if keyword in line1:
+                                    match = re.search(pattern, line1)
+                                    if match:
+                                        values = match.group(1)
+                                        extracted_values[keyword] = values
+                                        print(f'{keyword.ljust(25)}: {values}') 
+                                        found = True
+                        try:
+                            project_id = extracted_values.get('project_id')
+                            api_key = extracted_values.get('google_api_key')
+                            app_id = extracted_values.get('google_app_id')
+                            firebase_db_url = extracted_values.get('firebase_database_url')
+                            gcm_defaultSenderId = extracted_values.get('gcm_defaultSenderId')
+                            google_storage_bucket = extracted_values.get('google_storage_bucket')
 
-                        firebase_config = {
-                            "project_info": {
-                                "project_number": gcm_defaultSenderId,
-                                    "firebase_url": firebase_db_url,
-                                    "project_id": project_id,
-                                    "storage_bucket": google_storage_bucket
-                                },
-                                "client": [
-                                    {
-                                        "client_info": {
-                                            "mobilesdk_app_id": app_id,
-                                            "android_client_info": {
-                                                "package_name": self.package
-                                            }
-                                        },
-                                        "oauth_client": [],
-                                        "api_key": [
-                                            {
-                                                "current_key": api_key
-                                            }
-                                        ],
-                                        "services": {
-                                            "appinvite_service": {
-                                                "other_platform_oauth_client": []
+                            firebase_config = {
+                                "project_info": {
+                                    "project_number": gcm_defaultSenderId,
+                                        "firebase_url": firebase_db_url,
+                                        "project_id": project_id,
+                                        "storage_bucket": google_storage_bucket
+                                    },
+                                    "client": [
+                                        {
+                                            "client_info": {
+                                                "mobilesdk_app_id": app_id,
+                                                "android_client_info": {
+                                                    "package_name": self.package
+                                                }
+                                            },
+                                            "oauth_client": [],
+                                            "api_key": [
+                                                {
+                                                    "current_key": api_key
+                                                }
+                                            ],
+                                            "services": {
+                                                "appinvite_service": {
+                                                    "other_platform_oauth_client": []
+                                                }
                                             }
                                         }
-                                    }
-                                ],
-                                "configuration_version": "1"
-                            }
-                        logger.info(f"Firebase configuration:\n")
-                        print(json.dumps(firebase_config, indent=2))
-                        if project_id and api_key and app_id:
-                            logger.info('[+] Trying to fetch Firebase remote configuration....')
+                                    ],
+                                    "configuration_version": "1"
+                                }
+                            logger.info(f"Firebase configuration:\n")
+                            print(json.dumps(firebase_config, indent=2))
+                            if project_id and api_key and app_id:
+                                logger.info('[+] Trying to fetch Firebase remote configuration....')
 
-                            url = f'https://firebaseremoteconfig.googleapis.com/v1/projects/{project_id}/namespaces/firebase:fetch?key={api_key}'
-                            json_data = {
-                                "appId": app_id,
-                                "appInstanceId": "PROD"
-                            }
+                                url = f'https://firebaseremoteconfig.googleapis.com/v1/projects/{project_id}/namespaces/firebase:fetch?key={api_key}'
+                                json_data = {
+                                    "appId": app_id,
+                                    "appInstanceId": "PROD"
+                                }
 
-                            response = requests.post(url, json=json_data)
-                            print("Status Code:", response.status_code)
+                                response = requests.post(url, json=json_data)
+                                print("Status Code:", response.status_code)
 
-                            try:
+                                try:
+                                    print("Response Body:\n",json.dumps(response.json(), indent=4))
+                                except ValueError:
+                                    print("Response Body is not JSON:", response.text)
+                            
+                            else:
+                                logger.warning("Missing required values: project_id, google_api_key, or google_app_id.")
+                            if firebase_db_url:
+                                logger.info('[+] Checking for Firebase db misconfiguration....')
+                                response = requests.get(firebase_db_url+"/.json")
                                 print("Response Body:\n",json.dumps(response.json(), indent=4))
-                            except ValueError:
-                                print("Response Body is not JSON:", response.text)
-                        
-                        else:
-                            logger.warning("Missing required values: project_id, google_api_key, or google_app_id.")
-                        if firebase_db_url:
-                            logger.info('[+] Checking for Firebase db misconfiguration....')
-                            response = requests.get(firebase_db_url+"/.json")
-                            print("Response Body:\n",json.dumps(response.json(), indent=4))
-                
-
-                    except Exception as e:
-                        logger.error(f"Error fetching Firebase remote configuration: {e}")
                     
-                    if not found:
-                        logger.info(f'Nothing interesting !')
+
+                        except Exception as e:
+                            logger.error(f"Error fetching Firebase remote configuration: {e}")
+                        
+                        if not found:
+                            logger.info(f'Nothing interesting !')
                 else:
                     logger.info(
                         'Usage: show [activities, activityAlias, applications, database, deeplinks, exposure, info, intentFilters, manifest, permissions, providers, receivers, services, strings]')

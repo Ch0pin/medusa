@@ -6,8 +6,14 @@
 				console.log('\\n--------Fragments Get/Init Arguments by @Ch0pin--------------');
 
             {
-                try {    
-                        let hook_1694084398 = Java.use('androidx.fragment.app.Fragment');
+            
+                        let hook_1694084398;
+                        try {
+                            hook_1694084398 = Java.use('androidx.fragment.app.Fragment');
+                        } catch (e) {
+                            hook_1694084398 = Java.use('androidx.appcompat.app.AppCompatDialogFragment');
+                        }
+
 
                         hook_1694084398.getArguments.implementation = function(){
 
@@ -62,10 +68,7 @@
                                 return retval;
                             }              
                         }
-            }
-                catch (e) {
-                    console.log(e);
-            }
+        
         }
 
 "}

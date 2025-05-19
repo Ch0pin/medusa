@@ -1,5 +1,5 @@
-frida
-frida-tools
+frida==16.7.19
+frida-tools==13.7.1
 androguard
 requests
 apkInspector

@@ -1207,7 +1207,7 @@ class Parser(cmd2.Cmd):
                     get_pid = re.findall(pattern, option)
                     self.run_frida(False, False, '', self.device, get_pid[0], host, port)
                 elif flag == '-t':
-                    pid = self.device.get_frontmost_application().epid
+                    pid = self.device.get_frontmost_application().pid
                     self.run_frida(False, False, "", self.device, pid, host, port)
                 else:
                     self.run_frida(False, False, line, self.device, -1, host, port)

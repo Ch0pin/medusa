@@ -9,7 +9,7 @@ var requestHeaders = "";
 var requestBody = "";
 var responseHeaders = "";
 var responseBody = "";
-var filterKeyWords = ['fragment', 'browser', 'dest', 'url', 'path', 'uri', 'page', 'attachment', 'file', 'dir', 'http', 'navigat', 'link', 'redir', 'web', 'intent', 'html', 'domain', 'af_dp', 'next',
+var filterKeyWords = ['deep_link_value', 'fragment', 'deep_link', 'browser', 'dest', 'url', 'path', 'uri', 'page', 'attachment', 'file', 'dir', 'http', 'navigat', 'link', 'redir', 'web', 'intent', 'html', 'domain', 'af_dp', 'next',
   'target', 'go', 'continue', 'route'
 ];
 

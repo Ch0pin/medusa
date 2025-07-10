@@ -13,6 +13,7 @@ import time
 import traceback
 from urllib.parse import urlparse
 from typing import Optional, Union
+from packaging.version import  parse as parse_version, Version
 
 # Third-party imports
 import cmd2
@@ -211,7 +212,15 @@ class Parser(cmd2.Cmd):
             # with open(os.path.join(self.base_directory, 'libraries', js'utils.js'), 'r') as file:
             #     header = file.read()
             js_directory = os.path.join(self.base_directory, 'libraries', 'js')
-            js_files = ['globals.js', 'beautifiers.js', 'utils.js', 'android_core.js']
+            
+            try:
+                installed = parse_version(frida.__version__)
+            except AttributeError:
+                installed = Version("0.0.0")
+            js_files = ["frida_java_bridge.js"] if installed >= Version("17.0.0") else []
+            js_files += ["globals.js", "beautifiers.js", "utils.js", "android_core.js"]
+
+
             for filename in js_files:
                 js_file_path = os.path.join(js_directory, filename)
 
@@ -558,7 +567,6 @@ class Parser(cmd2.Cmd):
                         - clear                     : Clear the screen
                         - shell                     : Open an interactive shell
                 ----------------------------------------------------------------------------------------------------
-                        - dump [package_name]       : Dump the requested package name (works for most unpackers)
                         - list [-a, -s, -3]         : List all, system or 3rd party packages
                         - list 'package_name' path  : List data/app paths of 3rd party packages
                         - loaddevice                : Load or reload a device

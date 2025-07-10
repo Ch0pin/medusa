@@ -29,4 +29,8 @@ Module.getSymbolByName = function(libname, symbolName) {
     return Process.getModuleByName(libname).getSymbolByName(symbolName);
 };
 
+Module.enumerateExports = function(libname) {
+    return Process.getModuleByName(libname).enumerateExports();
+};
+
 //----------------------End of frida_Module_bridge-------------------------------------

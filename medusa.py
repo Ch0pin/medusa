@@ -212,12 +212,12 @@ class Parser(cmd2.Cmd):
             # with open(os.path.join(self.base_directory, 'libraries', js'utils.js'), 'r') as file:
             #     header = file.read()
             js_directory = os.path.join(self.base_directory, 'libraries', 'js')
-            
+
             try:
                 installed = parse_version(frida.__version__)
             except AttributeError:
                 installed = Version("0.0.0")
-            js_files = ["frida_java_bridge.js"] if installed >= Version("17.0.0") else []
+            js_files = ["frida_java_bridge.js", "frida_module_bridge.js"] if installed >= Version("17.0.0") else []
             js_files += ["globals.js", "beautifiers.js", "utils.js", "android_core.js"]
 
 

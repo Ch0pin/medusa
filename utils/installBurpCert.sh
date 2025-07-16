@@ -10,7 +10,7 @@ curl --proxy http://127.0.0.1:8080 -o burp.der http://burp/cert  \
 && openssl x509 -inform DER -outform PEM -text -in burp.der -out burp.pem \
 && cp burp.der $(openssl x509 -inform PEM -subject_hash_old -in burp.pem | head -1).0 \
 && adb -s $1 root \
-&& adb -s $1 push $(openssl x509 -inform PEM -subject_hash_old -in burp.pem | head -1).0 /sdcard/burp.cer \
+&& adb -s $1 push $(openssl x509 -inform PEM -subject_hash_old -in burp.pem | head -1).0 /sdcard/ \
 && rm $(openssl x509 -inform PEM -subject_hash_old -in burp.pem | head -1).0 \
 && rm burp.pem \
 && rm burp.der \

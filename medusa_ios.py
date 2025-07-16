@@ -12,6 +12,7 @@ import subprocess
 import sys
 import time
 from urllib.parse import urlparse
+from packaging.version import  parse as parse_version, Version
 
 # Third-party imports
 import click
@@ -134,11 +135,16 @@ class Parser(cmd2.Cmd):
         """
         try:
             hooks = []
-            jni_prolog_added = False
-            # with open(os.path.join(self.base_directory, 'libraries', js'utils.js'), 'r') as file:
-            #     header = file.read()
+      
             js_directory = os.path.join(self.base_directory, 'libraries', 'js')
-            js_files = ['globals.js', 'beautifiers.js', 'utils.js', 'ios_core.js']
+            
+            try:
+                installed = parse_version(frida.__version__)
+            except AttributeError:
+                installed = Version("0.0.0")
+            js_files = ["frida_objc_bridge.js", "frida_module_bridge.js"] if installed >= Version("17.0.0") else []
+            js_files += ["globals.js", "beautifiers.js", "utils.js", "ios_core.js"]
+
             for filename in js_files:
                 js_file_path = os.path.join(js_directory, filename)
 

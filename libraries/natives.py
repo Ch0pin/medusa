@@ -127,7 +127,7 @@ class nativeHandler:
             if pid == '':
                 print("[+] Could not find process with this name.")
             else:
-                session = self.device.attach(package)
+                session = self.device.attach(int(pid))
                 script = session.create_script(scriptContent)
                 print("loading script...")
                 script.on('message', self.on_message)

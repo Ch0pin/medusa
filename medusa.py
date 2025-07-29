@@ -21,6 +21,7 @@ import click
 import frida
 import requests
 import yaml
+from lamda.client import *
 from pick import pick
 
 # Local application/library specific imports
@@ -53,7 +54,6 @@ medusa_logo="""
                                     
  🪼 Type help for options 🪼 \n\n
 """
-
 class Parser(cmd2.Cmd):
     base_directory = os.path.dirname(__file__)
     snippets = []
@@ -1184,7 +1184,14 @@ class Parser(cmd2.Cmd):
         try:
             if not self.interactive:
                 self.do_compile(line)
-                self.run_frida_n_interactive(True, False, line.arg_list[1], self.device, -1, '', '')
+                # Handle --host argument for non-interactive mode
+                flags = line.arg_list
+                host, port = '', ''
+                if '--host' in flags:
+                    host_index = flags.index('--host')
+                    if host_index + 1 < len(flags):
+                        host, port = flags[host_index + 1].split(':')
+                self.run_frida_n_interactive(True, False, line.arg_list[1], self.device, -1, host, port)
                 return
             
             if self.modified:
@@ -1865,9 +1872,17 @@ Apk Directory: {packageCodePath}\n""" + RESET)
 
     def run_frida_n_interactive(self, force, detached, package_name, device, pid=-1, host='', port='') -> None:
         if host != '' and port != '':
-            device = frida.get_device_manager() \
-                .add_remote_device(f'{host}:{port}')
-            print(f'Using device:{device}')
+            if port == '65000':
+                # Use custom Device class for token authentication
+                d = Device(host)
+                token = d._get_session_token()
+                device = frida.get_device_manager() \
+                    .add_remote_device(f'{host}:{port}', token=token)
+                print(f'Using device:{device} with token authentication')
+            else:
+                device = frida.get_device_manager() \
+                    .add_remote_device(f'{host}:{port}')
+                print(f'Using device:{device}')
         recording = package_name+'-'+str(int(time.time()))+'.mp4'
         os.popen(f"adb -s {self.device.id} shell screenrecord /sdcard/{recording} --time-limit {self.time_to_run}")
         self.detached = False
@@ -1910,9 +1925,17 @@ Apk Directory: {packageCodePath}\n""" + RESET)
 
     def run_frida(self, force, detached, package_name, device, pid=-1, host='', port='') -> None:
         if host != '' and port != '':
-            device = frida.get_device_manager() \
-                .add_remote_device(f'{host}:{port}')
-            print(f'Using device:{device}')
+            if port == '65000':
+                # Use custom Device class for token authentication
+                d = Device(host)
+                token = d._get_session_token()
+                device = frida.get_device_manager() \
+                    .add_remote_device(f'{host}:{port}', token=token)
+                print(f'Using device:{device} with token authentication')
+            else:
+                device = frida.get_device_manager() \
+                    .add_remote_device(f'{host}:{port}')
+                print(f'Using device:{device}')
 
         in_session_menu = WHITE + '(in-session)' + GREEN + ' type ' + YELLOW + '?' + GREEN + ' for options' + WHITE + ':➤' + RESET
         creation_time = modified_time = None

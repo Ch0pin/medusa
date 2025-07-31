@@ -388,13 +388,33 @@ class Parser(cmd2.Cmd):
         Print the value of a class's field 
         Usage: get package_name full.path.to.class.field
         """
+        js_directory = os.path.join(self.base_directory, 'libraries', 'js')
+        codeJs = ""
+
         try:
-            package_name = line.arg_list[0]
-            class_field_path = line.arg_list[1]
-            field = class_field_path.split('.')[-1]
-            clazz = '.'.join(class_field_path.split('.')[:-1])
+            installed = parse_version(frida.__version__)
+        except AttributeError:
+            installed = Version("0.0.0")
+        
+        if installed >= Version("17.0.0"):
+            java_bridge_file = os.path.join(js_directory, "frida_java_bridge.js")
+            with open(java_bridge_file, 'r') as file:
+                codeJs = file.read()
+        
+        args = line.arg_list
+        if len(args) < 2:
+            logger.info("Usage: get package_name full.path.to.class.field")
+            return
+
+        try:
+            package_name = args[0]
+            class_field_path = args[1]
+            parts = class_field_path.rsplit('.', 1)
+            clazz = parts[0]
+            field = parts[1]
+
             if field == '*':
-                codeJs = """
+                codeJs += """
                 Java.perform(function() { 
                         try {
                             var jClass = Java.use('""" + clazz + """');
@@ -415,7 +435,7 @@ class Parser(cmd2.Cmd):
                         });
                         """
             else:
-                codeJs = """
+                codeJs += """
                 Java.perform(function() { 
                     var jClass = Java.use('""" + clazz + """');
                     Java.choose('""" + clazz + """', {
@@ -460,7 +480,7 @@ class Parser(cmd2.Cmd):
 
             session = self.frida_session_handler(self.device, False, package_name)
             if session is None:
-                print("[!] Can't create session for the given package name. Is it running ?")
+                logger.error("Can't create session for the given package name. Is it running ?")
 
             script = session.create_script(codeJs)
             session.on('detached', self.on_detached)
@@ -469,7 +489,7 @@ class Parser(cmd2.Cmd):
             if script:
                 script.unload()
         except Exception as e:
-            print(e)
+            logger.error(e)
 
     def do_man(self, line) -> None:
         """

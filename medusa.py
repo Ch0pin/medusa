@@ -14,6 +14,7 @@ import traceback
 from urllib.parse import urlparse
 from typing import Optional, Union
 from packaging.version import  parse as parse_version, Version
+from pathlib import Path
 
 # Third-party imports
 import cmd2
@@ -388,18 +389,8 @@ class Parser(cmd2.Cmd):
         Print the value of a class's field 
         Usage: get package_name full.path.to.class.field
         """
-        js_directory = os.path.join(self.base_directory, 'libraries', 'js')
-        codeJs = ""
 
-        try:
-            installed = parse_version(frida.__version__)
-        except AttributeError:
-            installed = Version("0.0.0")
-        
-        if installed >= Version("17.0.0"):
-            java_bridge_file = os.path.join(js_directory, "frida_java_bridge.js")
-            with open(java_bridge_file, 'r') as file:
-                codeJs = file.read()
+        codeJs = self.add_js_bridge_if_needed()
         
         args = line.arg_list
         if len(args) < 2:
@@ -477,7 +468,7 @@ class Parser(cmd2.Cmd):
         });
                     """
             self.detached = False
-
+            print(codeJs)
             session = self.frida_session_handler(self.device, False, package_name)
             if session is None:
                 logger.error("Can't create session for the given package name. Is it running ?")
@@ -1545,6 +1536,23 @@ class Parser(cmd2.Cmd):
 
     ###################################################### implementations start ############################################################
 
+    def add_js_bridge_if_needed(self) -> Optional[str]:
+        """
+        Return the JS bridge code if frida >= 17.0.0 and the file exists, else None.
+        """
+        js_directory = Path(self.base_directory) / "libraries" / "js"
+        bridge_path = js_directory / "frida_java_bridge.js"
+
+        installed = parse_version(getattr(frida, "__version__", "0.0.0"))
+
+        if installed < Version("17.0.0"):
+            return ""
+        try:
+            return bridge_path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            logger.warning(f"Bridge file not found: {bridge_path}")
+            return ""
+
     def check_using_vt(self, hosts, vtkey):
         vt_address = 'https://www.virustotal.com/api/v3/domains/'
         if os.path.isfile(vtkey):
@@ -1859,10 +1867,19 @@ catch (err) {
         self.detached = True
 
     def prepare_native(self, operation) -> None:
-        with open(os.path.join(self.base_directory, 'libraries/native.med'), 'r') as file:
-            script = file.read() + 'Java.perform(function() {\n' + operation + ' \n});'
-        with open(os.path.join(self.base_directory, 'libraries/js/native.js'), 'w') as file:
-            file.write(script)
+
+        med_path = os.path.join(self.base_directory, "libraries", "native.med")
+        out_path = os.path.join(self.base_directory, "libraries", "js", "native.js")
+        
+        script = self.add_js_bridge_if_needed()
+        with open(med_path, "r", encoding="utf-8") as f:
+            template = f.read()
+
+        op = "" if operation is None else str(operation)
+        script += template + "Java.perform(function() {\n" + op + "\n});"
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(script)
+
 
     def print_app_info(self) -> None:
         if self.app_info:

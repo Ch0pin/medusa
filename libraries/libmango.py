@@ -985,6 +985,7 @@ $adb remount
         """Usage: show [applications | database | exposure | info | manifest_entry | manifest ]
         - applications: prints the currently loaded applications and allows you to load another one
         - secrets: prints the application's secrets (API keys, passwords etc.)
+          Addding the '-v' flag the command will print only vulnerable secrets. 
         - database: prints the structure of the loaded database
         - exposure: prints the application's exposure points (exported activities, services, deeplinks etc.)
           Adding the '-v' flag the command will print additional info, including potential firebase configuration, 
@@ -1022,7 +1023,10 @@ $adb remount
 
                 elif 'secrets' in what:
                     self.init_application_info(self.database, self.current_app_sha256)
-                    self.print_secrets()
+                    if '-v' in flag:
+                        self.print_secrets(True)
+                    else:
+                        self.print_secrets()
 
                 elif 'services' in what:
                     if '-e' in flag:
@@ -1693,32 +1697,74 @@ $adb remount
         finally:
             print(Style.RESET_ALL)
 
-    def print_secrets(self):
+    def print_secrets(self, verified_only=False):
         try:
             logger.info("[+] Secrets stored:")
-            
+
             if not self.secrets or not self.secrets[0]:
                 logger.info("No secrets found!")
                 return
-            
-            json_string = self.secrets[0][2]              
-            if not json_string.strip():
+
+            json_string = self.secrets[0][2]
+            if not json_string or not json_string.strip():
                 logger.info("No secrets found!")
                 return
-            
+
             json_secrets = json.loads(json_string)
-            
+
+            def fmt_value(v, indent=2):
+                # Pretty print dicts/lists; leave scalars as-is
+                if isinstance(v, (dict, list)):
+                    return json.dumps(v, indent=indent, ensure_ascii=False)
+                return str(v)
+
+            # Preferred field order, then fall back to any other fields present
+            key_order = [
+                "DetectorName", "DetectorDescription", "DecoderName", "Verified",
+                "Raw", "File", "Line", "ExtraData", "StructuredData"
+            ]
+            key_width = 20  # left column width
+
             if isinstance(json_secrets, list):
                 for secret in json_secrets:
-                    if isinstance(secret, dict):
-                        for key, value in secret.items():
-                            print(f"{key}: {value}")
-                        print()  # Add a blank line between secrets
-                    else:
+                    if not isinstance(secret, dict):
                         logger.warning(f"Unexpected secret format: {secret}")
+                        continue
+
+                    if verified_only and not secret.get("Verified", False):
+                        continue
+
+                    verified = bool(secret.get("Verified"))
+                    header = "🐷 VERIFIED SECRET " if verified else "🐷 UNVERIFIED SECRET "
+                    bar = "=" * max(40, len(header) + 8)
+
+                    if verified:
+                        print(f"{Back.GREEN}{Fore.BLACK}{header}{Style.RESET_ALL}")
+                    else:
+                        print(f"{Back.RED}{Fore.BLACK}{header}{Style.RESET_ALL}")
+
+                    # Print fields in order, then any remaining fields
+                    printed = set()
+                    for key in key_order + [k for k in secret.keys() if k not in key_order]:
+                        if key not in secret:
+                            continue
+                        printed.add(key)
+                        val = fmt_value(secret[key])
+                        # Align, color keys, and handle multi-line values
+                        key_str = f"{Fore.CYAN}{key:<{key_width}}{Style.RESET_ALL}"
+                        if "\n" in val:
+                            first, *rest = val.splitlines()
+                            print(f"{key_str}: {Fore.WHITE}{first}{Style.RESET_ALL}")
+                            for line in rest:
+                                print(f"{' ' * (key_width + 2)}{Fore.WHITE}{line}{Style.RESET_ALL}")
+                        else:
+                            print(f"{key_str}: {Fore.WHITE}{val}{Style.RESET_ALL}")
+
+                    print(f"{Fore.BLACK}{bar}{Style.RESET_ALL}")
+
             else:
                 logger.warning("Secrets are not in the expected list format.")
-        
+
         except json.JSONDecodeError as jde:
             logger.error(f"Failed to decode secrets JSON: {jde}")
         except Exception as e:

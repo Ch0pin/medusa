@@ -235,62 +235,89 @@ class Guava:
             receiver_attribs = (sha256, receivername, enabled, exported, permission, process)
             self.application_database.update_receivers(receiver_attribs)
 
-    def fill_secrets(self, apkfile, sha256):
+    def fill_secrets(self, apkfile: str, sha256: str):
         logger.info(f"Extracting secrets in the background: {apkfile} (sha256: {sha256})")
         try:
-
-            result = subprocess.run(
-                ["trufflehog", "filesystem", apkfile],
+            proc = subprocess.Popen(
+                ["trufflehog", "filesystem", apkfile, "-j"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
+                bufsize=1
             )
-            output = result.stdout
 
-            pattern = (
-                r"Found unverified result 🐷🔑❓(?:\nVerification issue: (.+))?\n"  
-                r"Detector Type: (.+)\n"
-                r"Decoder Type: (.+)\n"
-                r"Raw result: (.+?)(?=\nFile:|\Z)"  
-                r"\nFile: (.+)\n"
-                r"Line: (\d+)"
-            )
-            ansi_escape = re.compile(r'\x1b\[.*?m')
-            clean_output = ansi_escape.sub('', output)
-
-            matches = re.findall(pattern, clean_output, re.DOTALL)
             entries = []
+            seen = set()
 
-            for match in matches:
-                verification_issue = match[0] if match[0] else None  
-                detector_type = match[1]
-                decoder_type = match[2]
-                raw_result = match[3].strip() 
-                file = match[4]
-                line = int(match[5])
+            assert proc.stdout is not None
+            for line in proc.stdout:
+                line = line.strip()
+                if not line:
+                    continue
 
+                try:
+                    obj = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+
+                # Skip log-only lines
+                if "DetectorName" not in obj:
+                    continue
+
+                # Extract file/line if available
+                file_path = None
+                line_no = None
+                try:
+                    fs = obj.get("SourceMetadata", {}).get("Data", {}).get("Filesystem", {})
+                    file_path = fs.get("file")
+                    line_no = fs.get("line")
+                except Exception:
+                    pass
+
+                # Prefer RawV2 if non-empty, else Raw
+                raw_val = obj.get("RawV2") or obj.get("Raw")
+
+                # Deduplicate by unique signature
+                dedupe_key = (obj.get("DetectorName"), raw_val, file_path, line_no)
+                if dedupe_key in seen:
+                    continue
+                seen.add(dedupe_key)
+
+                # Build entry
                 entry = {
-                    "unverified": True,
-                    "detector_type": detector_type,
-                    "decoder_type": decoder_type,
-                    "raw_result": raw_result,
-                    "file": file,
-                    "line": line,
+                    "DetectorName": obj.get("DetectorName"),
+                    "DetectorDescription": obj.get("DetectorDescription"),
+                    "DecoderName": obj.get("DecoderName"),
+                    "Verified": obj.get("Verified", False),
+                    "Raw": raw_val,
+                    "File": file_path,
+                    "Line": line_no
                 }
 
-                if verification_issue:
-                    entry["verification_issue"] = verification_issue
-                
+                # Include ExtraData if not null/empty
+                extra_data = obj.get("ExtraData")
+                if extra_data:
+                    entry["ExtraData"] = extra_data
+
+                # Include StructuredData if not null
+                structured_data = obj.get("StructuredData")
+                if structured_data:
+                    entry["StructuredData"] = structured_data
+
                 entries.append(entry)
 
-            secret = json.dumps(entries, indent=4)
+            # Finish reading process
+            _, stderr_data = proc.communicate()
+            if proc.returncode not in (0, 2):
+                logger.warning(f"trufflehog exit code {proc.returncode}. stderr: {stderr_data.strip()}")
 
-            self.application_database.insert_secret((sha256, secret))
-            logger.info(f"Secrets extracted from {apkfile} (sha256: {sha256}).")     
+            # Store results in DB
+            secret_json = json.dumps(entries, indent=2, ensure_ascii=False)
+            self.application_database.insert_secret((sha256, secret_json))
+            logger.info(f"Secrets extracted from {apkfile} (sha256: {sha256}). Found {len(entries)} entries.")
 
         except Exception as e:
-            secret = ""
-            self.application_database.insert_secret((sha256, secret))
+            self.application_database.insert_secret((sha256, ""))
             logger.error(f"Error extracting secrets from {apkfile} (sha256: {sha256}): {e}")
 
     def fill_services(self, application, sha256):

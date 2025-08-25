@@ -1769,6 +1769,10 @@ $adb remount
             logger.error(f"Failed to decode secrets JSON: {jde}")
         except Exception as e:
             logger.error(f"An error occurred while printing secrets: {e}")
+    
+    def print_strings(self):
+        for string in self.strings.split('\n'):
+            print(string)
 
     ###################################################### real defs start ############################################################
 

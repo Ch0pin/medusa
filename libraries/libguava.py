@@ -248,6 +248,7 @@ class Guava:
 
             entries = []
             seen = set()
+            verified = 0
 
             assert proc.stdout is not None
             for line in proc.stdout:
@@ -294,6 +295,9 @@ class Guava:
                     "Line": line_no
                 }
 
+                if obj.get("Verified", False):
+                    verified += 1
+
                 # Include ExtraData if not null/empty
                 extra_data = obj.get("ExtraData")
                 if extra_data:
@@ -314,7 +318,7 @@ class Guava:
             # Store results in DB
             secret_json = json.dumps(entries, indent=2, ensure_ascii=False)
             self.application_database.insert_secret((sha256, secret_json))
-            logger.info(f"Secrets extracted from {apkfile} (sha256: {sha256}). Found {len(entries)} entries.")
+            logger.info(f"Secrets extracted from {apkfile} (sha256: {sha256}). Found {len(entries)} entries ({verified} verified).")
 
         except Exception as e:
             self.application_database.insert_secret((sha256, ""))

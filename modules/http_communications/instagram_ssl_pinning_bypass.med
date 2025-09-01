@@ -1,55 +1,48 @@
 {
     "Name": "http_communications/instagram_ssl_pinning_bypass",
     "Description": "Bypass Instagram SSL pinning on Android devices.",
-    "Help": "Supported ABIs: x86, x86_64, armeabi-v7a, arm64-v8a, Latest version: v275.0.0.27.98",
+    "Help": "Supported ABIs: x86, x86_64, armeabi-v7a, arm64-v8a, Latest version: v361.0.0.46.88",
     "Code": "
     
     console.log('\\n[+] loading -------Instagram SSL Pinning Bypass by @eltimusa4 (https://github.com/Eltion/Instagram-SSL-Pinning-Bypass) -------+\\n')
 
 {
-    'use strict'
+   'use strict'
 
-    //https://github.com/Eltion/Instagram-SSL-Pinning-Bypass/issues/19
-    function disableHTTP3() {
+    function disableTigon() {
         try {
             Java.perform(() => {
-                const File = Java.use('java.io.File');
-                const ActivityThread = Java.use('android.app.ActivityThread');
-                Java.scheduleOnMainThread(() => {
-                    var context = ActivityThread.currentApplication().getApplicationContext();
-                    const mobileconfigDir = context.getFilesDir().getAbsolutePath().toString() + '/mobileconfig';
-                    const dir = File.$new(mobileconfigDir);
-                    for (const session of dir.listFiles()) {
-                        if (/\\d+\\.data$/.test(session.getAbsolutePath())) {
-                            if (session.listFiles().length > 0)
-                                logger('[*][+] Deleting config files to disable HTTP3. Restart App.')
-                            for (const conf of session.listFiles()) {
-                                conf.delete();
-                            }
-                        }
-                    }
-                });
+                let IGTigonConfig = Java.use('com.instagram.service.tigon.configs.IGTigonConfig');
+                IGTigonConfig.$init.implementation = function() {
+                    this.$init();
+                    this.isTigonEnabled.value = false;
+                    this.isMnsEnabled.value = false;
+                    logger('[*][+] Disable tigon')
+                };
             });
+            logger('[*][+] Hooked to IGTigonConfig.$init')
         } catch (e) {
-            logger('[*][-] Failed to disable HTTP/3')
+            logger('[*][-] Failed to IGTigonConfig.$init')
         }
     }
 
-
     function hook_proxygen_SSLVerification(library) {
-        const functionName = '_ZN8proxygen15SSLVerification17verifyWithMetricsEbP17x509_store_ctx_stRKNSt6__ndk112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEPNS0_31SSLFailureVerificationCallbacksEPNS0_31SSLSuccessVerificationCallbacksERKNS_15TimeUtilGenericINS3_6chrono12steady_clockEEERNS_10TraceEventE';
+        const verifyFunction = library.enumerateExports().find(el => el.name.includes('verifyWithMetrics'));
+
+        if (!verifyFunction) {
+            logger(`[*][-] Failed to find verifyWithMetrics function`);
+            return;
+        }
 
         try {
-            const f = Module.getExportByName(library.name, functionName);
-
-            Interceptor.attach(f, {
-                onLeave: function (retvalue) {
+            Interceptor.attach(verifyFunction.address, {
+                onLeave: function(retvalue) {
                     retvalue.replace(1);
                 }
             });
-            logger(`[*][+] Hooked function: ${functionName}`);
+            logger(`[*][+] Hooked function: ${verifyFunction.name}`);
         } catch (err) {
-            logger(`[*][-] Failed to hook function: ${functionName}`);
+            logger(`[*][-] Failed to hook function: ${verifyFunction.name}`);
             logger(err.toString())
         }
     }
@@ -68,40 +61,40 @@
 
     function logger(message) {
         console.log(message);
-        Java.perform(function () {
+        Java.perform(function() {
             var Log = Java.use('android.util.Log');
             Log.v('INSTAGRAM_SSL_PINNING_BYPASS', message);
         });
     }
 
 
-    logger('[*][*] Waiting for libliger...');
-    waitForModule('libliger.so').then((lib) => {
-        logger(`[*][+] Found libliger at: ${lib.base}`)
+    logger('[*][*] Waiting for libstartup.so...');
+    waitForModule('libstartup.so').then((lib) => {
+        logger(`[*][+] Found libstartup.so at: ${lib.base}`)
         hook_proxygen_SSLVerification(lib);
     });
 
-    //disableHTTP3();
+    disableTigon();
     //Universal Android SSL Pinning Bypass #2
-    Java.perform(function () {
+    Java.perform(function() {
         try {
             var array_list = Java.use('java.util.ArrayList');
             var ApiClient = Java.use('com.android.org.conscrypt.TrustManagerImpl');
             if (ApiClient.checkTrustedRecursive) {
                 logger('[*][+] Hooked checkTrustedRecursive')
-                ApiClient.checkTrustedRecursive.implementation = function (a1, a2, a3, a4, a5, a6) {
+                ApiClient.checkTrustedRecursive.implementation = function(a1, a2, a3, a4, a5, a6) {
                     var k = array_list.$new();
                     return k;
                 }
             } else {
                 logger('[*][-] checkTrustedRecursive not Found')
             }
-        } catch(e) {
+        } catch (e) {
             logger('[*][-] Failed to hook checkTrustedRecursive')
         }
     });
 
-    Java.perform(function () {
+    Java.perform(function() {
         try {
             const x509TrustManager = Java.use('javax.net.ssl.X509TrustManager');
             const sSLContext = Java.use('javax.net.ssl.SSLContext');
@@ -116,12 +109,12 @@
                         return [];
                     },
                 },
-                name: 'com.leftenter.tiktok',
+                name: 'com.leftenter.instagram',
             });
             const TrustManagers = [TrustManager.$new()];
             const SSLContextInit = sSLContext.init.overload(
                 '[Ljavax.net.ssl.KeyManager;', '[Ljavax.net.ssl.TrustManager;', 'java.security.SecureRandom');
-            SSLContextInit.implementation = function (keyManager, trustManager, secureRandom) {
+            SSLContextInit.implementation = function(keyManager, trustManager, secureRandom) {
                 SSLContextInit.call(this, keyManager, TrustManagers, secureRandom);
             };
             logger('[*][+] Hooked SSLContextInit')

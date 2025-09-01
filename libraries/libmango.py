@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import time
+import traceback
 from shutil import which
 from typing import List, Optional
 
@@ -486,7 +487,7 @@ class parser(cmd2.Cmd):
                     i = 1
                     for apk in apk_files:
                         print(GREEN + f"[{i}] Importing: {apk}" + RESET)
-                        self.real_import(apk, False)
+                        self.real_import(apk, False, True)
                         i += 1
             except Exception as e:
                 print(e)
@@ -798,13 +799,17 @@ $adb remount
             try:
                 base_apk = os.popen(
                     f"adb -s {self.device.id} shell pm path {package} | grep base.apk | cut -d ':' -f 2").read().strip()
+                if base_apk == '':
+                    base_apk = os.popen(
+                        f"adb -s {self.device.id} shell pm path {package} | cut -d ':' -f 2").read().strip()
+                    
                 command = ["adb", "-s", self.device.id, "pull", base_apk]
                 result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
+                apk_name = os.path.basename(base_apk)
                 if result.returncode == 0:
                     logger.info(f"{base_apk} retrieved successfully !")
                     if Polar('Do you want to import the application?').ask():
-                        self.do_import('base.apk')
+                        self.do_import(apk_name)
                 else:
                     logger.error(result.stderr)
                 # base_apk = os.popen(
@@ -1776,7 +1781,7 @@ $adb remount
 
     ###################################################### real defs start ############################################################
 
-    def real_import(self, apk_file, print_application_info=True):
+    def real_import(self, apk_file, print_application_info=True, skip_secrets=False):
         try:
             sha256 = self.guava.sha256sum(apk_file)
             if self.guava.sha256Exists(sha256):
@@ -1788,12 +1793,13 @@ $adb remount
                     self.guava.full_analysis(apk_file)
                     self.init_application_info(self.database, self.guava.sha256sum(apk_file))
                 else:
-                    self.guava.full_analysis(apk_file, False)
+                    self.guava.full_analysis(apk_file, False, skip_secrets)
                     self.info = self.database.get_app_info(self.guava.sha256sum(apk_file))
                     print(f"Package Name: {self.info[0][2]}")
         except Exception as e:
             print(e)
             print(RED + f"There was an error loading {apk_file}" + RESET)
+            traceback.print_exc() 
 
     def real_load_app(self, chosen_sha256):
         self.init_application_info(self.database, chosen_sha256)

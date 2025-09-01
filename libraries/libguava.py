@@ -194,7 +194,20 @@ class Guava:
                     level = app_declared_permissions[permission]['protectionLevel']
                     if level == 'None': 
                         level = "0x00000000"
-                    entry = (sha256, permission, protection_flags_to_attributes[level], ) + tuple(app_permissions[permission][1:]) 
+                    try:
+                        key = int(level, 0) if isinstance(level, str) else level
+                    except Exception:
+                        key = None
+
+                    attr = protection_flags_to_attributes.get(key) if isinstance(key, int) else None
+                    if attr is None:
+                        attr = protection_flags_to_attributes.get(level)  # try raw string key
+                    if attr is None and isinstance(key, int):
+                        attr = protection_flags_to_attributes.get(key & 0xF)
+                    if attr is None:
+                        attr = f"unknown({level})"
+                    entry = (sha256, permission, attr) + tuple(app_permissions[permission][1:])
+
             if not custom:
                 entry = (sha256, permission,) + tuple(app_permissions[permission])
             self.application_database.update_permissions(entry)
@@ -343,7 +356,7 @@ class Guava:
             service_attribs = (sha256, servicename, enabled, exported, foregroundServiceType, permission, process)
             self.application_database.update_services(service_attribs)
 
-    def full_analysis(self, apkfile, print_info=True):
+    def full_analysis(self, apkfile, print_info=True, skip_secrets=False):
 
         app_sha256 = self.sha256sum(apkfile)
 
@@ -357,7 +370,7 @@ class Guava:
         self.filter_list = {}
         self.fill_application_attributes(apk_r, app_sha256, application, apkfile)
         self.fill_permissions(apk_r, app_sha256)
-        if shutil.which("trufflehog") is None:
+        if shutil.which("trufflehog") is None or skip_secrets:
             logger.warning("trufflehog is not installed. Secrets will not be extracted.")
             self.application_database.insert_secret((app_sha256, ""))
         else:

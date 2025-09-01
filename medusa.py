@@ -1105,7 +1105,7 @@ class Parser(cmd2.Cmd):
 
     def do_redirect(self, line) -> None:
         try:
-            destination_class = input("Destination Activity:")
+            destination_class = input("Initial destination Activity:")
             new_destination_package = input("New destination package name:")
             new_destination_activity_name = input("New destination activity name:")
             base_script = self.base_directory+"/snippets/redirect_intent.js"

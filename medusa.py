@@ -7,6 +7,7 @@ import platform
 import random
 import readline
 import re
+import secrets
 import subprocess
 import sys
 import time
@@ -132,6 +133,11 @@ class Parser(cmd2.Cmd):
 
     def preloop(self):
         self.do_reload("dummy")
+
+        global agent_script
+        agent_script = os.path.join(self.base_directory, f"{secrets.token_hex(8)}_agent_script")
+        with open(agent_script, 'w') as f:
+            pass
 
         parser = argparse.ArgumentParser(
             prog='Medusa',
@@ -349,18 +355,43 @@ class Parser(cmd2.Cmd):
         if self.server:
             self.server.stop()
 
-        agent_path = os.path.join(self.base_directory, agent_script)
-        scratchpad_path = os.path.join(self.base_directory, scratchpad_module)
+        if Polar('Do you want to save the current setup before exiting ?').ask():
+            while True:
+                filename = input('Enter the filename to save the current setup: ')
+                if not filename:
+                    logger.warning('No filename provided. Exiting without saving.')
+                    break
 
-        if os.path.getsize(agent_path) != 0:
-            if Polar('Do you want to reset the agent script?').ask():
-                open(os.path.join(self.base_directory, agent_script), 'w').close()
+                if os.path.exists(filename):
+                    logger.warning(f'File {filename} already exists.')
+                    if Polar(f'Do you want to enter a different filename? ').ask():
+                        continue
+                    else:
+                        logger.info('Exiting without saving.')
+                else:
+                    self.do_export(filename)
+                    break
+        if Polar(f'Do you want to keep the agent script at "{agent_script}" ?').ask():
+            logger.info("Agent script kept.")
+        else:
+            try:
+                os.remove(agent_script)
+                logger.info(f"Agent script deleted: {agent_script}")
+            except OSError as e:
+                logger.error(f"Failed to delete agent script: {e}")
 
-        if os.path.getsize(scratchpad_path) != 119:
-            if Polar('Do you want to reset the scratchpad?').ask():
-                self.edit_scratchpad('')
+        # agent_path = os.path.join(self.base_directory, agent_script)
+        # scratchpad_path = os.path.join(self.base_directory, scratchpad_module)
 
-        print('Bye!!')
+        # if os.path.getsize(agent_path) != 0:
+        #     if Polar('Do you want to reset the agent script?').ask():
+        #         open(os.path.join(self.base_directory, agent_script), 'w').close()
+
+        # if os.path.getsize(scratchpad_path) != 140:
+        #     if Polar('Do you want to reset the scratchpad?').ask():
+        #         self.edit_scratchpad('')
+
+        print('Thank you for using Medusa !!')
         sys.exit()
 
     def do_export(self, line) -> None:
@@ -371,6 +402,10 @@ class Parser(cmd2.Cmd):
         To reload the same list of scripts, type 'medusa -r saved_file'
         """
         try:
+            if os.path.exists(line):
+                if not Polar(f'File {line} already exists, overwrite?').ask():
+                    print("[i] Export cancelled")
+                    return
             with open(line, 'w') as file:
                 for mod in filter(lambda mod: mod.Name != 'scratchpad', self.modManager.staged):
                     file.write('MODULE ' + mod.Name + '\n')
@@ -468,7 +503,6 @@ class Parser(cmd2.Cmd):
         });
                     """
             self.detached = False
-            print(codeJs)
             session = self.frida_session_handler(self.device, False, package_name)
             if session is None:
                 logger.error("Can't create session for the given package name. Is it running ?")

@@ -1,6 +1,11 @@
 import time
 import click
 import os
+import frida
+
+from typing import Optional, Union
+from packaging.version import  parse as parse_version, Version
+from pathlib import Path
 
 RED = "\033[1;31m"
 BLUE = "\033[1;34m"
@@ -42,19 +47,39 @@ class nativeHandler:
         (h)elp:     Display this message
         """)
 
+    def add_js_bridge_if_needed(self) -> Optional[str]:
+        """
+        Return the JS bridge code if frida >= 17.0.0 and the file exists, else None.
+        """
+        js_directory = Path(self.base_directory) / "js"
+        bridge_path = js_directory / "frida_java_bridge.js"
+        modules_path = js_directory / "frida_module_bridge.js"
+
+        installed = parse_version(getattr(frida, "__version__", "0.0.0"))
+
+        if installed < Version("17.0.0"):
+            return ""
+        try:
+            return bridge_path.read_text(encoding="utf-8") + "\n" + modules_path.read_text(encoding="utf-8") + "\n"
+        except FileNotFoundError:
+            print(f"Bridge file not found: {bridge_path}")
+            return ""
+
     # todo add force or attach
     def dump(self, session, lib, free=False, base_address=None, size=None, package_name=''):
         try:
-            path = '.'
+            installed = parse_version(getattr(frida, "__version__", "0.0.0"))
+
             script = session.create_script(open(os.path.dirname(__file__) + "/js/memops.js").read())
             script.load()
             api = script.exports
+            dumper = api.memorydump if installed < Version("17.0.0") else api.memorydump17
+
             if not free:
-                dump_area = api.moduleaddress(lib)
-                for area in dump_area:
-                    bs = api.memorydump(area["addr"], area["size"])
+                for area in api.moduleaddress(lib):
+                    bs = dumper(area["addr"], area["size"])
             else:
-                bs = api.memorydump(base_address, size)
+                bs = dumper(base_address, size)
 
             if package_name == '':
                 print("package name empty")
@@ -151,8 +176,9 @@ class nativeHandler:
             else:
                 print('Usage: memdump package_name base_address size')
                 return
-
-            prolog = 'Java.perform(function () {\n\n'
+            
+            prolog = self.add_js_bridge_if_needed()
+            prolog += 'Java.perform(function () {\n\n'
             if base_addr != '':
                 prolog += 'var size = ' + size + ';\n'
                 prolog += 'var p_foo = ptr(' + base_addr + ');' + """

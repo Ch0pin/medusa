@@ -5,6 +5,11 @@ rpc.exports = {
         var a = Memory.readByteArray(ptr(address),size-1000);
         return a;
     },
+
+    memorydump17: function (address, size) {
+        var a = ptr(address).readByteArray(size-1000);
+        return a;
+    },
     
     moduleaddress: function (lib){
       try{

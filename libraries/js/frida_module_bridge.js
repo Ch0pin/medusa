@@ -33,4 +33,5 @@ Module.enumerateExports = function(libname) {
     return Process.getModuleByName(libname).enumerateExports();
 };
 
+
 //----------------------End of frida_Module_bridge-------------------------------------

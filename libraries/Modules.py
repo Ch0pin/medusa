@@ -1,5 +1,12 @@
 import json
+import logging
 
+from libraries.logging_config import setup_logging
+
+
+logging.getLogger().handlers = []  
+setup_logging() 
+logger = logging.getLogger(__name__)
 
 class Module:
     def __init__(self, fullPath, name, description, useCase, code, options = None):
@@ -28,12 +35,16 @@ class ModuleManager:
         self.categories = set()
 
     def _parseModuleFile(self, modulePath):
-        with open(modulePath, 'r', encoding='utf-8') as mod:
-            contents = json.loads(mod.read(), strict=False)
-        options = contents.get('Options', None)
-        mod = Module(modulePath, contents['Name'], contents['Description'], contents['Help'], contents['Code'], options)
-        self.categories.add(mod.getCategory())
-        return mod
+        try:
+            with open(modulePath, 'r', encoding='utf-8') as mod:
+                contents = json.loads(mod.read(), strict=False)
+            options = contents.get('Options', None)
+            mod = Module(modulePath, contents['Name'], contents['Description'], contents['Help'], contents['Code'], options)
+            self.categories.add(mod.getCategory())
+            return mod
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.warning(f'Error parsing module file {modulePath}: {e}')
+            return None
 
     def add(self, modulePath):
         self.available.append(self._parseModuleFile(modulePath))

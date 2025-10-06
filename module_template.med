@@ -1,0 +1,43 @@
+{
+    "Name": "private_modules/test_mod",
+    "Description": "Use this module to monitor received intents",
+    "Help": "",
+    "Options": [
+        {
+            "name": "option1",
+            "help": "This is the first option",
+            "type": "string",
+            "value": "default1"
+        },
+        {
+            "name": "option2",
+            "help": "This is the second option",
+            "type": "integer",
+            "value": 42
+        },
+        {
+            "name": "option3",
+            "help": "This is the third option",
+            "type": "boolean",
+            "value": true
+        },
+        {
+            "name": "option4",
+            "help": "This is the fourth option",
+            "type": "string",
+            "value": "default4"
+        }
+    ],
+    "Code": "{
+
+//---------------write your code below this line----------------
+    let __option1__ = 'test 1';
+    let __option2__ = 333;
+    let __option3__ = true;
+    let __option4__ = 'test 2';
+
+//---------------write your code above this line----------------
+
+
+   }"
+}

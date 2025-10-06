@@ -4,10 +4,10 @@
     "Help": "This webview Hook monitors calls to basic API functions, displaying information about loaded URLs, JavaScript interfaces, and more.",
     "Options": [
         {
-            "name": "mode",
-            "help": "Set it to 'concise' to reduce noisy JS script dumps. The default value is 'verbose'.",
-            "type": "string",
-            "value": "verbose"
+            "name": "verbose",
+            "help": "Set it to false to reduce noisy JS script dumps. The default value is true.",
+            "type": "boolean",
+            "value": "true"
         }
     ],
     "Code": "
@@ -18,7 +18,7 @@
     var webView = Java.use('android.webkit.WebView');
     var webSettings = Java.use('android.webkit.WebSettings');
 
-    let __mode__ = 'verbose'
+    let __verbose__ = true
 
     let overloadCount_1691770814 = webView['$init'].overloads.length;
     colorLog('\\nTracing ' +'$init' + ' [' + overloadCount_1691770814 + 'overload(s)]',{ c: Color.Green });
@@ -85,7 +85,7 @@
     webView.evaluateJavascript.implementation = function(script, resultCallback){
         colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
         let tmp_output = script;
-        if(__mode__ === 'concise'){
+        if(!__verbose__){
             tmp_output = 'deducted';
         }
         console.log('[i] evaluateJavascript called with the following script: '+tmp_output);

@@ -84,9 +84,9 @@ pip install git+https://github.com/ludwigschwardt/python-gnureadline.git@8474e55
 - [Memory inspection with Medusa](https://www.youtube.com/watch?v=odt21wiUugQ)
 - [Bypassing root detection](https://twitter.com/ch0pin/status/1381216805683924994)
 
-Medusa consists of two main scripts: **medusa.py** and **mango.py**:
+## Quick start
 
-## Using medusa.py
+### Using medusa.py
 
 The main idea behind MEDUSA is to be able to add or remove hooks for Java or Native methods in a large scale while keeping the process simple and effective. MEDUSA has **more than** **90** modules which can be combined, each one of them dedicated to a set of tasks. Indicatively, some of these tasks include:
 
@@ -111,7 +111,7 @@ The main idea behind MEDUSA is to be able to add or remove hooks for Java or Nat
    
 Furthermore, you can intercept Java or Native methods that belong to 3rd party apps or create complex frida modules with just few simple commands.
 
-## Using mango.py
+### Using mango.py
 
 Mango is medusa's twin brother which can be used to:
 

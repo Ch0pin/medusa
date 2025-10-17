@@ -5,42 +5,79 @@
     "Code": " 
   {   
         console.log('\\n---------iOS Enable WebInspector by leolashkevych------------------');
+        // iOS Enable WebInspector — safer variant
 
-        const CFRelease = new NativeFunction(Module.findExportByName(null, 'CFRelease'), 'void', ['pointer']);
-        const CFStringGetCStringPtr = new NativeFunction(Module.findExportByName(null, 'CFStringGetCStringPtr'),
-            'pointer', ['pointer', 'uint32']);
-        const kCFStringEncodingUTF8 = 0x08000100;
-
-        const SecTaskCopyValueForEntitlement = Module.findExportByName(null, 'SecTaskCopyValueForEntitlement');
-
-        const entitlements = [
-            'com.apple.security.get-task-allow',
-            'com.apple.webinspector.allow',
-            'com.apple.private.webinspector.allow-remote-inspection',
-            'com.apple.private.webinspector.allow-carrier-remote-inspection'
-        ];
-
-        Interceptor.attach(SecTaskCopyValueForEntitlement, {
-            onEnter: function(args) {
-                const pEntitlement = CFStringGetCStringPtr(args[1], kCFStringEncodingUTF8)
-                const entitlement = Memory.readUtf8String(pEntitlement)
-                if (entitlements.indexOf(entitlement) > -1) {
-                    this.shouldOverride = true
-                    this.entitlement = entitlement
-                }
-            },
-            onLeave: function(retVal) {
-                if (this.shouldOverride) {
-                    colorLog('Overriding value for entitlement: ' + this.entitlement, {c:Color.Cyan})
-                    if (!retVal.isNull()) {
-                        colorLog('Old value: ' + retVal, {c:Color.Cyan})
-                        CFRelease(retVal)
-                    }
-                    retVal.replace(ObjC.classes.NSNumber.numberWithBool_(1));
-                    console.log('New value: ' + retVal, {c:Color.Cyan})
-                }
+        if (ObjC.available) {
+            // Resolve symbols and check them
+            const cfReleasePtr = Module.findExportByName('CoreFoundation', 'CFRelease');
+            if (cfReleasePtr === null) {
+                throw new Error('CFRelease symbol not found (CoreFoundation)');
             }
-        });
+            const CFRelease = new NativeFunction(cfReleasePtr, 'void', ['pointer']);
+
+            // SecTaskCopyValueForEntitlement is in Security framework
+            const secTaskPtr = Module.findExportByName('Security', 'SecTaskCopyValueForEntitlement');
+            if (secTaskPtr === null) {
+                throw new Error('SecTaskCopyValueForEntitlement symbol not found (Security)');
+            }
+
+            // Attach to SecTaskCopyValueForEntitlement
+            Interceptor.attach(secTaskPtr, {
+                onEnter: function (args) {
+                    // args[1] is CFStringRef for entitlement name
+                    // Avoid CFStringGetCStringPtr — convert to ObjC string directly
+                    try {
+                        // Convert CFStringRef / NSString to JS string using ObjC wrapper
+                        var entitlementName = ObjC.Object(args[1]).toString();
+                        // list of entitlements we care about
+                        const entitlements = [
+                            'com.apple.security.get-task-allow',
+                            'com.apple.webinspector.allow',
+                            'com.apple.private.webinspector.allow-remote-inspection',
+                            'com.apple.private.webinspector.allow-carrier-remote-inspection'
+                        ];
+
+                        if (entitlements.indexOf(entitlementName) !== -1) {
+                            this.shouldOverride = true;
+                            this.entitlement = entitlementName;
+                        }
+                    } catch (e) {
+                        // if we fail to convert, keep going but mark no override
+                        this.shouldOverride = false;
+                    }
+                },
+
+                onLeave: function (retVal) {
+                    if (!this.shouldOverride) return;
+
+                    console.log('[+] Overriding entitlement:', this.entitlement);
+
+                    // If original return value is a CFTypeRef/ObjC object, release it
+                    if (!retVal.isNull()) {
+                        try {
+                            // CFRelease expects a CFTypeRef as pointer
+                            CFRelease(retVal);
+                        } catch (e) {
+                            // ignore release errors
+                        }
+                    }
+
+                    // Build an NSNumber boolean true and replace the native return pointer
+                    try {
+                        var nsNumberTrue = ObjC.classes.NSNumber.numberWithBool_(1);
+                        // nsNumberTrue.handle is the NativePointer to the ObjC object
+                        retVal.replace(nsNumberTrue.handle);
+                        console.log('[+] Replaced return with NSNumber(true) ->', nsNumberTrue);
+                    } catch (e) {
+                        console.error('[!] Failed to create/replace with NSNumber:', e);
+                    }
+                }
+            });
+
+            console.log('[*] SecTaskCopyValueForEntitlement hook installed.');
+} else {
+    console.error('ObjC.runtime is not available — are you targeting an iOS process?');
+}
 
 
 

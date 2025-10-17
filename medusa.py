@@ -1118,6 +1118,7 @@ class Parser(cmd2.Cmd):
                     m.Options[index] = option  
                     logger.info(f"Updated value: {new_val}")
                     m.Code = self.update_module(m.Code, f'__{option.get("name")}__', new_val)
+                    self.modified = True
                 else:
                     logger.info("No options available")
         return

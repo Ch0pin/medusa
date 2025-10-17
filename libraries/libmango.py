@@ -2,6 +2,7 @@
 
 # Standard library imports
 import glob
+import itertools
 import logging
 import os
 import platform
@@ -13,6 +14,7 @@ import subprocess
 import sys
 import time
 import traceback
+
 from shutil import which
 from typing import List, Optional
 
@@ -29,6 +31,7 @@ from libraries.libadb import android_device
 from libraries.Questions import Polar
 from libraries.Questions import *
 from libraries.libguava import *
+from libraries.manifest_diff import ManifestDiff
 
 logging.getLogger().handlers = []  
 setup_logging() 
@@ -434,7 +437,32 @@ class parser(cmd2.Cmd):
                         f"adb -s {self.device.id} shell am start -W -a android.intent.action.VIEW -d {line.split(' ')[0]}").read()
                     print(output)
             except Exception as e:
-                print(e)
+                logger.error(e)
+    
+    def do_diff(self, line):
+        """Usage: diff <package name>
+        Compares multiple AndroidManifest.xml versions and generates
+        git-style diffs between sequential versions.
+        """
+        try:
+            if line.arg_list is None or len(line.arg_list) == 0:
+                logger.info("Usage: diff <package name>")
+                return
+            
+            package_name = line.arg_list[0]
+            manifests = self.database.get_manifests_for_package(package_name)
+            if not manifests or len(manifests) < 2:
+                logger.info(f"Not more than one manifests found for package '{package_name}' to perform a diff.")
+                return
+            versions = {
+                int(version_code): manifest_bytes.decode('utf-8', errors='ignore')
+                for version_code, manifest_bytes in manifests
+            }
+            diff_tool = ManifestDiff(package_name, versions)
+            text_report = diff_tool.generate_diff_report()
+            print(text_report)
+        except Exception as e:
+            logger.error(f"An error occurred while generating the manifest diff: {e}", exc_info=True)
 
     def do_exit(self, line):
         """Usage: exit 
@@ -1001,6 +1029,12 @@ $adb remount
           Adding the '-e' flag the command will print only exported components.
         - receivers -d: prints dynamically registered receivers"""
 
+        def print_section(title, func, *args, **kwargs):
+            """Unified section printer with consistent style and background."""
+            print(Back.BLUE + Fore.WHITE + Style.BRIGHT + f"[+] {title}:" + Style.RESET_ALL)
+            func(*args, **kwargs)
+            print()  # small spacing between sections
+
         what = line.arg_list[0]
         if len(line.arg_list) > 1:
             flag = line.arg_list[1]
@@ -1076,17 +1110,29 @@ $adb remount
                     print(
                         "|----------------------------------- [ ⚠️  ] Potential attack targets [ ⚠️  ] ---------------------------------------|\n[+] Deeplinks:")
                     self.print_deeplinks()
-                    print("\n[+] Exported activities and activity aliases:")
-                    self.print_activities(False)
-                    self.print_activity_alias(False)
-                    print("[+] Exported services:")
-                    self.print_services(False)
-                    print("[+] Exported receivers:")
-                    self.print_receivers(False)
-                    print("[+] Exported providers:")
-                    self.print_providers(False)
-                    print("[+] Custom permissions:")
-                    self.print_permissions(True)
+
+                    sections = [
+                        ("Exported activities and activity aliases", [self.print_activities, self.print_activity_alias]),
+                        ("Exported services", [self.print_services]),
+                        ("Exported receivers", [self.print_receivers]),
+                        ("Exported providers", [self.print_providers]),
+                        ("Custom permissions", [self.print_permissions]),
+                    ]
+
+                    for title, funcs in sections:
+                        print_section(title, lambda *_, fs=funcs: [f(False) if f != self.print_permissions else f(True) for f in fs])
+
+                    # print(Back.BLUE + Fore.WHITE + Style.BRIGHT + "[+] Exported activities and activity aliases:" +Style.RESET_ALL)
+                    # self.print_activities(False)
+                    # self.print_activity_alias(False)
+                    # print("[+] Exported services:")
+                    # self.print_services(False)
+                    # print("[+] Exported receivers:")
+                    # self.print_receivers(False)
+                    # print("[+] Exported providers:")
+                    # self.print_providers(False)
+                    # print("[+] Custom permissions:")
+                    # self.print_permissions(True)
                     if '-v' in flag:
                         print("\n[+] Other potentially interesting info:")
                         found = False
@@ -1318,6 +1364,20 @@ $adb remount
             completions = [f for f in self.total_deep_links if f.startswith(text)]
         return completions
 
+    def complete_diff(self, text, line, begidx, endidx):
+        res = self.database.query_db("SELECT DISTINCT packageName from Application order by packageName asc;")
+        package_names = []
+        for entry in res:
+            package_names.append(entry[0])
+
+        if not text:
+            completions = package_names[:]
+            package_names = []
+        else:
+            completions = [f for f in package_names if f.startswith(text)]
+            package_names = []
+        return completions
+
     def complete_jdwp(self, text, line, begidx, endidx):
         return self.get_packages_starting_with(text)
 
@@ -1325,7 +1385,7 @@ $adb remount
         return self.get_packages_starting_with(text)
 
     def complete_load(self, text, line, begidx, endidx):
-        res = self.database.query_db("SELECT packageName, sha256, versionName from Application order by packagename asc;")
+        res = self.database.query_db("SELECT packageName, sha256, versionName from Application order by packageName asc;")
         appSha256 = []
         for entry in res:
             version_name = entry[2] if entry[2] is not None else ''
@@ -1501,81 +1561,59 @@ $adb remount
             for column in columns:
                 print("{c: <25} {t: <15}".format(c=column[1], t=column[2]))
 
-    def print_deeplinks(self, quite=False):
+    def print_deeplinks(self, quiet=False):
         component = ''
-        schmlst = []
-        hostlst = []
-        pathPrefixlst = []
 
         for attribs in self.deeplinks:
-            if component != attribs[0]:
-                component = attribs[0]
-                l = len(component)
-                if not quite:
+            activity = attribs[0]
+            attrib_str = attribs[1]
+
+            # Print component header if it changed
+            if component != activity:
+                component = activity
+                if not quiet:
                     print(
-                        Fore.GREEN + '-' * l + Fore.YELLOW + '\nDeeplinks that start:' + Fore.CYAN + f'{component}' + Fore.RESET)
+                        Fore.GREEN + '-' * len(component) +
+                        Fore.YELLOW + '\nDeeplinks that start:' +
+                        Fore.CYAN + f'{component}' +
+                        Fore.RESET
+                    )
 
-            detonate = attribs[1].split('|')
+            # Parse and extract intent filter attributes
+            detonate = attrib_str.split('|')
 
-            schemes = ''
-            schmlst.clear()
-            for ingredient in detonate:
-                if 'scheme:' in ingredient:
-                    t = ingredient.split(':')[1]
-                    schemes += t
-                    schemes += ' '
-                    schmlst.append(t)
+            schemes = {x.split(':', 1)[1] for x in detonate if x.startswith('scheme:')}
+            hosts = {x.split(':', 1)[1] for x in detonate if x.startswith('host:')}
+            paths = {x.split(':', 1)[1] for x in detonate
+                    if any(x.startswith(p) for p in ('path:', 'pathPrefix:', 'pathPattern:'))}
 
-                self.schemes = set.union(self.schemes, set(schmlst))
-            # if not quite:
-            #     print("Schemes: "+schemes)
+            # Default empty values to avoid missing combinations
+            if not hosts:
+                hosts = {''}
+            if not paths:
+                paths = {''}
 
-            hosts = ''
-            hostlst.clear()
-            for ingredient in detonate:
-                if 'host:' in ingredient:
-                    j = ingredient.split(':')[1]
-                    hosts += j
-                    hosts += ' '
-                    hostlst.append(j)
+            # Merge discovered sets into global sets
+            self.schemes |= schemes
+            self.hosts |= hosts
+            self.pathPrefixes |= paths
 
-                self.hosts = set.union(self.hosts, set(hostlst))
+            # Generate deeplink combinations efficiently
+            links = [f"{s}://{h}{p}" for s, h, p in itertools.product(schemes, hosts, paths)]
 
-            # if not quite:
-            #     print("Hosts: "+hosts)
+            # Store for later use
+            self.total_deep_links.extend(links)
 
-            paths = ['path:', 'pathPrefix:', 'pathPattern:']
-            pathPrefix = ''
-            pathPrefixlst.clear()
-            for ingredient in detonate:
-                if any(pth in ingredient for pth in paths):
-                    # if 'pathPrefix:' in igredient:
-                    p = ingredient.split(':')[1]
-                    pathPrefix += p
-                    pathPrefix += ' '
-                    pathPrefixlst.append(p)
-                self.pathPrefixes = set.union(self.pathPrefixes, set(pathPrefixlst))
-
-            # if not quite:
-            #     print("pathPrefix: "+pathPrefix)
-
-            if not pathPrefixlst:
-                pathPrefixlst.append('')
-            if not hostlst:
-                hostlst.append('')
-
-            tmplst = []
-            for s in schmlst:
-                for h in hostlst:
-                    for p in pathPrefixlst:
-                        link = s + '://' + h + p
-                        if link not in tmplst:
-                            tmplst.append(link)
-            if not quite:
-                for lnk in tmplst:
-                    print(lnk)
-
-            self.total_deep_links += tmplst
+            # Controlled output to prevent console flooding
+            if not quiet:
+                max_display = 50
+                for link in links[:max_display]:
+                    print(link)
+                if len(links) > max_display:
+                    print(Fore.MAGENTA + f"... ({len(links) - max_display} more suppressed)" + Fore.RESET)
+        if not quiet:
+            print(Fore.GREEN + f"\n✓ Processed {len(self.deeplinks)} activities. "
+                f"Generated {len(self.total_deep_links)} deeplinks.\n" + Fore.RESET)
 
     def print_device_info(self):   
         if self.device is not None:

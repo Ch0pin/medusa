@@ -130,6 +130,11 @@ class apk_db:
         sql = f"""SELECT libraries from Application WHERE sha256='{sha256}'"""
         self.cursor.execute(sql)
         return self.cursor.fetchall()
+    
+    def get_manifests_for_package(self, packageName):
+        sql = f"""SELECT versionCode, androidManifest from Application WHERE packageName='{packageName}'"""
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
 
     def get_intent_filters(self, sha256):
         sql = f"""SELECT componentName, actionList, categoryList from IntentFilters WHERE app_sha256='{sha256}'"""

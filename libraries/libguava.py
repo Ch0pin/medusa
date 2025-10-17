@@ -19,8 +19,6 @@ from libraries.IntentFilter import IntentFilter
 from libraries.logging_config import setup_logging
 from libraries.Questions import Polar
 
-
-
 logging.getLogger().handlers = []  
 setup_logging() 
 logger = logging.getLogger(__name__)
@@ -382,18 +380,52 @@ class Guava:
         self.fill_providers(application, app_sha256)
         self.fill_receivers(application, app_sha256)
         self.fill_activity_alias(application, app_sha256)
-        self.fill_intent_filters(app_sha256)
+        self.fill_intent_filters(app_sha256, apkfile)
         if print_info:
             logger.info("[+] Database Ready !")
 
-    def fill_intent_filters(self, sha256):
-        for filter in self.filter_list:
-            objlist = self.filter_list[filter]
-            for item in objlist:
-                filter_attribs = (
-                    sha256, filter, '|'.join(item.actionList), '|'.join(item.categoryList), '|'.join(item.dataList))
-                self.application_database.update_intent_filters(filter_attribs)
+    def fill_intent_filters(self, sha256, apkfile=None):
 
+        ref_pattern = re.compile(r'@[0-9A-Fa-f]+')
+        cache = {}
+
+        for filter_name in self.filter_list:
+            objlist = self.filter_list[filter_name]
+            for item in objlist:
+                resolved_data_list = []
+
+                for entry in item.dataList:
+                    matches = ref_pattern.findall(entry)
+                    if not matches:
+                        resolved_data_list.append(entry)
+                        continue
+
+                    for ref in matches:
+                        resource_id = f"0x{ref[1:]}"
+                        resolved_value = cache.get(resource_id)
+
+                        if resolved_value is None:
+                            resolved_value = resolve_resource_id(resource_id, apkfile)
+                            if resolved_value:
+                                cache[resource_id] = resolved_value
+                            else:
+                                resolved_value = ref  
+
+                        entry = entry.replace(ref, resolved_value)
+
+                    resolved_data_list.append(entry)
+
+                filter_attribs = (
+                    sha256,
+                    filter_name,
+                    '|'.join(item.actionList),
+                    '|'.join(item.categoryList),
+                    '|'.join(resolved_data_list),
+                )
+
+                self.application_database.update_intent_filters(filter_attribs)
+    
+        
     def insert_note(self, sha256, note):
         note = (sha256, note)
         self.application_database.insert_note(note)
@@ -433,3 +465,34 @@ class Guava:
             tampering_types.append("MANIFEST")
 
         return ' | '.join(tampering_types) if tampering_types else "None"
+
+
+def resolve_resource_id(resource_id, apk_path):
+    """
+    Lightweight replacement for do_search() that resolves a single resource ID
+    (like 0x7F131BE6) to its actual string value from the given APK using aapt2.
+    Returns the resolved string (without quotes) or None if not found.
+    """
+    try:
+        command = ['aapt2', 'dump', 'resources', apk_path]
+        result = subprocess.run(command, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            logger.error(f"aapt2 failed: {result.stderr.strip()}")
+            return None
+
+        lines = result.stdout.splitlines()
+        for i, line in enumerate(lines):
+            if resource_id.lower() in line.lower():
+                # look ahead for a line containing the actual string value
+                for j in range(i + 1, min(i + 3, len(lines))):
+                    match = re.search(r'"(.*?)"', lines[j])
+                    if match:
+                        value = match.group(1)
+                        logger.debug(f"Resolved {resource_id} → {value}")
+                        return value
+        logger.warning(f"{resource_id} not found in {apk_path}")
+        return None
+    except Exception as e:
+        logger.error(f"Error resolving {resource_id}: {e}")
+        return None

@@ -32,6 +32,8 @@ from libraries.Questions import Polar
 from libraries.Questions import *
 from libraries.libguava import *
 from libraries.manifest_diff import ManifestDiff
+from libraries.android_flags import describe_flags, INTENT_FLAGS, PENDING_INTENT_FLAGS, CONTENT_FLAGS
+
 
 logging.getLogger().handlers = []  
 setup_logging() 
@@ -413,6 +415,25 @@ class parser(cmd2.Cmd):
 
         else:
             logger.info("Invalid option!")
+
+    def do_decodeflag(self, line):
+        """Usage: decodeflag <integer>
+        Decodes and describes Android Intent or PendingIntent flags from an integer value.
+        Example: decodeflag 0x10000000
+        """
+        if not line.arg_list or len(line.arg_list) != 1:
+            logger.info("Usage: decodeflag <integer>")
+            return
+
+        try:
+            flag_value = int(line.arg_list[0], 0)  # Auto-detect base (hex, dec, etc.)
+            describe_flags(flag_value, INTENT_FLAGS, "In the context of Intents:")
+            describe_flags(flag_value, PENDING_INTENT_FLAGS, "In the context of Pending Intents:")
+            describe_flags(flag_value, CONTENT_FLAGS, "In the context of Content Providers:")
+
+
+        except ValueError:
+            logger.error("Invalid integer value provided.")
 
     def do_deeplink(self, line):
         """Usage: deeplink [deeplink] [--poc]

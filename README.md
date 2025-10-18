@@ -2,54 +2,47 @@
 
 # Description
 
-**MEDUSA** is an extensible and modularized framework that automates processes and techniques practiced during the **dynamic analysis** **of Android and iOS Applications**.  
+**MEDUSA** is an extensible, modular framework for automated dynamic runtime analysis of Android and iOS applications, built for penetration testers, mobile security researchers, and malware analysts. It serves as a centralized FRIDA script repository, allowing you to add or remove modules dynamically — combining hooks and behaviors into a single main script tailored to the needs of each pentest or malware analysis session. MEDUSA automates key tasks such as SSL-pinning bypasses, attack surface enumeration, network and WebView inspection, and proxy orchestration, while providing deep behavioral insight through API call tracing, memory inspection, cryptographic data extraction, and malware-specific monitoring (exfiltration, camera/mic abuse, SMS or call interception). With over 90 plug-and-play modules, MEDUSA makes large-scale instrumentation, triage, and behavioral investigation efficient, scalable, and reusable.
 
 **System requirements:** 
 
-- Linux or macOS (currently medusa doesn't support windows)
-- Python 3 (Use the latest python release and not the one shipped with macOS to avoid issues with using libedit instead of GNU's readline)
+- Linux or macOS (limited functionality available on Windows)
+- Python 3
 - Rooted device or emulator 
 - adb
 - FRIDA server (running on the mobile device)
 
 # Installation
 
-1. Clone this repo
-2. Navigate to the medusa's directory
-3. Run the following command:
+1.	Clone this repository.
+2.	CD into the medusa directory.
+3.	Install dependencies:
+
+```sh
+# using the system python3/pip
+pip3 install -r requirements.txt
+
+# or inside a virtual environment (recommended)
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 
 ```
-$ pip install -r requirements.txt
-```
+### Using Docker
 
-## Using docker
+A preconfigured Dockerfile is available in the medusa/ directory.
 
-You can find the docker file in the medusa/ directory. 
+1.	Build the image: `docker build -t medusa:latest ./`
 
-1. Build with 
+2.	Run the container: `docker run --name medusa --net=host --rm -it medusa:latest`
 
-```  
-$ docker build -t medusa:tag1 ./
-```
-2. Run with 
+3.	Enable ADB over TCP/IP on your physical device or emulator: `adb tcpip 5555`
 
-```
-$ docker run --name medusa --net=host --rm -it medusa:tag1
-```
-3. Run adbd in tcp/ip mode in your physical device or emulator
-
-```
-$ adb tcpip 5555 
-```
-4. Connect to from the image to your device using:
-   
-```
-root@docker# adb connect device_ip:5555
-```
+4.	Connect to the device from inside the container: `root@docker# adb connect <device_ip>:5555`
 
 ## Known installation issues
 
-### macOS Installation
+### macOS 
 
 During installation on macOS, you might encounter the following issue:
 
@@ -57,7 +50,7 @@ During installation on macOS, you might encounter the following issue:
 no supported version of readline was found. To resolve this, install
 pyreadline3 on Windows or gnureadline on Linux/Mac.
 
-To resolve this issue on macOS, install the gnureadline package for Python:
+To resolve, install the gnureadline package for Python:
 
 ```
 pip install gnureadline
@@ -134,11 +127,6 @@ Mango is medusa's twin brother which can be used to:
 - Reporting an error/issue 
 - Suggesting an improvement
 - Making this project more popular by sharing it or giving a star
-- Buying a treat:
-
-**Bitcoin (BTC) Address**: bc1qhun6a7chkav6mn8fqz3924mr8m3v0wq4r7jchz
-
-**Ethereum (ETH) Address**: 0x0951D1DD2C9F57a9401BfE7D972D0D5A65e71dA4
 
 # Screenshots
 

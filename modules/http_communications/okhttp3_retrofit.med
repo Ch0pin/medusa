@@ -1,130 +1,242 @@
 {
     "Name": "http_communications/okhttp3_retrofit",
-    "Description": "Intercept http3 requests/responses",
+    "Description": "Intercept http3 requests/responses with improved error handling",
     "Help": "https://codeshare.frida.re/@owen800q/okhttp3-interceptor/",
     "Code": "
 {
-    console.log('\\n\\n--------------------okhtt3 interception modified by @ch0pin----------------------');
-        var ByteString = Java.use(\"okio.ByteString\");
-        var Buffer = Java.use(\"okio.Buffer\");
-        var Interceptor = Java.use(\"okhttp3.Interceptor\");
+    console.log('\\n\\n--------------------okhtt3 interception modified by @ch0pin (fixed by @subhobhai943)----------------------');
+    
+    // Safe class loading with error handling
+    var ByteString = null;
+    var Buffer = null;
+    var Interceptor = null;
+    var hasOkio = false;
+    
+    try {
+        ByteString = Java.use(\"okio.ByteString\");
+        Buffer = Java.use(\"okio.Buffer\");
+        hasOkio = true;
+        console.log('[+] OkIO classes loaded successfully');
+    } catch (error) {
+        console.log('[!] OkIO classes not found or obfuscated, using fallback methods');
+        console.log('[!] Error: ' + error.message);
+        hasOkio = false;
+    }
+    
+    try {
+        Interceptor = Java.use(\"okhttp3.Interceptor\");
+        console.log('[+] OkHttp3 Interceptor class found');
+    } catch (error) {
+        console.log('[!] OkHttp3 Interceptor not found: ' + error.message);
+        console.log('[!] This app might not use OkHttp3 or it\'s heavily obfuscated');
+        return;
+    }
+    
+    // Helper function to safely convert bytes to string
+    function safeByteArrayToString(byteArray) {
+        try {
+            if (hasOkio && ByteString) {
+                return ByteString.of(byteArray).utf8();
+            } else {
+                // Fallback: Use Java String constructor
+                var JavaString = Java.use(\"java.lang.String\");
+                return JavaString.$new(byteArray, \"UTF-8\");
+            }
+        } catch (error) {
+            // Last resort: Convert manually
+            try {
+                var result = \"\";
+                for (var i = 0; i < byteArray.length; i++) {
+                    var char = byteArray[i];
+                    if (char >= 32 && char <= 126) {
+                        result += String.fromCharCode(char);
+                    } else {
+                        result += \"[\" + char + \"]\";
+                    }
+                }
+                return result;
+            } catch (e) {
+                return \"[Error converting bytes to string]\";
+            }
+        }
+    }
+    
+    // Helper function to safely read buffer content
+    function safeBufferRead(buffer) {
+        try {
+            if (hasOkio) {
+                return buffer.readString();
+            } else {
+                // Try to call toString or other available methods
+                try {
+                    return buffer.toString();
+                } catch (e) {
+                    return \"[Buffer content not readable - OkIO not available]\";
+                }
+            }
+        } catch (error) {
+            try {
+                if (hasOkio && ByteString) {
+                    return hexToAscii(ByteString.of(buffer.readByteArray()).hex());
+                } else {
+                    return \"[Error reading buffer content]\";
+                }
+            } catch (e) {
+                return \"[Buffer read failed]\";
+            }
+        }
+    }
 
-        var MyInterceptor = Java.registerClass({
-            name: \"okhttp3.MyInterceptor\",
-            implements: [Interceptor],
-            methods: {
-                intercept: function(chain) {
-                    colorLog('\\n|------------|okHTTP3 Request intercepted|----------------|',{c: Color.Green});
-                    var request = chain.request();
-                    var requestBody = request.body();
-                    var contentLength = requestBody ? requestBody.contentLength() : 0;
-                 
-                    console.log('\\n'+request._method.value + ' '+request._url.value);
-                    console.log('\\n');
+    var MyInterceptor = Java.registerClass({
+        name: \"okhttp3.MyInterceptor\",
+        implements: [Interceptor],
+        methods: {
+            intercept: function(chain) {
+                colorLog('\\n|------------|okHTTP3 Request intercepted|----------------|',{c: Color.Green});
+                var request = chain.request();
+                var requestBody = request.body();
+                var contentLength = requestBody ? requestBody.contentLength() : 0;
+             
+                console.log('\\n'+request._method.value + ' '+request._url.value);
+                console.log('\\n');
 
-
-                    if (contentLength > 0) {
-                        
+                if (contentLength > 0) {
+                    try {
+                        if (hasOkio && Buffer) {
                             var BufferObj = Buffer.$new();
                             requestBody.writeTo(BufferObj);  
-                            try{
+                            try {
                                 console.log(\"\\nrequest body String:\\n\", BufferObj.readString(), \"\\n\");
+                            } catch(error) {
+                                console.log(safeBufferRead(BufferObj));
                             }
-                            catch(error){
-                                console.log(hexToAscii(ByteString.of(BufferObj.readByteArray()).hex()));
+                        } else {
+                            console.log('[!] Cannot read request body - OkIO Buffer not available');
+                            // Try alternative method to read body
+                            try {
+                                var source = requestBody.source ? requestBody.source() : null;
+                                if (source) {
+                                    console.log('[+] Trying alternative body reading method...');
+                                    var bodyContent = source.toString();
+                                    console.log('Request body (alternative): ' + bodyContent);
+                                }
+                            } catch (altError) {
+                                console.log('[!] Alternative body read failed: ' + altError.message);
                             }
-                            
-                    }    
-                    console.log('\\n');
+                        }
+                    } catch (error) {
+                        console.log('[!] Error reading request body: ' + error.message);
+                    }
+                }    
+                console.log('\\n');
 
-    
-                    var response = chain.proceed(request);
+                var response = chain.proceed(request);
 
-
-                    try {
-                            var ContentType = response.headers().get(\"Content-Type\");
-                            var responseBody = response.body();
-                            var contentLength = responseBody ? responseBody.contentLength() : 0;
-                            // console.log(response.headers());
-                            // console.log('ContentType:'+ContentType+', ContentLength:'+contentLength);
-                            colorLog('|------------|Okhttp3 Response intercepted|----------------|', {c: Color.Green});
-                            console.log('SentRequestAtMillis: ' + response._sentRequestAtMillis.value + '\\nReceivedResponseAtMillis: '+response._receivedResponseAtMillis.value);
-                            colorLog('|----------------------------------------------------------|', {c: Color.Green});
-                            console.log(response._protocol.value + ' ' + response._code.value + ' ' + response._message.value);
-                            console.log(response.headers());
-                        
-                        
-                        if (contentLength > 0) {
-                            if (ContentType.indexOf(\"video\") == -1) {
-                                if (ContentType.indexOf(\"application\") == 0) {
-                                    var source = responseBody.source();
-                                    if (ContentType.indexOf(\"application/zip\") != 0) {
+                try {
+                    var ContentType = response.headers().get(\"Content-Type\");
+                    var responseBody = response.body();
+                    var contentLength = responseBody ? responseBody.contentLength() : 0;
+                    
+                    colorLog('|------------|Okhttp3 Response intercepted|----------------|', {c: Color.Green});
+                    console.log('SentRequestAtMillis: ' + response._sentRequestAtMillis.value + '\\nReceivedResponseAtMillis: '+response._receivedResponseAtMillis.value);
+                    colorLog('|----------------------------------------------------------|', {c: Color.Green});
+                    console.log(response._protocol.value + ' ' + response._code.value + ' ' + response._message.value);
+                    console.log(response.headers());
+                    
+                    if (contentLength > 0) {
+                        if (ContentType && ContentType.indexOf(\"video\") == -1) {
+                            if (ContentType.indexOf(\"application\") == 0) {
+                                var source = responseBody.source();
+                                if (ContentType.indexOf(\"application/zip\") != 0) {
+                                    try {
+                                        console.log(\"\\n\", source.readUtf8(), \"\\n\");
+                                    } catch (error) {
                                         try {
-                                            console.log(\"\\n\", source.readUtf8(), \"\\n\");
-                                        } catch (error) {
-                                            try {
+                                            if (hasOkio) {
                                                 console.log(\"\\n\", source.readByteString().hex(), \"\\n\");
-                                            } catch (error) {
-                                                console.log(\"error 4:\", error);
+                                            } else {
+                                                // Fallback for non-OkIO environments
+                                                try {
+                                                    var bytes = source.readByteArray ? source.readByteArray() : null;
+                                                    if (bytes) {
+                                                        console.log('\\nResponse (hex): ' + safeByteArrayToString(bytes) + '\\n');
+                                                    } else {
+                                                        console.log('[!] Cannot read response - no suitable method available');
+                                                    }
+                                                } catch (fbError) {
+                                                    console.log('[!] Fallback response read failed: ' + fbError.message);
+                                                }
                                             }
+                                        } catch (error) {
+                                            console.log(\"[!] Error reading response: \", error.message);
                                         }
+                                    }
                                 }
                             }
                         }
-                   
-
-                        }
-
-
-                    colorLog('\\n|------------|okHTTP3 Response EOF|------------------------|',{c: Color.Green});
-
-                    } catch (error) {
-                        console.log(\"ERROR \", error);
                     }
 
-                    var response = chain.proceed(request);
-
-                    return response;
+                } catch (error) {
+                    console.log(\"[!] ERROR processing response: \", error.message);
                 }
+
+                colorLog('\\n|------------|okHTTP3 Response EOF|------------------------|',{c: Color.Green});
+                return response;
             }
-        });
+        }
+    });
 
-
-
+    try {
         var ArrayList = Java.use(\"java.util.ArrayList\");
         var OkHttpClient = Java.use(\"okhttp3.OkHttpClient\");
-        //console.log(OkHttpClient);
+        
         OkHttpClient.$init.overload('okhttp3.OkHttpClient$Builder').implementation = function(Builder) {
-            //console.log(\"OkHttpClient.$init:\", this, Java.cast(Builder.interceptors(), ArrayList));
             this.$init(Builder);
         };
 
         var MyInterceptorObj = MyInterceptor.$new();
         var Builder = Java.use(\"okhttp3.OkHttpClient$Builder\");
-        console.log(Builder);
+        console.log('[+] OkHttpClient.Builder found');
+        
         Builder.build.implementation = function() {
-            this.interceptors().clear();
-            //var MyInterceptorObj = MyInterceptor.$new();
-            this.interceptors().add(MyInterceptorObj);
+            try {
+                this.interceptors().clear();
+                this.interceptors().add(MyInterceptorObj);
+            } catch (error) {
+                console.log('[!] Error adding interceptor in build(): ' + error.message);
+            }
             var result = this.build();
             return result;
         };
 
         Builder.addInterceptor.implementation = function(interceptor) {
-            this.interceptors().clear();
-            //var MyInterceptorObj = MyInterceptor.$new();
-            this.interceptors().add(MyInterceptorObj);
+            try {
+                this.interceptors().clear();
+                this.interceptors().add(MyInterceptorObj);
+            } catch (error) {
+                console.log('[!] Error adding interceptor in addInterceptor(): ' + error.message);
+                return this.addInterceptor(interceptor);
+            }
             return this;
-            //return this.addInterceptor(interceptor);
         };
 
-        var okhttp3HeadersBuilder  = Java.use('okhttp3.Headers$Builder');
-
-        okhttp3HeadersBuilder.checkNameAndValue.implementation = function(key,value){
-            console.log(key+' : '+value);
-            return this.checkNameAndValue(key,value);
-
+        try {
+            var okhttp3HeadersBuilder = Java.use('okhttp3.Headers$Builder');
+            okhttp3HeadersBuilder.checkNameAndValue.implementation = function(key, value) {
+                console.log('[Header] ' + key + ' : ' + value);
+                return this.checkNameAndValue(key, value);
+            };
+        } catch (error) {
+            console.log('[!] Headers$Builder not found or not hookable: ' + error.message);
         }
+        
+        console.log('[+] OkHttp3 interception setup completed successfully');
+        console.log('[+] Compatibility mode: ' + (hasOkio ? 'Full OkIO support' : 'Fallback mode'));
+        
+    } catch (error) {
+        console.log('[!] Failed to setup OkHttp3 interception: ' + error.message);
+        console.log('[!] This might be due to obfuscation or missing dependencies');
     }
+}
 "
 }

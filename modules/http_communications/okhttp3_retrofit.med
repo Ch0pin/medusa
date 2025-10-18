@@ -28,7 +28,7 @@
         console.log('[+] OkHttp3 Interceptor class found');
     } catch (error) {
         console.log('[!] OkHttp3 Interceptor not found: ' + error.message);
-        console.log('[!] This app might not use OkHttp3 or it\'s heavily obfuscated');
+        console.log('[!] This app might not use OkHttp3 or it's heavily obfuscated');
         return;
     }
     

@@ -1,4 +1,4 @@
-//"frida-java-bridge", version="7.0.8"
+//"frida-java-bridge", version="7.0.9"
 
 var __defProp = Object.defineProperty;
 var __export = (target, all) => {
@@ -13262,6 +13262,7 @@ var runtime = new Runtime();
 Script.bindWeak(runtime, () => {
   runtime._dispose();
 });
+var frida_java_bridge_default = runtime;
 
 let Java = runtime;
 

@@ -62,6 +62,11 @@ For Python 3.12, use the following command to install gnureadline from a specifi
 pip install git+https://github.com/ludwigschwardt/python-gnureadline.git@8474e5583d4473f96b42745393c3492e2cb49224
 ```
 
+## Database Migrations
+
+If you're upgrading from an older version of Medusa and encounter database compatibility issues with Mango, please refer to [DATABASE_MIGRATIONS.md](DATABASE_MIGRATIONS.md) for migration instructions.
+
+**Important**: If you have an existing Mango database and receive errors after updating, check the migration guide to update your database schema.
 
 # Usage
 

@@ -530,6 +530,12 @@ class Parser(cmd2.Cmd):
     def complete_info(self, text, line, begidx, endidx) -> list:
         return [mod.Name for mod in self.modManager.available if mod.Name.startswith(text)]
 
+    def complete_reload(self, text, line, begidx, endidx):
+        if "-r" in line.split():
+            return self.path_complete(text, line, begidx, endidx)
+        else:
+            return []
+
     ###################################################### complete_ defs end ############################################################
 
     ###################################################### implementations start ############################################################

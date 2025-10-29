@@ -1507,8 +1507,6 @@ class Parser(cmd2.Cmd):
     ###################################################### do_ defs end ############################################################
 
     ###################################################### complete_ defs start ############################################################
-    def complete_memscan(self, text, line, begidx, endidx) -> list:
-        return self.complete_list(text, line, begidx, endidx)
 
     def complete_dump(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
@@ -1535,6 +1533,9 @@ class Parser(cmd2.Cmd):
     def complete_memops(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
 
+    def complete_memscan(self, text, line, begidx, endidx) -> list:
+        return self.complete_list(text, line, begidx, endidx)
+
     def complete_memmap(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
     
@@ -1543,6 +1544,12 @@ class Parser(cmd2.Cmd):
     
     def complete_rem(self, text, line, begidx, endidx) -> list:
         return [mod.Name for mod in self.modManager.staged if mod.Name.startswith(text)]
+
+    def complete_reload(self, text, line, begidx, endidx):
+        if "-r" in line.split():
+            return self.path_complete(text, line, begidx, endidx)
+        else:
+            return []
 
     def complete_run(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)

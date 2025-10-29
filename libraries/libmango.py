@@ -191,7 +191,7 @@ DESCRIPTION """ + """
     """
 
 class parser(cmd2.Cmd):
-    NO_APP_LOADED_MSG = "No application is loaded, type 'import /path/to/foo.apk' to load one"
+    NO_APP_LOADED_MSG = "No application is loaded, use the load command to load and app or import a new apk."
     base_directory = os.path.dirname(__file__)
     prompt = Fore.BLUE + Style.BRIGHT + 'mango➤' + Fore.RESET + Style.RESET_ALL
     current_app_sha256 = None
@@ -484,6 +484,32 @@ class parser(cmd2.Cmd):
             print(text_report)
         except Exception as e:
             logger.error(f"An error occurred while generating the manifest diff: {e}", exc_info=True)
+
+    def do_delete(self, line):
+        """
+        Usage: delete app_name:sha256:version
+        Delete an application that already exists in the current working database.
+        """
+        parts = line.strip().split(":", 2)
+        if len(parts) != 3:
+            logger.error("Invalid syntax. Expected format: delete app_name:sha256:version")
+            return
+
+        app_name, chosen_sha256, version = map(str.strip, parts)
+
+        if not chosen_sha256:
+            logger.error("Missing SHA256 value.")
+            return
+
+        # Warn the user if the selected app is currently loaded
+        if self.current_app_sha256 == chosen_sha256:
+            confirm = Polar(f"[!] '{app_name}' (v{version}) is currently loaded. Do you still want to delete it?").ask()
+            if not confirm:
+                return
+            self.current_app_sha256 = None
+
+        # Perform the actual removal
+        self.real_remove_app(chosen_sha256)
 
     def do_exit(self, line):
         """Usage: exit 
@@ -856,19 +882,11 @@ $adb remount
                 result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 apk_name = os.path.basename(base_apk)
                 if result.returncode == 0:
-                    logger.info(f"{base_apk} retrieved successfully !")
-                    if Polar('Do you want to import the application?').ask():
+                    logger.info(f"Successfully pulled {package} ({base_apk}): Saved in the current directory as {apk_name}")
+                    if Polar(f'Do you want to import the {package} app ?').ask():
                         self.do_import(apk_name)
                 else:
                     logger.error(result.stderr)
-                # base_apk = os.popen(
-                #     f"adb -s {self.device.id} shell pm path {package} | grep base.apk | cut -d ':' -f 2").read()
-                # print("Extracting: " + base_apk)
-                # output = os.popen("adb -s {} pull {}".format(self.device.id, base_apk, package)).read()
-                # print(output)
-
-                # if Polar('Do you want to import the application?').ask():
-                #     self.do_import('base.apk')
             except Exception as e:
                 print(e)
         else:
@@ -1143,17 +1161,6 @@ $adb remount
                     for title, funcs in sections:
                         print_section(title, lambda *_, fs=funcs: [f(False) if f != self.print_permissions else f(True) for f in fs])
 
-                    # print(Back.BLUE + Fore.WHITE + Style.BRIGHT + "[+] Exported activities and activity aliases:" +Style.RESET_ALL)
-                    # self.print_activities(False)
-                    # self.print_activity_alias(False)
-                    # print("[+] Exported services:")
-                    # self.print_services(False)
-                    # print("[+] Exported receivers:")
-                    # self.print_receivers(False)
-                    # print("[+] Exported providers:")
-                    # self.print_providers(False)
-                    # print("[+] Custom permissions:")
-                    # self.print_permissions(True)
                     if '-v' in flag:
                         print("\n[+] Other potentially interesting info:")
                         found = False
@@ -1406,6 +1413,25 @@ $adb remount
         return self.get_packages_starting_with(text)
 
     def complete_load(self, text, line, begidx, endidx):
+        return self.get_all_apps_from_db(text, line, begidx, endidx)
+    
+    def complete_delete(self, text, line, begidx, endidx):
+        return self.get_all_apps_from_db(text, line, begidx, endidx)
+        # res = self.database.query_db("SELECT packageName, sha256, versionName from Application order by packageName asc;")
+        # appSha256 = []
+        # for entry in res:
+        #     version_name = entry[2] if entry[2] is not None else ''
+        #     appSha256.append(entry[0] + ':' + entry[1] + ':' + version_name)
+
+        # if not text:
+        #     completions = appSha256[:]
+        #     appSha256 = []
+        # else:
+        #     completions = [f for f in appSha256 if f.startswith(text)]
+        #     appSha256 = []
+        # return completions
+
+    def get_all_apps_from_db(self, text, line, begidx, endidx):
         res = self.database.query_db("SELECT packageName, sha256, versionName from Application order by packageName asc;")
         appSha256 = []
         for entry in res:
@@ -1865,6 +1891,7 @@ $adb remount
 
     def real_remove_app(self, chosen_sha256):
         self.database.delete_application(chosen_sha256)
+        logger.info(f"Application with sha256:{chosen_sha256} has been successfully removed.")
 
     def real_search(self, word, obj):
         found = False
@@ -2070,13 +2097,11 @@ $adb remount
                 self.real_load_app(chosen_sha256)
             elif task == 1:
                 if self.current_app_sha256 == chosen_sha256:
-                    if Polar("[!] The application is currently loaded, do you still want to delete it ?").ask():
-                        self.current_app_sha256 = None
-                        self.real_remove_app(chosen_sha256)
-                    else:
+                    confirm = Polar("[!] The application is currently loaded, do you still want to delete it ?").ask()
+                    if not confirm:
                         return
-                else:
-                    self.real_remove_app(chosen_sha256)
+                    self.current_app_sha256 = None
+                self.real_remove_app(chosen_sha256)
             elif task == 2:
                 return
         except TypeError:

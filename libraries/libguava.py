@@ -142,11 +142,11 @@ class Guava:
     def fill_activity_alias(self, application, sha256):
 
         for activity_alias in application.findall("activity-alias"):
-            aliasname = activity_alias.get(NS_ANDROID + "name")
-            enabled = activity_alias.get(NS_ANDROID + "enabled")
-            exported = activity_alias.get(NS_ANDROID + "exported")
-            permission = activity_alias.get(NS_ANDROID + "permission")
-            targetActivity = activity_alias.get(NS_ANDROID + "targetActivity")
+            aliasname = self.get_attr(activity_alias, "name")
+            enabled = self.get_attr(activity_alias, "enabled")
+            exported = self.get_attr(activity_alias, "exported")
+            permission = self.get_attr(activity_alias, "permission")
+            targetActivity = self.get_attr(activity_alias, "targetActivity")
 
             if len(activity_alias.findall("intent-filter")) > 0:
                 if exported != 'false':
@@ -214,15 +214,18 @@ class Guava:
     def fill_providers(self, application, sha256):
 
         for provider in application.findall("provider"):
-            providername = provider.get(NS_ANDROID + "name")
-            enabled = provider.get(NS_ANDROID + "enabled")
-            exported = provider.get(NS_ANDROID + "exported")
-            grantUriPermissions = provider.get(NS_ANDROID + "grantUriPermissions")
-            permission = provider.get(NS_ANDROID + "permission")
-            process = provider.get(NS_ANDROID + "process")
-            readPermission = provider.get(NS_ANDROID + "readPermission")
-            writePermission = provider.get(NS_ANDROID + "writePermission")
-            authorities = provider.get(NS_ANDROID + "authorities")
+            providername = self.get_attr(provider, "name")
+            enabled = self.get_attr(provider, "enabled")
+            exported = self.get_attr(provider, "exported")
+            grantUriPermissions = self.get_attr(provider, "grantUriPermissions")
+            permission = self.get_attr(provider, "permission")
+            process = self.get_attr(provider, "process")
+            readPermission = self.get_attr(provider, "readPermission")
+            writePermission = self.get_attr(provider, "writePermission")
+            authorities = self.get_attr(provider, "authorities")
+
+
+
             provider_attribs = (
                 sha256, providername, enabled, exported, grantUriPermissions, permission, process, readPermission,
                 writePermission, authorities)
@@ -231,11 +234,11 @@ class Guava:
     def fill_receivers(self, application, sha256):
 
         for receiver in application.findall("receiver"):
-            receivername = receiver.get(NS_ANDROID + "name")
-            enabled = receiver.get(NS_ANDROID + "enabled")
-            exported = receiver.get(NS_ANDROID + "exported")
-            permission = receiver.get(NS_ANDROID + "permission")
-            process = receiver.get(NS_ANDROID + "process")
+            receivername = self.get_attr(receiver, "name")
+            enabled = self.get_attr(receiver, "enabled")
+            exported = self.get_attr(receiver, "exported")
+            permission = self.get_attr(receiver, "permission")
+            process = self.get_attr(receiver, "process")
 
             if len(receiver.findall("intent-filter")) > 0:
                 if exported != 'false':
@@ -338,12 +341,13 @@ class Guava:
     def fill_services(self, application, sha256):
 
         for service in application.findall("service"):
-            servicename = service.get(NS_ANDROID + "name")
-            enabled = service.get(NS_ANDROID + "enabled")
-            exported = service.get(NS_ANDROID + "exported")
-            foregroundServiceType = service.get(NS_ANDROID + "foregroundServiceType")
-            permission = service.get(NS_ANDROID + "permission")
-            process = service.get(NS_ANDROID + "process")
+
+            servicename = self.get_attr(service, "name")
+            enabled = self.get_attr(service, "enabled")
+            exported = self.get_attr(service, "exported")
+            foregroundServiceType = self.get_attr(service, "foregroundServiceType")
+            permission = self.get_attr(service, "permission")
+            process = self.get_attr(service, "process")
 
             if len(service.findall("intent-filter")) > 0:
                 if exported != 'false':
@@ -424,7 +428,13 @@ class Guava:
                 )
 
                 self.application_database.update_intent_filters(filter_attribs)
-    
+
+    def get_attr(self, element, key):
+        """
+        Safely retrieve an Android XML attribute whether it's namespaced (android:name)
+        or plain (name).
+        """
+        return element.get(NS_ANDROID + key) or element.get(key)    
         
     def insert_note(self, sha256, note):
         note = (sha256, note)

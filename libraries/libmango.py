@@ -1056,6 +1056,10 @@ $adb remount
             func(*args, **kwargs)
             print()  # small spacing between sections
 
+        if not line.arg_list:
+            logger.info(
+                'Usage: show [activities, activityAlias, applications, database, deeplinks, exposure, info, intentFilters, manifest, permissions, providers, receivers, services, strings]')
+            return
         what = line.arg_list[0]
         if len(line.arg_list) > 1:
             flag = line.arg_list[1]

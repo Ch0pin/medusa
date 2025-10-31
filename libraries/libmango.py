@@ -1047,11 +1047,11 @@ $adb remount
                     self.continue_session(guava)
                     
                 else:
-                    raise FileNotFoundError(Fore.RED + f"[!] Error: can't find: {apk_file}. App not installed" + Fore.RESET)
+                    raise FileNotFoundError(Fore.RED + f"[!] Error: can't find: {session_file}." + Fore.RESET)
             except FileNotFoundError as e:
                 print(e)
         else:
-            print('[!] Usage: install /full/path/to/foobar.apk')
+            print('[!] Usage: session /full/path/to/session.db')
 
     def do_show(self, line):
         """Usage: show [applications | database | exposure | info | manifest_entry | manifest ]
@@ -1973,16 +1973,33 @@ $adb remount
         self.guava = guava
         try:
             res, index = self.print_avail_apps(True, False)
-            if res:
-                chosen_index = int(Numeric(Style.RESET_ALL + '\nEnter the index of the application you want to load:', lbound=0,
-                                        ubound=index - 1).ask())
-                chosen_sha256 = res[chosen_index][0]
-                self.init_application_info(self.database, chosen_sha256)
-            else:
-                logger.warning("[!] No Entries found in the given database !")
-            return
-        except TypeError:
-            print("Database is empty.")
+            if not res:
+                logger.warning("[!] No entries found in the given database!")
+                return
+
+            while True:
+                user_input = input(
+                    Fore.GREEN + Style.BRIGHT 
+                    + f'\nEnter the index of the application you want to load (0–{index - 1}) '
+                    'or press Enter to skip: '+ Style.RESET_ALL ).strip()
+                
+                if not user_input:
+                    return
+                if not user_input.isdigit():
+                    logger.warning("[!] Please enter a valid numeric index.")
+                    continue
+
+                chosen_index = int(user_input)
+                if 0 <= chosen_index < index:
+                    chosen_sha256 = res[chosen_index][0]
+                    self.init_application_info(self.database, chosen_sha256)
+                    break
+                else:
+                    logger.warning(f"[!] Invalid index. Please choose between 0 and {index - 1}.")
+
+        except  TypeError as e:
+            logger.error(f"[!] TypeError while continuing session: {e}")
+
 
     def create_script(self, line):
         try:

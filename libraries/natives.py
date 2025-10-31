@@ -54,13 +54,20 @@ class nativeHandler:
         js_directory = Path(self.base_directory) / "js"
         bridge_path = js_directory / "frida_java_bridge.js"
         modules_path = js_directory / "frida_module_bridge.js"
+        process_bridge = js_directory / "frida_process_bridge.js"
+        memory_bridge = js_directory / "frida_memory_bridge.js"
 
         installed = parse_version(getattr(frida, "__version__", "0.0.0"))
 
         if installed < Version("17.0.0"):
             return ""
         try:
-            return bridge_path.read_text(encoding="utf-8") + "\n" + modules_path.read_text(encoding="utf-8") + "\n"
+            return "\n".join([
+                bridge_path.read_text(encoding="utf-8"),
+                modules_path.read_text(encoding="utf-8"),
+                process_bridge.read_text(encoding="utf-8"),
+                memory_bridge.read_text(encoding="utf-8")
+            ]) + "\n"
         except FileNotFoundError:
             print(f"Bridge file not found: {bridge_path}")
             return ""
@@ -70,10 +77,13 @@ class nativeHandler:
         try:
             installed = parse_version(getattr(frida, "__version__", "0.0.0"))
 
-            script = session.create_script(open(os.path.dirname(__file__) + "/js/memops.js").read())
+            codejs = self.add_js_bridge_if_needed()
+            codejs += open(os.path.dirname(__file__) + "/js/memops.js").read()
+
+            script = session.create_script(codejs)
             script.load()
             api = script.exports
-            dumper = api.memorydump if installed < Version("17.0.0") else api.memorydump17
+            dumper = api.memorydump # if installed < Version("17.0.0") else api.memorydump17
 
             if not free:
                 for area in api.moduleaddress(lib):
@@ -178,16 +188,16 @@ class nativeHandler:
                 return
             
             prolog = self.add_js_bridge_if_needed()
-            prolog += 'Java.perform(function () {\n\n'
+            # prolog += 'Java.perform(function () {\n\n'
             if base_addr != '':
                 prolog += 'var size = ' + size + ';\n'
                 prolog += 'var p_foo = ptr(' + base_addr + ');' + """
                 if (!p_foo) {
                     console.log("Could not find module....");
-                    return 0;
+                    //return 0;
                 }"""
             payload = ''
-            epilog = '\n\n});'
+            epilog = '' # '\n\n});'
             codejs = prolog + payload + epilog
             print(f'[i] Using device with id {self.device}')
             # try:
@@ -273,16 +283,17 @@ class nativeHandler:
                 print('Usage: memops package_name [lib]')
                 return
 
-            prolog = 'Java.perform(function () {\n\n'
+            prolog = self.add_js_bridge_if_needed()
+            #prolog += 'Java.perform(function () {\n\n'
             if lib != '':
                 prolog += 'var module = Process.findModuleByName("' + lib + '");\n'
                 prolog += 'var p_foo = Module.findBaseAddress("' + lib + '");' + """
                 if (!p_foo) {
                     console.log("Could not find module....");
-                    return 0;
+                    //return 0;
                 }"""
             payload = ''
-            epilog = '\n\n});'
+            epilog = '' # '\n\n});'
 
             codejs = prolog + payload + epilog
 
@@ -403,7 +414,7 @@ class nativeHandler:
         return cmd
 
     def scan_memory(self, lib, pattern, session, script):
-        codejs = ''
+        codejs = self.add_js_bridge_if_needed()
         try:
             if lib != '':
                 codejs += "var module = Process.findModuleByName('" + lib + "');\n"
@@ -417,7 +428,8 @@ class nativeHandler:
                     var endAddress = module.size + baseAddress;
 
                     console.log('Module base address:'+module.base);
-                    console.log('Module end Address: 0x'+endAddress.toString(16));"""
+                    console.log('Module end Address: 0x'+endAddress.toString(16));
+                    """
 
             codejs += """
             
@@ -499,7 +511,7 @@ class nativeHandler:
             payload += "\nconsole.log('Write op finished');"
             codejs = prolog + payload + epilog
             script = session.create_script(codejs)
-            print(codejs)
+            # print(codejs)
             script.load()
             payload = ''
         except Exception as e:

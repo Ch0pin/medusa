@@ -224,7 +224,10 @@ class Parser(cmd2.Cmd):
                 installed = parse_version(frida.__version__)
             except AttributeError:
                 installed = Version("0.0.0")
-            js_files = ["frida_java_bridge.js", "frida_module_bridge.js"] if installed >= Version("17.0.0") else []
+            js_files = ["frida_java_bridge.js", 
+                        "frida_module_bridge.js",
+                        "frida_process_bridge.js",
+                        "frida_memory_bridge.js"] if installed >= Version("17.0.0") else []
             js_files += ["globals.js", "beautifiers.js", "utils.js", "android_core.js"]
 
 
@@ -424,8 +427,9 @@ class Parser(cmd2.Cmd):
         Print the value of a class's field 
         Usage: get package_name full.path.to.class.field
         """
-
-        codeJs = self.add_js_bridge_if_needed()
+        # Avoid duplicating code
+        self.native_handler = nativeHandler(self.device)
+        codeJs = self.native_handler.add_js_bridge_if_needed()
         
         args = line.arg_list
         if len(args) < 2:
@@ -1913,7 +1917,9 @@ catch (err) {
         med_path = os.path.join(self.base_directory, "libraries", "native.med")
         out_path = os.path.join(self.base_directory, "libraries", "js", "native.js")
         
-        script = self.add_js_bridge_if_needed()
+        # Avoid duplicating code
+        self.native_handler = nativeHandler(self.device)
+        script = self.native_handler.add_js_bridge_if_needed()
         with open(med_path, "r", encoding="utf-8") as f:
             template = f.read()
 

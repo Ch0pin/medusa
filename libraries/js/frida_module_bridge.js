@@ -6,7 +6,7 @@ Module.ensureInitialized = function(libname) {
 };
 
 Module.findBaseAddress = function(libname) {
-    return Process.getModuleByName(libname).findBaseAddress();
+    return Process.getModuleByName(libname).base;
 };
 
 Module.getBaseAddress = function(libname) {

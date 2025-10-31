@@ -224,7 +224,7 @@ class Parser(cmd2.Cmd):
                 installed = parse_version(frida.__version__)
             except AttributeError:
                 installed = Version("0.0.0")
-            js_files = ["frida_java_bridge.js", 
+            js_files = ["frida_java_bridge.js",
                         "frida_module_bridge.js",
                         "frida_process_bridge.js",
                         "frida_memory_bridge.js"] if installed >= Version("17.0.0") else []

@@ -1514,6 +1514,9 @@ class Parser(cmd2.Cmd):
 
     def complete_dump(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)
+    
+    def complete_export(self, text, line, begidx, endidx):
+        return self.path_complete(text, line, begidx, endidx)
 
     def complete_get(self, text, line, begidx, endidx) -> list:
         return self.complete_list(text, line, begidx, endidx)

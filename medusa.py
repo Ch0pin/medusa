@@ -174,7 +174,8 @@ class Parser(cmd2.Cmd):
         click.secho(medusa_logo, fg=randomized_fg(), bold=True)
         self.do_loaddevice("dummy")
         if not self.interactive:
-            self.do_run('-f '+self.package_name)
+            self.do_compile('')
+            self.run_frida_n_interactive(True, False, self.package_name, self.device, -1, '', '')
 
     ###################################################### do_ defs start ############################################################
 
@@ -1232,11 +1233,6 @@ class Parser(cmd2.Cmd):
              add --host ip:port   to specify the IP address and port of the remote Frida server to connect to. 
         """
         try:
-            if not self.interactive:
-                self.do_compile(line)
-                self.run_frida_n_interactive(True, False, line.arg_list[1], self.device, -1, '', '')
-                return
-            
             if self.modified:
                 if Polar('Module list has been modified, do you want to recompile?').ask():
                     self.do_compile(line)

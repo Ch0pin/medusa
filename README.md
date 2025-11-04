@@ -83,8 +83,6 @@ python3 medusa.py
 
 # iOS
 python3 medusa_ios.py
-
-# 
 ```
 After start, MEDUSA will enumerate available devices and let you pick one.
 

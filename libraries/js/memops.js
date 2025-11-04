@@ -6,6 +6,7 @@ rpc.exports = {
         return a;
     },
 
+    //To do: remove after testing
     memorydump17: function (address, size) {
         var a = ptr(address).readByteArray(size-1000);
         return a;

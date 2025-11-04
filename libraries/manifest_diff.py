@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 from typing import Dict, List
-from colorama import Fore, Style, init
+from colorama import Fore, Back, Style, init
 
 
 class ManifestDiff:
@@ -29,12 +29,17 @@ class ManifestDiff:
         self.color = color
         init(autoreset=True)
 
-    def _c(self, text: str, color: str) -> str:
-        """Helper to apply color only if enabled."""
-        return f"{color}{text}{Style.RESET_ALL}" if self.color else text
+    def _c(self, text: str, color: str = "", style: str = "", background: str = "") -> str:
+        """Helper to apply color, style, and background if enabled."""
+        if not self.color:
+            return text
+        return f"{style}{color}{background}{text}{Style.RESET_ALL}"
 
-    def _extract_components(self, xml_content: str) -> Dict[str, List[str]]:
-        """Extract relevant Android components and their names."""
+    def _extract_components(self, xml_content: str) -> Dict[str, List[Dict[str, str]]]:
+        """
+        Extract relevant Android components and their names + exported flag.
+        Returns a dict: tag -> list of dicts {"name": str, "exported": bool}
+        """
         components = {tag: [] for tag in self.COMPONENT_TAGS.keys()}
 
         try:
@@ -48,23 +53,50 @@ class ManifestDiff:
 
         for tag in self.COMPONENT_TAGS.keys():
             for elem in app.findall(tag):
-                name = elem.attrib.get("{http://schemas.android.com/apk/res/android}name")
+                name = (
+                    elem.attrib.get("{http://schemas.android.com/apk/res/android}name")
+                    or elem.attrib.get("name")
+                )
+                exported_attr = (
+                    elem.attrib.get("{http://schemas.android.com/apk/res/android}exported")
+                    or elem.attrib.get("exported")
+                )
+                exported = exported_attr and exported_attr.lower() == "true"
+
                 if name:
-                    components[tag].append(name)
+                    components[tag].append({"name": name, "exported": exported})
 
         return components
 
-    def _diff_sets(self, old_set: List[str], new_set: List[str]) -> List[str]:
-        """Return added and removed entries with color."""
-        old, new = set(old_set), set(new_set)
-        added = sorted(new - old)
-        removed = sorted(old - new)
+    def _diff_sets(self, old_list: List[Dict[str, str]], new_list: List[Dict[str, str]]) -> List[str]:
+        """
+        Return added and removed entries with color.
+        Exported components are highlighted with cyan background.
+        """
+        old_set = {c["name"]: c["exported"] for c in old_list}
+        new_set = {c["name"]: c["exported"] for c in new_list}
+
+        added_names = sorted(set(new_set.keys()) - set(old_set.keys()))
+        removed_names = sorted(set(old_set.keys()) - set(new_set.keys()))
 
         lines = []
-        for item in added:
-            lines.append(self._c(f"+ Added: {item}", Fore.GREEN))
-        for item in removed:
-            lines.append(self._c(f"- Removed: {item}", Fore.RED))
+
+        for name in added_names:
+            exported = new_set[name]
+            if exported:
+                text = self._c(f"+ Added: {name} (exported)", Fore.GREEN, Style.BRIGHT, Back.WHITE)
+            else:
+                text = self._c(f"+ Added: {name}", Fore.GREEN)
+            lines.append(text)
+
+        for name in removed_names:
+            exported = old_set[name]
+            if exported:
+                text = self._c(f"- Removed: {name} (exported)", Fore.RED, Style.BRIGHT, Back.WHITE)
+            else:
+                text = self._c(f"- Removed: {name}", Fore.RED)
+            lines.append(text)
+
         return lines
 
     def generate_diff_report(self) -> str:
@@ -95,6 +127,8 @@ class ManifestDiff:
                     total_changes += len(diff_lines)
 
             if total_changes == 0:
-                report_lines.append(self._c("No relevant component changes detected.", Fore.LIGHTBLACK_EX))
+                report_lines.append(
+                    self._c("No relevant component changes detected.", Fore.LIGHTBLACK_EX)
+                )
 
         return "\n".join(report_lines)

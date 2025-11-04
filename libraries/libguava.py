@@ -119,13 +119,21 @@ class Guava:
     def fill_activities(self, application, sha256):
 
         for activity in application.findall("activity"):
-            activityName = activity.get(NS_ANDROID + "name")
-            enabled = activity.get(NS_ANDROID + "enabled")
-            exported = activity.get(NS_ANDROID + "exported")
-            autoRemoveFromRecents = activity.get(NS_ANDROID + "autoRemoveFromRecents")
-            excludeFromRecents = activity.get(NS_ANDROID + "excludeFromRecents")
-            noHistory = activity.get(NS_ANDROID + "noHistory")
-            permission = activity.get(NS_ANDROID + "permission")
+            activityName = self.get_attr(activity, "name")
+            enabled = self.get_attr(activity, "enabled")
+            exported = self.get_attr(activity, "exported")
+            autoRemoveFromRecents = self.get_attr(activity, "autoRemoveFromRecents")
+            excludeFromRecents = self.get_attr(activity, "excludeFromRecents")
+            noHistory = self.get_attr(activity, "noHistory")
+            permission = self.get_attr(activity, "permission")
+            
+            # activityName = activity.get(NS_ANDROID + "name")
+            # enabled = activity.get(NS_ANDROID + "enabled")
+            # exported = activity.get(NS_ANDROID + "exported")
+            # autoRemoveFromRecents = activity.get(NS_ANDROID + "autoRemoveFromRecents")
+            # excludeFromRecents = activity.get(NS_ANDROID + "excludeFromRecents")
+            # noHistory = activity.get(NS_ANDROID + "noHistory")
+            # permission = activity.get(NS_ANDROID + "permission")
 
             if len(activity.findall("intent-filter")) > 0:
                 if exported != 'false':

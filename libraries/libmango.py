@@ -1657,7 +1657,7 @@ $adb remount
 
             # Controlled output to prevent console flooding
             if not quiet:
-                max_display = 50
+                max_display = 500
                 for link in links[:max_display]:
                     print(link)
                 if len(links) > max_display:

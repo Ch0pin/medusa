@@ -181,38 +181,42 @@ class Parser(cmd2.Cmd):
 
     def do_add(self, mod) -> None:
         """
-        Add a module which is not indexed/added in the existing modules. 
-        Usage:
-        add /full/path/to/module
+            Add a module that is not currently indexed. Note: this addition is temporary and will be lost after restart.
+            Usage:
+                add /full/path/to/module
         """
         try:
             self.modManager.add(mod)
         except FileNotFoundError:
-            print('Module not found!')
+            logger.error('Module not found!')
         except (AttributeError, json.decoder.JSONDecodeError):
-            print("Module file has an incorrect format")
+            logger.error("Module file has an incorrect format")
 
     def do_c(self, line) -> None:
-        """Usage: c [shell command]
-        Run a shell command on the local host."""
+        """
+            Execute a shell command on the local device.
+            Usage: 
+                c [shell command]
+        """
         subprocess.run(line, shell=True)
 
     def do_cc(self, line) -> None:
         """
-        Get an adb shell to the connected device (no args)
+            Open an ADB shell on the connected device (no arguments required)
         """
         subprocess.run(f'adb -s {self.device.id} shell {line}', shell=True)
 
     def do_clear(self, line) -> None:
         """
-        Clear the screen (no args)
+            Clear the screen (no arguments required)
         """
         subprocess.run('clear', shell=True)
 
     def do_compile(self, line, rs=False) -> None:
         """
-        Compile the current staged modules to a single js frida script. Use '-t' to add a delay.
-        compile [-t X], where X is a value in millisec
+            Compile the currently staged modules into a single Frida JS script. Use '-t X' to add a delay.
+            Usage:
+                compile [-t X]    (X = delay in milliseconds)
         """
         try:
             hooks = []
@@ -290,9 +294,9 @@ class Parser(cmd2.Cmd):
 
     def do_describe_java_class(self, line) -> None:
         """
-        Adds relevant code to scratchpad which will print details about a class. 
+        Adds code to the scratchpad that prints details about a Java class.
         Usage:
-        describe_java_class [class path]
+            describe_java_class [fully-qualified-class-name]
         """
         class_path = line.split(' ')[0]
         codejs = '\n'
@@ -305,9 +309,9 @@ class Parser(cmd2.Cmd):
 
     def do_dexload(self, line) -> None:
         """
-        Force the android application to load a dex file
+        Force the instrumented android application to load a DEX file
         Usage:
-        dexload /device/path/to/dex
+            dexload /device/path/to/dex
         """
         try:
             codejs = '\n\nJava.openClassFile("' + line.split(' ')[0] + '").load();'
@@ -318,8 +322,9 @@ class Parser(cmd2.Cmd):
     def do_enumerate(self, line) -> None:
         """
         Enumerates the exported functions of a native library.
-        Usage: enumerate com.foo.com libname.so
-        Using '--attach' will attach to the already running process (gives better results)
+        Usage:
+            enumerate <package.name> <libname.so>
+        Use '--attach' to attach to an already-running process (provides better results).
         """
         try:
             libname = line.split(' ')[1].strip()
@@ -384,26 +389,15 @@ class Parser(cmd2.Cmd):
             except OSError as e:
                 logger.error(f"Failed to delete agent script: {e}")
 
-        # agent_path = os.path.join(self.base_directory, agent_script)
-        # scratchpad_path = os.path.join(self.base_directory, scratchpad_module)
-
-        # if os.path.getsize(agent_path) != 0:
-        #     if Polar('Do you want to reset the agent script?').ask():
-        #         open(os.path.join(self.base_directory, agent_script), 'w').close()
-
-        # if os.path.getsize(scratchpad_path) != 140:
-        #     if Polar('Do you want to reset the scratchpad?').ask():
-        #         self.edit_scratchpad('')
-
         print('Thank you for using Medusa !!')
         sys.exit()
 
     def do_export(self, line) -> None:
         """
-        Exports the current loaded modules and scratchpad contents for later usage.
-        Usage: 
-        export  'filename' 
-        To reload the same list of scripts, type 'medusa -r saved_file'
+        Export the currently loaded modules and scratchpad contents for later use.
+        Usage:
+            export 'filename'
+        To reload the saved configuration, run: medusa -r <filename>
         """
         try:
             if os.path.exists(line):
@@ -425,8 +419,9 @@ class Parser(cmd2.Cmd):
 
     def do_get(self, line):
         """
-        Print the value of a class's field 
-        Usage: get package_name full.path.to.class.field
+        Print the value of a field from a Java class.
+        Usage:
+            get <package.name> <full.path.to.class.field>
         """
         # Avoid duplicating code
         self.native_handler = nativeHandler(self.device)
@@ -521,134 +516,17 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             logger.error(e)
 
-    def do_man(self, line) -> None:
-        """
-        Display the manual 
-        """
-        try:
-            print(BOLD + """
-                Module Stashing / Un-Stashing:
-
-                        - add [fullpath]            : Adds the module, specified by the "fullpath" option, to a 
-                                                      list of stashed modules
-                        - compile [-t X ms]         : Compile the stashed modules. Use -t X to add X ms delay
-                        - import [snippet]          : Import a snippet to the scratchpad
-                        - info [module name]        : Display help about a module
-                        - rem [module name]         : Remove a module from the stashed ones
-                        - reload                    : Reload all the medusa modules
-                        - reset                     : Remove all modules from the list of the stashed ones
-                        - search [keyword]          : Search for a module containing a specific keyword in its name
-
-                        - show [option]
-                                all                 : Show all available modules
-                                categories          : Display the available module categories
-                                mods                : Show stashed modules
-                                mods [category]     : Display the available modules for the selected category
-                                snippets            : Display available snippets of frida scripts
-
-                        - snippet [tab]             : Show / display available frida script snippets
-                        - swap old_index new_index  : Change the order of modules in the compiled script
-                        - use [module name]         : Select a module to add to the final script
-
-                ===================================================================================================
-
-                Hooking beyond the modules:
-
-                        - hook [option]
-                            -a [class name]         : Set hooks for all the methods of the given class
-                            -f                      : Initiate a dialog for hooking a Java method
-                            -n                      : Initiate a dialog for hooking a native method
-                            -r                      : Reset the hooks set so far
-                        - jtrace method_path        : Prints the stack trace of a method (similar to hook -f)
-                        - pad                       : Edit the scratchpad using vim
-                        - import [tab]              : Import a frida script from the snippets folder
-
-                ===================================================================================================
-
-                Starting a session:
-
-                       - run         [package name] : Initiate a Frida session and attach to the selected package
-                              -f     [package name] : Initiate a Frida session and spawn the selected package
-                              -n     [package num]  : Initiate a Frida session and spawn the 3rd party package 
-                                                      number num (listed by "list")
-                              -t                    : Initiate a Frida session and attach to the topmost application
-                              -w     [package name] : Wait for the package to launch and attach to it immediately
-                              -p [pid]              : Initiate a Frida session using a process id
-                        add --host ip:port   to specify the IP address and port of the remote Frida server to connect to. 
-                ===================================================================================================
-
-                Working with native libraries:
-
-                        - libs (-a, -s, -j) package_name [--attach]  
-
-                            -a                          : List ALL loaded libraries
-                            -s                          : List system's loaded libraries
-                            -j                          : List application's Libraries
-                            --attach                    : Attach to the process (default is to first run the app) 
-                        
-                        - enumerate pkg_name libname [--attach]    
-                        
-                            Enumerate a library's exported functions (e.g. enumerate com.foo.gr libfoo.so)
-
-                        - load package_name full_library_path
-
-                                                        : Force the application to load a native library 
-                                            
-                ===================================================================================================
-
-                Working with the application's memory:
-
-                        - memops package_name lib.so    : read/write/search/dump a native library
-                        - memmap package_name           : read/dump read or dump a memory region
-
-                ====================================================================================================
-
-                Getting Class and Object snapshots:
-
-                        - describe_java_class full.path.to.class.name   : Log details about the given class
-                        - get package_name full.path.to.class.field     : Get the current value of a field of an 
-                                                                          instantiated java class. 
-                ====================================================================================================
-
-                Usefull utilities:
-
-                        - c [command]               : Run a shell command
-                        - cc [command]              : Run a shell command on the mobile device
-                        - clear                     : Clear the screen
-                        - shell                     : Open an interactive shell
-                ----------------------------------------------------------------------------------------------------
-                        - list [-a, -s, -3]         : List all, system or 3rd party packages
-                        - list 'package_name' path  : List data/app paths of 3rd party packages
-                        - loaddevice                : Load or reload a device
-                        - reload [-r recipe]        : Reload the modules. Use -r to load a recipe (see export command)
-                        - status                    : Print Current Package/Libs/Native-Functions
-                        - strace package_name       : logs system calls, signal deliveries, and changes of process state 
-                        - type 'text'               : Send a text to the device
-
-                ==============================================================================================
-                
-                Saving a session:
-
-                        - export 'filename'         : Save session modules and scripts to 'filename'. 
-                        
-                          (-) To load this file when starting medusa, add the -r option followed by the filename
-                          (-) To load this file while running medusa, type 'reload -r filename'                                      
-""" + RESET)
-
-        except Exception as e:
-            print(e)
-
     def do_hook(self, line) -> None:
         """
         Hook a method or methods
         Usage:
-        hook [options] where option can be one of the following:
-            -a [class name] [--color] : Set hooks for all the methods of the given class.  
-                                        (optional) Use the --color option to set different color output 
-                                        (default is purple)
-            -f                        : Initiate a dialog for hooking a Java method
-            -n                        : Initiate a dialog for hooking a native method
-            -r                        : Reset the hooks set so far
+            hook [options] where option can be one of the following:
+                -a [class name] [--color] : Set hooks for all the methods of the given class.  
+                                            (optional) Use the --color option to set different color output 
+                                            (default is purple)
+                -f                        : Initiate a dialog for hooking a Java method
+                -n                        : Initiate a dialog for hooking a native method
+                -r                        : Reset the hooks set so far
         """
         option = line.arg_list[0]
         codejs = '\n'
@@ -726,7 +604,7 @@ class Parser(cmd2.Cmd):
         """
         Prints the stacktrace of a specified function
         Usage: 
-        jtrace [full class path]
+            jtrace [full.class.path.function_name]
         """
         function_path = line.split(' ')[0]
         class_name = '.'.join(function_path.split('.')[:-1])
@@ -763,7 +641,7 @@ class Parser(cmd2.Cmd):
         """
         Imports a script from a predefined directory and adds it to the scratchpad.
         Usage: 
-        import [tab] #pressing tab will show the available scripts.
+            import [tab] #pressing tab will show the available scripts.
         """
         try:
             with open(os.path.join(self.base_directory, 'snippets', line + '.js'), 'r') as file:
@@ -777,9 +655,9 @@ class Parser(cmd2.Cmd):
 
     def do_info(self, mod) -> None:
         """
-        Provides information about a module.
+        Provides information about a medusa module.
         Usage: 
-        info  'module name' 
+            info  <module-name>
         """
         for m in self.modManager.available:
             if m.Name == mod:
@@ -788,13 +666,13 @@ class Parser(cmd2.Cmd):
 
     def do_libs(self, line) -> None:
         """
-        Enumerates loaded native libraries 
+        Enumerate loaded native libraries for the target application.
         Usage:
-        libs (-a, -s, -j) package_name [--attach]
-            -a  : List ALL loaded libraries
-            -s  : List System loaded libraries
-            -j  : List Application's Libraries
-            --attach    : Attach to the process (Default is spawn)
+            libs (-a, -s, -j) package_name [--attach]
+                -a  : List ALL loaded libraries
+                -s  : List System loaded libraries
+                -j  : List Application's Libraries
+                --attach    : Attach to the process (Default is spawn)
         """
         try:
             self.prepare_native("enumerateModules();")
@@ -840,25 +718,27 @@ class Parser(cmd2.Cmd):
 
     def do_list(self, line) -> None:
         """
-        Set the currently working package set / get information about an installed package
-        list [opt]
-        Where opt:
-            -a: all known packages (but excluding APEXes)
-            -s: filter to only show system packages
-            -3: filter to only show third party packages
-        
-        Get info about a package:
+        Sets the application list for the current session. Lists installed applications or show details for a specific application.
+        Usage:
+            To list the device installed packages:
+                list [option]
 
-        list package_name [path]
-        - Use the option path argument to return the application's installation path
+            Where option:
+                -a      Show all known packages (excluding APEX packages)
+                -s      Show only system packages
+                -3      Show only third-party packages
+
+            Get details about a specific application:
+                list <package.name> (path)
+
+            Notes:
+                - Adding 'path' returns the installation directory of the app
 
         Examples:
-
-        list com.example.app
-        list com.example.app path
-        list -3
+            list com.example.app
+            list com.example.app path
+            list -3
         """
-
         try:
             options = len(line.split())
 
@@ -897,17 +777,16 @@ class Parser(cmd2.Cmd):
 
     def do_load(self, line) -> None:
         """
-        Force the application to manually load a library in order to explore using memops. 
+        Force the application to load a native library. 
         Usage:
-        load package_name full_library_path
-        Tip: run "list package_name path" to get the application's directories
+            load package_name /path/to/library.so
         """
         self.native_handler = nativeHandler(self.device)
         self.native_handler.loadLibrary(line.split()[0], line.split()[1])
 
     def do_loaddevice(self, line) -> None:
         """
-        Load a device in order to interact
+        Lists the available devices and allows the user to select one to use.
         """
         try:
             if self.interactive:
@@ -939,20 +818,40 @@ class Parser(cmd2.Cmd):
 
     def do_memops(self, line) -> None:
         """
-        READ/WRITE/SEARCH process memory
+        Dynamically inspect and manipulate memory of a native library used by an application.
+        Allows reading, writing, and searching memory regions mapped by the target library.
         Usage:
-        memops package_name libfoo.so
+            memops <package.name> <libname.so>
+
+        Examples:
+            memops com.example.app libfoo.so
         """
         self.native_handler = nativeHandler(self.device)
         self.native_handler.memops(line)
 
     def do_memscan(self, line) -> None:
-        """Usage: memscan [option] package_name [nuclei template(s) (file or path)]
-        Where option:
-        -c2                                         scan the application's memory for c2 addresses using virus total database (need vt api key)
-        -s                                          scan for secrets using regex entries from /medusa/sigs.json
-        -nt  package_name /path/to/template(s)      scan for secrets using a nuclei template
-        -a                                          perform all scans
+        """
+        Scan a target application's memory for C2 addresses, secrets, or Nuclei-based findings.
+        Usage:
+            memscan [option] <package.name> [nuclei template(s) (file or path)]
+
+        Options:
+            -c2
+                Scan memory for C2/IP indicators using the VirusTotal database.
+                Requires a valid VirusTotal API key to be configured.
+            -s
+                Scan for secrets using regular expressions from /medusa/sigs.json.
+            -nt <package.name> </path/to/template(s)>
+                Scan using one or more Nuclei templates (file or directory).
+                When using -nt, include the package name followed by template paths.
+            -a
+                Perform all available scans (C2, secrets, and Nuclei templates).
+
+        Examples:
+            memscan -s com.example.app
+            memscan -c2 com.example.app
+            memscan -nt com.example.app /path/to/templates/
+            memscan -a com.example.app
         """
         try:
 
@@ -1050,10 +949,13 @@ class Parser(cmd2.Cmd):
 
     def do_memmap(self, line) -> None:
         """
-        READ process memory
+        Read process memory mappings for the target application.
         Usage:
-        Make sure the application is running and then type:
-        memmap package_name 
+            memmap <package.name>
+
+        Ensure the application is running before executing this command.
+        Example:
+            memmap com.example.app
         """
         try:
 
@@ -1088,9 +990,22 @@ class Parser(cmd2.Cmd):
 
     def do_options(self, mod) -> None:
         """
-        Options that you can modify for a specific module.
-        Usage: 
-        options  'module name' 
+        Options for a specific Medusa module.
+
+        Some Medusa modules expose configurable variables (flags, parameters, etc.).
+        This command shows the module's available variables (current value, default, and description)
+        and lets you modify them so the module runs with your desired settings.
+
+        Usage:
+            options 'module name'
+
+        When the module options are displayed you can:
+            - View current values and descriptions for each variable.
+            - Modify values (via the interactive prompt or the module's 'set' subcommand).
+            - Reset values to their defaults (if supported by the module).
+
+        Example:
+            options webviews/hook_webview
         """
         for m in self.modManager.available:
             if m.Name == mod:
@@ -1133,7 +1048,7 @@ class Parser(cmd2.Cmd):
 
     def do_pad(self, line) -> None:
         """
-        Manualy edit scratchpad using vi
+        Edit the scratchpad module using vi (no aruguments needed)
         """
         scratchpad = self.modManager.getModule('scratchpad')
         with open(os.path.join(self.base_directory, '.draft'), 'w') as draft:
@@ -1144,6 +1059,9 @@ class Parser(cmd2.Cmd):
         self.edit_scratchpad(code)
 
     def do_redirect(self, line) -> None:
+        """
+        Redirect an Intent to a different Package/Activity (no arguments needed)
+        """
         try:
             destination_class = input("Initial destination Activity:")
             new_destination_package = input("New destination package name:")
@@ -1162,8 +1080,20 @@ class Parser(cmd2.Cmd):
 
     def do_reload(self, line) -> None:
         """
-        Reload the medusa modules (in case of a module edit)
-        Use the -r filename option to load a saved session or recipe 
+        Reload Medusa modules. By default this refreshes the existing module index.
+        Use -r to load a previously saved session or recipe file.
+
+        Usage:
+            reload [-r <filename>]
+
+        Options:
+            -r <filename>
+                Load modules and state from a saved session/recipe file (created via 'export').
+                When used, the saved file's module list and scratchpad contents replace the current state.
+
+        Examples:
+            reload
+            reload -r saved_modules.json
         """
         logger.info("Loading modules...")
         self.modManager = ModuleManager()
@@ -1187,11 +1117,20 @@ class Parser(cmd2.Cmd):
 
     def do_rem(self, mod, redirect_output=False) -> None:
         """
-        Remove one or more staged modules
-        rem [module]
-        The command will remove staged modules starting with or equal to the argument given
-        Example: rem http_communications/ , will remove all the modules starting with "http_communications/"
+        Remove one or more staged modules.
 
+        Removes staged modules whose names match or start with the given argument.
+
+        Usage:
+            rem <module>
+
+        Notes:
+            - The argument may be a full module name or a prefix.
+            - All staged modules starting with the provided value will be removed.
+
+        Example:
+            rem http_communications/
+            (removes all staged modules whose names begin with "http_communications/")
         """
         try:
             if self.modManager.unstage(mod):
@@ -1220,17 +1159,37 @@ class Parser(cmd2.Cmd):
 
     def do_run(self, line) -> None:
         """
-        Initiate a Frida session and attach to the selected package
+        Initiate a Frida session and attach to or spawn the target package.
+
+        Usage:
+            run [options] [package.name]
 
         Options:
+            -t
+                Attach to the topmost foreground application.
+            -f <package.name>
+                Spawn and attach to the specified package.
+            -w <package.name>
+                Wait for the package to launch, then attach immediately.
+            -n <package_index>
+                Spawn and attach to a third-party package by its index (from the 'list' command).
+            -p <pid>
+                Attach to an existing process by PID.
+            --host <ip:port>
+                Connect to a remote Frida server at the given IP address and port.
 
-        run [package name]       : Initiate a Frida session and attach to the selected package
-             -t                  : Initiate a Frida session and attach to the topmost application
-             -f [package name]   : Initiate a Frida session and spawn the selected package
-             -w [package name]   : Wait for the package to launch and attach to it immediately
-             -n [package number] : Initiate a Frida session and spawn the 3rd party package using its index returned by the 'list' command
-             -p [pid]            : Initiate a Frida session using a process id
-             add --host ip:port   to specify the IP address and port of the remote Frida server to connect to. 
+        Notes:
+            - If no package is provided and -t is not used, supply a package name or PID.
+            - Use -n with the numeric index shown by the 'list' command.
+            - '--host' is optional and can be combined with any attach/spawn option.
+
+        Examples:
+            run com.example.app
+            run -t
+            run -f com.example.app
+            run -w com.example.app
+            run -n 3
+            run -p 12345 --host 10.0.0.5:27042
         """
         try:
             if self.modified:
@@ -1311,7 +1270,7 @@ class Parser(cmd2.Cmd):
         """
         Print code examples from the snippets directory
         Usage:
-        snippet [tab] 
+            snippet /path/to/snippet
         """
         try:
             selected_snippet = line.split(' ')[0]
@@ -1323,7 +1282,7 @@ class Parser(cmd2.Cmd):
         """
         Search for modules related to a given keyword
         Usage:
-        search http
+            search <keyword>
         """
         matches = self.modManager.findModule(pattern)
         if not matches:
@@ -1340,10 +1299,26 @@ class Parser(cmd2.Cmd):
 
     def do_session(self, line) -> None:
         """
-        Usage: session [--save 'name'] [--load] [--del]
-        --save 'name', saves the current module set 
-        --load loads a module set that was previously saved
-        --del deletes a module set
+        Manage Medusa session files. A session stores a saved set of staged modules and the scratchpad
+        contents so you can reload the same working state later.
+
+        Usage:
+            session [--save 'name'] [--load 'name'] [--del 'name']
+
+        Options:
+            --save 'name'
+                Save the current module set and scratchpad under the given name.
+            --load 'name'
+                Load a previously saved session (replaces current staged modules and scratchpad).
+            --del 'name'
+                Delete a previously saved session.
+
+        Notes:
+            - Session names should be unique and will be used as the filename or key for the saved state.
+            - Loading a session replaces the current working state; unsaved changes will be lost.
+
+        Examples:
+            session --save 'com.my.app-testing'
         """
         operation = line.split(' ')[0]
 
@@ -1354,18 +1329,18 @@ class Parser(cmd2.Cmd):
         elif operation == '--del':
             self.del_session()
         else:
-            print("Invalid session option")
+            logger.info("Invalid session option")
 
     def do_shell(self, line) -> None:
         """
-        Get a local shell
+        Get a shell to the local system (no arguments needed)
         """
         shell = os.environ['SHELL']
         subprocess.run(f'{shell}', shell=True)
 
     def do_show(self, what) -> None:
         """
-        Show available modules
+        Show the available medusa modules
         """
         try:
             if what == 'categories':
@@ -1379,30 +1354,39 @@ class Parser(cmd2.Cmd):
             elif what.split(' ')[0] == 'mods' and len(what.split(' ')) == 2:
                 self.show_mods_by_category(what.split(' ')[1])
             else:
-                print('Invalid command!')
+                logger.info('Invalid command!')
         except Exception as e:
-            print(e)
-            print('Invalid command - please check usage!')
+            logger.error(e)
 
     def do_swap(self, line) -> None:
         """
-        As some modules have to run first, this command can help you to swap their possition in the final compiled script.
+        Swap the order of two staged modules in the final compiled script.
+
+        Some modules must run before others; use this command to change their positions
+        in the compilation order.
+
         Usage:
-        swap index1 index2 
+            swap <index1> <index2>
+
+        Notes:
+            - Indices are zero-based and refer to the module ordering shown by the staging list.
+            - Both indices must be valid; out-of-range indices will produce an error.
+            - The swap affects the order used when compiling the final script.
+
         Example:
-        swap 0 5
+            swap 0 5
         """
         try:
             old_index = int(line.split(' ')[0])
             new_index = int(line.split(' ')[1])
             self.modManager.staged[old_index], self.modManager.staged[new_index] = self.modManager.staged[new_index], \
             self.modManager.staged[old_index]
-            print('New arrangement:')
+            logger.info('New arrangement:')
             self.show_mods()
 
             self.modified = True
         except Exception as e:
-            print(e)
+            logger.error(e)
     
     def do_startserver(self, line):
         """
@@ -1438,7 +1422,7 @@ class Parser(cmd2.Cmd):
         
     def do_status(self, line) -> None:
         """
-        Prints the loaded device id, libraries, native functions of the last loaded package.
+            Print device and application information for the last-loaded package.
         """
         print('[+] Dumping processed data:')
         if (self.device):
@@ -1456,7 +1440,7 @@ class Parser(cmd2.Cmd):
         """
         Pseudo strace implemented via a frida script
         Usage:
-        strace package_name
+            strace <package-name>
         """
 
         self.detached = False
@@ -1483,21 +1467,22 @@ class Parser(cmd2.Cmd):
             print(e)
         print(RESET)
 
-    def do_type(self, text) -> None:
-        """
-        Send keystrokes to the device
-        Usage:
-        type 'text to send to the device'
-        """
-        os.popen(f"adb -s {self.device.id} shell input text {text}")
-
     def do_use(self, mod, redirect_output=False) -> None:
         """
-        Stage a module or modules
+        Stage one or more modules for execution.
+
+        The command stages all modules whose names match or start with the given argument.
+
         Usage:
-        use [module]
-        The command will stage modules starting with or equal to the argument given
-        Example: use http_communications/ , will load all the modules starting with "http_communications/"
+            use <module>
+
+        Notes:
+            - Provide a full module name or a prefix.
+            - All modules starting with the given prefix will be staged.
+
+        Example:
+            use http_communications/
+            (stages all modules whose names begin with "http_communications/")
         """
         self.modManager.stage(mod)
         self.show_mods(redirect_output)
@@ -1581,22 +1566,22 @@ class Parser(cmd2.Cmd):
 
     ###################################################### implementations start ############################################################
 
-    def add_js_bridge_if_needed(self) -> Optional[str]:
-        """
-        Return the JS bridge code if frida >= 17.0.0 and the file exists, else None.
-        """
-        js_directory = Path(self.base_directory) / "libraries" / "js"
-        bridge_path = js_directory / "frida_java_bridge.js"
+    # def add_js_bridge_if_needed(self) -> Optional[str]:
+    #     """
+    #     Return the JS bridge code if frida >= 17.0.0 and the file exists, else None.
+    #     """
+    #     js_directory = Path(self.base_directory) / "libraries" / "js"
+    #     bridge_path = js_directory / "frida_java_bridge.js"
 
-        installed = parse_version(getattr(frida, "__version__", "0.0.0"))
+    #     installed = parse_version(getattr(frida, "__version__", "0.0.0"))
 
-        if installed < Version("17.0.0"):
-            return ""
-        try:
-            return bridge_path.read_text(encoding="utf-8")
-        except FileNotFoundError:
-            logger.warning(f"Bridge file not found: {bridge_path}")
-            return ""
+    #     if installed < Version("17.0.0"):
+    #         return ""
+    #     try:
+    #         return bridge_path.read_text(encoding="utf-8")
+    #     except FileNotFoundError:
+    #         logger.warning(f"Bridge file not found: {bridge_path}")
+    #         return ""
 
     def check_using_vt(self, hosts, vtkey):
         vt_address = 'https://www.virustotal.com/api/v3/domains/'

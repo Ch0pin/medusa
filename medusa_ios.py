@@ -1015,7 +1015,7 @@ Data container: {self.app_info.parameters['containers']['data']}\n""" + RESET)
             sigs = {}
             matches = []
             results = []
-            sig_file = os.path.join(os.path.dirname(__file__), 'assets', 'sigs.json')
+            sig_file = os.path.join(self.base_directory, 'assets', 'sigs.json')
             logger.info(f'Using signature file: {sig_file}')
 
             if os.path.isfile(sig_file):

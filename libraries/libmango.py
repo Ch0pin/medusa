@@ -878,9 +878,9 @@ $adb remount
                     base_apk = os.popen(
                         f"adb -s {self.device.id} shell pm path {package} | cut -d ':' -f 2").read().strip()
                     
-                command = ["adb", "-s", self.device.id, "pull", base_apk]
+                command = ["adb", "-s", self.device.id, "pull", base_apk, package + ".apk"]
                 result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                apk_name = os.path.basename(base_apk)
+                apk_name = package + ".apk"
                 if result.returncode == 0:
                     logger.info(f"Successfully pulled {package} ({base_apk}): Saved in the current directory as {apk_name}")
                     if Polar(f'Do you want to import the {package} app ?').ask():

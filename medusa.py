@@ -911,7 +911,7 @@ class Parser(cmd2.Cmd):
                                 hosts.append(urlparse(entry).netloc)
 
             hosts = list(dict.fromkeys(hosts))
-            whitelist = script_dir + os.path.sep + 'whitelist.txt'
+            whitelist = os.path.join(self.base_directory, 'assets', 'whitelist.txt') 
             whitelist_urls = []
             if os.path.isfile(whitelist):
                 with open(whitelist, 'r') as file:
@@ -2184,7 +2184,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
             sigs = {}
             matches = []
             results = []
-            sig_file = os.path.join(os.path.dirname(__file__), 'assets', 'sigs.json')
+            sig_file = os.path.join(self.base_directory, 'assets', 'sigs.json')
             logger.info(f'Using signature file: {sig_file}')
             if os.path.isfile(sig_file):
                 with open(sig_file, 'r') as file:

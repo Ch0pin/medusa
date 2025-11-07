@@ -840,7 +840,7 @@ class Parser(cmd2.Cmd):
                 Scan memory for C2/IP indicators using the VirusTotal database.
                 Requires a valid VirusTotal API key to be configured.
             -s
-                Scan for secrets using regular expressions from /medusa/sigs.json.
+                Scan for secrets using regular expressions from /medusa/assets/sigs.json.
             -nt <package.name> </path/to/template(s)>
                 Scan using one or more Nuclei templates (file or directory).
                 When using -nt, include the package name followed by template paths.
@@ -2184,9 +2184,8 @@ Apk Directory: {packageCodePath}\n""" + RESET)
             sigs = {}
             matches = []
             results = []
-            sig_file = os.getcwd() + os.path.sep + 'sigs.json'
-            print(f'Using signature file: {sig_file}')
-
+            sig_file = os.path.join(os.path.dirname(__file__), 'assets', 'sigs.json')
+            logger.info(f'Using signature file: {sig_file}')
             if os.path.isfile(sig_file):
                 with open(sig_file, 'r') as file:
                     sigs = json.load(file)

@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/libraries/logo.svg" width ="1835" height="508">
+<img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/assets/images/logo.svg" width ="1835" height="508">
 
 # MEDUSA
 
@@ -68,7 +68,7 @@ pip install git+https://github.com/ludwigschwardt/python-gnureadline.git@8474e55
 
 ### Backward compatibility with previous MEDUSA versions
 
-If you're upgrading from an older version of Medusa and encounter database compatibility issues with Mango, please refer to [DATABASE_MIGRATIONS.md](DATABASE_MIGRATIONS.md) for migration instructions.
+If you're upgrading from an older version of Medusa and encounter database compatibility issues with Mango, please refer to [DATABASE_MIGRATIONS.md](https://github.com/Ch0pin/medusa/blob/master/assets/Documentation/DATABASE_MIGRATIONS.md) for migration instructions.
 
 **Important**: If you have an existing Mango database and receive errors after updating, check the migration guide to update your database schema.
 
@@ -237,7 +237,6 @@ You can contribute to this project by:
 - https://github.com/frida/frida
 - https://github.com/dpnishant/appmon
 - https://github.com/brompwnie/uitkyk
-- https://github.com/hluwa/FRIDA-DEXDump.git
 - https://github.com/shivsahni/APKEnum
 - https://github.com/0xdea/frida-scripts
 - https://github.com/Areizen/JNI-Frida-Hook

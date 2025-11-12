@@ -634,7 +634,7 @@ class Parser(cmd2.Cmd):
     }
 """
         self.edit_scratchpad(codejs, 'a')
-        print(
+        logger.info(
             "Stack trace have been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script")
 
     def do_import(self, line) -> None:
@@ -648,10 +648,10 @@ class Parser(cmd2.Cmd):
                 data = file.read()
             self.edit_scratchpad(data, 'a')
 
-            print(
+            logger.info(
                 "\nSnippet has been added to the" + GREEN + " scratchpad" + RESET + " run 'compile' to include it in your final script or 'pad' to edit it")
         except Exception as e:
-            print(e)
+            logger.error(e)
 
     def do_info(self, mod) -> None:
         """

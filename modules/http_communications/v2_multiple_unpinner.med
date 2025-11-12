@@ -1,5 +1,5 @@
 {
-    "Name": "http_communications/multiple_unpinner_v2",
+    "Name": "http_communications/v2_multiple_unpinner",
     "Description": "frida-multiple-unpinning  by incogbyte",
 	"Help": "Original script: https://gist.github.com/incogbyte/1e0e2f38b5602e72b1380f21ba04b15e",
 	"Code": "

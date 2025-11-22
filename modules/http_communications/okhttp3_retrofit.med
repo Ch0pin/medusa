@@ -5,13 +5,13 @@
     "Code": "
 {
     console.log('\\n\\n--------------------okhtt3 interception modified by @ch0pin (fixed by @subhobhai943)----------------------');
-    
+
     // Safe class loading with error handling
     var ByteString = null;
     var Buffer = null;
     var Interceptor = null;
     var hasOkio = false;
-    
+
     try {
         ByteString = Java.use(\"okio.ByteString\");
         Buffer = Java.use(\"okio.Buffer\");
@@ -22,16 +22,16 @@
         console.log('[!] Error: ' + error.message);
         hasOkio = false;
     }
-    
+
     try {
         Interceptor = Java.use(\"okhttp3.Interceptor\");
         console.log('[+] OkHttp3 Interceptor class found');
     } catch (error) {
         console.log('[!] OkHttp3 Interceptor not found: ' + error.message);
-        console.log('[!] This app might not use OkHttp3 or it's heavily obfuscated');
+        console.log('[!] This app might not use OkHttp3 or it is heavily obfuscated');
         return;
     }
-    
+
     // Helper function to safely convert bytes to string
     function safeByteArrayToString(byteArray) {
         try {
@@ -60,7 +60,7 @@
             }
         }
     }
-    
+
     // Helper function to safely read buffer content
     function safeBufferRead(buffer) {
         try {
@@ -96,7 +96,7 @@
                 var request = chain.request();
                 var requestBody = request.body();
                 var contentLength = requestBody ? requestBody.contentLength() : 0;
-             
+
                 console.log('\\n'+request._method.value + ' '+request._url.value);
                 console.log('\\n');
 
@@ -104,7 +104,7 @@
                     try {
                         if (hasOkio && Buffer) {
                             var BufferObj = Buffer.$new();
-                            requestBody.writeTo(BufferObj);  
+                            requestBody.writeTo(BufferObj);
                             try {
                                 console.log(\"\\nrequest body String:\\n\", BufferObj.readString(), \"\\n\");
                             } catch(error) {
@@ -127,7 +127,7 @@
                     } catch (error) {
                         console.log('[!] Error reading request body: ' + error.message);
                     }
-                }    
+                }
                 console.log('\\n');
 
                 var response = chain.proceed(request);
@@ -136,13 +136,13 @@
                     var ContentType = response.headers().get(\"Content-Type\");
                     var responseBody = response.body();
                     var contentLength = responseBody ? responseBody.contentLength() : 0;
-                    
+
                     colorLog('|------------|Okhttp3 Response intercepted|----------------|', {c: Color.Green});
                     console.log('SentRequestAtMillis: ' + response._sentRequestAtMillis.value + '\\nReceivedResponseAtMillis: '+response._receivedResponseAtMillis.value);
                     colorLog('|----------------------------------------------------------|', {c: Color.Green});
                     console.log(response._protocol.value + ' ' + response._code.value + ' ' + response._message.value);
                     console.log(response.headers());
-                    
+
                     if (contentLength > 0) {
                         if (ContentType && ContentType.indexOf(\"video\") == -1) {
                             if (ContentType.indexOf(\"application\") == 0) {
@@ -189,7 +189,7 @@
     try {
         var ArrayList = Java.use(\"java.util.ArrayList\");
         var OkHttpClient = Java.use(\"okhttp3.OkHttpClient\");
-        
+
         OkHttpClient.$init.overload('okhttp3.OkHttpClient$Builder').implementation = function(Builder) {
             this.$init(Builder);
         };
@@ -197,7 +197,7 @@
         var MyInterceptorObj = MyInterceptor.$new();
         var Builder = Java.use(\"okhttp3.OkHttpClient$Builder\");
         console.log('[+] OkHttpClient.Builder found');
-        
+
         Builder.build.implementation = function() {
             try {
                 this.interceptors().clear();
@@ -229,10 +229,10 @@
         } catch (error) {
             console.log('[!] Headers$Builder not found or not hookable: ' + error.message);
         }
-        
+
         console.log('[+] OkHttp3 interception setup completed successfully');
         console.log('[+] Compatibility mode: ' + (hasOkio ? 'Full OkIO support' : 'Fallback mode'));
-        
+
     } catch (error) {
         console.log('[!] Failed to setup OkHttp3 interception: ' + error.message);
         console.log('[!] This might be due to obfuscation or missing dependencies');

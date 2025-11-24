@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from typing import Dict, List
+from typing import Optional, Dict, List
 from colorama import Fore, Back, Style, init
 
 
@@ -132,3 +132,55 @@ class ManifestDiff:
                 )
 
         return "\n".join(report_lines)
+
+class ManifestParser:
+    """
+    Parses an AndroidManifest.xml string and allows retrieving elements by name.
+    """
+
+    def __init__(self, manifest_xml: str):
+        self.manifest_xml = manifest_xml
+        try:
+            self.root = ET.fromstring(manifest_xml)
+        except ET.ParseError as e:
+            raise ValueError(f"Invalid manifest XML: {e}")
+
+    def get_manifest_attribute(self, attr_name: str) -> Optional[str]:
+        ns = "{http://schemas.android.com/apk/res/android}"
+        return self.root.attrib.get(f"{ns}{attr_name}") or self.root.attrib.get(attr_name)
+
+    def get_elements(self, tag_name: str) -> List[ET.Element]:
+        """
+        Returns a list of all elements matching the given tag name.
+
+        Example:
+            parser.get_elements("activity")
+        """
+        # Find all elements in the tree with the given tag
+        return list(self.root.iter(tag_name))
+
+    def get_element_by_name(self, tag_name: str, name: str) -> Optional[ET.Element]:
+        """
+        Returns the first element matching both tag name and android:name (or name) attribute.
+        Returns None if not found.
+
+        Example:
+            parser.get_element_by_name("activity", "com.example.MainActivity")
+        """
+        namespace = "{http://schemas.android.com/apk/res/android}name"
+
+        for elem in self.root.iter(tag_name):
+            elem_name = (
+                elem.attrib.get(namespace)
+                or elem.attrib.get("name")
+                or elem.attrib.get("android:name")
+            )
+            if elem_name == name:
+                return elem
+        return None
+
+    def list_tag_names(self) -> List[str]:
+        """
+        Returns a unique list of all tag names present in the manifest.
+        """
+        return sorted({elem.tag for elem in self.root.iter()})

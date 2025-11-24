@@ -18,6 +18,7 @@ from libraries.db import apk_db
 from libraries.IntentFilter import IntentFilter
 from libraries.logging_config import setup_logging
 from libraries.Questions import Polar
+from libraries.manifest_diff import ManifestParser
 
 logging.getLogger().handlers = []  
 setup_logging() 
@@ -126,14 +127,6 @@ class Guava:
             excludeFromRecents = self.get_attr(activity, "excludeFromRecents")
             noHistory = self.get_attr(activity, "noHistory")
             permission = self.get_attr(activity, "permission")
-            
-            # activityName = activity.get(NS_ANDROID + "name")
-            # enabled = activity.get(NS_ANDROID + "enabled")
-            # exported = activity.get(NS_ANDROID + "exported")
-            # autoRemoveFromRecents = activity.get(NS_ANDROID + "autoRemoveFromRecents")
-            # excludeFromRecents = activity.get(NS_ANDROID + "excludeFromRecents")
-            # noHistory = activity.get(NS_ANDROID + "noHistory")
-            # permission = activity.get(NS_ANDROID + "permission")
 
             if len(activity.findall("intent-filter")) > 0:
                 if exported != 'false':
@@ -175,6 +168,14 @@ class Guava:
                 tampering = "N/A"
 
             arsc = parsed_apk.get_android_resources()
+            if arsc:
+                package_names = arsc.get_packages_names()
+                if package_names:
+                    string_resources = arsc.get_string_resources(package_names[0])
+                else:
+                    string_resources = "N/A"
+            else:
+                string_resources = "N/A"
             app_attributes = (sha256, parsed_apk.get_app_name(), parsed_apk.get_package(),
                             parsed_apk.get_androidversion_code(), parsed_apk.get_androidversion_name(),
                             parsed_apk.get_min_sdk_version(), parsed_apk.get_target_sdk_version(),
@@ -182,11 +183,13 @@ class Guava:
                             ' '.join(parsed_apk.get_libraries())) + (
                                 application.get(NS_ANDROID + "debuggable"), application.get(NS_ANDROID + "allowBackup"),
                                 parsed_apk.get_android_manifest_axml().get_xml(),
-                                arsc.get_string_resources(arsc.get_packages_names()[0]), original_filename,
+                                string_resources, original_filename,
                                 tampering, self.detect_framework(parsed_apk))
             self.application_database.update_application(app_attributes)
         except Exception as e:
+            print(e)
             logger.error(e)
+            print(e)
             
 
     def fill_permissions(self, parsed_apk, sha256):
@@ -374,6 +377,7 @@ class Guava:
         apk_r = apk.APK(apkfile)            
         manifest = apk_r.get_android_manifest_axml().get_xml_obj()
         application = manifest.findall("application")[0]
+  
         if print_info:
             logger.info("[+] Analysis finished.")
             logger.info("[+] Filling up the database....")

@@ -1574,11 +1574,17 @@ $adb remount
         if len(info) == 0:
             logger.error("APK entry is probably broken")
             return
+        
+        sharedUserId = 'N/A'
+        if(self.manifest):
+            sharedUserId = ManifestParser(self.manifest[0][0]).get_manifest_attribute('sharedUserId')
+        
         print(Back.BLACK + Fore.RED + Style.BRIGHT + """
 [------------------------------------Package Details---------------------------------------]:
 |    Original Filename :{}
 |    Application Name  :{}
 |    Package Name      :{}
+|    Shared User Id    :{}              
 |    Version code      :{}
 |    Version Name      :{}
 |    Mimimum SDK       :{}
@@ -1592,7 +1598,7 @@ $adb remount
 [------------------------------------------------------------------------------------------]
 |                          Type 'help' or 'man' for a list of commands                     |
 [------------------------------------------------------------------------------------------]
-        """.format(info[0][14], info[0][1], info[0][2], info[0][3], info[0][4],
+        """.format(info[0][14], info[0][1], info[0][2], sharedUserId, info[0][3], info[0][4],
                    info[0][5], info[0][6], info[0][7], info[0][0], info[0][10], info[0][11],
                    info[0][15], info[0][16]) + Style.RESET_ALL)
         print(BLUE + "[i] Notes:" + RESET)
@@ -1602,6 +1608,7 @@ $adb remount
         else:
             for index, sha256, cmt in notes:
                 print(f'{index}) {cmt}')
+
 
     def print_database_structure(self):
         res = self.database.query_db("SELECT name FROM sqlite_master WHERE type='table';")
@@ -1909,7 +1916,7 @@ $adb remount
 
     def print_avail_apps(self, count_pkg=False, ask=False):
         res = self.database.query_db(
-            "SELECT sha256, packageName, versionName, framework FROM Application;"
+            "SELECT sha256, packageName, versionName, framework, androidManifest FROM Application;"
         )
         index = 0
         if res:
@@ -1918,25 +1925,40 @@ $adb remount
             else:
                 sort_by_exposure = False
             print(
-                Fore.GREEN + "[i] Available applications:\n" + Fore.RESET + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
+                Fore.GREEN + "[i] Available applications:\n" + Fore.RESET +
+                "-" * 7 + " " + "-" * 35 + "  " + "-" * 20 + "  " + "-" * 60
             )
+
             print(
-                " {0} {1:^68}  {2:^65}\n".format(
-                    "index", "sha256", "Package Name (Version), Exposure (A|AL|S|R|P) / Dev. Framework"
-                ) + "-" * 7 + " " + "-" * 65 + "  " + "-" * 65
+                "{0:^7} {1:^35}  {2:^20}  {3:<60}".format(
+                    "index",
+                    "sha256",
+                    "sharedUserId",
+                    "Package Name (Version), Exposure (A|AL|S|R|P) / Dev. Framework"
+                )
             )
+
+            print(
+                "-" * 7 + " " + "-" * 35 + "  " + "-" * 20 + "  " + "-" * 60
+            )
+
             app_list = []
             for entry in res:
-                sha256, package_name, version, framework = entry
+                sha256, package_name, version, framework, manifest = entry
+                
+                sharedUserId = ManifestParser(manifest).get_manifest_attribute('sharedUserId')
                 # Handle None values for version and framework
                 version = version if version is not None else "N/A"
+                sharedUserId = sharedUserId if sharedUserId is not None else ""
                 framework = framework if framework and framework != 'None Detected' else ''
                 exposure, total = self.print_exposure_summary(sha256)
+
 
                 app_list.append({
                     'index': index,
                     'sha256': sha256,
                     'package_name': package_name,
+                    'sharedUserId': sharedUserId,
                     'version': version,
                     'framework': framework,
                     'exposure': exposure,
@@ -1955,9 +1977,17 @@ $adb remount
             for idx, app in enumerate(app_list):
                 app['index'] = idx
                 res_sorted.append((app['sha256'], app['package_name'], app['version'], app['framework']))
+
+                short_hash = app['sha256'][:30] + "..." if len(app['sha256']) > 30 else app['sha256']
+                suid_field = (app.get('sharedUserId') or "").ljust(20)[:20]  # safe, fixed width 32 chars
+
                 print(
-                    Fore.CYAN + Style.BRIGHT + "{0:^7} {1:^64}   {2:<60}".format(
-                        idx, app['sha256'], f"({app['total']}) {app['package_name']} (V.{app['version']}) {app['exposure']} {app['framework']}"
+                    Fore.CYAN + Style.BRIGHT +
+                    "{0:^7} {1:<35}  {2:<20}  {3:<60}".format(
+                        idx,
+                        short_hash,
+                        suid_field,
+                        f"({app['total']}) {app['package_name']} (V.{app['version']}) {app['exposure']} {app['framework']}"
                     )
                 )
             return res_sorted, len(app_list)
@@ -2072,6 +2102,8 @@ $adb remount
     def init_application_info(self, application_database, app_sha256):
         try:
             self.info = application_database.get_app_info(app_sha256)
+            self.manifest = application_database.query_db(
+                f"SELECT androidManifest FROM Application WHERE sha256='{app_sha256}';")
             self.print_application_info(self.info)
             self.activities = application_database.get_all_activities(app_sha256)
             self.libraries = application_database.get_libraries(app_sha256)
@@ -2085,8 +2117,6 @@ $adb remount
                 f"SELECT name from Activities WHERE app_sha256='{app_sha256}'"))).split('\n'))
             self.service_names = list('\n'.join(map(lambda x: str(x[0]), application_database.query_db(
                 f"SELECT name from Services WHERE app_sha256='{app_sha256}'"))).split('\n'))
-            self.manifest = application_database.query_db(
-                f"SELECT androidManifest FROM Application WHERE sha256='{app_sha256}';")
             self.strings = \
             application_database.query_db(f"SELECT stringResources FROM Application WHERE sha256='{app_sha256}';")[0][
                 0].decode('utf-8')

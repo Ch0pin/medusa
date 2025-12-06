@@ -8,4 +8,4 @@ click==8.0.3
 colorama==0.4.5
 pick==2.2.0
 PyYAML==6.0.1
-urllib3==2.5.0
+urllib3==2.6.0

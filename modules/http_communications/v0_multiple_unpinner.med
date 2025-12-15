@@ -488,8 +488,11 @@
 		try {
 			// Bypass WebViewClient {1} (deprecated from Android 6)
 			var AndroidWebViewClient_Activity_1 = Java.use('android.webkit.WebViewClient');
-			AndroidWebViewClient_Activity_1.onReceivedSslError.overload('android.webkit.WebView', 'android.webkit.SslErrorHandler', 'android.net.http.SslError').implementation = function(obj1, obj2, obj3) {
-				//console.log('[+] Bypassing Android WebViewClient check {1}');
+			AndroidWebViewClient_Activity_1.onReceivedSslError.overload('android.webkit.WebView', 'android.webkit.SslErrorHandler', 'android.net.http.SslError').implementation = function(obj1, handler, sslError) {
+				        console.log('[+] onReceivedSslError triggered');
+						//console.log('Error: ' + sslError);
+						console.log('[+] Calling handler.proceed()');
+						handler.proceed();
 			};
 		} catch (err) {
 			//console.log('[-] Android WebViewClient {1} check not found');

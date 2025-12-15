@@ -311,17 +311,32 @@ class Parser(cmd2.Cmd):
 
     def do_pad(self, line) -> None:
         """
-        Manualy edit scratchpad using vi
+        Edit the scratchpad module using the configured editor.
+        The editor is loaded from config.yaml (key: favorite_editor).
+        Defaults to 'vim' if not configured.
         """
+
+        config_path = os.path.join(self.base_directory, 'config.yaml')
+        editor = "vim"  # fallback default
+
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                cfg = yaml.safe_load(f) or {}
+                editor = cfg.get("default_editor", editor)
+
         scratchpad = self.modManager.getModule('scratchpad')
-        with open(os.path.join(self.base_directory, '.idraft'), 'w') as draft:
+        draft_path = os.path.join(self.base_directory, '.idraft')
+
+        with open(draft_path, 'w') as draft:
             draft.write(scratchpad.Code)
-        subprocess.run('vim ' + os.path.join(self.base_directory, '.idraft'), shell=True)
-        with open(os.path.join(self.base_directory, '.idraft'), 'r') as draft:
+
+        subprocess.run(f'{editor} "{draft_path}"', shell=True)
+
+        with open(draft_path, 'r') as draft:
             code = draft.read()
         self.edit_scratchpad(code)
 
-    # partially_finished --> implement -r
+
     def do_reload(self, line) -> None:
         """
         Reload the medusa modules (in case of a module edit)

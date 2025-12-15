@@ -5,6 +5,7 @@ modules/private_modules/
 */__pycache__/
 
 vt.key
+config.yaml
 .DS_Store
 
 *.apk

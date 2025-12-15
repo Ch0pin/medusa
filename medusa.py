@@ -291,6 +291,56 @@ class Parser(cmd2.Cmd):
         except Exception as e:
             print(e)
         self.modified = False
+    
+    def do_configure(self, line) -> None:
+        """
+        Configure Medusa settings.
+
+        Supported settings:
+        - default_editor
+        - virustotal_api_key
+
+        Usage:
+            configure
+        """
+        config_path = os.path.join(self.base_directory, 'config.yaml')
+        config = {}
+
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as file:
+                config = yaml.safe_load(file) or {}
+
+        config.setdefault("default_editor", "vim")
+        config.setdefault("virustotal_api_key", None)
+
+        logger.info("\nCurrent configuration:")
+        logger.info(f"default_editor: {config.get('default_editor')}")
+        logger.info(f"virustotal_api_key: {config.get('virustotal_api_key')}\n")
+
+        valid_keys = ["default_editor", "virustotal_api_key"]
+
+        while True:
+            key = input("Enter setting to modify [default_editor, virustotal_api_key] (or 'exit'): ").strip()
+            if key.lower() == "exit":
+                break
+
+            if key not in valid_keys:
+                print("Invalid setting. Valid options are: default_editor, virustotal_api_key")
+                continue
+
+            new_value = input(f"Enter new value for '{key}': ").strip()
+            config[key] = new_value
+            logger.info(f"Updated {key}.\n")
+
+        # Write updated configuration
+        with open(config_path, 'w') as file:
+            yaml.dump(config, file)
+
+        logger.info("Configuration updated.")
+
+
+
+
 
     def do_describe_java_class(self, line) -> None:
         """
@@ -924,7 +974,7 @@ class Parser(cmd2.Cmd):
 
             if opt == '-c2':
                 click.secho('Scanning for web addresses', fg='yellow')
-                self.check_using_vt(hosts, script_dir + os.path.sep + 'vt.key')
+                self.check_using_vt(hosts)
             elif opt == '-s':
                 click.secho('Scanning for secrets', fg='yellow')
                 self.scan_for_secrets(list(dict.fromkeys(all_strings)))
@@ -936,7 +986,7 @@ class Parser(cmd2.Cmd):
             elif opt == '-a':
                 click.secho('Performing all availlable scans...', fg='yellow')
                 click.secho('Scanning for web addresses', fg='yellow')
-                self.check_using_vt(hosts, script_dir + os.path.sep + 'vt.key')
+                self.check_using_vt(hosts)
                 click.secho('Scanning for secrets', fg='yellow')
                 self.scan_for_secrets(list(dict.fromkeys(all_strings)))
             else:
@@ -1048,13 +1098,28 @@ class Parser(cmd2.Cmd):
 
     def do_pad(self, line) -> None:
         """
-        Edit the scratchpad module using vi (no aruguments needed)
+        Edit the scratchpad module using the configured editor.
+        The editor is loaded from config.yaml (key: favorite_editor).
+        Defaults to 'vim' if not configured.
         """
+
+        config_path = os.path.join(self.base_directory, 'config.yaml')
+        editor = "vim"  # fallback default
+
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                cfg = yaml.safe_load(f) or {}
+                editor = cfg.get("default_editor", editor)
+
         scratchpad = self.modManager.getModule('scratchpad')
-        with open(os.path.join(self.base_directory, '.draft'), 'w') as draft:
+        draft_path = os.path.join(self.base_directory, '.draft')
+
+        with open(draft_path, 'w') as draft:
             draft.write(scratchpad.Code)
-        subprocess.run('vim ' + os.path.join(self.base_directory, '.draft'), shell=True)
-        with open(os.path.join(self.base_directory, '.draft'), 'r') as draft:
+
+        subprocess.run(f'{editor} "{draft_path}"', shell=True)
+
+        with open(draft_path, 'r') as draft:
             code = draft.read()
         self.edit_scratchpad(code)
 
@@ -1566,31 +1631,23 @@ class Parser(cmd2.Cmd):
 
     ###################################################### implementations start ############################################################
 
-    # def add_js_bridge_if_needed(self) -> Optional[str]:
-    #     """
-    #     Return the JS bridge code if frida >= 17.0.0 and the file exists, else None.
-    #     """
-    #     js_directory = Path(self.base_directory) / "libraries" / "js"
-    #     bridge_path = js_directory / "frida_java_bridge.js"
-
-    #     installed = parse_version(getattr(frida, "__version__", "0.0.0"))
-
-    #     if installed < Version("17.0.0"):
-    #         return ""
-    #     try:
-    #         return bridge_path.read_text(encoding="utf-8")
-    #     except FileNotFoundError:
-    #         logger.warning(f"Bridge file not found: {bridge_path}")
-    #         return ""
-
-    def check_using_vt(self, hosts, vtkey):
+    def check_using_vt(self, hosts):
         vt_address = 'https://www.virustotal.com/api/v3/domains/'
-        if os.path.isfile(vtkey):
-            with open(vtkey, 'r') as file:
-                key = file.read()
+        config_path = os.path.join(self.base_directory, "config.yaml")
+        
+        if os.path.exists(config_path):
+            with open(config_path, "r") as f:
+                config = yaml.safe_load(f) or {}
         else:
-            click.secho("VT key was not found !", fg='red')
+            logger.error("Configuration file (config.yaml) not found!")
             return
+
+        key = config.get("virustotal_api_key")
+
+        if not key:
+            logger.error("VT key was not found in config.yaml!")
+            return
+                
         headers = {'x-apikey': key}
         for host in hosts:
             # click.secho(f"Checking {host}",fg='green')

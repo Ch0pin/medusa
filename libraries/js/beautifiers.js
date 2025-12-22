@@ -23,12 +23,13 @@ function styleLog(fullString, highlightedSubstrings, textColor, bgColor) {
     
     // Apply styling to each substring in the array
     highlightedSubstrings.forEach(function(highlightedSubstring) {
-      var highlightedSubstringWithColors = textColorCode + bgColorCode + highlightedSubstring + resetCode;
-      styledMessage = styledMessage.split(highlightedSubstring).join(highlightedSubstringWithColors);
+      var escaped = highlightedSubstring.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      var re = new RegExp(escaped, 'gi');
+      var highlightedSubstringWithColors = textColorCode + bgColorCode + "$&" + resetCode;
+      styledMessage = styledMessage.replace(re, highlightedSubstringWithColors);
     });
     
     console.log(styledMessage);
-  }
-
+}
 
   //----------------------end of beautifiers.js-------------------------------------

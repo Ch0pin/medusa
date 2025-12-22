@@ -3,6 +3,7 @@
 
 var containRegExps = new Array()
 var notContainRegExps = new Array(RegExp(/\.jpg/), RegExp(/\.png/))
+
 function check(str) {
   str = str.toString();
   if (! (str && str.match)) {
@@ -296,15 +297,6 @@ function newMethodBeat(text, executor) {
     beat.startTime = new Date().getTime();
     //beat.stackInfo = androidLogClz.getStackTraceString(exceptionClz.$new()).substring(20);
     return beat;
-}
-
-function notifyNewSharedPreference(key, value) {
-    var k = key;
-    var v = value;
-    Java.use('android.app.SharedPreferencesImpl$EditorImpl').putString.overload('java.lang.String', 'java.lang.String').implementation = function(k, v) {
-      console.log('[SharedPreferencesImpl]', k, '=', v);
-      return this.putString(k, v);
-    }
 }
 
 function printBeat(beat) {

@@ -28,7 +28,7 @@ function uniqBy(array, key){
 }
 
 var Utf8 = {
-  encode : function (string) {
+  encode : function(string) {
       string = string.replace(/\r\n/g,"\n");
       var utftext = "";
       for (var n = 0; n < string.length; n++) {
@@ -49,7 +49,7 @@ var Utf8 = {
       return utftext;
   },
 
-  decode : function (utftext) {
+  decode : function(utftext) {
       var string = "";
       var i = 0;
       var c = c1 = c2 = 0;
@@ -75,7 +75,7 @@ var Utf8 = {
   }
 }
 
-var printBacktrace=function (){
+var printBacktrace = function(){
   Java.perform(function() {
       var android_util_Log = Java.use('android.util.Log'), java_lang_Exception = Java.use('java.lang.Exception');
       var exc = android_util_Log.getStackTraceString(java_lang_Exception.$new());
@@ -242,7 +242,7 @@ var byteArrayToStringE = function(input){
     }
   return result;
 }
-function readStreamToHex (stream){
+function readStreamToHex(stream){
     var data = [];
     var byteRead = stream.read();
     while (byteRead != -1)

@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import shutil
 import time
 from colorama import Fore
 from typing import Optional
@@ -89,7 +90,25 @@ class android_device:
         for line in p.stdout:
             print(line.decode("utf-8").rstrip())
 
-    def print_runtime_logs(self, package_name):
+    def print_runtime_logs(self, package_name: str):
+        """
+        Print runtime logs for a package.
+        Uses pidcat if available, otherwise falls back to adb logcat.
+        """
+        try:
+            if self._pidcat_available():
+                logger.debug("Using pidcat for logcat output")
+                self._print_logs_pidcat(package_name)
+            else:
+                logger.debug("pidcat not found; using adb logcat fallback")
+                self._print_logs_logcat(package_name)
+        except KeyboardInterrupt:
+            pass
+
+    def _pidcat_available(self) -> bool:
+        return shutil.which("pidcat") is not None
+
+    def _print_logs_logcat(self, package_name: str):
         try:
             pid = self.get_process_pid_by_package_name(package_name).decode('utf-8').rstrip()
             p = subprocess.Popen(["adb", "-s", self.id, "logcat", f"--pid={pid}"], stdout=subprocess.PIPE,
@@ -98,6 +117,15 @@ class android_device:
                 print(line.decode("utf-8").rstrip())
         except Exception as e:
             print(f"An error occurred: {e}")
+
+    def _print_logs_pidcat(self, package_name: str):
+        cmd = ["pidcat", "-s", self.id, package_name]
+
+        try:
+            subprocess.run(cmd)
+        except KeyboardInterrupt:
+            pass
+
 
     def run_adb_command(self, cmd):
         self.run_command(["adb", "-s", self.id, cmd])

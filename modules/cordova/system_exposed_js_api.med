@@ -1,0 +1,23 @@
+{
+    "Name": "cordova/system_exposed_js_api",
+    "Description": "The SystemExposedJsApi class Contains APIs that the JS can call.",
+    "Help": "The core Cordova Android component that exposes a JavaScript-to-native bridge to the WebView. It allows JavaScript running inside the WebView to invoke native Cordova plugins and represents a critical trust boundary between web content and native application functionality.",
+    "Code": "{
+
+
+        const SystemExposedJsApi_1766332424 = Java.use('org.apache.cordova.engine.SystemExposedJsApi');
+
+        colorLog('\\nTracing SystemExposedJsApi.exec', { c: Color.Green });
+        
+        SystemExposedJsApi_1766332424['exec'].implementation = function(bridgeSecret, service, action, callbackId, args) {
+                 
+          let retval = this['exec'].apply(this, arguments);
+          styleLog('[i] SystemExposedJsApi.exec ( action: '+action + ', args: '+args +' )', filterKeyWords, StyleLogColorset.red, StyleLogColorset.black);
+          if(retval)
+            console.log('\\t\\\\─➤Return val: ' + retval);
+          console.log();
+          return retval;
+        } 
+                    
+   }"
+}

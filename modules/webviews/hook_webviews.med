@@ -83,13 +83,18 @@
 
 
     webView.evaluateJavascript.implementation = function(script, resultCallback){
-        colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
-        let tmp_output = script;
-        if(!__verbose__){
-            tmp_output = 'deducted';
+        if(this.getWebViewClient().toString().startsWith('com.google.ads'))
+            this.evaluateJavascript(script,resultCallback);
+        else
+        {
+            colorLog('WebView Client: '+this.getWebViewClient(),{c:Color.Blue});
+            let tmp_output = script;
+            if(!__verbose__){
+                tmp_output = 'deducted';
+            }
+            console.log('[i] evaluateJavascript called with the following script: '+tmp_output);
+            this.evaluateJavascript(script,resultCallback);
         }
-        console.log('[i] evaluateJavascript called with the following script: '+tmp_output);
-        this.evaluateJavascript(script,resultCallback);
     }
 
     webView.getOriginalUrl.implementation = function(){

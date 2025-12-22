@@ -192,6 +192,25 @@ class Parser(cmd2.Cmd):
         except (AttributeError, json.decoder.JSONDecodeError):
             logger.error("Module file has an incorrect format")
 
+    def do_agent(self, line) -> None:
+        """
+            Open the agent script in your default editor.
+            Usage: 
+                agent
+        """
+        config_path = os.path.join(self.base_directory, 'config.yaml')
+        editor = "vim"  # fallback default
+
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                cfg = yaml.safe_load(f) or {}
+                editor = cfg.get("default_editor", editor)
+  
+        subprocess.run(f'{editor} "{agent_script}"', shell=True)
+
+        logger.info(f'Current agent script path: {os.path.abspath(agent_script)}')
+
+
     def do_c(self, line) -> None:
         """
             Execute a shell command on the local device.
@@ -1093,9 +1112,6 @@ class Parser(cmd2.Cmd):
                     logger.info("No options available")
         return
 
-        pass
-
-
     def do_pad(self, line) -> None:
         """
         Edit the scratchpad module using the configured editor.
@@ -1103,13 +1119,13 @@ class Parser(cmd2.Cmd):
         Defaults to 'vim' if not configured.
         """
 
-        config_path = os.path.join(self.base_directory, 'config.yaml')
+        #config_path = os.path.join(self.base_directory, 'config.yaml')
         editor = "vim"  # fallback default
 
-        if os.path.exists(config_path):
-            with open(config_path, 'r') as f:
-                cfg = yaml.safe_load(f) or {}
-                editor = cfg.get("default_editor", editor)
+        # if os.path.exists(config_path):
+        #     with open(config_path, 'r') as f:
+        #         cfg = yaml.safe_load(f) or {}
+        #         editor = cfg.get("default_editor", editor)
 
         scratchpad = self.modManager.getModule('scratchpad')
         draft_path = os.path.join(self.base_directory, '.draft')
@@ -1500,37 +1516,6 @@ class Parser(cmd2.Cmd):
             print('   --> Current Library:' + self.libname)
         if (self.native_functions):
             self.print_list(self.native_functions, '   --> Current Native Functions:')
-
-    def do_strace(self, line) -> None:
-        """
-        Pseudo strace implemented via a frida script
-        Usage:
-            strace <package-name>
-        """
-
-        self.detached = False
-        session = self.frida_session_handler(self.device, True, line.split(' ')[0])
-        try:
-
-            with open(os.path.join(self.base_directory, 'libraries', 'js', 'strace.js'), 'r') as file:
-                self.script = session.create_script(file.read())
-
-            session.on('detached', self.on_detached)
-            self.script.on("message", self.my_message_handler)  # register the message handler
-            self.script.load()
-            self.device.resume(self.pid)
-            s = ""
-            print(RED + "----- Credits @FrenchYeti -----")
-            print("[i] Type 'e' to exit the strace " + RESET)
-            while (s != 'e') and (not self.detached):
-                s = input("Type 'e' to exit:")
-
-            if self.script:
-                self.script.unload()
-
-        except Exception as e:
-            print(e)
-        print(RESET)
 
     def do_use(self, mod, redirect_output=False) -> None:
         """

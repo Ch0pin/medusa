@@ -122,6 +122,24 @@ class Parser(cmd2.Cmd):
 
     ###################################################### do_ defs start ############################################################
 
+    def do_agent(self, line) -> None:
+        """
+            Open the agent script in your default editor.
+            Usage: 
+                agent
+        """
+        config_path = os.path.join(self.base_directory, 'config.yaml')
+        editor = "vim"  # fallback default
+
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                cfg = yaml.safe_load(f) or {}
+                editor = cfg.get("default_editor", editor)
+  
+        subprocess.run(f'{editor} "{agent_script}"', shell=True)
+
+        logger.info(f'Current agent script path: {os.path.abspath(agent_script)}')
+
     def do_clear(self, line) -> None:
         """
         Clear the screen (no args)
@@ -316,13 +334,13 @@ class Parser(cmd2.Cmd):
         Defaults to 'vim' if not configured.
         """
 
-        config_path = os.path.join(self.base_directory, 'config.yaml')
+        # config_path = os.path.join(self.base_directory, 'config.yaml')
         editor = "vim"  # fallback default
 
-        if os.path.exists(config_path):
-            with open(config_path, 'r') as f:
-                cfg = yaml.safe_load(f) or {}
-                editor = cfg.get("default_editor", editor)
+        # if os.path.exists(config_path):
+        #     with open(config_path, 'r') as f:
+        #         cfg = yaml.safe_load(f) or {}
+        #         editor = cfg.get("default_editor", editor)
 
         scratchpad = self.modManager.getModule('scratchpad')
         draft_path = os.path.join(self.base_directory, '.idraft')

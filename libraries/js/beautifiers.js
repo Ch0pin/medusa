@@ -19,16 +19,23 @@ function styleLog(fullString, highlightedSubstrings, textColor, bgColor) {
     var bgColorCode = "\x1b[48;2;" + bgColor.join(";") + "m";     // Background color
     var resetCode = "\x1b[0m"; 
     
-    var styledMessage = fullString;
-    
-    // Apply styling to each substring in the array
-    highlightedSubstrings.forEach(function(highlightedSubstring) {
-      var escaped = highlightedSubstring.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      var re = new RegExp(escaped, 'gi');
-      var highlightedSubstringWithColors = textColorCode + bgColorCode + "$&" + resetCode;
-      styledMessage = styledMessage.replace(re, highlightedSubstringWithColors);
+    var styledMessage = String(fullString);
+
+    highlightedSubstrings.forEach(function (highlightedSubstring) {
+        if (highlightedSubstring === null || highlightedSubstring === undefined) return;
+
+        var str = String(highlightedSubstring); // 🔑 FIX
+        if (!str.length) return;
+
+        var escaped = str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        var re = new RegExp(escaped, 'g'); // 
+
+        styledMessage = styledMessage.replace(
+        re,
+        textColorCode + bgColorCode + "$&" + resetCode
+        );
     });
-    
+
     console.log(styledMessage);
 }
 

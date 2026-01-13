@@ -1,0 +1,19 @@
+{
+    "Name": "playstore/pairip_licensecheck",
+    "Description": "Prevent pairip from blocking the app to run",
+    "Help": "A simple frida script that prevents starting the com.pairip.licensecheck.LicenseActivity and blocking the app from running when it is not installed from playstore",
+    "Code": "{
+
+//---------------write your code below this line----------------
+
+var LicenseClient = Java.use('com.pairip.licensecheck.LicenseClient');
+LicenseClient['createCloseAppIntentOrExitIfAppInBackground'].implementation = function () {
+    colorLog(`LicenseClient.createCloseAppIntentOrExitIfAppInBackground is called (BLOCKING)`, {c: Color.Red});
+
+};
+
+//---------------write your code above this line----------------
+
+
+   }"
+}

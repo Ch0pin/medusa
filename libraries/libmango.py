@@ -1166,7 +1166,7 @@ $adb remount
                         print_section(title, lambda *_, fs=funcs: [f(False) if f != self.print_permissions else f(True) for f in fs])
 
                     if '-v' in flag:
-                        print("\n[+] Other potentially interesting info:")
+                        print(Back.BLUE + Fore.WHITE + Style.BRIGHT + f"[+] Firebase Configuration:" + Style.RESET_ALL)
                         found = False
                         keywords = [
                             ('google_app_id', 'google_app_id_value'),
@@ -1228,29 +1228,113 @@ $adb remount
                                 }
                             logger.info(f"Firebase configuration:\n")
                             print(json.dumps(firebase_config, indent=2))
-                            if project_id and api_key and app_id:
-                                logger.info('[+] Trying to fetch Firebase remote configuration....')
+                            print(Back.BLUE + Fore.WHITE + Style.BRIGHT + f"[+] Security Test Results:" + Style.RESET_ALL)
 
-                                url = f'https://firebaseremoteconfig.googleapis.com/v1/projects/{project_id}/namespaces/firebase:fetch?key={api_key}'
-                                json_data = {
-                                    "appId": app_id,
-                                    "appInstanceId": "PROD"
-                                }
+                            from libraries.firebase_tests import (
+                                spinner,
+                                _looks_like_firebase_web_key,
+                                print_security_report_lines,
+                                Row,
+                                probe_open_signup,
+                                probe_anonymous_auth,
+                                probe_email_enumeration,
+                                probe_rtdb_read,
+                                probe_rtdb_write,
+                                probe_rtdb_authenticated,
+                                probe_firestore_read,
+                                probe_firestore_write,
+                                probe_firestore_collections,
+                                probe_storage_bucket,
+                                probe_storage_write,
+                                probe_remote_config,
+                                probe_cloud_functions,
+                            )
 
-                                response = requests.post(url, json=json_data)
-                                print("Status Code:", response.status_code)
+                            ALLOW_WRITES = False
+                            SHOW_SPINNER = True  # set False if you run in a non-tty environment (CI logs)
 
-                                try:
-                                    print("Response Body:\n",json.dumps(response.json(), indent=4))
-                                except ValueError:
-                                    print("Response Body is not JSON:", response.text)
+                            if api_key and not _looks_like_firebase_web_key(api_key):
+                                logger.warning("google_api_key format is unexpected (typically starts with 'AIza'). Continuing anyway.")
+
+                            rows = []
+
+                            with spinner("Testing Open Signup", enabled=SHOW_SPINNER):
+                                rows.append(probe_open_signup(api_key))
+
+                            with spinner("Testing Anonymous Auth", enabled=SHOW_SPINNER):
+                                anon_row, anon_token = probe_anonymous_auth(api_key)
+                                rows.append(anon_row)
+
+                            with spinner("Testing Email Enumeration", enabled=SHOW_SPINNER):
+                                rows.append(probe_email_enumeration(api_key))
+
+                            with spinner("Testing Realtime DB Read (root/shallow/common paths)", enabled=SHOW_SPINNER):
+                                rows.append(probe_rtdb_read(firebase_db_url))
+
+                            with spinner("Testing Realtime DB Write", enabled=SHOW_SPINNER):
+                                rows.append(probe_rtdb_write(firebase_db_url, allow_writes=ALLOW_WRITES))
+
+                            with spinner("Testing RTDB Auth Bypass (anon token)", enabled=SHOW_SPINNER):
+                                rows.append(probe_rtdb_authenticated(firebase_db_url, anon_token) if anon_token else
+                                            Row("RTDB Auth Bypass", "No anonymous token", "✅ N/A"))
+
+                            with spinner("Testing Firestore Read", enabled=SHOW_SPINNER):
+                                rows.append(probe_firestore_read(project_id))
+
+                            with spinner("Testing Firestore Write", enabled=SHOW_SPINNER):
+                                rows.append(probe_firestore_write(project_id, allow_writes=ALLOW_WRITES))
+
+                            with spinner("Enumerating Firestore Collections", enabled=SHOW_SPINNER):
+                                rows.append(probe_firestore_collections(project_id))
+
+                            with spinner("Testing Storage Bucket Listing", enabled=SHOW_SPINNER):
+                                rows.append(probe_storage_bucket(google_storage_bucket))
+
+                            with spinner("Testing Storage Upload", enabled=SHOW_SPINNER):
+                                rows.append(probe_storage_write(google_storage_bucket, allow_writes=ALLOW_WRITES))
+
+                            with spinner("Testing Remote Config", enabled=SHOW_SPINNER):
+                                rows.append(probe_remote_config(project_id, api_key))
+
+                            # If you have extracted function names, pass them; else []
+                            function_names = extracted_values.get("function_names") or []
+
+                            with spinner("Enumerating Cloud Functions + testing callable", enabled=SHOW_SPINNER):
+                                rows.append(probe_cloud_functions(project_id, known_functions=function_names, region="us-central1"))
+
+                            print_security_report_lines(
+                                rows,
+                                api_key=api_key,
+                                project_id=project_id,
+                                firebase_db_url=firebase_db_url,
+                                bucket=google_storage_bucket,
+                                region="us-central1",
+                            )
+
+
+
+                            # if project_id and api_key and app_id:
+                            #     logger.info('[+] Trying to fetch Firebase remote configuration....')
+                            #     url = f'https://firebaseremoteconfig.googleapis.com/v1/projects/{project_id}/namespaces/firebase:fetch?key={api_key}'
+                            #     json_data = {
+                            #         "appId": app_id,
+                            #         "appInstanceId": "PROD"
+                            #     }
+
+                            #     response = requests.post(url, json=json_data)
+                            #     print("Status Code:", response.status_code)
+
+                            #     try:
+                            #         print("Response Body:\n",json.dumps(response.json(), indent=4))
+                            #     except ValueError:
+                            #         print("Response Body is not JSON:", response.text)
                             
-                            else:
-                                logger.warning("Missing required values: project_id, google_api_key, or google_app_id.")
-                            if firebase_db_url:
-                                logger.info('[+] Checking for Firebase db misconfiguration....')
-                                response = requests.get(firebase_db_url+"/.json")
-                                print("Response Body:\n",json.dumps(response.json(), indent=4))
+                            # else:
+                            #     logger.warning("Missing required values: project_id, google_api_key, or google_app_id.")
+                            # if firebase_db_url:
+                            #     logger.info('[+] Checking for Firebase db misconfiguration....')
+                            #     response = requests.get(firebase_db_url+"/.json")
+                            #     print("Response Body:\n",json.dumps(response.json(), indent=4))
                     
 
                         except Exception as e:

@@ -49,9 +49,11 @@ class nativeHandler:
 
     def add_js_bridge_if_needed(self) -> Optional[str]:
         """
-        Return the JS bridge code if frida >= 17.0.0 and the file exists, else None.
+        Return the JS bridge code if frida >= 17.0.0 and the files exist.
+        For frida >= 17.6.0, frida_java_bridge.js is NOT included.
         """
         js_directory = Path(self.base_directory) / "js"
+
         bridge_path = js_directory / "frida_java_bridge.js"
         modules_path = js_directory / "frida_module_bridge.js"
         process_bridge = js_directory / "frida_process_bridge.js"
@@ -61,15 +63,27 @@ class nativeHandler:
 
         if installed < Version("17.0.0"):
             return ""
+
+        paths = []
+
+        # Include java bridge only for < 17.6.0
+        if installed < Version("17.6.0"):
+            paths.append(bridge_path)
+
+        paths.extend([
+            modules_path,
+            process_bridge,
+            memory_bridge,
+        ])
+
         try:
-            return "\n".join([
-                bridge_path.read_text(encoding="utf-8"),
-                modules_path.read_text(encoding="utf-8"),
-                process_bridge.read_text(encoding="utf-8"),
-                memory_bridge.read_text(encoding="utf-8")
-            ]) + "\n"
-        except FileNotFoundError:
-            print(f"Bridge file not found: {bridge_path}")
+            return "\n".join(
+                p.read_text(encoding="utf-8")
+                for p in paths
+            ) + "\n"
+
+        except FileNotFoundError as e:
+            print(f"Bridge file not found: {e.filename}")
             return ""
 
     # todo add force or attach

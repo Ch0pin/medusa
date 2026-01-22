@@ -248,10 +248,18 @@ class Parser(cmd2.Cmd):
                 installed = parse_version(frida.__version__)
             except AttributeError:
                 installed = Version("0.0.0")
-            js_files = ["frida_java_bridge.js",
+            js_files = (
+                (
+                    (["frida_java_bridge.js"] if installed < Version("17.6.0") else [])
+                    + [
                         "frida_module_bridge.js",
                         "frida_process_bridge.js",
-                        "frida_memory_bridge.js"] if installed >= Version("17.0.0") else []
+                        "frida_memory_bridge.js",
+                    ]
+                )
+                if installed >= Version("17.0.0")
+                    else []
+            )
             js_files += ["globals.js", "beautifiers.js", "utils.js", "android_core.js"]
 
 
@@ -486,6 +494,53 @@ class Parser(cmd2.Cmd):
             print(e)
             print("[i] Usage: export filename")
 
+    def do_get_cli(self, line, package_name: str, codeJs: str) -> None:
+        import tempfile
+        import signal
+
+        try:
+            device_id = self.device.id if hasattr(self.device, "id") else str(self.device)
+
+            tmp_path = None
+            proc = None
+            try:
+                with tempfile.NamedTemporaryFile(mode="w", suffix=".js", delete=False, encoding="utf-8") as f:
+                    f.write(codeJs)
+                    tmp_path = f.name
+
+                cmd = [
+                    "frida",
+                    "-D", device_id,
+                    "-N", package_name,
+                    "-l", tmp_path,
+                ]
+
+                self.detached = False
+                proc = subprocess.Popen(cmd)
+
+                input()
+
+            finally:
+                if proc is not None and proc.poll() is None:
+                    try:
+                        proc.send_signal(signal.SIGINT)
+                        proc.wait(timeout=3)
+                    except Exception:
+                        try:
+                            proc.terminate()
+                        except Exception:
+                            pass
+
+                if tmp_path and os.path.exists(tmp_path):
+                    try:
+                        os.unlink(tmp_path)
+                    except Exception:
+                        pass
+
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+
+
     def do_get(self, line):
         """
         Print the value of a field from a Java class.
@@ -571,10 +626,20 @@ class Parser(cmd2.Cmd):
             })
         });
                     """
+            try:
+                installed = parse_version(frida.__version__)
+            except AttributeError:
+                installed = Version("0.0.0")
+
+            if installed >= Version("17.6.0"):
+                self.do_get_cli(line, package_name, codeJs)
+                return
+            
             self.detached = False
             session = self.frida_session_handler(self.device, False, package_name)
             if session is None:
                 logger.error("Can't create session for the given package name. Is it running ?")
+                return
 
             script = session.create_script(codeJs)
             session.on('detached', self.on_detached)
@@ -1238,6 +1303,118 @@ class Parser(cmd2.Cmd):
         self.do_compile('', True)
         self.scratchreset()
 
+    def do_run_cli(self, line) -> None:
+        try:
+            if self.modified:
+                if Polar('Module list has been modified, do you want to recompile?').ask():
+                    self.do_compile(line)
+
+            # Parse and remove optional --host ip:port (same logic as do_run)
+            flags = line.arg_list
+            if '--host' in flags:
+                host_index = flags.index('--host')
+                if host_index + 1 < len(flags):
+                    host, port = flags[host_index + 1].split(':')
+                    del flags[host_index:host_index + 2]
+                else:
+                    host, port = '', ''
+            else:
+                host, port = '', ''
+
+            device_id = self.device.id if hasattr(self.device, "id") else str(self.device)
+
+            # Common base command
+            cmd_base = ["frida", "-D", device_id]
+
+            # Forward remote host if provided
+            if host and port:
+                cmd_base += ["-H", f"{host}:{port}"]
+
+            # Always load the agent script
+            cmd_base += ["-l", agent_script]
+
+            arg_num = len(line.arg_list)
+
+            if arg_num == 1:
+                flag = line.arg_list[0]
+
+                if flag == '-p':
+                    runing_processes = os.popen(
+                        f"""adb -s {self.device.id} shell 'echo "ps -A" | su'"""
+                    ).read().strip().split('\n')
+
+                    title = "Running processes: "
+                    option, index = pick(runing_processes, title, indicator="=>", default_index=0)
+                    click.echo(click.style(option, bg='blue', fg='white'))
+
+                    pattern = r'\b\d+\b'
+                    get_pid = re.findall(pattern, option)
+                    pid = get_pid[0]
+
+                    cmd = cmd_base + ["-p", str(pid)]
+                    subprocess.run(cmd, check=True)
+
+                elif flag == '-t':
+                    # Equivalent to do_run's "frontmost app", but using frida's native option
+                    cmd = cmd_base + ["-F"]
+                    subprocess.run(cmd, check=True)
+
+                else:
+                    # Fallback: treat the single argument as frida's positional target/args
+                    # (e.g., package/process name/identifier and any extra args)
+                    cmd = cmd_base + list(line.arg_list)
+                    subprocess.run(cmd, check=True)
+
+            elif arg_num == 2:
+                flag = line.arg_list[0]
+                arg_two = line.arg_list[1]
+
+                if flag == '-w':
+                    spinner = ["|", "/", "-", "\\"]
+                    spinner_index = 0
+                    pid = None
+
+                    while not pid:
+                        process_name = arg_two
+                        sys.stdout.write(f"\rWaiting for process {spinner[spinner_index]}")
+                        sys.stdout.flush()
+                        spinner_index = (spinner_index + 1) % len(spinner)
+                        pid = self.device_controller.get_int_pid(process_name, True)
+                        time.sleep(0.1)
+
+                    sys.stdout.write("\rProcess found! Applying hooks...        \n")
+                    sys.stdout.flush()
+
+                    cmd = cmd_base + ["-p", str(pid)]
+                    subprocess.run(cmd, check=True)
+
+                elif flag == '-f':
+                    # Spawn target (app identifier/package on mobile) via -f
+                    cmd = cmd_base + ["-f", arg_two]
+                    subprocess.run(cmd, check=True)                 
+                elif flag == '-n':
+                    try:
+                        if len(self.packages) == 0:
+                            self.refreshPackages()
+                        package_name = self.packages[int(arg_two)]
+
+                        cmd = cmd_base + ["-f", package_name]
+                        subprocess.run(cmd, check=True)
+
+                    except (IndexError, TypeError):
+                        logger.error('Invalid package number')
+
+                elif flag == '-p':
+                    cmd = cmd_base + ["-p", str(arg_two)]
+                    subprocess.run(cmd, check=True)
+
+                else:
+                    logger.error('Invalid flag given!')
+            else:
+                logger.error("Invalid arguments.")
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+
     def do_run(self, line) -> None:
         """
         Initiate a Frida session and attach to or spawn the target package.
@@ -1272,6 +1449,14 @@ class Parser(cmd2.Cmd):
             run -n 3
             run -p 12345 --host 10.0.0.5:27042
         """
+        try:
+            installed = parse_version(frida.__version__)
+        except AttributeError:
+                installed = Version("0.0.0")
+        if installed >= Version("17.6.0"):
+            self.do_run_cli(line)
+            return 
+       
         try:
             if self.modified:
                 if Polar('Module list has been modified, do you want to recompile?').ask():

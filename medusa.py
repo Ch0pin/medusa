@@ -494,7 +494,7 @@ class Parser(cmd2.Cmd):
             print(e)
             print("[i] Usage: export filename")
 
-    def do_get_cli(self, line, package_name: str, codeJs: str) -> None:
+    def fallback_get_cli(self, line, package_name: str, codeJs: str) -> None:
         import tempfile
         import signal
 
@@ -632,7 +632,7 @@ class Parser(cmd2.Cmd):
                 installed = Version("0.0.0")
 
             if installed >= Version("17.6.0"):
-                self.do_get_cli(line, package_name, codeJs)
+                self.fallback_get_cli(line, package_name, codeJs)
                 return
             
             self.detached = False
@@ -1303,7 +1303,7 @@ class Parser(cmd2.Cmd):
         self.do_compile('', True)
         self.scratchreset()
 
-    def do_run_cli(self, line) -> None:
+    def fallback_run_cli(self, line) -> None:
         try:
             if self.modified:
                 if Polar('Module list has been modified, do you want to recompile?').ask():
@@ -1360,9 +1360,9 @@ class Parser(cmd2.Cmd):
                     subprocess.run(cmd, check=True)
 
                 else:
-                    # Fallback: treat the single argument as frida's positional target/args
-                    # (e.g., package/process name/identifier and any extra args)
-                    cmd = cmd_base + list(line.arg_list)
+
+                    pid = self.device_controller.get_int_pid(line.arg_list[0], True)
+                    cmd = cmd_base + ["-p", str(pid)]
                     subprocess.run(cmd, check=True)
 
             elif arg_num == 2:
@@ -1454,7 +1454,7 @@ class Parser(cmd2.Cmd):
         except AttributeError:
                 installed = Version("0.0.0")
         if installed >= Version("17.6.0"):
-            self.do_run_cli(line)
+            self.fallback_run_cli(line)
             return 
        
         try:

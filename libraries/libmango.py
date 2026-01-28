@@ -1704,6 +1704,7 @@ $adb remount
                 print("{c: <25} {t: <15}".format(c=column[1], t=column[2]))
 
     def print_deeplinks(self, quiet=False):
+        self.total_deep_links = []
         component = ''
 
         for attribs in self.deeplinks:

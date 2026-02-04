@@ -1,5 +1,16 @@
 <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/assets/images/logo.svg" width ="1835" height="508">
 
+## Sponsored by:
+<br>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Ch0pin/medusa/master/assets/images/sponsors/mhl_white.png">
+  <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/assets/images/sponsors/mhl_dark.png" width="256" alt="Sponsor logo">
+</picture>
+
+<br>
+<br>
+
 # MEDUSA
 
 A modular automation framework and script repository for runtime testing and investigating Android and iOS apps, designed for penetration testers and malware analysts. It lets you plug in modules to bypass protections (like SSL pinning), inspect network/WebView activity, trace API calls, examine memory/crypto, and monitor malware behavior — all from a single coordinated script. It runs on FRIDA under the hood and ships with 90+ reusable modules so tests scale and repeat easily.

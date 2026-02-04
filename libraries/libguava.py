@@ -193,33 +193,37 @@ class Guava:
             
 
     def fill_permissions(self, parsed_apk, sha256):
-        app_declared_permissions = parsed_apk.get_declared_permissions_details()
-        app_permissions = parsed_apk.get_details_permissions()
-        for permission in app_permissions:
-            custom = False
-            for c_permission in app_declared_permissions:
-                if permission == c_permission and not permission.startswith(("android.permission.", "com.google.")):
-                    custom = True
-                    level = app_declared_permissions[permission]['protectionLevel']
-                    if level == 'None': 
-                        level = "0x00000000"
-                    try:
-                        key = int(level, 0) if isinstance(level, str) else level
-                    except Exception:
-                        key = None
+        try:
+            app_declared_permissions = parsed_apk.get_declared_permissions_details()
+            app_permissions = parsed_apk.get_details_permissions()
+            for permission in app_permissions:
+                custom = False
+                for c_permission in app_declared_permissions:
+                    if permission == c_permission and not permission.startswith(("android.permission.", "com.google.")):
+                        custom = True
+                        level = app_declared_permissions[permission]['protectionLevel']
+                        if level == 'None': 
+                            level = "0x00000000"
+                        try:
+                            key = int(level, 0) if isinstance(level, str) else level
+                        except Exception:
+                            key = None
 
-                    attr = protection_flags_to_attributes.get(key) if isinstance(key, int) else None
-                    if attr is None:
-                        attr = protection_flags_to_attributes.get(level)  # try raw string key
-                    if attr is None and isinstance(key, int):
-                        attr = protection_flags_to_attributes.get(key & 0xF)
-                    if attr is None:
-                        attr = f"unknown({level})"
-                    entry = (sha256, permission, attr) + tuple(app_permissions[permission][1:])
+                        attr = protection_flags_to_attributes.get(key) if isinstance(key, int) else None
+                        if attr is None:
+                            attr = protection_flags_to_attributes.get(level)  # try raw string key
+                        if attr is None and isinstance(key, int):
+                            attr = protection_flags_to_attributes.get(key & 0xF)
+                        if attr is None:
+                            attr = f"unknown({level})"
+                        entry = (sha256, permission, attr) + tuple(app_permissions[permission][1:])
 
-            if not custom:
-                entry = (sha256, permission,) + tuple(app_permissions[permission])
-            self.application_database.update_permissions(entry)
+                if not custom:
+                    entry = (sha256, permission,) + tuple(app_permissions[permission])
+                self.application_database.update_permissions(entry)
+        except Exception as e:
+            logger.error(e)
+            print(e)
             
 
     def fill_providers(self, application, sha256):

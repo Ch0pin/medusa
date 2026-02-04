@@ -2,12 +2,12 @@
 
 ## Sponsored by:
 <br>
-
+<a href="https://mobilehackinglab.com" target="_blank" rel="noopener noreferrer">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Ch0pin/medusa/master/assets/images/sponsors/mhl_white.png">
   <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/assets/images/sponsors/mhl_dark.png" width="256" alt="Sponsor logo">
 </picture>
-
+</a>
 <br>
 <br>
 

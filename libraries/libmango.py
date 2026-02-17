@@ -38,7 +38,6 @@ from libraries.android_flags import describe_flags, INTENT_FLAGS, PENDING_INTENT
 logging.getLogger().handlers = []  
 setup_logging() 
 logger = logging.getLogger(__name__)
-
 current_dir = os.getcwd()
 
 BASE = os.path.dirname(__file__)
@@ -75,7 +74,7 @@ DESCRIPTION """ + """
     Additionally, mango automates various other tasks, like changing proxy settings on the device, force to 
     start/stop services, install/uninstall applications, take screenshots and many more.
 
-    The availlable commands are the follows:
+    The available commands are the follows:
 
     adb                             Start an interactive adb prompt.
 
@@ -178,7 +177,7 @@ DESCRIPTION """ + """
                                     Example: uninstall com.foo.bar , kill com.foo.bar1)
 
     ------------------------------------------------------------------------------------
-    Other features availlable:
+    Other features available:
     ------------------------------------------------------------------------------------
 
     - Searchable command history (history command and <Ctrl>+r) - optionally persistent
@@ -734,7 +733,7 @@ $adb remount
             topic = line.split(' ')[0]
             h = self.highlight(topic, HELP_MESSAGE)
             if h == '':
-                print(f"[i] No help availlable for '{topic}'")
+                print(f"[i] No help available for '{topic}'")
             else:
                 print(h)
         else:
@@ -2013,7 +2012,8 @@ $adb remount
                 Fore.GREEN + "[i] Available applications:\n" + Fore.RESET +
                 "-" * 7 + " " + "-" * 35 + "  " + "-" * 20 + "  " + "-" * 60
             )
-
+            
+                             
             print(
                 "{0:^7} {1:^35}  {2:^20}  {3:<60}".format(
                     "index",
@@ -2026,37 +2026,42 @@ $adb remount
             print(
                 "-" * 7 + " " + "-" * 35 + "  " + "-" * 20 + "  " + "-" * 60
             )
-
+            
             app_list = []
-            for entry in res:
-                sha256, package_name, version, framework, manifest = entry
-                
-                sharedUserId = ManifestParser(manifest).get_manifest_attribute('sharedUserId')
-                # Handle None values for version and framework
-                version = version if version is not None else "N/A"
-                sharedUserId = sharedUserId if sharedUserId is not None else ""
-                framework = framework if framework and framework != 'None Detected' else ''
-                exposure, total = self.print_exposure_summary(sha256)
+            
+            from libraries.firebase_tests import spinner
+            with spinner("Please wait while we load your applications....", True):
+                for entry in res:
+                    
+
+                    sha256, package_name, version, framework, manifest = entry
+                    
+                    sharedUserId = ManifestParser(manifest).get_manifest_attribute('sharedUserId')
+                    # Handle None values for version and framework
+                    version = version if version is not None else "N/A"
+                    sharedUserId = sharedUserId if sharedUserId is not None else ""
+                    framework = framework if framework and framework != 'None Detected' else ''
+                    exposure, total = self.print_exposure_summary(sha256)
 
 
-                app_list.append({
-                    'index': index,
-                    'sha256': sha256,
-                    'package_name': package_name,
-                    'sharedUserId': sharedUserId,
-                    'version': version,
-                    'framework': framework,
-                    'exposure': exposure,
-                    'total': total
-                })
+                    app_list.append({
+                        'index': index,
+                        'sha256': sha256,
+                        'package_name': package_name,
+                        'sharedUserId': sharedUserId,
+                        'version': version,
+                        'framework': framework,
+                        'exposure': exposure,
+                        'total': total
+                    })
 
-                index += 1
-                if count_pkg:
-                    self.total_apps.append(f"{package_name}:{sha256}")
-            if sort_by_exposure:
-                app_list.sort(key=lambda x: x['total'], reverse=True)
-            else:
-                app_list.sort(key=lambda x: x['package_name'])
+                    index += 1
+                    if count_pkg:
+                        self.total_apps.append(f"{package_name}:{sha256}")
+                if sort_by_exposure:
+                    app_list.sort(key=lambda x: x['total'], reverse=True)
+                else:
+                    app_list.sort(key=lambda x: x['package_name'])
 
             res_sorted = []
             for idx, app in enumerate(app_list):

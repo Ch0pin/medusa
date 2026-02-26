@@ -22,6 +22,118 @@
       colorLog(\"[+] Canceling activity's finish\" ,{c: Color.Green});
       
     }
+
+
+  (function () {
+    var SIGSEGV = 11;
+
+    function findLibcExport(sym) {
+      // Most Android builds
+      var addr = Module.findExportByName('libc.so', sym);
+      if (addr) return addr;
+
+      // Fallback: sometimes exports are visible through the module object
+      try {
+        var libc = Process.getModuleByName('libc.so');
+        addr = libc.findExportByName(sym);
+        if (addr) return addr;
+      } catch (e) {}
+
+      return null;
+    }
+
+    function attach(sym, callbacks) {
+      try {
+        var addr = findLibcExport(sym);
+        if (!addr) {
+          console.log('[!] ' + sym + ' not found in libc.so');
+          return false;
+        }
+        Interceptor.attach(addr, callbacks);
+        console.log('[*] Hooked ' + sym + ' @ ' + addr);
+        return true;
+      } catch (e) {
+        console.log('[!] Failed hooking ' + sym + ': ' + e);
+        return false;
+      }
+    }
+
+    function replace(sym, retType, argTypes, impl) {
+      try {
+        var addr = findLibcExport(sym);
+        if (!addr) {
+          console.log('[!] ' + sym + ' not found in libc.so');
+          return false;
+        }
+        Interceptor.replace(addr, new NativeCallback(impl, retType, argTypes));
+        console.log('[*] Replaced ' + sym + ' @ ' + addr);
+        return true;
+      } catch (e) {
+        console.log('[!] Failed replacing ' + sym + ': ' + e);
+        return false;
+      }
+    }
+
+    // Observe when handlers are installed for SIGSEGV
+    attach('sigaction', {
+      onEnter: function (args) {
+        // int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
+        var signum = args[0].toInt32();
+        if (signum === SIGSEGV) {
+          console.log('[!] sigaction(SIGSEGV) called act=' + args[1] + ' oldact=' + args[2]);
+        }
+      }
+    });
+
+    attach('signal', {
+      onEnter: function (args) {
+        // sighandler_t signal(int signum, sighandler_t handler)
+        var signum = args[0].toInt32();
+        if (signum === SIGSEGV) {
+          console.log('[!] signal(SIGSEGV) called handler=' + args[1]);
+        }
+      }
+    });
+
+    // If the app is intentionally killing itself, these are the usual suspects.
+    // Replacing them is cleaner than “stalling”.
+    replace('abort', 'void', [], function () {
+      console.log('[!] abort() blocked');
+      // do nothing
+    });
+
+    replace('exit', 'void', ['int'], function (code) {
+      console.log('[!] exit(' + code + ') blocked');
+      // do nothing
+    });
+
+    replace('_exit', 'void', ['int'], function (code) {
+      console.log('[!] _exit(' + code + ') blocked');
+      // do nothing
+    });
+
+    // Block explicit SIGSEGV raising (common anti-tamper)
+    replace('raise', 'int', ['int'], function (sig) {
+      if (sig === SIGSEGV) {
+        console.log('[!] raise(SIGSEGV) blocked');
+        return 0;
+      }
+      // allow other signals: call original raise by not replacing it would be needed;
+      // but since we replaced, we conservatively no-op and return 0.
+      return 0;
+    });
+
+    // Block kill(pid, SIGSEGV)
+    replace('kill', 'int', ['int', 'int'], function (pid, sig) {
+      if (sig === SIGSEGV) {
+        console.log('[!] kill(' + pid + ', SIGSEGV) blocked');
+        return 0;
+      }
+      // same note as raise(): conservative no-op
+      return 0;
+    });
+  })();
+
 }
 "
 }

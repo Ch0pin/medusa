@@ -2207,9 +2207,13 @@ $adb remount
                 f"SELECT name from Activities WHERE app_sha256='{app_sha256}'"))).split('\n'))
             self.service_names = list('\n'.join(map(lambda x: str(x[0]), application_database.query_db(
                 f"SELECT name from Services WHERE app_sha256='{app_sha256}'"))).split('\n'))
-            self.strings = \
-            application_database.query_db(f"SELECT stringResources FROM Application WHERE sha256='{app_sha256}';")[0][
-                0].decode('utf-8')
+            try:
+                self.strings = \
+                application_database.query_db(f"SELECT stringResources FROM Application WHERE sha256='{app_sha256}';")[0][
+                    0].decode('utf-8')
+            except Exception as e:
+                logger.warning(f"Failed to decode string resources: {e}")
+                self.strings = ''
             self.total_deep_links = []
             self.package = self.info[0][2]
             self.deeplinks = application_database.get_deeplinks(app_sha256)

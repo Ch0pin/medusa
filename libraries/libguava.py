@@ -6,6 +6,7 @@ import logging
 import re
 import shutil
 import subprocess
+import sys
 import threading
 
 # Third-party imports
@@ -160,14 +161,24 @@ class Guava:
 
     def fill_application_attributes(self, parsed_apk, sha256, application, original_filename):
         try:
-
             try:
                 tampering = self.detect_tampering(parsed_apk)
             except Exception as e:
                 logger.error(f"Error detecting tampering: {e}")
                 tampering = "N/A"
 
-            arsc = parsed_apk.get_android_resources()
+            try:
+                arsc = parsed_apk.get_android_resources()
+            except Exception as e:
+                logger.error(f"Error parsing resources.arsc: {e}")
+                arsc = None
+
+            try:
+                app_name = parsed_apk.get_app_name()  # triggers resources.arsc parsing
+            except Exception as e:
+                logger.error(f"Error getting app name from resources.arsc: {e}", exc_info=True)
+                app_name = "N/A"
+
             if arsc:
                 package_names = arsc.get_packages_names()
                 if package_names:
@@ -176,7 +187,8 @@ class Guava:
                     string_resources = "N/A"
             else:
                 string_resources = "N/A"
-            app_attributes = (sha256, parsed_apk.get_app_name(), parsed_apk.get_package(),
+
+            app_attributes = (sha256, app_name, parsed_apk.get_package(),
                             parsed_apk.get_androidversion_code(), parsed_apk.get_androidversion_name(),
                             parsed_apk.get_min_sdk_version(), parsed_apk.get_target_sdk_version(),
                             parsed_apk.get_max_sdk_version(), '|'.join(parsed_apk.get_permissions()),
@@ -187,11 +199,9 @@ class Guava:
                                 tampering, self.detect_framework(parsed_apk))
             self.application_database.update_application(app_attributes)
         except Exception as e:
-            print(e)
-            logger.error(e)
-            print(e)
+            logger.error(f"Error filling application attributes: {e}")   
             
-
+            
     def fill_permissions(self, parsed_apk, sha256):
         try:
             app_declared_permissions = parsed_apk.get_declared_permissions_details()
@@ -374,35 +384,37 @@ class Guava:
             self.application_database.update_services(service_attribs)
 
     def full_analysis(self, apkfile, print_info=True, skip_secrets=False):
+        try:
+            app_sha256 = self.sha256sum(apkfile)
 
-        app_sha256 = self.sha256sum(apkfile)
-
-        logger.info(f"[+] Analyzing apk with SHA256:{app_sha256}")
-        apk_r = apk.APK(apkfile)            
-        manifest = apk_r.get_android_manifest_axml().get_xml_obj()
-        application = manifest.findall("application")[0]
-  
-        if print_info:
-            logger.info("[+] Analysis finished.")
-            logger.info("[+] Filling up the database....")
-        self.filter_list = {}
-        self.fill_application_attributes(apk_r, app_sha256, application, apkfile)
-        self.fill_permissions(apk_r, app_sha256)
-        if shutil.which("trufflehog") is None or skip_secrets:
-            logger.warning("trufflehog is not installed. Secrets will not be extracted.")
-            self.application_database.insert_secret((app_sha256, ""))
-        else:
-            worker_thread = threading.Thread(target=self.fill_secrets, args=(apkfile, app_sha256))
-            worker_thread.start()
-        #self.fill_secrets(apkfile, app_sha256)
-        self.fill_activities(application, app_sha256)
-        self.fill_services(application, app_sha256)
-        self.fill_providers(application, app_sha256)
-        self.fill_receivers(application, app_sha256)
-        self.fill_activity_alias(application, app_sha256)
-        self.fill_intent_filters(app_sha256, apkfile)
-        if print_info:
-            logger.info("[+] Database Ready !")
+            logger.info(f"[+] Analyzing apk with SHA256:{app_sha256}")
+            apk_r = apk.APK(apkfile)       
+            manifest = apk_r.get_android_manifest_axml().get_xml_obj()  
+            application = manifest.findall("application")[0]
+    
+            if print_info:
+                logger.info("[+] Analysis finished.")
+                logger.info("[+] Filling up the database....")
+            self.filter_list = {}
+            self.fill_application_attributes(apk_r, app_sha256, application, apkfile)
+            self.fill_permissions(apk_r, app_sha256)
+            if shutil.which("trufflehog") is None or skip_secrets:
+                logger.warning("trufflehog is not installed. Secrets will not be extracted.")
+                self.application_database.insert_secret((app_sha256, ""))
+            else:
+                worker_thread = threading.Thread(target=self.fill_secrets, args=(apkfile, app_sha256))
+                worker_thread.start()
+            #self.fill_secrets(apkfile, app_sha256)
+            self.fill_activities(application, app_sha256)
+            self.fill_services(application, app_sha256)
+            self.fill_providers(application, app_sha256)
+            self.fill_receivers(application, app_sha256)
+            self.fill_activity_alias(application, app_sha256)
+            self.fill_intent_filters(app_sha256, apkfile)
+            if print_info:
+                logger.info("[+] Database Ready !")
+        except Exception as e:
+            logger.error(f"Error during full analysis of {apkfile}: {e}")
 
     def fill_intent_filters(self, sha256, apkfile=None):
 

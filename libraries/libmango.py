@@ -1133,7 +1133,14 @@ $adb remount
                     self.print_application_info(self.info)
 
                 elif 'deeplinks' in what:
-                    self.print_deeplinks()
+                    if '-n' in flag:
+                        try:
+                            max_display = int(line.arg_list[2])
+                        except (ValueError, IndexError):
+                            logger.error("Invalid value for -n flag. Using default limit.")
+                            max_display = 500
+                    self.print_deeplinks(max_display=max_display)
+
 
                 elif 'providers' in what:
                     if '-e' in flag:
@@ -1702,7 +1709,7 @@ $adb remount
             for column in columns:
                 print("{c: <25} {t: <15}".format(c=column[1], t=column[2]))
 
-    def print_deeplinks(self, quiet=False):
+    def print_deeplinks(self, quiet=False, max_display=500):
         self.total_deep_links = []
         component = ''
 
@@ -1746,13 +1753,12 @@ $adb remount
             # Store for later use
             self.total_deep_links.extend(links)
 
-            # Controlled output to prevent console flooding
             if not quiet:
-                max_display = 500
+                #max_display = 500
                 for link in links[:max_display]:
                     print(link)
                 if len(links) > max_display:
-                    print(Fore.MAGENTA + f"... ({len(links) - max_display} more suppressed)" + Fore.RESET)
+                    print(Fore.MAGENTA + f"Showing {max_display} of {len(links)} deeplinks. Use 'show deeplinks -n <number>' to adjust the limit." + Fore.RESET)
         if not quiet:
             print(Fore.GREEN + f"\n✓ Processed {len(self.deeplinks)} activities. "
                 f"Generated {len(self.total_deep_links)} deeplinks.\n" + Fore.RESET)

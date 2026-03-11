@@ -1133,6 +1133,7 @@ $adb remount
                     self.print_application_info(self.info)
 
                 elif 'deeplinks' in what:
+                    max_display = 500
                     if '-n' in flag:
                         try:
                             max_display = int(line.arg_list[2])

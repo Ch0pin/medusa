@@ -23,11 +23,10 @@ import yaml
 from pick import pick
 
 # Local application/library specific imports
-from libraries.libadb import *
-from libraries.Modules import *
+from libraries.modules import ModuleManager
+from libraries.lib_adb import *
 from libraries.natives import *
-from libraries.Questions import *
-
+from libraries.questions import *
 
 RED = "\033[1;31m"
 BLUE = "\033[1;34m"

@@ -7,11 +7,12 @@ import sys
 
 # Local application/library specific imports
 from colorama import Fore, Style, init
-from libraries.libmango import *
-from libraries.Questions import *
-from libraries.libguava import *
-from libraries.libadb import *
 from libraries.logging_config import setup_logging
+from libraries.lib_mango import *
+from libraries.questions import *
+# from libraries.lib_guava import *
+from libraries.lib_adb import *
+from libraries.db import apk_db
 from shutil import which
 
 logging.getLogger().handlers = []  

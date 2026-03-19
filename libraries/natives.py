@@ -2,6 +2,7 @@ import time
 import click
 import os
 import frida
+import frida_tools
 
 from typing import Optional, Union
 from packaging.version import  parse as parse_version, Version
@@ -54,7 +55,7 @@ class nativeHandler:
         """
         js_directory = Path(self.base_directory) / "js"
 
-        bridge_path = js_directory / "frida_java_bridge.js"
+        #bridge_path = js_directory / "frida_java_bridge.js"
         modules_path = js_directory / "frida_module_bridge.js"
         process_bridge = js_directory / "frida_process_bridge.js"
         memory_bridge = js_directory / "frida_memory_bridge.js"
@@ -67,17 +68,17 @@ class nativeHandler:
         paths = []
 
         # Include java bridge only for < 17.6.0
-        if installed < Version("17.6.0"):
-            paths.append(bridge_path)
+        # if installed < Version("17.6.0"):
+        #     paths.append(bridge_path)
 
         paths.extend([
             modules_path,
             process_bridge,
             memory_bridge,
         ])
-
+        bridge = self.load_java_bridge()
         try:
-            return "\n".join(
+            return bridge + "\n".join(
                 p.read_text(encoding="utf-8")
                 for p in paths
             ) + "\n"
@@ -188,6 +189,36 @@ class nativeHandler:
             print(e)
 
     ###-------------------meraw
+
+    def load_java_bridge(self):
+        """
+        Load the pre-compiled java bridge from frida-tools.
+        The bridge JS is an IIFE: var bridge = function() { ... }()
+        It returns the Java object but never assigns it to a global.
+        We wrap it so the return value becomes the global `Java`.
+        """
+        bridge_path = os.path.join(
+            os.path.dirname(frida_tools.__file__), "bridges", "java.js"
+        )
+        if not os.path.isfile(bridge_path):
+            print(f"[!] Bridge not found at: {bridge_path}")
+            print("Try: pip install --upgrade frida-tools")
+
+        #print(f"[+] Loading bridge from: {bridge_path}")
+        content = open(bridge_path, encoding="utf-8").read()
+
+        # The bridge is: var bridge = function(){ ... }();
+        # We need to expose its return value as the global `Java`.
+        # Replace `var bridge=` with `var Java=` so it becomes a global.
+        if content.startswith("var bridge="):
+            content = "var Java=" + content[len("var bridge="):]
+        else:
+            # Fallback: just assign whatever bridge returns to Java global
+            content = "var Java=(" + content + ");"
+            print("[+] Bridge wrapped as global Java.")
+
+        return content
+
     def memraw(self, line, autodump=False):
         try:
 

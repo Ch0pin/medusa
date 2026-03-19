@@ -6,7 +6,6 @@ import logging
 import re
 import shutil
 import subprocess
-import sys
 import threading
 
 # Third-party imports
@@ -15,11 +14,9 @@ from androguard import util
 from apkInspector.indicators import apk_tampering_check
 
 # Local application/library specific imports
-from libraries.db import apk_db
-from libraries.IntentFilter import IntentFilter
+from libraries.intent_filter import IntentFilter
 from libraries.logging_config import setup_logging
-from libraries.Questions import Polar
-from libraries.manifest_diff import ManifestParser
+
 
 logging.getLogger().handlers = []  
 setup_logging() 

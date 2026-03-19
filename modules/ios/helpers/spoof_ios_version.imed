@@ -1,0 +1,33 @@
+
+{
+    "Name": "helpers/spoof_ios_version",
+    "Description": "",
+    "Help": "",
+    "Code": "    
+
+{
+  console.log('\\n---------Loading spoof_ios_version module------------------');
+
+    // Hook 1: UIDevice.systemVersion
+    var UIDevice = ObjC.classes.UIDevice;
+    Interceptor.attach(UIDevice['- systemVersion'].implementation, {
+        onLeave: function(retval) {
+            console.log('[*] UIDevice.systemVersion called, original: ' + new ObjC.Object(retval).toString());
+            retval.replace(ObjC.classes.NSString.stringWithString_('18.0'));
+        }
+    });
+
+    // Hook 2: NSProcessInfo.operatingSystemVersionString
+    var NSProcessInfo = ObjC.classes.NSProcessInfo;
+    Interceptor.attach(NSProcessInfo['- operatingSystemVersionString'].implementation, {
+        onLeave: function(retval) {
+            console.log('[*] operatingSystemVersionString called, original: ' + new ObjC.Object(retval).toString());
+            retval.replace(ObjC.classes.NSString.stringWithString_('Version 18.0 (Build 22A3354)'));
+        }
+    });
+
+    console.log('[+] iOS version hooks installed.');
+}
+
+"
+}

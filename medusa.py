@@ -21,17 +21,20 @@ from pathlib import Path
 import cmd2
 import click
 import frida
+import frida_tools
 import requests
 import yaml
+import json
 from pick import pick
 
 # Local application/library specific imports
-from libraries.libadb import *
-from libraries.Modules import *
-from libraries.natives import *
-from libraries.Questions import *
-from libraries.soc_server import *
+from libraries.modules import ModuleManager
 from utils.google_trans_new import google_translator
+from libraries.lib_adb import *
+from libraries.natives import *
+from libraries.questions import *
+from libraries.soc_server import *
+
 
 
 RED = "\033[1;31m"
@@ -200,15 +203,24 @@ class Parser(cmd2.Cmd):
         """
         config_path = os.path.join(self.base_directory, 'config.yaml')
         editor = "vim"  # fallback default
-
         if os.path.exists(config_path):
-            with open(config_path, 'r') as f:
-                cfg = yaml.safe_load(f) or {}
-                editor = cfg.get("default_editor", editor)
-  
-        subprocess.run(f'{editor} "{agent_script}"', shell=True)
+            try:
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    cfg = yaml.safe_load(f) or {}
+                    editor = cfg.get("default_editor", editor)
+            except yaml.YAMLError as e:
+                logger.error(f"Error parsing config.yaml: {e}. Using default editor.")
 
-        logger.info(f'Current agent script path: {os.path.abspath(agent_script)}')
+        agent_script_path = os.path.abspath(agent_script)
+
+        try:
+            subprocess.run([editor, agent_script_path], check=True)
+        except FileNotFoundError:
+            logger.error(f"Editor not found: {editor}")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Editor exited with an error: {e}")
+
+        logger.info(f"Current agent script path: {agent_script_path}")
 
 
     def do_c(self, line) -> None:
@@ -231,7 +243,7 @@ class Parser(cmd2.Cmd):
         """
         subprocess.run('clear', shell=True)
 
-    def do_compile(self, line, rs=False) -> None:
+    def do_compile(self, line, rs=False, from_fallback=False) -> None:
         """
             Compile the currently staged modules into a single Frida JS script. Use '-t X' to add a delay.
             Usage:
@@ -240,18 +252,17 @@ class Parser(cmd2.Cmd):
         try:
             hooks = []
             jni_prolog_added = False
-            # with open(os.path.join(self.base_directory, 'libraries', js'utils.js'), 'r') as file:
-            #     header = file.read()
             js_directory = os.path.join(self.base_directory, 'libraries', 'js')
 
             try:
                 installed = parse_version(frida.__version__)
             except AttributeError:
                 installed = Version("0.0.0")
+
             js_files = (
                 (
-                    (["frida_java_bridge.js"] if installed < Version("17.6.0") else [])
-                    + [
+                    # (["frida_java_bridge.js"] if installed < Version("17.6.0") else [])
+                     [
                         "frida_module_bridge.js",
                         "frida_process_bridge.js",
                         "frida_memory_bridge.js",
@@ -262,7 +273,9 @@ class Parser(cmd2.Cmd):
             )
             js_files += ["globals.js", "beautifiers.js", "utils.js", "android_core.js"]
 
-
+            self.native_handler = nativeHandler(self.device)
+            if not from_fallback:
+                hooks.append(self.native_handler.add_js_bridge_if_needed())
             for filename in js_files:
                 js_file_path = os.path.join(js_directory, filename)
 
@@ -626,14 +639,6 @@ class Parser(cmd2.Cmd):
             })
         });
                     """
-            try:
-                installed = parse_version(frida.__version__)
-            except AttributeError:
-                installed = Version("0.0.0")
-
-            if installed >= Version("17.6.0"):
-                self.fallback_get_cli(line, package_name, codeJs)
-                return
             
             self.detached = False
             session = self.frida_session_handler(self.device, False, package_name)
@@ -1305,9 +1310,11 @@ class Parser(cmd2.Cmd):
 
     def fallback_run_cli(self, line) -> None:
         try:
-            if self.modified:
-                if Polar('Module list has been modified, do you want to recompile?').ask():
-                    self.do_compile(line)
+            if Polar('Running in fallback mode requires the script to be recompiled. Proceed?').ask():
+                self.do_compile(line, from_fallback=True)
+                self.modified = True
+            else:
+                return
 
             # Parse and remove optional --host ip:port (same logic as do_run)
             flags = line.arg_list
@@ -1435,6 +1442,9 @@ class Parser(cmd2.Cmd):
                 Attach to an existing process by PID.
             --host <ip:port>
                 Connect to a remote Frida server at the given IP address and port.
+            --fallback
+                Use the fallback method for running Frida (subprocess-based CLI) instead of the Python API. 
+                This can be useful for compatibility with certain Frida versions or environments.
 
         Notes:
             - If no package is provided and -t is not used, supply a package name or PID.
@@ -1445,15 +1455,17 @@ class Parser(cmd2.Cmd):
             run com.example.app
             run -t
             run -f com.example.app
-            run -w com.example.app
+            run -w com.example.app --fallback
             run -n 3
             run -p 12345 --host 10.0.0.5:27042
         """
+
         try:
             installed = parse_version(frida.__version__)
         except AttributeError:
                 installed = Version("0.0.0")
-        if installed >= Version("17.6.0"):
+        if installed >= Version("17.0.0") and '--fallback' in line.arg_list:
+            line.arg_list.remove('--fallback')
             self.fallback_run_cli(line)
             return 
        
@@ -2238,12 +2250,6 @@ Apk Directory: {packageCodePath}\n""" + RESET)
                         print(RED + "Script changed, reloading ...." + RESET)
                         creation_time = modified_time
                         self.reload_script(session)
-                        # self.script.unload()
-                        # with open(os.path.join(self.base_directory, agent_script)) as f:
-                        #     self.script = session.create_script(f.read())
-                        # session.on('detached',self.on_detached)
-                        # self.script.on("message",self.my_message_handler)  # register the message handler
-                        # self.script.load()  
                     else:
                         print(GREEN + "Script unchanged, nothing to reload ...." + RESET)
                 elif s == '?':

@@ -26,14 +26,13 @@ from cmd2.parsing import Statement
 from colorama import Back, Fore, Style
 
 # Local application/library specific imports
+from libraries.db import apk_db
 from libraries.logging_config import setup_logging
-from libraries.libadb import android_device
-from libraries.Questions import Polar
-from libraries.Questions import *
-from libraries.libguava import *
-from libraries.manifest_diff import ManifestDiff
+from libraries.lib_adb import android_device
+from libraries.manifest_diff import ManifestDiff, ManifestParser
 from libraries.android_flags import describe_flags, INTENT_FLAGS, PENDING_INTENT_FLAGS, CONTENT_FLAGS
-
+from libraries.questions import *
+from libraries.lib_guava import *
 
 logging.getLogger().handlers = []  
 setup_logging() 
@@ -1134,9 +1133,22 @@ $adb remount
 
                 elif 'deeplinks' in what:
                     max_display = 500
+                    config_path = os.path.abspath(
+                        os.path.join(self.base_directory, '..', 'config.yaml')
+                    )
+                    if os.path.exists(config_path):
+                        import yaml
+                        try:
+                            with open(config_path, 'r') as f:
+                                cfg = yaml.safe_load(f) or {}
+                                max_display = cfg.get("max_number_of_deeplinks", max_display)
+                        except yaml.YAMLError as e:
+                            logger.error(f"Error parsing config.yaml: {e}. Using default max display value.")
+                
                     if '-n' in flag:
                         try:
-                            max_display = int(line.arg_list[2])
+                            idx = line.arg_list.index('-n') 
+                            max_display = int(line.arg_list[idx + 1])
                         except (ValueError, IndexError):
                             logger.error("Invalid value for -n flag. Using default limit.")
                             max_display = 500

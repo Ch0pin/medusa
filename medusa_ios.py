@@ -434,7 +434,7 @@ class Parser(cmd2.Cmd):
                     self.run_frida(False, False, '', self.device, processes[index].pid)
 
                 else:
-                    self.run_frida(False, False, line, self.device)
+                    self.run_frida(False, False, flags[0], self.device)
 
             elif length == 2:
 

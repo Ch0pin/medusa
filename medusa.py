@@ -1501,7 +1501,7 @@ class Parser(cmd2.Cmd):
                     pid = self.device.get_frontmost_application().pid
                     self.run_frida(False, False, "", self.device, pid, host, port)
                 else:
-                    self.run_frida(False, False, line, self.device, -1, host, port)
+                    self.run_frida(False, False, flag, self.device, -1, host, port)
             elif arg_num == 2:
                 flag = line.arg_list[0]
                 arg_two = line.arg_list[1]

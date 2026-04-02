@@ -500,6 +500,9 @@ class Parser(cmd2.Cmd):
             except OSError as e:
                 logger.error(f"Failed to delete agent script: {e}")
 
+        if self.modManager.getModule('scratchpad').Code:
+            if Polar('Do you want to reset the scratchpad?').ask():
+                self.edit_scratchpad('')
         print('Thank you for using Medusa !!')
         sys.exit()
 

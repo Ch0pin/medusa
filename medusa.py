@@ -479,6 +479,7 @@ class Parser(cmd2.Cmd):
             except OSError as e:
                 logger.error(f"Failed to delete agent script: {e}")
 
+        self.edit_scratchpad('')
         print('Thank you for using Medusa !!')
         sys.exit()
 

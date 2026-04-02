@@ -10,7 +10,7 @@ logging.getLogger().handlers = []
 setup_logging() 
 logger = logging.getLogger(__name__)
 
-class android_device:
+class AndroidDevice:
     id = None
     properties = []
 

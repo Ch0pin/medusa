@@ -12,7 +12,7 @@ from libraries.lib_mango import *
 from libraries.questions import *
 # from libraries.lib_guava import *
 from libraries.lib_adb import *
-from libraries.db import apk_db
+from libraries.db import ApkDatabase
 from shutil import which
 
 logging.getLogger().handlers = []  
@@ -54,7 +54,7 @@ def print_logo():
                                     "Y88P"           """ + Style.RESET_ALL + RESET)
 
 def start_session(db_session, existing=False):
-    application_database = apk_db(db_session)
+    application_database = ApkDatabase(db_session)
     guava = Guava(application_database)
     p = parser()
     p.database = application_database

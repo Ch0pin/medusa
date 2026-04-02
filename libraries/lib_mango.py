@@ -26,9 +26,9 @@ from cmd2.parsing import Statement
 from colorama import Back, Fore, Style
 
 # Local application/library specific imports
-from libraries.db import apk_db
+from libraries.db import ApkDatabase
 from libraries.logging_config import setup_logging
-from libraries.lib_adb import android_device
+from libraries.lib_adb import AndroidDevice
 from libraries.manifest_diff import ManifestDiff, ManifestParser
 from libraries.android_flags import describe_flags, INTENT_FLAGS, PENDING_INTENT_FLAGS, CONTENT_FLAGS
 from libraries.questions import *
@@ -687,7 +687,7 @@ $adb remount
         Wrapper for: adb logcat -s AndroidRuntime
         Displays java crash logs."""
 
-        ad = android_device(self.device.id)
+        ad = AndroidDevice(self.device.id)
         ad.print_java_crash_log()
 
     def do_kill(self, package):
@@ -720,7 +720,7 @@ $adb remount
         The app has to be running.
         Exit with ctrl^C."""
 
-        ad = android_device(self.device.id)
+        ad = AndroidDevice(self.device.id)
         ad.print_runtime_logs(line)
 
     def do_man(self, line):
@@ -746,7 +746,7 @@ $adb remount
         Wrapper for: adb logcat -s libc,DEBUG
         Displays native crash logs."""
 
-        ad = android_device(self.device.id)
+        ad = AndroidDevice(self.device.id)
         ad.print_native_crash_log()
 
     def do_notify(self, line):
@@ -1038,7 +1038,7 @@ $adb remount
             try:
                 session_file = line.arg_list[0]
                 if os.path.exists(session_file):
-                    application_database = apk_db(session_file)
+                    application_database = ApkDatabase(session_file)
                     guava = Guava(application_database)
                     self.database = application_database
                     self.guava = guava
@@ -1778,7 +1778,7 @@ $adb remount
 
     def print_device_info(self):   
         if self.device is not None:
-            android_device(self.device.id).print_dev_properties()
+            AndroidDevice(self.device.id).print_dev_properties()
         else:
             logger.info("No loaded device found!")
 
@@ -2194,7 +2194,7 @@ $adb remount
                 i += 1
             j = int(Numeric('\nEnter the index of the device you want to use:', lbound=0, ubound=i - 1).ask())
             device = devices[int(j)]
-            android_dev = android_device(device.id)
+            android_dev = AndroidDevice(device.id)
             android_dev.print_dev_properties()
             return device
         except Exception as e:

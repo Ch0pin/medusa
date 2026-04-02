@@ -8,6 +8,7 @@ import random
 import readline
 import re
 import secrets
+import string
 import subprocess
 import sys
 import time
@@ -16,6 +17,7 @@ from urllib.parse import urlparse
 from typing import Optional, Union
 from packaging.version import  parse as parse_version, Version
 from pathlib import Path
+
 
 # Third-party imports
 import cmd2
@@ -26,6 +28,7 @@ import requests
 import yaml
 import json
 from pick import pick
+from io import StringIO
 
 # Local application/library specific imports
 from libraries.modules import ModuleManager
@@ -58,6 +61,24 @@ medusa_logo="""
                                     
  🪼 Type help for options 🪼 \n\n
 """
+
+ANSI_ESCAPE = re.compile(r'\x1b\[[0-9;]*m')
+
+class Tee:
+    def __init__(self, *streams):
+        self.streams = streams
+
+    def write(self, data):
+        for s in self.streams:
+            if s is sys.stdout or hasattr(s, 'isatty') and s.isatty():
+                s.write(data)                            # terminal — keep colors
+            else:
+                s.write(ANSI_ESCAPE.sub('', data))       # file — strip colors
+            s.flush() 
+
+    def flush(self):
+        for s in self.streams:
+            s.flush()
 
 class Parser(cmd2.Cmd):
     base_directory = os.path.dirname(__file__)
@@ -937,15 +958,15 @@ class Parser(cmd2.Cmd):
                     
                 self.device = devices[
                     int(Numeric('\nEnter the index of the device to use:', lbound=0, ubound=len(devices) - 1).ask())]
-                self.device_controller = android_device(self.device.id)
+                self.device_controller = AndroidDevice(self.device.id)
                 self.device_controller.print_dev_properties()
 
             elif self.is_remote_device(self.device_id):
                 self.device = frida.get_remote_device(self.device_id)
-                self.device_controller = android_device(self.device.id)
+                self.device_controller = AndroidDevice(self.device.id)
             else:
                 self.device = frida.get_device(self.device_id)
-                self.device_controller = android_device(self.device.id)
+                self.device_controller = AndroidDevice(self.device.id)
         except:
             self.device = frida.get_remote_device()
             if not self.interactive:
@@ -1445,6 +1466,8 @@ class Parser(cmd2.Cmd):
             --fallback
                 Use the fallback method for running Frida (subprocess-based CLI) instead of the Python API. 
                 This can be useful for compatibility with certain Frida versions or environments.
+            --record
+                Record the session (not applicable when using --fallback).
 
         Notes:
             - If no package is provided and -t is not used, supply a package name or PID.
@@ -1468,7 +1491,12 @@ class Parser(cmd2.Cmd):
             line.arg_list.remove('--fallback')
             self.fallback_run_cli(line)
             return 
-       
+        
+        record_session = False
+        if '--record' in line.arg_list:
+            line.arg_list.remove('--record')
+            record_session = True
+            
         try:
             if self.modified:
                 if Polar('Module list has been modified, do you want to recompile?').ask():
@@ -1496,12 +1524,12 @@ class Parser(cmd2.Cmd):
                     click.echo(click.style(option, bg='blue', fg='white'))
                     pattern = r'\b\d+\b'
                     get_pid = re.findall(pattern, option)
-                    self.run_frida(False, False, '', self.device, get_pid[0], host, port)
+                    self.run_frida(False, False, '', self.device, get_pid[0], host, port, record = record_session)
                 elif flag == '-t':
                     pid = self.device.get_frontmost_application().pid
-                    self.run_frida(False, False, "", self.device, pid, host, port)
+                    self.run_frida(False, False, "", self.device, pid, host, port, record = record_session)
                 else:
-                    self.run_frida(False, False, line, self.device, -1, host, port)
+                    self.run_frida(False, False, line.arg_list[0], self.device, -1, host, port, record = record_session)
             elif arg_num == 2:
                 flag = line.arg_list[0]
                 arg_two = line.arg_list[1]
@@ -1518,19 +1546,19 @@ class Parser(cmd2.Cmd):
                         time.sleep(0.1)
                     sys.stdout.write("\rProcess found! Applying hooks...        \n")
                     sys.stdout.flush()
-                    self.run_frida(False, False, "", self.device, pid, host, port)
+                    self.run_frida(False, False, "", self.device, pid, host, port, record = record_session)
                 elif flag == '-f':
-                    self.run_frida(True, False, arg_two, self.device, -1, host, port)
+                    self.run_frida(True, False, arg_two, self.device, -1, host, port, record = record_session)
                 elif flag == '-n':
                     try:
                         if len(self.packages) == 0:
                             self.refreshPackages()
                         package_name = self.packages[int(arg_two)]
-                        self.run_frida(True, False, package_name, self.device, -1, host, port)
+                        self.run_frida(True, False, package_name, self.device, -1, host, port, record = record_session)
                     except (IndexError, TypeError) as error:
                         logger.error('Invalid package number')
                 elif flag == '-p':
-                    self.run_frida(False, False, '', self.device, arg_two, host, port)
+                    self.run_frida(False, False, '', self.device, arg_two, host, port, record = record_session)
                     pass
                 else:
                     logger.error('Invalid flag given!')
@@ -2193,7 +2221,6 @@ Apk Directory: {packageCodePath}\n""" + RESET)
             startTime = time.time()
             end_time = self.time_to_run+startTime
             original_stdout = sys.stdout
-            from io import StringIO
             temp_stdout = StringIO()
             sys.stdout = temp_stdout
 
@@ -2216,7 +2243,8 @@ Apk Directory: {packageCodePath}\n""" + RESET)
         except Exception as e:
             raise self.NonInteractiveTypeError(e)
 
-    def run_frida(self, force, detached, package_name, device, pid=-1, host='', port='') -> None:
+
+    def run_frida(self, force, detached, package_name, device, pid=-1, host='', port='', record=False) -> None:
         if host != '' and port != '':
             device = frida.get_device_manager() \
                 .add_remote_device(f'{host}:{port}')
@@ -2226,6 +2254,35 @@ Apk Directory: {packageCodePath}\n""" + RESET)
         creation_time = modified_time = None
         self.detached = False
         session = self.frida_session_handler(device, force, package_name, pid)
+
+        # ── NEW: recording setup ──────────────────────────────────────────────────
+        original_stdout = sys.stdout
+        log_file = None
+        if record:
+            config_path = os.path.join(self.base_directory, 'config.yaml')
+            log_file_path = None
+            if os.path.exists(config_path):
+                try:
+                    with open(config_path, 'r', encoding='utf-8') as f:
+                        cfg = yaml.safe_load(f) or {}
+                        log_file_path = cfg.get("log_file_path", log_file_path)
+                        if log_file_path and not isinstance(log_file_path, str):
+                            log_file_path = None
+                except yaml.YAMLError as e:
+                    logger.warning(f"Log file path not found in config.yaml or error parsing config: {e}. Using random log file name.")
+
+            if log_file_path:
+                dir_name = os.path.dirname(log_file_path)
+                if dir_name:
+                    os.makedirs(dir_name, exist_ok=True)
+                random_name = log_file_path
+            else:
+                random_name = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8)) + '.log'
+            log_file    = open(random_name, 'w')
+            sys.stdout  = Tee(original_stdout, log_file)
+            print(f"[*] Recording session to: {random_name}")
+        # ─────────────────────────────────────────────────────────────────────────
+
         try:
             creation_time = self.modification_time(os.path.join(self.base_directory, agent_script))
             with open(os.path.join(self.base_directory, agent_script)) as f:
@@ -2271,8 +2328,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
                     self.do_compile('')
                     self.reload_script(session)
                 elif s == 'sus':
-                    original_stdout = sys.stdout
-                    from io import StringIO
+                    sus_original = sys.stdout
                     temp_stdout = StringIO()
                     sys.stdout = temp_stdout
                     in_mute_cmd = ''
@@ -2307,7 +2363,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
                             sys.stderr.write("Reloading....\n")
                             self.reload_script(session)
 
-                    sys.stdout = original_stdout
+                    sys.stdout = sus_original
                     print(
                         "-" * 10 + "Here is what you missed while suspended" + "-" * 10 + "\n" + temp_stdout.getvalue())
 
@@ -2333,6 +2389,15 @@ Apk Directory: {packageCodePath}\n""" + RESET)
 
         except Exception as e:
             logger.warning(e)
+
+        # ── NEW: recording teardown in finally so it runs even on exception ───────
+        finally:
+            if record and log_file:
+                sys.stdout = original_stdout
+                log_file.close()
+                print(f"[*] Session saved to: {random_name}")
+        # ─────────────────────────────────────────────────────────────────────────
+
         print(RESET)
 
     def print_list(self, listName, message) -> None:

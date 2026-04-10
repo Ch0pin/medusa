@@ -275,23 +275,24 @@ class Parser(cmd2.Cmd):
             jni_prolog_added = False
             js_directory = os.path.join(self.base_directory, 'libraries', 'js')
 
-            try:
-                installed = parse_version(frida.__version__)
-            except AttributeError:
-                installed = Version("0.0.0")
+            # try:
+            #     installed = parse_version(frida.__version__)
+            # except AttributeError:
+            #     installed = Version("0.0.0")
 
-            js_files = (
-                (
-                    # (["frida_java_bridge.js"] if installed < Version("17.6.0") else [])
-                     [
-                        "frida_module_bridge.js",
-                        "frida_process_bridge.js",
-                        "frida_memory_bridge.js",
-                    ]
-                )
-                if installed >= Version("17.0.0")
-                    else []
-            )
+            # js_files = (
+            #     (
+            #         # (["frida_java_bridge.js"] if installed < Version("17.6.0") else [])
+            #          [
+            #             "frida_module_bridge.js",
+            #             "frida_process_bridge.js",
+            #             "frida_memory_bridge.js",
+            #         ]
+            #     )
+            #     if installed >= Version("17.0.0")
+            #         else []
+            # )
+            js_files = []
             js_files += ["globals.js", "beautifiers.js", "utils.js", "android_core.js"]
 
             self.native_handler = nativeHandler(self.device)
@@ -1471,6 +1472,7 @@ class Parser(cmd2.Cmd):
                 This can be useful for compatibility with certain Frida versions or environments.
             --record
                 Record the session (not applicable when using --fallback).
+                Use with --output to specify a file name for the recording (optional, defaults to a timestamped file).
 
         Notes:
             - If no package is provided and -t is not used, supply a package name or PID.
@@ -1494,9 +1496,17 @@ class Parser(cmd2.Cmd):
             line.arg_list.remove('--fallback')
             self.fallback_run_cli(line)
             return 
-        
+        file_name = None
         record_session = False
         if '--record' in line.arg_list:
+            if '--output' in line.arg_list:
+                output_index = line.arg_list.index('--output')
+                if output_index + 1 < len(line.arg_list):
+                    file_name = line.arg_list[output_index + 1]
+                else:
+                    logger.info("No output file specified after, using default.")
+                line.arg_list.remove('--output')
+                line.arg_list.remove(file_name)
             line.arg_list.remove('--record')
             record_session = True
             
@@ -1527,12 +1537,12 @@ class Parser(cmd2.Cmd):
                     click.echo(click.style(option, bg='blue', fg='white'))
                     pattern = r'\b\d+\b'
                     get_pid = re.findall(pattern, option)
-                    self.run_frida(False, False, '', self.device, get_pid[0], host, port, record = record_session)
+                    self.run_frida(False, False, '', self.device, get_pid[0], host, port, record = record_session, output_file=file_name)
                 elif flag == '-t':
                     pid = self.device.get_frontmost_application().pid
-                    self.run_frida(False, False, "", self.device, pid, host, port, record = record_session)
+                    self.run_frida(False, False, "", self.device, pid, host, port, record = record_session, output_file=file_name)
                 else:
-                    self.run_frida(False, False, line.arg_list[0], self.device, -1, host, port, record = record_session)
+                    self.run_frida(False, False, line.arg_list[0], self.device, -1, host, port, record = record_session, output_file=file_name)
             elif arg_num == 2:
                 flag = line.arg_list[0]
                 arg_two = line.arg_list[1]
@@ -1549,19 +1559,19 @@ class Parser(cmd2.Cmd):
                         time.sleep(0.1)
                     sys.stdout.write("\rProcess found! Applying hooks...        \n")
                     sys.stdout.flush()
-                    self.run_frida(False, False, "", self.device, pid, host, port, record = record_session)
+                    self.run_frida(False, False, "", self.device, pid, host, port, record = record_session, output_file=file_name)
                 elif flag == '-f':
-                    self.run_frida(True, False, arg_two, self.device, -1, host, port, record = record_session)
+                    self.run_frida(True, False, arg_two, self.device, -1, host, port, record = record_session, output_file=file_name)
                 elif flag == '-n':
                     try:
                         if len(self.packages) == 0:
                             self.refreshPackages()
                         package_name = self.packages[int(arg_two)]
-                        self.run_frida(True, False, package_name, self.device, -1, host, port, record = record_session)
+                        self.run_frida(True, False, package_name, self.device, -1, host, port, record = record_session, output_file=file_name)
                     except (IndexError, TypeError) as error:
                         logger.error('Invalid package number')
                 elif flag == '-p':
-                    self.run_frida(False, False, '', self.device, arg_two, host, port, record = record_session)
+                    self.run_frida(False, False, '', self.device, arg_two, host, port, record = record_session, output_file=file_name)
                     pass
                 else:
                     logger.error('Invalid flag given!')
@@ -2247,7 +2257,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
             raise self.NonInteractiveTypeError(e)
 
 
-    def run_frida(self, force, detached, package_name, device, pid=-1, host='', port='', record=False) -> None:
+    def run_frida(self, force, detached, package_name, device, pid=-1, host='', port='', record=False, output_file=None) -> None:
         if host != '' and port != '':
             device = frida.get_device_manager() \
                 .add_remote_device(f'{host}:{port}')
@@ -2262,17 +2272,20 @@ Apk Directory: {packageCodePath}\n""" + RESET)
         original_stdout = sys.stdout
         log_file = None
         if record:
-            config_path = os.path.join(self.base_directory, 'config.yaml')
-            log_file_path = None
-            if os.path.exists(config_path):
-                try:
-                    with open(config_path, 'r', encoding='utf-8') as f:
-                        cfg = yaml.safe_load(f) or {}
-                        log_file_path = cfg.get("log_file_path", log_file_path)
-                        if log_file_path and not isinstance(log_file_path, str):
-                            log_file_path = None
-                except yaml.YAMLError as e:
-                    logger.warning(f"Log file path not found in config.yaml or error parsing config: {e}. Using random log file name.")
+            if output_file:
+                log_file_path = output_file
+            else:
+                config_path = os.path.join(self.base_directory, 'config.yaml')
+                log_file_path = None
+                if os.path.exists(config_path):
+                    try:
+                        with open(config_path, 'r', encoding='utf-8') as f:
+                            cfg = yaml.safe_load(f) or {}
+                            log_file_path = cfg.get("log_file_path", log_file_path)
+                            if log_file_path and not isinstance(log_file_path, str):
+                                log_file_path = None
+                    except yaml.YAMLError as e:
+                        logger.warning(f"Log file path not found in config.yaml or error parsing config: {e}. Using random log file name.")
 
             if log_file_path:
                 dir_name = os.path.dirname(log_file_path)
@@ -2281,7 +2294,7 @@ Apk Directory: {packageCodePath}\n""" + RESET)
                 random_name = log_file_path
             else:
                 random_name = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8)) + '.log'
-            log_file    = open(random_name, 'w')
+            log_file    = open(random_name, 'a')
             sys.stdout  = Tee(original_stdout, log_file)
             print(f"[*] Recording session to: {random_name}")
         # ─────────────────────────────────────────────────────────────────────────

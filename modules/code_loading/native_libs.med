@@ -6,59 +6,46 @@
 console.log('\\n--------Native load hook module by @ch0pin--------------\\n');
 
 {
-    var systemA = Java.use('java.lang.System');
-        const System = Java.use('java.lang.System');
-        const Runtime_1 = Java.use('java.lang.Runtime');
-        const SystemLoad_2 = System.loadLibrary.overload('java.lang.String');
-        const VMStack = Java.use('dalvik.system.VMStack');
-
-        SystemLoad_2.implementation = function(library) {
-            colorLog('[+] The application is loading the following library:' + library,{c: Color.Cyan});
-            try {
-                const loaded = Runtime_1.getRuntime().loadLibrary0(VMStack.getCallingClassLoader(), library);
-                return loaded;
-            } catch(ex) {
-                console.log(ex);
-            }
-        };
-
-    systemA.load.implementation = function(filename){
-        colorLog('[+] The application is loading the following library: '+filename, {c: Color.Cyan});
-        return this.load(filename);
-    }
-    //systemA.loadLibrary.implementation = function(libname){
-    //    colorLog('[+] The application is loading the following library:'+libname,{c: Color.Cyan});
-    //    return this.loadLibrary(libname);
-    //}
-
-    systemA.mapLibraryName.implementation = function(libname){
+    var System = Java.use('java.lang.System');
+    
+    // Hook System.loadLibrary(String) - returns void
+    System.loadLibrary.overload('java.lang.String').implementation = function(library) {
+        colorLog('[+] System.loadLibrary: ' + library, {c: Color.Cyan});
+        this.loadLibrary(library);  // No return - it's void
+    };
+    
+    // Hook System.load(String) - returns void
+    System.load.overload('java.lang.String').implementation = function(filename) {
+        colorLog('[+] System.load: ' + filename, {c: Color.Cyan});
+        this.load(filename);  // No return - it's void
+    };
+    
+    // Hook System.mapLibraryName(String) - returns String
+    System.mapLibraryName.overload('java.lang.String').implementation = function(libname) {
         var ret = this.mapLibraryName(libname);
-        colorLog('[+] The application maps '+libname+ ' to ' + ret , {c: Color.Cyan});
+        colorLog('[+] System.mapLibraryName: ' + libname + ' -> ' + ret, {c: Color.Cyan});
         return ret;
+    };
+    
+    // Native hook for android_dlopen_ext
+    var dlopen = Module.findExportByName(null, 'android_dlopen_ext');
+    if (dlopen) {
+        Interceptor.attach(dlopen, {
+            onEnter: function(args) {
+                var library_path = Memory.readCString(args[0]);
+                
+                if (library_path && library_path.startsWith('/data/user')) {
+                    colorLog('[+] dlopen (app): ' + library_path, {c: Color.Red});
+                } else {
+                    console.log('[+] dlopen (system): ' + library_path);
+                }
+            },
+            onLeave: function(retval) {
+            }
+        });
     }
-
-    Interceptor.attach(Module.findExportByName(null, 'android_dlopen_ext'),{
-        onEnter: function(args){
-            // first arg is the path to the library loaded
-            var library_path = Memory.readCString(args[0])
-
-            if(library_path.startsWith('/data/user'))
-                colorLog('[...] Loading library : ' + library_path, {c: Color.Red});
-            else
-                console.log(\"[...] Loading library : \" + library_path)
-            //library_loaded = 1
-            
-        },
-        onLeave: function(args){
-
-            // if it's the library we want to hook, hooking it
-            // if(library_loaded ==  1){
-            //     console.log(\"[+] Loaded\")
-            //     library_loaded = 0
-            // }
-        }
-    })
-
+    
+    console.log('[*] Library loading hooks installed');
 
 
     /*

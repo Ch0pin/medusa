@@ -276,9 +276,38 @@ class MedusaAndroidBridge:
                 "selected_modules": self.selected_modules,
             }
 
+    def unstage_module(self, module_name: str) -> dict[str, Any]:
+        with self.lock:
+            selected = module_name.strip()
+            if not selected:
+                raise RuntimeError("module_name must be a non-empty string.")
+
+            removed: list[str] = []
+            remaining = []
+            for name in self.selected_modules:
+                if name == selected or name.endswith("/" + selected):
+                    removed.append(name)
+                else:
+                    remaining.append(name)
+
+            if not removed:
+                raise RuntimeError(f"Module not found in staged set: {selected}")
+
+            self.selected_modules = remaining
+            self.parser.modManager.staged = [
+                mod for mod in self.parser.modManager.staged
+                if mod.Name not in removed
+            ]
+
+            return {
+                "removed": removed,
+                "selected_modules": self.selected_modules,
+            }
+
     def clear_modules(self) -> dict[str, Any]:
         with self.lock:
             self.selected_modules = []
+            self._reset_staging()
             return {"selected_modules": self.selected_modules}
 
     def list_modules(
@@ -1034,6 +1063,12 @@ def select_device(device_id: str) -> dict[str, str]:
 def stage_module(module_name: str) -> dict[str, Any]:
     """Add one Medusa module or prefix match to the staged MCP module set."""
     return bridge.stage_module(module_name=module_name)
+
+
+@mcp.tool()
+def unstage_module(module_name: str) -> dict[str, Any]:
+    """Remove a single module from the staged set by exact name or suffix match."""
+    return bridge.unstage_module(module_name=module_name)
 
 
 @mcp.tool()

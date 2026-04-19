@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/assets/images/logo.svg" width ="1835" height="508">
+<img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/assets/images/logo.svg" width ="1635" height="608">
 
 ## Sponsored by:
 <br>

@@ -139,6 +139,23 @@ mango> pull com.my.app
 mango> import /path/to/apk
 ```
 
+## MCP Server
+
+```sh
+# Run 
+MEDUSA_MCP_TRANSPORT=streamable-http python medusa_android_mcp.py
+```
+
+#### Configuration:
+
+```json
+"medusa-android": {
+   "type": "http",
+   "url": "http://127.0.0.1:8000/mcp"
+}
+```
+
+
 **For advanced usage and examples, see our [wiki](https://github.com/Ch0pin/medusa/wiki). For quick tips and introductory workflows, check the demos below:**
 
 

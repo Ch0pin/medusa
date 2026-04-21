@@ -1020,7 +1020,7 @@ atexit.register(bridge.cleanup)
 
 def _handle_termination(signum, _frame) -> None:
     try:
-        bridge.fast_cleanup()
+        bridge.cleanup()
     finally:
         os._exit(128 + int(signum))
 

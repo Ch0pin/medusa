@@ -139,7 +139,15 @@ mango> pull com.my.app
 mango> import /path/to/apk
 ```
 
-## MCP Server
+## MCP Server Support
+
+This is optional and not required for the standard Medusa CLI workflow.
+
+If you want to use the Android MCP server (`medusa_android_mcp.py`), install the MCP SDK separately:
+
+```sh
+pip install "mcp[cli]"
+```
 
 ```sh
 # Run 

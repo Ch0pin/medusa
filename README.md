@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/ch0pin-medusa-badge.png)](https://mseep.ai/app/ch0pin-medusa)
+
 <img src="https://raw.githubusercontent.com/Ch0pin/medusa/master/assets/images/logo.svg" width ="1635" height="608">
 
 ## Sponsored by:

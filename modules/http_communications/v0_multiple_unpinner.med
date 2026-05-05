@@ -530,6 +530,60 @@
 		}
 		
 
+          // React Native WebViewClient subclasses (RNCWebView + obfuscated wrappers) //
+          ////////////////////////////////////////////////////////////////////////////
+          // The base android.webkit.WebViewClient hooks above don't catch RN apps,
+          // because react-native-webview overrides onReceivedSslError in a subclass
+          // and Java virtual dispatch skips the parent. Hook the subclass directly.
+          try {
+              var RNCWebViewClient = Java.use('com.reactnativecommunity.webview.RNCWebViewClient');
+              RNCWebViewClient.onReceivedSslError.overload(
+                  'android.webkit.WebView',
+                  'android.webkit.SslErrorHandler',
+                  'android.net.http.SslError'
+              ).implementation = function (view, handler, error) {
+                  console.log('[+] Bypassing RNCWebViewClient.onReceivedSslError: ' + error.getUrl());
+                  handler.proceed();
+              };
+          } catch (err) {
+              //console.log('[-] RNCWebViewClient not found');
+              //console.log(err);
+          }
+          try {
+              // Some apps wrap RNCWebViewClient via an obfuscated subclass (Klarna: fsimpl.fk).
+              // If the class name differs in your target, find it with Java.enumerateLoadedClassesSync().
+              var ObfuscatedRNCWrapper = Java.use('fsimpl.fk');
+              ObfuscatedRNCWrapper.onReceivedSslError.overload(
+                  'android.webkit.WebView',
+                  'android.webkit.SslErrorHandler',
+                  'android.net.http.SslError'
+              ).implementation = function (view, handler, error) {
+                  console.log('[+] Bypassing fsimpl.fk.onReceivedSslError: ' + error.getUrl());
+                  handler.proceed();
+              };
+          } catch (err) {
+              //console.log('[-] fsimpl.fk not present (Klarna-specific wrapper)');
+              //console.log(err);
+          }
+          try {
+              // Suppress non-SSL load errors so the WebView keeps rendering after MITM.
+              var RNCWebViewClient2 = Java.use('com.reactnativecommunity.webview.RNCWebViewClient');
+              RNCWebViewClient2.onReceivedError.overload(
+                  'android.webkit.WebView',
+                  'android.webkit.WebResourceRequest',
+                  'android.webkit.WebResourceError'
+              ).implementation = function (view, req, err) {
+                  //console.log('[+] Suppressing RNCWebViewClient.onReceivedError: ' + req.getUrl());
+              };
+          } catch (err) {
+              //console.log('[-] RNCWebViewClient.onReceivedError overload not found');
+              //console.log(err);
+          }
+
+
+
+
+
 
 
 		// Apache Cordova WebViewClient //

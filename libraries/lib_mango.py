@@ -550,6 +550,7 @@ class parser(cmd2.Cmd):
             else:
                 print(Fore.RED + f"[!] Error: can't find: {apkfile} " + Fore.RESET)
         elif num_of_options == 2 and line.split(' ')[1] == '--mass':
+            logger.warning("[!] Scanning for secrets is disabled in mass imports.")
             try:
                 apk_files = []
                 for root, dirs, files in os.walk(line.split(' ')[0]):

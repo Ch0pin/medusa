@@ -396,7 +396,8 @@ class Guava:
             self.fill_application_attributes(apk_r, app_sha256, application, apkfile)
             self.fill_permissions(apk_r, app_sha256)
             if shutil.which("trufflehog") is None or skip_secrets:
-                logger.warning("trufflehog is not installed. Secrets will not be extracted.")
+                if not skip_secrets:
+                    logger.warning("trufflehog is not installed. Secrets will not be extracted.")
                 self.application_database.insert_secret((app_sha256, ""))
             else:
                 worker_thread = threading.Thread(target=self.fill_secrets, args=(apkfile, app_sha256))

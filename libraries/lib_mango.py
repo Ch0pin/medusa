@@ -1694,6 +1694,21 @@ $adb remount
         self.total_deep_links = []
         component = ''
 
+        exported_components = {
+            row[1]
+            for row in itertools.chain(self.activities, self.activityallias)
+            if (row[3] or '').startswith('true')
+        }
+
+        link_components = {
+            name
+            for name, actions, categories in self.intent_filters
+            if name in exported_components
+            and 'android.intent.action.VIEW' in (actions or '').split('|')
+            and 'android.intent.category.BROWSABLE' in (categories or '').split('|')
+        }
+
+
         for attribs in self.deeplinks:
             activity = attribs[0]
             attrib_str = attribs[1]
@@ -1704,8 +1719,9 @@ $adb remount
                 if not quiet:
                     print(
                         Fore.GREEN + '-' * len(component) +
-                        Fore.YELLOW + '\nDeeplinks that start:' +
+                        Fore.YELLOW + '\nDeeplinks that start: ' +
                         Fore.CYAN + f'{component}' +
+                        (Fore.YELLOW + ' (Link-launchable)' if component in link_components else '') +
                         Fore.RESET
                     )
 

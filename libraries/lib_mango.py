@@ -1523,27 +1523,26 @@ $adb remount
     
     def complete_delete(self, text, line, begidx, endidx):
         return self.get_all_apps_from_db(text, line, begidx, endidx)
-        # res = self.database.query_db("SELECT packageName, sha256, versionName from Application order by packageName asc;")
-        # appSha256 = []
-        # for entry in res:
-        #     version_name = entry[2] if entry[2] is not None else ''
-        #     appSha256.append(entry[0] + ':' + entry[1] + ':' + version_name)
-
-        # if not text:
-        #     completions = appSha256[:]
-        #     appSha256 = []
-        # else:
-        #     completions = [f for f in appSha256 if f.startswith(text)]
-        #     appSha256 = []
-        # return completions
 
     def get_all_apps_from_db(self, text, line, begidx, endidx):
-        res = self.database.query_db("SELECT packageName, sha256, versionName from Application order by packageName asc;")
-        appSha256 = []
-        for entry in res:
-            version_name = entry[2] if entry[2] is not None else ''
-            appSha256.append(entry[0] + ':' + entry[1] + ':' + version_name)
-        return self._completion_matches(text, appSha256)
+        rows = self.database.query_db(
+            "SELECT packageName, sha256, versionName "
+            "FROM Application "
+            "ORDER BY packageName ASC, CAST(versionCode AS INTEGER) DESC;"
+        )
+        items = []
+        for package_name, sha256, version_name in rows:
+            version_name = version_name or ""
+            value = f"{package_name}:{sha256}:{version_name}"
+
+            if value.startswith(text):
+                items.append(
+                    CompletionItem(
+                        value=value,
+                        display=f"{package_name}:{version_name}",
+                    )
+                )
+        return Completions(items=items, is_sorted=True)
 
     def complete_logcat(self, text, line, begidx, endidx):
         return self.get_packages_starting_with(text)

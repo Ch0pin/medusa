@@ -48,13 +48,26 @@ TOOL_CALL_HISTORY_LIMIT = 200
 EVENT_BUFFER_LIMIT = 500
 TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 
+# Instance A — port 8001
+# MEDUSA_MCP_TRANSPORT=streamable-http MEDUSA_MCP_PORT=8001 python medusa_android_mcp.py
+
 mcp = FastMCP(
     name="Medusa Android",
+    host="127.0.0.1",
+    port=int(os.getenv("MEDUSA_MCP_PORT", "8000")),
     instructions=(
         "Attach Medusa to Android apps through Frida. "
         "Use list_devices first when multiple devices are connected."
     ),
 )
+
+# mcp = FastMCP(
+#     name="Medusa Android",
+#     instructions=(
+#         "Attach Medusa to Android apps through Frida. "
+#         "Use list_devices first when multiple devices are connected."
+#     ),
+# )
 
 
 class MedusaAndroidBridge:
@@ -819,7 +832,6 @@ class MedusaAndroidBridge:
         existing_scratchpad = scratchpad.Code
         self.parser.modManager.reset()
         scratchpad.Code = existing_scratchpad
-        scratchpad.save()
         if existing_scratchpad:
             self.parser.modManager.stage("scratchpad")
         self.parser.modified = False

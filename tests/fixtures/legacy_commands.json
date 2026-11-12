@@ -1,0 +1,354 @@
+{
+  "android": {
+    "complete_dump": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "e3bed3e34359f7c7d147fe1832a2674997af6395602c810d966327af2fcb399a"
+    },
+    "complete_enumerate": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "032978ddc680622e499b5cbb19acba5e3fa91a49f39ab8af57efcb356a0d0bac"
+    },
+    "complete_export": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "8a1d86bf099d936ba267464f81ffd217642e8ec89c3b4ed5435fe8f2e9985344"
+    },
+    "complete_get": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "06c2b69fb45a3023081cc1b2420c5c78f8a76076fffcffcefd0cbaa6268af96d"
+    },
+    "complete_import": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "0cc1c3ec8b70eca22e55e056de515092ce78dd730ec6a73d815bf4ba706ae9d9"
+    },
+    "complete_info": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "fc1339a1095cd33b1d5099004ef226be28b09a9ff9041d6eb7459ccd06dfe5df"
+    },
+    "complete_libs": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "814f9fec2d221b3765b91176eab5af8308c144c33e7452f0bb9ed6aef3edf81d"
+    },
+    "complete_list": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "8a33ea9da86cb9da870c19224e8d82d39581971f37dea9414b234508adabb331"
+    },
+    "complete_load": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "1102790aa7b87bfa59933bab72be4fa14c841f09f12eef8b55cb3ad93df9f221"
+    },
+    "complete_memmap": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "cfc40ca5a3f622d0153548953198fa64ed5744ccea3c6ba6fc6770e9669660c0"
+    },
+    "complete_memops": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "302939bb7f536d44e7cf89f51d87f50db26b8997c82bf7d2d3b4d0f1f8aa14ce"
+    },
+    "complete_memscan": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "7a38e7895649ed383ca2e1c498870e5aa017b52f3e0ea5faae26eabe60b6abb0"
+    },
+    "complete_options": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "0350bfee6397ce784845f49a207905377f345ae2ebc0b3f6da609a926acd70d3"
+    },
+    "complete_reload": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "dbe920f45aef26faaff26a5ef53d0db47694abc67f42d2956be95cc2f45390d4"
+    },
+    "complete_rem": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "3d5e8ebbbf6f0c43dae900fea3f16c427cb19ae8db4bcbda68baba97895d7394"
+    },
+    "complete_run": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "e2cbb0025f2a73aeb2a0fdb0e5ba1a170f61147a31662cdba70f5520722266bb"
+    },
+    "complete_show": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "9aee94e0d5544cb805f0fe3c744532767008fd0969d30d51039e76891688daa3"
+    },
+    "complete_snippet": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "414aa48fe435165b7420323792f9c0909c4737fedd57fc0e5c875b4eaa33a592"
+    },
+    "complete_strace": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "8aea4af3316f4d9e0bb86349d6f09efa43c1754f0e36298bf3014b172ff20c85"
+    },
+    "complete_use": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "1b4a0b180c27efbff759501a0e61cbbc5f7e59fd9ba855618cc8043f70d8c9f6"
+    },
+    "do_add": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='mod')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "fcfc375a30a1db677e2eac241247de49e79147dccc2484bf7df11048d74b948a"
+    },
+    "do_agent": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "e5bec114c08887986acaacba892940c7243864a800e8cd505d009d21ab48b792"
+    },
+    "do_c": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "55382abea6f778825441523c00010a7ee0655e6a0676e4e2a219d01e9f71e3f0"
+    },
+    "do_cc": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "d0c46355e54ca1d96040e5a49392cc31985be6b35d156da3de6a222b45cdae30"
+    },
+    "do_clear": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "8b39335344a2047a0a4f885d136ef7d6c4eca955cee19465c1adee431655a6e5"
+    },
+    "do_compile": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line'), arg(arg='rs'), arg(arg='from_fallback')], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False), Constant(value=False)])",
+      "ast_sha256": "9bfe8bf27aad4ec9c05c3758c4e9063f897c51894455b2454b52241584e53300"
+    },
+    "do_configure": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "d33f1d7760f5d2c56eb69e164aef7e07d7cc58e335e49cdc837e64e48bf47640"
+    },
+    "do_describe_java_class": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "8f6bd932409ad5360afa92c0a6134062c6bff85208206c6de374c89b6b106bd9"
+    },
+    "do_dexload": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "9bd961e4d4d11e4cf9bb96830e353df5bdd7f54e0b4018dd7b23a37d95de86e6"
+    },
+    "do_enumerate": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "e4d293acee0995b912ba13f198ef01ee76f35a6f8df2f43a14a395b426e7b30f"
+    },
+    "do_exit": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "edcb89799d36ba800c3a534b2b0e1e47cfe8b886f2d6e84db3dafc69ce600dd5"
+    },
+    "do_export": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "0d0116b08563d7771e21bdc0466d41296884eced253cc21a04513406a6bb3b2f"
+    },
+    "do_get": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "9c8e1da7a9f9bdd7477ff28f590d6f747bf2928be2cc6066ed0c5b0f9f0cf138"
+    },
+    "do_hook": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "7daf993fc696069d9d55c21d16e3d9c045abddc178cbc5761ec53c5a70b3ac6f"
+    },
+    "do_import": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "08f738aae9aa88a72a8af7393ab0dedf9ec460e57cd22d86d78f5d2a298b80d3"
+    },
+    "do_info": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='mod')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "51c29d278bb0c7f3273df674a200f579aa78b4466532af800204c7aabe606f6f"
+    },
+    "do_jtrace": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "699bb3325286316bb4b88e1d331b0e830317efa35bac4f543ca0fc3f825f151c"
+    },
+    "do_libs": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "173ad362e6c20bc64dd2791b7f4397e6a0f9b08744ae7e12fc85fe12fd747121"
+    },
+    "do_list": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "3e0cfd3996951052451490d35c87a75635a0703acf60880bdb28a31c135dba91"
+    },
+    "do_load": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "f7aae596c17783baba5c271d9158c71cd90e6a25f8c4e1996d54e53475a9dfad"
+    },
+    "do_loaddevice": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "f4d25736033801762a6476194975f5110ebd9d3a9e9d66042733ad44f2f315b9"
+    },
+    "do_memmap": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "b1d77bae10a2bbaa2ea8ac66b66233285eeec91432abc0c64d3c52e363178ae6"
+    },
+    "do_memops": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "243e36babbee1843d794d4e0dfb76a9adbac83416dc6da5c2fa77c5d50b000f3"
+    },
+    "do_memscan": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "0c0c0dd75d3ffeac153e8e1ee2452b807c7a29493350033b85bad7a77e2355a1"
+    },
+    "do_options": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='mod')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "b50022756914f2314fa2bb821e735b95c5f63864636754eacf6b4885f104d830"
+    },
+    "do_pad": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "fe5c6117f97701af51698562cf104b25a7b5a02c5a7c8c4943185c14d6e9ed0c"
+    },
+    "do_redirect": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "4e0fb0d63c6901fd26e9867974058f3aa2dfae9d9f08da773cf9a45726857cbd"
+    },
+    "do_reload": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "7b26f1c6847ed05d4af0c09fa53928b450ae968c543fe18124cc9560f4af4e01"
+    },
+    "do_rem": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='mod'), arg(arg='redirect_output')], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False)])",
+      "ast_sha256": "ec6c1a4e69b0152951d53dc8c73245488590b2b08d33c56ea270e2597d3f021e"
+    },
+    "do_reset": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "db2d464f905acaa54d1ca293e211c2812da852ac228e4da3fd21d09f82c3dcb1"
+    },
+    "do_run": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "ea06cd6c5571f2bd3eb61d5590759d01587c7b35aead169cc1ea235785c4a988"
+    },
+    "do_search": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='pattern'), arg(arg='redirect_output')], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False)])",
+      "ast_sha256": "81911e8c445bf770697d9c629cc06403bbab3126af31f87fdbd947c1232485a9"
+    },
+    "do_session": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "68a9ff433c4058d1ddb60e51ed71f6ca77c253805dcc276e50988f9c8c940b02"
+    },
+    "do_shell": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "0557227121b22d0880cf08922322e0df0c7de8f353c14a782f8574849097d840"
+    },
+    "do_show": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='what')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "e91e83f2520ce916d0e2a9f62373f339adef5efb2b154bc130ffa565b40c17c9"
+    },
+    "do_snippet": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "45ea9fae3d1651d941589fa1190d31f4e867fc06f57bd9988acfd72c0c2548ab"
+    },
+    "do_startserver": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "f148d123c9578e087564ecc8d886ecf5dcca26464c6e1b68bc295e299d5bb9e2"
+    },
+    "do_status": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "11d46165191cac80e87b8ceff5913d9d58001df7a75a53f1fb1630f5b2bde41b"
+    },
+    "do_stopserver": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "c697add3a5753795c39b8741520eb3a38733ad3b66082cfb6af1f087b77d76f6"
+    },
+    "do_swap": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "40b652f49a9cc23560aab5cfdd9dd77745b1453c84dcbf4c91b091b428a522c8"
+    },
+    "do_use": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='mod'), arg(arg='redirect_output')], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False)])",
+      "ast_sha256": "e387a4a74cd744242892091d21bf1feb439fdcd5f4a4a1929a8dfdd4c7e69ed5"
+    }
+  },
+  "ios": {
+    "complete_info": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "6ca26b076c3d847f47d4c24161aa324e1cb840cb6fd1d59b93e8f1570d9aa4c7"
+    },
+    "complete_list": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "6f46cd8ff9c0fe329e7caa7277ffb0d29a35bb561276cadcdb460d0c87d2506a"
+    },
+    "complete_reload": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "dbe920f45aef26faaff26a5ef53d0db47694abc67f42d2956be95cc2f45390d4"
+    },
+    "complete_rem": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "3d5e8ebbbf6f0c43dae900fea3f16c427cb19ae8db4bcbda68baba97895d7394"
+    },
+    "complete_run": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "e2cbb0025f2a73aeb2a0fdb0e5ba1a170f61147a31662cdba70f5520722266bb"
+    },
+    "complete_show": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "9aee94e0d5544cb805f0fe3c744532767008fd0969d30d51039e76891688daa3"
+    },
+    "complete_use": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='text'), arg(arg='line'), arg(arg='begidx'), arg(arg='endidx')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "7bf1fc3e873b5631d7e1821bff4c426f79a4087dfa1ed3343fbd9f50551de47a"
+    },
+    "do_agent": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "9f789baa4c8ba3ecc05fa6c5d4ebc34df97b1d64f19e4c0ef8e575cb3c05d32a"
+    },
+    "do_clear": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "cc3a00a93aa0860e17f844f6b83ff244c062d6d2122865e94e4b3c085033d2f9"
+    },
+    "do_compile": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line'), arg(arg='rs')], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False)])",
+      "ast_sha256": "a05b79d06db6ce4dda4fad223831ad464ee9ba8b177063576894e0ce8b444349"
+    },
+    "do_exit": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "0d167bee5bb9840bee28356fe9cb3c05a02f87a5976e01323c1746e286ecac64"
+    },
+    "do_export": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "fdc036d56edfaf1036c431e4a721ad2f06a49f7beebfc433ff604c33625e0beb"
+    },
+    "do_hook": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "b0026e864e9b008c5ee5c53c3e649bb3fbe51da309e30c2d165a089fa41b94e1"
+    },
+    "do_info": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='mod')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "055eaa56e183f8f4426074c2b651b63fde1ba3c42cfd36d936b6c04f47997dbd"
+    },
+    "do_list": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "779e5277f5fee570dfc34a6551c8f30dde49ca8f21e3e29a9824cbb6b21956ff"
+    },
+    "do_loaddevice": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "a36cd73368ce960e2a1470c9c2a5be26d15a2955badd86107355784128e9d9f2"
+    },
+    "do_pad": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "0fca599db88c0d828273422ee9016b0d94e1ed7ab20fee0a2804ffd50e0a5001"
+    },
+    "do_reload": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "fb4151a23f09b4693e45108f70ebd4a20aaf0494037e4f2352819468f0d40c78"
+    },
+    "do_rem": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='mod'), arg(arg='redirect_output')], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False)])",
+      "ast_sha256": "60eb7295008dcfe68166b22f4849bf5dea5dd27b350f233308fd4d013433049a"
+    },
+    "do_reset": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "db2d464f905acaa54d1ca293e211c2812da852ac228e4da3fd21d09f82c3dcb1"
+    },
+    "do_run": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "a76b8fcd6bef2352c6e30440d73e2e021d841b667a09beb0fdcfa6e4be310cd8"
+    },
+    "do_search": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='pattern'), arg(arg='redirect_output')], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False)])",
+      "ast_sha256": "dc45f053485630e8190e0f1a82e57cb9f61f73f3c41dd71f26b68932f0eb1093"
+    },
+    "do_shell": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "52b3b89923b46ee9ba53282b46d53f9d90621790c0077875d5417323471a87a6"
+    },
+    "do_show": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='what')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "e3c0c6e8a9ab5a82db5913c0adba9c3ecbabacdccbf9ee294caaff09abfd89cd"
+    },
+    "do_swap": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='line')], kwonlyargs=[], kw_defaults=[], defaults=[])",
+      "ast_sha256": "51ea59b5a0662e51e12df06e064e708d994c25daedde7e07693af9decfcd7862"
+    },
+    "do_use": {
+      "arguments": "arguments(posonlyargs=[], args=[arg(arg='self'), arg(arg='mod'), arg(arg='redirect_output')], kwonlyargs=[], kw_defaults=[], defaults=[Constant(value=False)])",
+      "ast_sha256": "cdca4e6926b9c86ea352a65e07b664a7eb7f4e2d11bb72f01d91d008b8e05ca5"
+    }
+  }
+}

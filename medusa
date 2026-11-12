@@ -1,39 +1,8 @@
 #!/bin/sh
-
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}";)" &> /dev/null && pwd 2> /dev/null)"
-
-# Check for --not-interactive flag
-not_interactive=0
-for arg in "$@"; do
-    if [ "$arg" = "--not-interactive" ]; then
-        not_interactive=1
-        break
-    fi
-done
-
-# Main logic
-if [ "$#" -eq 0 ]; then
-    python3 "$SCRIPT_DIR/medusa.py"
-elif [ "$1" = "--ios" ]; then
-    if [ "$#" -eq 1 ]; then
-        python3 "$SCRIPT_DIR/medusa_ios.py"
-    elif [ "$#" -eq 3 ] && [ "$2" = "-r" ]; then
-        python3 "$SCRIPT_DIR/medusa_ios.py" -r "$3"
-    else
-        echo "Invalid argument combination for iOS. Usage: $0 [--ios] [-r filename]"
-    fi
-elif [ "$1" = "-r" ] && [ "$#" -eq 2 ] && [ "$not_interactive" -eq 0 ]; then
-    python3 "$SCRIPT_DIR/medusa.py" -r "$2"
-elif [ "$not_interactive" -eq 1 ]; then
-    # Ensure --ios is not used with --not-interactive
-    for arg in "$@"; do
-        if [ "$arg" = "--ios" ]; then
-            echo "The --not-interactive flag is not applicable for iOS. Please remove --ios or --not-interactive."
-            exit 1
-        fi
-    done
-    # Proceed with medusa.py in not interactive mode
-    python3 "$SCRIPT_DIR/medusa.py" "$@"
-else
-    echo "Usage: $0 [--ios] [-r filename] [--not-interactive [other required arguments]]"
+# Unified launcher; prefer the isolated renovation environment.
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd) || exit 1
+PYTHON="$SCRIPT_DIR/.venv/bin/python"
+if [ ! -x "$PYTHON" ]; then
+    PYTHON=python3
 fi
+exec "$PYTHON" "$SCRIPT_DIR/medusa.py" "$@"

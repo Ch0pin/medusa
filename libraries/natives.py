@@ -50,12 +50,10 @@ class nativeHandler:
 
     def add_js_bridge_if_needed(self) -> Optional[str]:
         """
-        Return the JS bridge code if frida >= 17.0.0 and the files exist.
-        For frida >= 17.6.0, frida_java_bridge.js is NOT included.
+        Return the built Java runtime and legacy API shims for Frida 17+.
         """
         js_directory = Path(self.base_directory) / "js"
 
-        #bridge_path = js_directory / "frida_java_bridge.js"
         modules_path = js_directory / "frida_module_bridge.js"
         process_bridge = js_directory / "frida_process_bridge.js"
         memory_bridge = js_directory / "frida_memory_bridge.js"
@@ -66,10 +64,6 @@ class nativeHandler:
             return ""
 
         paths = []
-
-        # Include java bridge only for < 17.6.0
-        # if installed < Version("17.6.0"):
-        #     paths.append(bridge_path)
 
         paths.extend([
             modules_path,
@@ -191,33 +185,9 @@ class nativeHandler:
     ###-------------------meraw
 
     def load_java_bridge(self):
-        """
-        Load the pre-compiled java bridge from frida-tools.
-        The bridge JS is an IIFE: var bridge = function() { ... }()
-        It returns the Java object but never assigns it to a global.
-        We wrap it so the return value becomes the global `Java`.
-        """
-        bridge_path = os.path.join(
-            os.path.dirname(frida_tools.__file__), "bridges", "java.js"
-        )
-        if not os.path.isfile(bridge_path):
-            print(f"[!] Bridge not found at: {bridge_path}")
-            print("Try: pip install --upgrade frida-tools")
-
-        #print(f"[+] Loading bridge from: {bridge_path}")
-        content = open(bridge_path, encoding="utf-8").read()
-
-        # The bridge is: var bridge = function(){ ... }();
-        # We need to expose its return value as the global `Java`.
-        # Replace `var bridge=` with `var Java=` so it becomes a global.
-        if content.startswith("var bridge="):
-            content = "var Java=" + content[len("var bridge="):]
-        else:
-            # Fallback: just assign whatever bridge returns to Java global
-            content = "var Java=(" + content + ");"
-            print("[+] Bridge wrapped as global Java.")
-
-        return content
+        """Load the Java bridge built from the pinned official npm package."""
+        from libraries.core.bridges import load_runtime_bridge
+        return load_runtime_bridge('java')
 
     def memraw(self, line, autodump=False):
         try:
@@ -231,7 +201,7 @@ class nativeHandler:
             else:
                 print('Usage: memdump package_name base_address size')
                 return
-            
+
             prolog = self.add_js_bridge_if_needed()
             # prolog += 'Java.perform(function () {\n\n'
             if base_addr != '':
@@ -263,7 +233,6 @@ class nativeHandler:
                 cmd = 'dump'
             else:
                 cmd = input(prompt)
-            prev_cmd = 'e'
 
             while not cmd.lower().startswith('e'):
                 if cmd.startswith('r@'):
@@ -287,7 +256,6 @@ class nativeHandler:
                 #  self.scan_memory(lib,pattern,session,script)
 
                 elif cmd.startswith('dump'):
-                    k = 0
                     script.unload()
                     print("dumping....")
                     int_size = int(size)
@@ -358,7 +326,6 @@ class nativeHandler:
             script = session.create_script(codejs)
             script.load()
             cmd = input(self.prompt_)
-            prev_cmd = 'e'
 
             while not cmd.lower().startswith('e'):
                 if cmd.startswith('r@'):

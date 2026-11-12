@@ -1,2 +1,2 @@
 -r requirements.txt
-mcp[cli]>=1.28,<2
+mcp[cli]>=2,<3

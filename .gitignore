@@ -1,8 +1,15 @@
 .vscode/
+.venv/
+.renovation-baselines/
+.renovation-archive/
+.renovation-validation/
+*.egg-info/
+node_modules/
+libraries/js/generated/
 dump/
 recipes/
 modules/private_modules/
-*/__pycache__/
+__pycache__/
 
 vt.key
 config.yaml

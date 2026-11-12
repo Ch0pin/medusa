@@ -1,0 +1,4 @@
+{
+  "android": "    def reload_script(self, session) -> None:\n        self.script.unload()\n        with open(os.path.join(self.base_directory, agent_script)) as f:\n            self.script = session.create_script(f.read())\n            session.on('detached', self.on_detached)\n            self.script.on(\"message\", self.my_message_handler)  # register the message handler\n            self.script.load()\n",
+  "ios": "    def reload_script(self, session) -> None:\n        self.script.unload()\n        with open(os.path.join(self.base_directory, agent_script)) as f:\n            self.script = session.create_script(f.read())\n            session.on('detached', self.on_detached)\n            self.script.on(\"message\", self.my_message_handler)  # register the message handler\n            self.script.load()\n"
+}

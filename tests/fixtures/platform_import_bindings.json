@@ -1,0 +1,16 @@
+{
+  "android": {
+    "AndroidDevice": "libraries.lib_adb",
+    "Boolean": "libraries.cli.prompts",
+    "Numeric": "libraries.cli.prompts",
+    "Polar": "libraries.cli.prompts",
+    "TCPServer": "libraries.soc_server",
+    "logger": "libraries.soc_server",
+    "nativeHandler": "libraries.natives"
+  },
+  "ios": {
+    "Numeric": "libraries.cli.prompts",
+    "Polar": "libraries.cli.prompts",
+    "logger": "libraries.lib_adb"
+  }
+}

@@ -18,8 +18,8 @@ from libraries.intent_filter import IntentFilter
 from libraries.logging_config import setup_logging
 
 
-logging.getLogger().handlers = []  
-setup_logging() 
+logging.getLogger().handlers = []
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -68,7 +68,6 @@ class Guava:
 
     def __init__(self, db_instance):
         self.application_database = db_instance
-        filter_list = {}
 
     def sha256sum(self, filename):
         h = hashlib.sha256()
@@ -196,9 +195,9 @@ class Guava:
                                 tampering, self.detect_framework(parsed_apk))
             self.application_database.update_application(app_attributes)
         except Exception as e:
-            logger.error(f"Error filling application attributes: {e}")   
-            
-            
+            logger.error(f"Error filling application attributes: {e}")
+
+
     def fill_permissions(self, parsed_apk, sha256):
         try:
             app_declared_permissions = parsed_apk.get_declared_permissions_details()
@@ -231,7 +230,7 @@ class Guava:
         except Exception as e:
             logger.error(e)
             print(e)
-            
+
 
     def fill_providers(self, application, sha256):
 
@@ -385,10 +384,10 @@ class Guava:
             app_sha256 = self.sha256sum(apkfile)
 
             logger.info(f"[+] Analyzing apk with SHA256:{app_sha256}")
-            apk_r = apk.APK(apkfile)       
-            manifest = apk_r.get_android_manifest_axml().get_xml_obj()  
+            apk_r = apk.APK(apkfile)
+            manifest = apk_r.get_android_manifest_axml().get_xml_obj()
             application = manifest.findall("application")[0]
-    
+
             if print_info:
                 logger.info("[+] Analysis finished.")
                 logger.info("[+] Filling up the database....")
@@ -439,7 +438,7 @@ class Guava:
                             if resolved_value:
                                 cache[resource_id] = resolved_value
                             else:
-                                resolved_value = ref  
+                                resolved_value = ref
 
                         entry = entry.replace(ref, resolved_value)
 
@@ -460,8 +459,8 @@ class Guava:
         Safely retrieve an Android XML attribute whether it's namespaced (android:name)
         or plain (name).
         """
-        return element.get(NS_ANDROID + key) or element.get(key)    
-        
+        return element.get(NS_ANDROID + key) or element.get(key)
+
     def insert_note(self, sha256, note):
         note = (sha256, note)
         self.application_database.insert_note(note)
@@ -471,7 +470,7 @@ class Guava:
 
     def delete_note(self, index):
         self.application_database.delete_note(index)
-    
+
     def detect_framework(self, parsed_apk):
         assets = parsed_apk.get_files()
         for entry in assets:

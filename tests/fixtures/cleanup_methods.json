@@ -1,0 +1,36 @@
+[
+  {
+    "group": "native",
+    "module": "libraries.natives",
+    "class": "nativeHandler",
+    "method": "memraw",
+    "baseline_sha256": "bb61248229c866b0366361abbcfdd35c53c07b23791d174f9eb3867c29f6c70f",
+    "expected_sha256": "45db2006b42fef0df642cdebb73407330d1a9c721bb62ed8719090529aeafdf1",
+    "removed": [
+      "prev_cmd = 'e'",
+      "k = 0"
+    ]
+  },
+  {
+    "group": "native",
+    "module": "libraries.natives",
+    "class": "nativeHandler",
+    "method": "memops",
+    "baseline_sha256": "7ee796da662bfddf4c08f75e54fc2d68eb7dfdba2fa9648ef5e151b9d6176a3f",
+    "expected_sha256": "366696342757b815282be081a7d83e6d4de3f7b2d7fdab165b90455eb3afabc0",
+    "removed": [
+      "prev_cmd = 'e'"
+    ]
+  },
+  {
+    "group": "guava",
+    "module": "libraries.lib_guava",
+    "class": "Guava",
+    "method": "__init__",
+    "baseline_sha256": "6db10be6dee4fa1958a95e77652a1a2493122e238a8229922f6f1415015c4bef",
+    "expected_sha256": "93f6f9b347143ffa8e6005b1458f76bb664dfcc91b278286678767817ba50e8c",
+    "removed": [
+      "filter_list = {}"
+    ]
+  }
+]

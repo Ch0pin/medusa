@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=84"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "medusa-renovation"
+version = "0.1.0.dev0"
+description = "Medusa unified Android and iOS source-checkout tooling"
+requires-python = ">=3.12"
+dynamic = ["dependencies", "optional-dependencies"]
+
+[project.scripts]
+medusa-renovation = "libraries.cli.app:main"
+
+[tool.setuptools]
+py-modules = ["medusa", "medusa_android_mcp"]
+
+[tool.setuptools.packages.find]
+include = ["libraries*", "utils*"]
+namespaces = false
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.dynamic.optional-dependencies]
+dev = {file = ["requirements-dev.txt"]}
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+include = ["libraries/cli/**/*.py", "libraries/core/**/*.py"]
+cache-dir = ".renovation-validation/ruff-cache"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["libraries/core/contracts.py", "libraries/core/paths.py", "libraries/core/state.py", "libraries/core/compiler.py", "libraries/core/sessions.py", "libraries/core/agent_files.py"]
+follow_imports = "silent"
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
+cache_dir = ".renovation-validation/mypy-cache"

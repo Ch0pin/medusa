@@ -20,9 +20,9 @@ A modular automation framework and script repository for runtime testing and inv
 **System requirements:** 
 
 - Linux or macOS (limited functionality available on Windows)
-- Python 3
-- Rooted device or emulator 
-- adb
+- Python 3.12 or newer
+- Node.js and npm (for building the Java and ObjC bridges)
+- adb and a Frida-compatible Android or iOS device
 - FRIDA server (running on the mobile device)
 
 **Installing from github:** 
@@ -31,21 +31,24 @@ A modular automation framework and script repository for runtime testing and inv
 2.	CD into the medusa directory.
 3.	Install dependencies:
 
-```sh
-# using the system python3/pip
-pip3 install -r requirements.txt
+For the unified development version, use the `dev` branch. Replace `/path/to/medusa` below with the absolute path to your checkout.
 
-# or inside a virtual environment (recommended)
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+```sh
+python3 -m venv /path/to/medusa/.venv
+/path/to/medusa/.venv/bin/python -m pip install -r /path/to/medusa/requirements.txt
+npm --prefix /path/to/medusa ci
+npm --prefix /path/to/medusa run build:bridges
 ```
+
+The bridge build produces the Java and ObjC agents used with Frida 17. Rebuild them after changing their npm dependencies. The Python runtime and development lockfiles record the tested dependency sets.
 
 Or download the latest stable version from [here](https://github.com/Ch0pin/medusa/releases)
 
 **Using Docker:**
 
 A preconfigured Dockerfile is available in the medusa/ directory.
+
+The existing Docker recipe clones the default branch. Use the source-checkout instructions above to test the unified `dev` branch.
 
 1.	Build the image: `docker build -t medusa:latest ./`
 
@@ -86,16 +89,23 @@ If you're upgrading from an older version of Medusa and encounter database compa
 # Usage
 
 ## MEDUSA
-Run the appropriate entry script for each platform: 
+Use the unified launcher for Android and iOS:
 
 ```sh
-# Android
-python3 medusa.py        
-
-# iOS
-python3 medusa_ios.py
+/path/to/medusa/medusa
 ```
 After start, MEDUSA will enumerate available devices and let you pick one.
+
+Device OS detection selects the Android or iOS commands. Use `loaddevice` to switch platforms within the same process, retaining each platform's staged work. An explicit override is available through `--platform android` or `--platform ios`.
+
+### Development checks
+
+```sh
+/path/to/medusa/.venv/bin/python -m pip install -r /path/to/medusa/requirements-dev.lock.txt
+/path/to/medusa/.venv/bin/python -B -m unittest discover -s /path/to/medusa/tests
+```
+
+Ruff and mypy are configured in the project metadata with an incremental scope for the new CLI/core code. Tests cover original command definitions, startup output, platform switching, generated-agent retention, compilation output, and script lifecycle behavior. Device-specific runtime coverage remains separate from these host tests.
 
 Common interactive workflow
 

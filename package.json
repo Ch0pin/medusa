@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "scripts": {
+    "build:bridges": ".venv/bin/python utils/build_bridges.py"
+  },
+  "dependencies": {
+    "frida-il2cpp-bridge": "0.14.0",
+    "frida-java-bridge": "7.0.13",
+    "frida-objc-bridge": "8.0.6"
+  }
+}

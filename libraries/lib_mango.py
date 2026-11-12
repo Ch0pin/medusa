@@ -1649,7 +1649,7 @@ $adb remount
         if(self.manifest):
             sharedUserId = ManifestParser(self.manifest[0][0]).get_manifest_attribute('sharedUserId')
         
-        print(Back.BLACK + Fore.RED + Style.BRIGHT + """
+        print(Fore.RED + Style.BRIGHT + """
 [------------------------------------Package Details---------------------------------------]:
 |    Original Filename :{}
 |    Application Name  :{}

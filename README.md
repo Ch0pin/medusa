@@ -13,7 +13,7 @@
 
 # MEDUSA
 
-A modular automation framework and script repository for runtime testing and investigating Android and iOS apps, designed for penetration testers and malware analysts. It lets you plug in modules to bypass protections (like SSL pinning), inspect network/WebView activity, trace API calls, examine memory/crypto, and monitor malware behavior — all from a single coordinated script. It runs on FRIDA under the hood and ships with 90+ reusable modules so tests scale and repeat easily.
+A modular automation framework and script repository for runtime testing and investigating Android and iOS apps, designed for penetration testers and malware analysts. It lets you plug in modules to bypass protections (like SSL pinning), inspect network/WebView activity, trace API calls, examine memory/crypto, and monitor malware behavior — all from a single coordinated script. It runs on FRIDA under the hood and ships with 100+ reusable modules so tests scale and repeat easily.
 
 # Installation
 
@@ -35,7 +35,9 @@ For the unified development version, use the `dev` branch. Replace `/path/to/med
 
 ```sh
 python3 -m venv /path/to/medusa/.venv
-/path/to/medusa/.venv/bin/python -m pip install -r /path/to/medusa/requirements.txt
+/path/to/medusa/.venv/bin/python -m pip install -r /path/to/medusa/requirements.txt 
+# Or for mcp support
+/path/to/medusa/.venv/bin/python -m pip install -r /path/to/medusa/requirements-mcp.txt 
 npm --prefix /path/to/medusa ci
 npm --prefix /path/to/medusa run build:bridges
 ```
@@ -44,49 +46,9 @@ The bridge build produces the Java and ObjC agents used with Frida 17. Rebuild t
 
 Or download the latest stable version from [here](https://github.com/Ch0pin/medusa/releases)
 
-**Using Docker:**
-
-A preconfigured Dockerfile is available in the medusa/ directory.
-
-The existing Docker recipe clones the default branch. Use the source-checkout instructions above to test the unified `dev` branch.
-
-1.	Build the image: `docker build -t medusa:latest ./`
-
-2.	Run the container: `docker run --name medusa --net=host --rm -it medusa:latest`
-
-3.	Enable ADB over TCP/IP on your physical device or emulator: `adb tcpip 5555`
-
-4.	Connect to the device from inside the container: `root@docker# adb connect <device_ip>:5555`
-
-## Known installation issues
-
-### macOS 
-
-During installation on macOS, you might encounter the following issue:
-
->Readline features including tab completion have been disabled because
-no supported version of readline was found. To resolve this, install
-pyreadline3 on Windows or gnureadline on Linux/Mac.
-
-To resolve, install the gnureadline package for Python:
-
-```
-pip install gnureadline
-```
-
-For Python 3.12, use the following command to install gnureadline from a specific commit:
-
-```
-pip install git+https://github.com/ludwigschwardt/python-gnureadline.git@8474e5583d4473f96b42745393c3492e2cb49224
-```
-
-### Backward compatibility with previous MEDUSA versions
-
-If you're upgrading from an older version of Medusa and encounter database compatibility issues with Mango, please refer to [DATABASE_MIGRATIONS.md](https://github.com/Ch0pin/medusa/blob/master/assets/Documentation/DATABASE_MIGRATIONS.md) for migration instructions.
-
-**Important**: If you have an existing Mango database and receive errors after updating, check the migration guide to update your database schema.
-
 # Usage
+
+Medusa consists of two modules: `medusa` and `mango`. What follows is a description about their usage.
 
 ## MEDUSA
 Use the unified launcher for Android and iOS:
@@ -153,14 +115,9 @@ mango> import /path/to/apk
 
 This is optional and not required for the standard Medusa CLI workflow.
 
-If you want to use the Android MCP server (`medusa_android_mcp.py`), install the MCP requirements:
+To use the Android MCP server (`medusa_android_mcp.py`), install the MCP requirements and run:
 
 ```sh
-pip install -r requirements-mcp.txt
-```
-
-```sh
-# Run 
 MEDUSA_MCP_TRANSPORT=streamable-http python medusa_android_mcp.py
 ```
 
@@ -197,30 +154,6 @@ You can contribute to this project by:
 - Making this project more popular by sharing it or giving a star
 
 
-## Using Stheno with Medusa
-
-[Stheno](https://github.com/Ch0pin/stheno) is a subproject of Medusa, specifically designed for intent monitoring within this framework. Below is a quick guide on how to set up and use Stheno effectively.
-
-<p align="center">
-  <img src="https://github.com/Ch0pin/stheno/assets/4659186/fd49c39e-865b-4dc3-b2d1-59a0f4594028" alt="monitor" width="400"/>
-</p>
-
-1. **Include the Intent Module**:
-   Add the `intents/start_activity` module to your Medusa project:
-   ```sh
-   medusa> add intents/start_activity
-   ```
-
-2. **Run the Socket Server**:
-   Start the Medusa socket server to facilitate communication:
-   ```sh
-   medusa> startserver
-   ```
-
-3. **Launch Stheno**:
-   Open Stheno and navigate to the Intent Monitor menu, then click on **Start** to begin monitoring intents.
-
----
 # Screenshots
 
 - SSL Unpinning
@@ -249,32 +182,6 @@ You can contribute to this project by:
 
 ![Screenshot 2020-09-22 at 16 41 10](https://user-images.githubusercontent.com/4659186/151658659-b4f83296-60ec-4818-a303-5645284b0a67.png)
 
-- Personal information exfiltration monitoring
-
-> Hooks api calls which found to be common for this kind of malware, including:
-> - Contact exfiltration 
-> - Call log exfiltration
-> - Camera usage
-> - Microphone usage
-> - Location tracking
-> - File uploading
-> - Media recording
-> - Clipboard tracking
-> - Device recon
-> - Screenshot capture
-
-<img src="https://user-images.githubusercontent.com/4659186/87245281-1c4b4c00-c43c-11ea-9cad-195ceb42794a.png" width="450" height="460">
-
-- Translation 
-
-> Translates the application's UI by hooking 'setText' calls  
-
-<img src="https://user-images.githubusercontent.com/4659186/86785673-e59bbd00-c05a-11ea-8fb0-9c3f86043104.png" width="250" height="450">                             <img src="https://user-images.githubusercontent.com/4659186/86785688-e9c7da80-c05a-11ea-838f-e4c7568c7c2a.png" width="250" height="450">     
-
-
-<img src="https://user-images.githubusercontent.com/4659186/86785693-eb919e00-c05a-11ea-901e-8cc180d6274a.png" width="550" height="250">
-
----
 
 # CREDITS:
 

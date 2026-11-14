@@ -102,14 +102,7 @@ DESCRIPTION """ + """
     
     install [full path to apk]      Install the given apk to the device.
 
-    installagent                    Install the medusa agent to the device.
-
     installBurpCert                 Install a Burp certificate to the connected mobile device. 
-
-    jdwp [package name]             Create a jdb session. Use it in combination with the tab key to see available packages. 
-                                    The app has to have the debuggable flag set to true.
-    
-    jlog                            Wrapper for: adb logcat -s AndroidRuntime. Displays java crash logs.
 
     load [package name]             Load an application which allready exists in the current (working) database. 
 
@@ -117,10 +110,6 @@ DESCRIPTION """ + """
                                     Display adb's logcat info about an app. The app has to be running. Exit with ctrl^C. 
 
     man                             Display this message.       
-
-    notify [text] [body]            Send a notification to the device (it is used to trigger notification listeners). The
-                                    Medusa Agent must be installed and running on the device (see installagent).
-                                    (Example: notify 'Title' 'Lorem ipsum dolor sit amet,....')
 
     patch [full path to apk]        Change the debuggable flage of the AndroidManifest.xml to true for a given apk. The 
                                     command requires apksigner and zipalign to have been installed.
@@ -628,21 +617,6 @@ class parser(cmd2.Cmd):
         else:
             logger.info('Could not parse input, type "help installmultiple" for help')
 
-    def do_installagent(self, line):
-        """Usage: installagent
-        Install the medusa agent to the device. The agent can be used to extend the
-        framework's functionality."""
-
-        try:
-            if not os.path.exists(MEDUSA_AGENT):
-                if (Polar('[?] Medusa Agent has not been downloaded, do you want to do it now ?').ask()):
-                    self.download_file(MEDUSA_AGENT_URL, MEDUSA_AGENT)
-                else:
-                    return
-            subprocess.run(f'adb -s {self.device.id} install -g {MEDUSA_AGENT}', shell=True)
-        except Exception as e:
-            print(e)
-
     def do_installBurpCert(self, line):
         """Usage: installBurpCert
         Push a Burp certificate to the mobile device (/sdcard/burp.cer)."""
@@ -671,28 +645,6 @@ $adb remount
                 print()
         except Exception:
             print('')
-
-    def do_jdwp(self, line):
-        """Usage: jdwp [package name]
-        Debug an app using jdb. Use it in combination with the tab key to see available packages. 
-        Please not that the app has to have the debuggable flag set to true."""
-
-        try:
-            pid = os.popen(f"adb -s {self.device.id} shell pidof {line.split(' ')[0]}").read()
-            output = os.popen(f"adb -s {self.device.id} forward tcp:6667 jdwp:{pid}").read()
-            print(output)
-            subprocess.run('jdb -attach localhost:6667', shell=True)
-        except Exception as e:
-            print(e)
-            print('[!] Usage: jdwp package_name')
-
-    def do_jlog(self, line):
-        """Usage: jlog
-        Wrapper for: adb logcat -s AndroidRuntime
-        Displays java crash logs."""
-
-        ad = AndroidDevice(self.device.id)
-        ad.print_java_crash_log()
 
     def do_kill(self, package):
         """Usage: kill [package name]
@@ -752,24 +704,6 @@ $adb remount
 
         ad = AndroidDevice(self.device.id)
         ad.print_native_crash_log()
-
-    def do_notify(self, line):
-        """Usage: notify 'notification title' 'Notification body,....'
-        Sends a notification to the device (it is used to trigger notification listeners). 
-        Please note that the Medusa Agent must be installed and running on the device
-        (see installagent)."""
-
-        try:
-            self.init_packages()
-            if 'com.medusa.agent' in self.packages:
-                output = os.popen(
-                    f"adb -s {self.device.id} shell am broadcast  -a com.medusa.NOTIFY --es subject {line.split(' ')[0]} --es body {line.split(' ')[1]}").read()
-                print(output)
-            else:
-                print(
-                    "[!] Medusa Agent must be installed and running on the device, type 'installagent' to install it.")
-        except Exception as e:
-            print(e)
 
     def do_patch(self, line):
         """Usage: patch /full/path/to/foo.apk
@@ -1435,32 +1369,6 @@ $adb remount
             except Exception as e:
                 print(e)
 
-    def do_trace(self, line):
-        """\nInitiate a frida-trace session for the mango-loaded application 
-        Usage: trace [-F] -j, -n, -a [full class name]
-        Examples:
-        trace -j com.myapp.name*\tSpawn the app (currently) loaded in mango and trace the methods of the com.myapp.name* class
-        trace -n foo\t\t\tTrace native functions starting with 'foo'
-        trace -a library.so\t\tTrace all the functions of library.so
-
-        Use -F to attach to the frontmost application.
-        Example: trace -F -a library.so\t\tTrace all the functions of library.so\n
-        """
-        if self.current_app_sha256 is None:
-            logger.error(self.NO_APP_LOADED_MSG)
-        else:
-            try:
-                opsys = platform.system()
-                script = self.create_script(line)
-                if script is not None:
-                    if 'Darwin' in opsys:
-                        subprocess.run(f"""osascript -e 'tell application "Terminal" to do script "{script}" ' """,
-                                       shell=True)
-                    elif 'Linux' in opsys:
-                        subprocess.run(f"""x-terminal-emulator -e {script}""")
-            except Exception as e:
-                logger.error(e)
-
     def do_type(self, line):
         """Usage: type
         Starts an interactive prompt where you can send keys from the host 
@@ -1511,9 +1419,6 @@ $adb remount
         for entry in res:
             package_names.append(entry[0])
         return self._completion_matches(text, package_names)
-
-    def complete_jdwp(self, text, line, begidx, endidx):
-        return self.get_packages_starting_with(text)
 
     def complete_kill(self, text, line, begidx, endidx):
         return self.get_packages_starting_with(text)

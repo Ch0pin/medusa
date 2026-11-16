@@ -1,5 +1,6 @@
 """Host-only regression checks: fake devices, no attach/spawn or device commands."""
 import ast
+import sys
 import asyncio
 import contextlib
 import importlib
@@ -18,6 +19,8 @@ from libraries.cli.device_picker import DeviceSelectionError, detect_platform, s
 from libraries.core.bridges import load_runtime_bridge
 from libraries.cli.app import argument_parser, configure_readline, create_application, run_application_loop, validate_options
 
+
+AST_DUMP_OPTIONS = {"show_empty": True} if sys.version_info >= (3, 13) else {}
 
 def fake_device(os_id='android', device_id='test-device', transport='usb'):
     return SimpleNamespace(id=device_id, name='Test device', type=transport,
@@ -207,12 +210,12 @@ class ParserTests(unittest.TestCase):
             for name, expected in methods.items():
                 with self.subTest(platform=platform, method=name):
                     node = method_ast(getattr(app, name))
-                    self.assertEqual(ast.dump(node.args, include_attributes=False), expected['arguments'])
+                    self.assertEqual(ast.dump(node.args, include_attributes=False, **AST_DUMP_OPTIONS), expected['arguments'])
                     # Device selection is unified; iOS compile uses the new bridge build.
                     # Dedicated tests exercise these two intentional changes.
                     if name in {'do_loaddevice', 'do_compile', 'do_exit'}:
                         continue
-                    actual = hashlib.sha256(ast.dump(node, include_attributes=False).encode()).hexdigest()
+                    actual = hashlib.sha256(ast.dump(node, include_attributes=False, **AST_DUMP_OPTIONS).encode()).hexdigest()
                     self.assertEqual(actual, expected['ast_sha256'])
 
     def app(self, platform):
@@ -440,7 +443,7 @@ class CompatibilityTests(unittest.TestCase):
         for record in json.loads(fixture.read_text()):
             cls = getattr(importlib.import_module(record['module']), record['class'])
             node = method_ast(getattr(cls, record['method']))
-            digest = hashlib.sha256(ast.dump(node, include_attributes=False).encode()).hexdigest()
+            digest = hashlib.sha256(ast.dump(node, include_attributes=False, **AST_DUMP_OPTIONS).encode()).hexdigest()
             self.assertEqual(digest, record['expected_sha256'], record['method'])
 
     def test_all_original_class_methods_have_only_reviewed_changes(self):
@@ -460,6 +463,7 @@ class CompatibilityTests(unittest.TestCase):
             ('ios', 'do_compile'),
             ('android', 'do_compile'),
             ('android', 'reload_script'), ('ios', 'reload_script'),
+            ('android', 'run_frida'), ('ios', 'run_frida'),
             ('mcp', '_reload_active_script'), ('mcp', 'attach_app'),
             ('android', 'do_exit'), ('ios', 'do_exit'),
             ('mcp', '__init__'), ('mcp', '_capture_console_output'), ('mcp', '_uninstall_stdout_proxy'),
@@ -475,7 +479,7 @@ class CompatibilityTests(unittest.TestCase):
                         method = descriptor.fget if accessor == 'get' else descriptor.fset
                     else:
                         method = getattr(classes[platform], name)
-                    digest = hashlib.sha256(ast.dump(method_ast(method), include_attributes=False).encode()).hexdigest()
+                    digest = hashlib.sha256(ast.dump(method_ast(method), include_attributes=False, **AST_DUMP_OPTIONS).encode()).hexdigest()
                     if (platform, identifier) in cleanup:
                         record = cleanup[platform, identifier]
                         self.assertEqual(expected, record['baseline_sha256'])

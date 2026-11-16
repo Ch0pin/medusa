@@ -1,8 +1,9 @@
 """Instance-owned state with legacy attribute adapters at the CLI boundary."""
 from dataclasses import dataclass, field
+from threading import Event, Lock, RLock
 from typing import Any, Generic, TypeVar, overload
 
-from libraries.core.contracts import DeviceMetadata, ScriptHandle
+from libraries.core.contracts import DeviceMetadata, ScriptHandle, SessionHandle
 from libraries.core.modules import ModuleManager
 
 
@@ -22,6 +23,18 @@ class DeviceState:
 @dataclass
 class SessionState:
     script: ScriptHandle | None = None
+    session: SessionHandle | None = None
+    session_generation: int = 0
+    script_generation: int = 0
+    script_loaded: bool | None = False
+    lifecycle_status: str = 'idle'
+    managed_cleanup: bool = False
+    cleanup_request: str | None = None
+    cleanup_result: dict[str, Any] | None = None
+    cleanup_event: Event = field(default_factory=Event, repr=False)
+    operation_lock: Any = field(default_factory=Lock, repr=False)
+    event_lock: Any = field(default_factory=RLock, repr=False)
+    compile_error: str | None = None
     pid: int | str | None = None
     detached: bool = True
     current_package: str | None = None

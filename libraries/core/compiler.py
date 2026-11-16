@@ -23,6 +23,8 @@ def assemble_agent(
     extra_headers: Sequence[str] = (),
 ) -> str:
     hooks = []
+    # Install before delayed module execution and independently of rpc.exports.
+    hooks.append((js_directory / 'managed_lifecycle.js').read_text())
     if runtime_bridge is not None:
         hooks.append(runtime_bridge)
     for filename in (*extra_headers, *layout.headers):

@@ -1,6 +1,7 @@
 """Differential host checks for service extraction; no device access."""
 import contextlib
 import ast
+import sys
 import copy
 import hashlib
 import importlib
@@ -16,6 +17,8 @@ from unittest.mock import patch
 from libraries.core.modules import Module
 from libraries.core.paths import ROOT
 
+
+AST_DUMP_OPTIONS = {"show_empty": True} if sys.version_info >= (3, 13) else {}
 
 class ModernizationTests(unittest.TestCase):
     def test_retired_entry_files_and_aliases_are_not_packaged(self):
@@ -53,7 +56,7 @@ class ModernizationTests(unittest.TestCase):
             restore = RestoreInlineCallbacks()
             restored = restore.visit(method)
             self.assertEqual(restore.count, 1)
-            digest = hashlib.sha256(ast.dump(restored, include_attributes=False).encode()).hexdigest()
+            digest = hashlib.sha256(ast.dump(restored, include_attributes=False, **AST_DUMP_OPTIONS).encode()).hexdigest()
             self.assertEqual(digest, baseline[name])
 
     def test_explicit_imports_preserve_legacy_bindings(self):
@@ -82,43 +85,18 @@ class ModernizationTests(unittest.TestCase):
             compiled = manager.compile()
             self.assertLess(compiled.index('// second'), compiled.index('// first'))
 
-    def test_reload_matches_reference_order_and_failure_state(self):
-        reference = json.loads((Path(__file__).parent / 'fixtures' / 'reload_before_services.json').read_text())
+    def test_platform_reload_reports_failure_without_losing_current_script(self):
+        from libraries.core.sessions import ScriptLifecycleError
         for platform in ('android', 'ios'):
             backend = importlib.import_module('libraries.platforms.' + platform)
-            for failure in (None, 'no-script', 'unload', 'read', 'create', 'detached', 'message', 'load'):
-                outcomes = []
-                with tempfile.TemporaryDirectory() as directory:
-                    path = Path(directory) / 'agent.js'
-                    if failure != 'read':
-                        path.write_text('// host-only fixture')
-                    for baseline in (True, False):
-                        events = []
-                        def event(name, *details):
-                            events.append((name, *details))
-                            if name == failure:
-                                raise RuntimeError(name)
-                        old = SimpleNamespace(unload=lambda: event('unload'))
-                        script = SimpleNamespace(on=lambda name, cb: event(name), load=lambda: event('load'))
-                        def create(source):
-                            event('create', source)
-                            return script
-                        session = SimpleNamespace(create_script=create, on=lambda name, cb: event(name))
-                        parser = backend.Parser()
-                        parser.script = None if failure == 'no-script' else old
-                        namespace = dict(vars(backend), agent_script=str(path))
-                        exec(compile('if True:\n' + reference[platform], '<frozen-reload>', 'exec'), namespace)
-                        exception = None
-                        with patch.object(backend, 'agent_script', str(path)):
-                            try:
-                                if baseline:
-                                    namespace['reload_script'](parser, session)
-                                else:
-                                    parser.reload_script(session)
-                            except Exception as exc:
-                                exception = (type(exc), str(exc))
-                        outcomes.append((events, exception, parser.script is script))
-                    self.assertEqual(outcomes[0], outcomes[1], (platform, failure))
+            parser = backend.Parser()
+            script = object()
+            parser.script = script
+            with patch.object(backend, 'reload_session_script', side_effect=ScriptLifecycleError('cleanup', 'observer failed')), \
+                    contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertFalse(parser.reload_script(object()))
+            self.assertIs(parser.script, script)
+            self.assertIn('observer failed', output.getvalue())
 
     def test_mcp_script_callback_order_and_error_propagation(self):
         from libraries.core.sessions import load_created_script
@@ -165,7 +143,7 @@ class ModernizationTests(unittest.TestCase):
             self.assertIsNone(second.agent_script_path)
             self.assertIsNot(first.modManager, second.modManager)
 
-    def test_compilation_matches_frozen_implementation_byte_for_byte(self):
+    def test_compilation_preserves_legacy_body_and_adds_cleanup_prelude(self):
         reference = json.loads((Path(__file__).parent / 'fixtures' / 'compilation_before_services.json').read_text())
         scenarios = [([], '', False, False),
                      (['one', 'two'], '-t 10', False, False),
@@ -196,7 +174,9 @@ class ModernizationTests(unittest.TestCase):
                                 new.do_compile(options, reset, **kwargs)
                         self.assertTrue(expected.is_file(), old_output.getvalue())
                         self.assertTrue(actual.is_file(), new_output.getvalue())
-                        self.assertEqual(actual.read_bytes(), expected.read_bytes())
+                        prelude = (ROOT / 'libraries' / 'js' / 'managed_lifecycle.js').read_bytes() + b'\n'
+                        self.assertTrue(actual.read_bytes().startswith(prelude))
+                        self.assertEqual(actual.read_bytes()[len(prelude):], expected.read_bytes())
                         self.assertEqual(new_output.getvalue(), old_output.getvalue())
                         self.assertEqual(new.modified, old.modified)
                         self.assertEqual(new.agent_script_path, str(actual))

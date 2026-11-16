@@ -22,7 +22,10 @@ from libraries.core.bridges import load_runtime_bridge
 from libraries.cli.app import main as main
 from libraries.cli.banner import render_logo
 from libraries.core.compiler import AgentLayout, assemble_agent
-from libraries.core.sessions import reload_script as reload_session_script
+from libraries.core.sessions import (
+    ScriptLifecycleError, reload_script as reload_session_script,
+    start_script as start_session_script, stop_script as stop_session_script,
+)
 from libraries.cli.base import SharedParser
 from libraries.core.modules import ModuleManager
 from libraries.lib_adb import logger
@@ -110,9 +113,11 @@ class Parser(SharedParser):
             else:
                 print("\nScript is compiled\n")
             self.modified = False
+            self.state.session.compile_error = None
         except Exception as e:
+            self.state.session.compile_error = str(e)
+            self.modified = True
             print(e)
-        self.modified = False
 
     def do_exit(self, line) -> None:
         """
@@ -624,11 +629,8 @@ Data container: {self.app_info.parameters['containers']['data']}\n""" + RESET)
         try:
             creation_time = self.modification_time(os.path.join(self.base_directory, agent_script))
             with open(os.path.join(self.base_directory, agent_script)) as f:
-                self.script = session.create_script(f.read())
-
-            session.on('detached', self.on_detached)
-            self.script.on("message", self.my_message_handler)  # register the message handler
-            self.script.load()
+                start_session_script(session, self.state.session, f.read(),
+                                     self.my_message_handler, self.on_detached)
             if force:
                 device.resume(self.pid)
             s = ""
@@ -641,16 +643,16 @@ Data container: {self.app_info.parameters['containers']['data']}\n""" + RESET)
                     modified_time = self.modification_time(os.path.join(self.base_directory, agent_script))
                     if modified_time != creation_time:
                         print(RED + "Script changed, reloading ...." + RESET)
-                        creation_time = modified_time
-                        self.reload_script(session)
-                        # self.script.unload()
-                        # with open(os.path.join(self.base_directory, agent_script)) as f:
-                        #     self.script = session.create_script(f.read())
-                        # session.on('detached',self.on_detached)
-                        # self.script.on("message",self.my_message_handler)  # register the message handler
-                        # self.script.load()
+                        if self.reload_script(session):
+                            creation_time = modified_time
                     else:
                         print(GREEN + "Script unchanged, nothing to reload ...." + RESET)
+                elif s == 'e':
+                    try:
+                        stop_session_script(self.state.session)
+                    except ScriptLifecycleError as error:
+                        print(error)
+                        s = ''  # Keep the session available for a cleanup retry.
                 elif s == '?':
                     print(RESET + """\nAvailable commands: 
     'c'     clear the screen 
@@ -715,28 +717,33 @@ Data container: {self.app_info.parameters['containers']['data']}\n""" + RESET)
                         self.do_jtrace(s.split(' ')[1])
                         self.do_compile('')
                         self.reload_script(session)
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        print(e)
 
                 elif s.split(' ')[0] == 'dc':
                     try:
                         self.do_compile('')
                         self.reload_script(session)
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        print(e)
 
-            if self.script:
-                self.script.unload()
+            if self.script and not self.detached:
+                stop_session_script(self.state.session)
 
         except Exception as e:
             print(e)
         print(RESET)
 
 
-    def reload_script(self, session) -> None:
-        reload_session_script(session, self.state.session,
-                              Path(os.path.join(self.base_directory, agent_script)),
-                              self.my_message_handler, self.on_detached)
+    def reload_script(self, session) -> bool:
+        try:
+            reload_session_script(session, self.state.session,
+                                  Path(os.path.join(self.base_directory, agent_script)),
+                                  self.my_message_handler, self.on_detached)
+            return True
+        except ScriptLifecycleError as error:
+            print(error)
+            return False
 
 
 

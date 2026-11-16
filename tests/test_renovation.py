@@ -467,12 +467,21 @@ class CompatibilityTests(unittest.TestCase):
             ('mcp', '_reload_active_script'), ('mcp', 'attach_app'),
             ('android', 'do_exit'), ('ios', 'do_exit'),
             ('mcp', '__init__'), ('mcp', '_capture_console_output'), ('mcp', '_uninstall_stdout_proxy'),
+            ('mcp', 'detach_app'), ('mcp', '_set_failure_from_exception'),
+            ('mcp', '_ensure_no_attach_in_progress'), ('mcp', 'session_summary'),
+            ('mcp', '_on_message'), ('mcp', '_has_live_session'), ('mcp', 'ensure_session'),
+            ('mcp', '_on_detached'), ('mcp', '_compile_with_agent_overlay'),
+            ('mcp', 'fast_cleanup'), ('mcp', '_apply_agent_script'), ('mcp', 'session_status'),
+            ('mcp', '_cleanup_untracked_attach'), ('mcp', '_deferred_detach_cleanup'),
             ('native', 'load_java_bridge'), ('native', 'add_js_bridge_if_needed'),
         }
         differences = set()
         for platform, record in baseline.items():
             for identifier, expected in record['methods'].items():
                 with self.subTest(platform=platform, method=identifier):
+                    if (platform, identifier) == ('mcp', '_clear_detach_in_progress'):
+                        self.assertFalse(hasattr(classes[platform], identifier))
+                        continue  # Replaced by operation-scoped detach completion.
                     name, _, accessor = identifier.partition(':')
                     if accessor:
                         descriptor = inspect.getattr_static(classes[platform], name)

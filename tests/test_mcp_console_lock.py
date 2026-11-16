@@ -47,10 +47,13 @@ class ConsoleLockTests(unittest.TestCase):
                     callback_finished.set()
                 def unload(self):
                     pass
+            from libraries.core.sessions import start_script
             replacement = Script()
-            bridge.script = Script()
-            bridge.session = SimpleNamespace(create_script=lambda source: replacement, on=lambda *args: None)
+            session = SimpleNamespace(create_script=lambda source: replacement, on=lambda *args: None)
+            start_script(session, bridge._lifecycle, '', bridge._on_message, bridge._on_detached)
+            bridge._sync_lifecycle()
             bridge.current_target = {'attached': True}
+            callback_finished.clear()
             try:
                 with bridge.lock:
                     result = bridge._reload_active_script(timeout=0.5)

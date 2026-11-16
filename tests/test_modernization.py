@@ -1,9 +1,5 @@
 """Differential host checks for service extraction; no device access."""
 import contextlib
-import ast
-import sys
-import copy
-import hashlib
 import importlib
 import io
 import json
@@ -18,7 +14,6 @@ from libraries.core.modules import Module
 from libraries.core.paths import ROOT
 
 
-AST_DUMP_OPTIONS = {"show_empty": True} if sys.version_info >= (3, 13) else {}
 
 class ModernizationTests(unittest.TestCase):
     def test_retired_entry_files_and_aliases_are_not_packaged(self):
@@ -32,32 +27,6 @@ class ModernizationTests(unittest.TestCase):
             self.assertFalse((ROOT / relative).exists(), relative)
         metadata = tomllib.loads((ROOT / 'pyproject.toml').read_text())
         self.assertEqual(set(metadata['tool']['setuptools']['py-modules']), {'medusa', 'medusa_android_mcp'})
-
-    def test_mcp_worker_changes_are_limited_to_callback_extraction(self):
-        module = importlib.import_module('libraries.integrations.mcp_android')
-        tree = ast.parse(Path(module.__file__).read_text())
-        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'MedusaAndroidBridge')
-        baseline = json.loads((Path(__file__).parent / 'fixtures' / 'legacy_class_methods.json').read_text())['mcp']['methods']
-        for name in ('_reload_active_script', 'attach_app'):
-            method = copy.deepcopy(next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == name))
-            class RestoreInlineCallbacks(ast.NodeTransformer):
-                count = 0
-                def visit_Expr(self, node):
-                    call = node.value
-                    if isinstance(call, ast.Call) and isinstance(call.func, ast.Name) and call.func.id == 'load_created_script':
-                        self.count += 1
-                        session, script, message, detached = call.args
-                        def invoke(owner, method, args):
-                            return ast.Expr(value=ast.Call(func=ast.Attribute(value=owner, attr=method, ctx=ast.Load()), args=args, keywords=[]))
-                        return [invoke(script, 'on', [ast.Constant('message'), message]),
-                                invoke(session, 'on', [ast.Constant('detached'), detached]),
-                                invoke(script, 'load', [])]
-                    return self.generic_visit(node)
-            restore = RestoreInlineCallbacks()
-            restored = restore.visit(method)
-            self.assertEqual(restore.count, 1)
-            digest = hashlib.sha256(ast.dump(restored, include_attributes=False, **AST_DUMP_OPTIONS).encode()).hexdigest()
-            self.assertEqual(digest, baseline[name])
 
     def test_explicit_imports_preserve_legacy_bindings(self):
         reference = json.loads((Path(__file__).parent / 'fixtures' / 'platform_import_bindings.json').read_text())

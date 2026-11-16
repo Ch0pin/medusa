@@ -27,7 +27,7 @@ class Script:
         self.posts = []
 
     def on(self, signal, callback):
-        self.callbacks[signal] = callback
+        self.callbacks.setdefault(signal, []).append(callback)
 
     def load(self):
         self.owner.events.append(('load', self))
@@ -50,7 +50,8 @@ class Script:
         self.emit({'type': 'send', 'payload': dict(result, type=CONTROL_MESSAGE, request=request['request'])})
 
     def emit(self, message):
-        self.callbacks['message'](message, None)
+        for callback in list(self.callbacks.get('message', [])):
+            callback(message, None)
 
 
 class Session:

@@ -25,6 +25,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 import uuid
 from pathlib import Path
 from typing import Any
@@ -37,7 +38,10 @@ except ImportError as exc:
     ) from exc
 
 import frida
-from libraries.core.sessions import load_created_script
+from libraries.core.sessions import (
+    CONTROL_MESSAGE, ScriptLifecycleError, start_script, reload_script, stop_script,
+)
+from libraries.core.state import SessionState
 
 from libraries.platforms import android as medusa_app
 
@@ -105,6 +109,13 @@ class MedusaAndroidBridge:
 
         self.session = None
         self.script = None
+        self._lifecycle = SessionState()
+        self.reload_in_progress: dict[str, Any] | None = None
+        self.last_reload: dict[str, Any] | None = None
+        self.cleanup_blocked = False
+        self.last_cleanup: dict[str, Any] | None = None
+        self._cleanup_watched_script = None
+        self._shutting_down = False
         self.events: list[dict[str, Any]] = []
         self.last_detach_reason: str | None = None
         self.current_target: dict[str, Any] = {}
@@ -282,6 +293,8 @@ class MedusaAndroidBridge:
         return failure
 
     def _set_failure_from_exception(self, tool_name: str, exc: Exception) -> dict[str, Any] | None:
+        if isinstance(exc, ScriptLifecycleError):
+            return self._lifecycle_failure(exc)
         text = str(exc)
         lowered = text.casefold()
         if "force_restart=true" in lowered or "invalid package scope" in lowered:
@@ -339,6 +352,9 @@ class MedusaAndroidBridge:
                 self.original_stdout = None
 
     def _on_message(self, message: dict[str, Any], payload: Any) -> None:
+        message = dict(message, session_generation=self._lifecycle.session_generation,
+                       script_generation=self._lifecycle.script_generation)
+        self.parser.script = self._lifecycle.script
         self._record_event(message, payload)
         try:
             self.parser.my_message_handler(message, payload)
@@ -352,62 +368,145 @@ class MedusaAndroidBridge:
             )
 
     def _on_detached(self, reason: Any) -> None:
-        # This callback fires on Frida's thread.  Acquiring self.lock here
-        # can deadlock when the main thread holds the lock while waiting on
-        # a blocking Frida call (e.g. script.load / session.create_script).
-        # Use trylock: if we can't get the lock, update the minimal atomic
-        # state and schedule the full cleanup on a background thread.
-        acquired = self.lock.acquire(blocking=False)
-        try:
-            self.last_detach_reason = str(reason)
-            if self.current_target:
-                self.current_target["attached"] = False
-                self.current_target["detach_reason"] = self.last_detach_reason
-            self.session = None
-            self.script = None
-            self.parser.script = None
-            if acquired:
-                output_path = self.output_path
-                self._stop_recording()
-                self._uninstall_stdout_proxy()
-                try:
-                    self.parser.on_detached(reason)
-                finally:
-                    self._record_event(
-                        {
-                            "type": "detached",
-                            "description": self.last_detach_reason,
-                            "output_path": output_path,
-                        }
-                    )
-            else:
-                # Couldn't get the lock — defer cleanup to avoid deadlock.
-                self._record_event(
-                    {
-                        "type": "detached",
-                        "description": self.last_detach_reason,
-                    }
-                )
-                threading.Thread(
-                    target=self._deferred_detach_cleanup,
-                    args=(reason,),
-                    daemon=True,
-                ).start()
-        finally:
-            if acquired:
+        # Called through the shared generation guard on Frida's thread. Never
+        # wait for self.lock: a tool may own it while joining the Frida worker.
+        generation = self._lifecycle.session_generation
+        self.last_detach_reason = str(reason)
+        self.cleanup_blocked = self._lifecycle.script is not None
+        if self.current_target:
+            self.current_target["attached"] = False
+            self.current_target["detach_reason"] = self.last_detach_reason
+        self._record_event({
+            "type": "detached", "description": self.last_detach_reason,
+            "session_generation": generation,
+            "script_generation": self._lifecycle.script_generation,
+        })
+        if self.lock.acquire(blocking=False):
+            try:
+                self._deferred_detach_cleanup(reason, generation)
+            finally:
                 self.lock.release()
+        else:
+            threading.Thread(target=self._deferred_detach_cleanup,
+                             args=(reason, generation), daemon=True).start()
 
-    def _deferred_detach_cleanup(self, reason: Any) -> None:
-        """Run the heavy detach cleanup once the lock becomes available."""
+    def _deferred_detach_cleanup(self, reason: Any, generation: int) -> None:
         with self.lock:
+            if (self._lifecycle.session_generation != generation
+                    or not self._lifecycle.detached):
+                return
             self._stop_recording()
             self._uninstall_stdout_proxy()
-            try:
-                self.parser.on_detached(reason)
-            except Exception:
-                pass
+            self.parser.on_detached(reason)
+
+    def _runtime_status(self) -> dict[str, Any]:
+        state = self._lifecycle
+        return {
+            "session_generation": state.session_generation,
+            "script_generation": state.script_generation,
+            "frida_transport_alive": bool(state.session is not None and not state.detached),
+            "script_loaded": state.script_loaded,
+            "lifecycle_status": state.lifecycle_status,
+            "cleanup_blocked": self.cleanup_blocked,
+            "cleanup_result": dict(state.cleanup_result) if state.cleanup_result else None,
+            "last_cleanup": dict(self.last_cleanup) if self.last_cleanup else None,
+        }
+
+    def _watch_cleanup(self) -> None:
+        # Keep the old generation's cleanup report after the shared loader resets
+        # the new script's state. This listener is diagnostic; the shared handler
+        # independently validates request IDs before allowing an unload.
+        script = self._lifecycle.script
+        if script is None or script is self._cleanup_watched_script:
+            return
+        generation = (self._lifecycle.session_generation, self._lifecycle.script_generation)
+        def observe(message, data):
+            payload = message.get("payload")
+            if message.get("type") != "send" or not isinstance(payload, dict) or payload.get("type") != CONTROL_MESSAGE:
+                return
+            previous = self.last_cleanup or {}
+            if generation < (previous.get("session_generation", 0), previous.get("script_generation", 0)):
+                return
+            self.last_cleanup = dict(payload, session_generation=generation[0], script_generation=generation[1])
+            self._record_event(dict(self.last_cleanup, type="script-cleanup"))
+        try:
+            script.on("message", observe)
+            self._cleanup_watched_script = script
+        except Exception as exc:
+            self._record_event({"type": "cleanup-observer-error", "description": str(exc)})
+
+    def _sync_lifecycle(self) -> None:
+        self.session = self._lifecycle.session
+        self._sync_runtime_script(self._lifecycle.script)
+        if self.current_target:
+            self.current_target["attached"] = bool(
+                self._has_live_session() and self._lifecycle.script_loaded is True
+                and not self.cleanup_blocked
+            )
+
+    def _lifecycle_failure(self, exc: Exception, stage: str | None = None) -> dict[str, Any]:
+        failure_stage = getattr(exc, "stage", stage or "unknown")
+        cause = exc.__cause__ or exc
+        failure = self._set_failure(
+            "script_compile_failed" if failure_stage == "compile" else "script_lifecycle_failed",
+            str(exc), "Inspect the failed stage; retry cleanup before reattaching. App restart requires explicit approval.",
+        )
+        failure.update(stage=failure_stage, exception_type=type(cause).__name__,
+                       exception_message=str(cause),
+                       traceback="".join(traceback.format_exception(exc)),
+                       **self._runtime_status())
+        return failure
+
+    def _release_exited_target(self) -> None:
+        # A disconnected script cannot unregister Java listeners. Do not infer
+        # process death from a detach reason or a package-name lookup.
+        if not self.cleanup_blocked:
+            return
+        state = self._lifecycle
+        target = self.current_target
+        pid = target.get("pid")
+        try:
+            old_pid = int(pid)
+        except (TypeError, ValueError):
+            old_pid = None
+        if state.detached and old_pid and self._target_pid_alive(target) is False:
+            state.script = None
+            state.session = None
+            state.script_loaded = False
+            state.lifecycle_status = "previous_process_exited"
+            self.cleanup_blocked = False
+            self._sync_lifecycle()
+            self._record_event({"type": "previous-process-exited", "pid": old_pid})
+            return
+        raise ScriptLifecycleError(
+            "cleanup", "previous script cleanup is unconfirmed; use detach_app to retry cleanup. "
+            "Same-process reattachment is blocked while cleanup is uncertain.",
+        )
+
+    def _target_pid_alive(self, target: dict[str, Any]) -> bool | None:
+        """Confirm PID absence independently of the package's process name."""
+        try:
+            pid = int(target["pid"])
+            if pid <= 0 or not target.get("device_id"):
+                return None
+            result = subprocess.run(
+                ["adb", "-s", str(target["device_id"]), "shell", "ps", "-A", "-o", "PID"],
+                capture_output=True, text=True, check=False, timeout=self.status_timeout_seconds,
+            )
+            rows = result.stdout.split()
+            if result.returncode != 0 or result.stderr.strip() or len(rows) < 2 or rows[0] != "PID":
+                return None
+            if not all(row.isdecimal() for row in rows[1:]):
+                return None
+            return pid in {int(row) for row in rows[1:]}
+        except (KeyError, TypeError, ValueError, OSError, subprocess.TimeoutExpired):
+            return None
 
     def _ensure_no_attach_in_progress(self, action: str) -> None:
+        if self._shutting_down:
+            raise RuntimeError("Medusa is shutting down")
+        if self.reload_in_progress:
+            raise RuntimeError(f"Cannot {action}; script reload/cleanup is still in progress.")
         if not self.attach_in_progress:
             if not self.detach_in_progress:
                 return
@@ -424,55 +523,49 @@ class MedusaAndroidBridge:
 
         raise RuntimeError(f"Cannot {action}; attach to {target} is still in progress.")
 
-    def _clear_detach_in_progress(self, operation_id: str, detached: bool, timed_out: bool) -> None:
-        with self.lock:
-            if self.detach_in_progress and self.detach_in_progress.get("id") == operation_id:
-                self.detach_in_progress = None
-            self._record_event(
-                {
-                    "type": "detach-completed",
-                    "description": f"detached={detached}, timed_out={timed_out}",
-                }
-            )
-
-    def _cleanup_untracked_attach(
-        self,
-        attach_result: dict[str, Any],
-        operation_id: str,
-        package_name: str,
-    ) -> None:
-        script = attach_result.get("script")
-        session = attach_result.get("session")
-        cleaned = False
-
-        if script is not None:
-            try:
-                script.unload()
-                cleaned = True
-            except Exception:
-                pass
-
+    def _dispose_runtime(self) -> None:
+        # A cleanup/unload failure must stop here; detaching anyway would lose
+        # the only remaining way to unregister in-process callbacks.
+        if self._lifecycle.detached:
+            if self._lifecycle.script is not None:
+                raise ScriptLifecycleError("cleanup", "Frida detached before script cleanup was confirmed")
+            self._lifecycle.session = None
+            return
+        stop_script(self._lifecycle)
+        session = self._lifecycle.session
         if session is not None:
             try:
-                detach = getattr(session, "detach", None)
-                if callable(detach):
-                    detach()
-                    cleaned = True
-            except Exception:
-                pass
+                session.detach()
+            except Exception as exc:
+                raise ScriptLifecycleError("detach", str(exc)) from exc
+        self._lifecycle.session = None
+        self._lifecycle.detached = True
 
+    def _cleanup_untracked_attach(
+        self, attach_result: dict[str, Any], operation_id: str, package_name: str,
+    ) -> None:
+        if self._shutting_down:
+            return
+        error = None
+        try:
+            self._dispose_runtime()
+        except Exception as exc:
+            error = exc
         with self.lock:
-            if self.attach_in_progress and self.attach_in_progress.get("id") == operation_id:
-                self.attach_in_progress = None
-            self._record_event(
-                {
-                    "type": "attach-timeout-cleanup",
-                    "description": package_name,
-                    "cleaned": cleaned,
-                    "had_script": script is not None,
-                    "had_session": session is not None,
-                }
-            )
+            if not self.attach_in_progress or self.attach_in_progress.get("id") != operation_id:
+                return
+            self.cleanup_blocked = error is not None
+            self._sync_lifecycle()
+            self.attach_in_progress = None
+            self._stop_recording()
+            self._uninstall_stdout_proxy()
+            if error is not None:
+                self._lifecycle_failure(error)
+            self._record_event({
+                "type": "attach-timeout-cleanup", "description": package_name,
+                "cleaned": error is None, "error": str(error) if error else None,
+                **self._runtime_status(),
+            })
 
     def _select_device_id(self, device_id: str | None) -> str:
         if device_id:
@@ -924,7 +1017,12 @@ class MedusaAndroidBridge:
         self.parser.script = script
 
     def _has_live_session(self) -> bool:
-        return bool(self.session is not None and self.current_target.get("attached"))
+        return bool(self._lifecycle.session is not None and not self._lifecycle.detached)
+
+    def _is_attached(self) -> bool:
+        return bool(self._has_live_session() and self._lifecycle.script_loaded is True
+                    and not self.cleanup_blocked and not self.reload_in_progress
+                    and not self.attach_in_progress and not self.detach_in_progress)
 
     def _resolve_tail_target(self) -> tuple[Path | None, str]:
         if self.output_path:
@@ -1211,56 +1309,73 @@ class MedusaAndroidBridge:
         return self.events[start_index:start_index + limit]
 
     def _reload_active_script(self, timeout: float = 10.0) -> bool:
+        self._ensure_no_attach_in_progress("reload the script")
         if not self._has_live_session():
             return False
-
-        if self.script is not None:
-            try:
-                self.script.unload()
-            except Exception:
-                pass
-
-        # Run the blocking Frida calls in a worker thread so we can
-        # enforce a timeout.  Without this, create_script/load can hang
-        # forever when the target process has died but the detach callback
-        # hasn't fired yet (or is blocked on self.lock).
-        session = self.session
+        operation_id = uuid.uuid4().hex
+        state = self._lifecycle
+        original_script = state.script
         result: dict[str, Any] = {}
+        self.reload_in_progress = {
+            "id": operation_id, "phase": "reloading", "started_at": time.time(),
+            "package_name": self.current_target.get("package_name"),
+        }
+        self.last_reload = {"id": operation_id, "reloaded": False, "timed_out": False}
 
-        def _do_reload():
+        def work():
             try:
-                with self.agent_script_path.open("r", encoding="utf-8") as handle:
-                    script = session.create_script(handle.read())
-                load_created_script(session, script, self._on_message, self._on_detached)
-                result["script"] = script
+                reload_script(state.session, state, self.agent_script_path,
+                              self._on_message, self._on_detached)
             except Exception as exc:
-                result["error"] = exc
+                result["exception"] = exc
+            finally:
+                self._watch_cleanup()
 
-        worker = threading.Thread(target=_do_reload, daemon=True)
+        def finish(late: bool):
+            if self._shutting_down:
+                return False
+            # Late loads are never silently promoted to a successful tool result.
+            # Dispose a new script (including partially loaded scripts). A
+            # preparation/cleanup failure keeps the previous handle for retry.
+            if late and state.script is not None and state.script is not original_script:
+                try:
+                    stop_script(state)
+                except Exception as exc:
+                    result["cleanup_exception"] = exc
+            with self.lock:
+                if not self.reload_in_progress or self.reload_in_progress.get("id") != operation_id:
+                    return False
+                error = result.get("exception")
+                cleanup_error = result.get("cleanup_exception")
+                self.cleanup_blocked = bool(cleanup_error or state.lifecycle_status in {
+                    "cleanup_pending", "cleanup_unknown", "cleanup_failed", "unload_failed", "load_failed",
+                } or (state.detached and state.script is not None))
+                self._sync_lifecycle()
+                self.reload_in_progress = None
+                success = not late and error is None and self._has_live_session() and state.script_loaded is True
+                self.last_reload.update(reloaded=success, timed_out=late, **self._runtime_status())
+                if error is not None:
+                    self.last_reload["error"] = self._lifecycle_failure(error)
+                if cleanup_error is not None:
+                    self.last_reload["cleanup_error"] = self._lifecycle_failure(cleanup_error)
+                if success:
+                    self.last_failure = None
+                self._record_event({"type": "reload-completed", **self.last_reload})
+                return success
+
+        worker = threading.Thread(target=work, daemon=True)
         worker.start()
         worker.join(timeout=timeout)
-
         if worker.is_alive():
-            # Timed out — the session is likely dead.
-            self.session = None
-            self.script = None
-            self.parser.script = None
-            if self.current_target:
-                self.current_target["attached"] = False
-                self.current_target["detach_reason"] = "reload_timeout"
+            self.reload_in_progress.update(phase="cleanup_pending", timed_out_at=time.time())
+            self.last_reload.update(timed_out=True, error=self._lifecycle_failure(
+                TimeoutError(f"Reload timed out after {timeout}s; operation is still tracked"), "reload_timeout"))
+            def complete_late():
+                worker.join()
+                finish(True)
+            threading.Thread(target=complete_late, daemon=True).start()
             return False
-
-        if "script" in result:
-            self._sync_runtime_script(result["script"])
-            return True
-
-        # Exception during reload — session is dead.
-        self.session = None
-        self.script = None
-        self.parser.script = None
-        if self.current_target:
-            self.current_target["attached"] = False
-        return False
+        return finish(False)
 
     def _compile_with_agent_overlay(self) -> dict[str, Any]:
         scratchpad = self.parser.modManager.getModule("scratchpad")
@@ -1279,6 +1394,8 @@ class MedusaAndroidBridge:
 
             try:
                 self.parser.do_compile("")
+                if self.parser.state.session.compile_error:
+                    raise ScriptLifecycleError("compile", self.parser.state.session.compile_error)
             except Exception as exc:
                 self._set_failure(
                     "script_compile_failed",
@@ -1300,20 +1417,30 @@ class MedusaAndroidBridge:
         reload_if_attached: bool = True,
         event_start_index: int | None = None,
     ) -> dict[str, Any]:
-        compile_result = self._compile_with_agent_overlay()
+        try:
+            compile_result = self._compile_with_agent_overlay()
+        except Exception as exc:
+            failure = self._lifecycle_failure(exc, "compile")
+            return {"compiled": False, "reloaded": False, "attached": self._is_attached(),
+                    "reload_skipped_reason": "compile_failed", "compile_error": failure,
+                    "new_events": [], "new_event_count": 0, **self._runtime_status()}
         reloaded = False
         reload_skipped_reason = None
+        reload_result = None
         if reload_if_attached and self._has_live_session():
             reloaded = self._reload_active_script()
+            reload_result = dict(self.last_reload) if self.last_reload else None
             if not reloaded:
-                reload_skipped_reason = "session_detached"
+                reload_skipped_reason = "reload_pending" if self.reload_in_progress else "reload_failed"
         elif reload_if_attached:
             reload_skipped_reason = "no_live_session"
         return {
             "compiled": True,
             "reloaded": reloaded,
-            "attached": self._has_live_session(),
+            "attached": self._is_attached(),
             "reload_skipped_reason": reload_skipped_reason,
+            "reload_result": reload_result,
+            **self._runtime_status(),
             "new_event_count": len(self.events) - event_start_index if event_start_index is not None else None,
             "new_events": self._slice_recent_events(event_start_index) if event_start_index is not None else [],
             **compile_result,
@@ -1406,8 +1533,9 @@ class MedusaAndroidBridge:
     ) -> dict[str, Any]:
         with self.lock:
             self._ensure_no_attach_in_progress("attach an app")
+            self._release_exited_target()
             target = dict(self.current_target)
-            attached = bool(self.session and self.script and target.get("attached"))
+            attached = self._is_attached()
             effective_device_id = device_id or target.get("device_id") or self.selected_device_id
 
         if reuse_if_attached and attached:
@@ -1445,7 +1573,9 @@ class MedusaAndroidBridge:
             )
 
         if should_detach:
-            self.detach_app()
+            detached = self.detach_app()
+            if not detached["detached"]:
+                raise ScriptLifecycleError("cleanup", "previous session has not finished detaching")
 
         operation_id = uuid.uuid4().hex
         with self.lock:
@@ -1461,15 +1591,23 @@ class MedusaAndroidBridge:
                 stage_result = self._stage_modules(effective_modules)
 
             effective_output_path = output_path if output_path is not None else self.selected_output_path
+            # Invalidate deferred cleanup from the previous session before a new
+            # recording is opened. start_script will bind the next generation.
+            self._lifecycle.session_generation += 1
             self._start_recording(package_name, effective_output_path)
-            if compile_script:
-                self._compile_with_agent_overlay()
+            try:
+                if compile_script:
+                    self._compile_with_agent_overlay()
+                source = self.agent_script_path.read_text(encoding="utf-8")
+            except Exception:
+                self._stop_recording()
+                self._uninstall_stdout_proxy()
+                raise
 
             staged_modules = [mod.Name for mod in self.parser.modManager.staged]
             output_path_snapshot = self.output_path
             parser_device = self.parser.device
             requested_pid = -1 if pid is None else pid
-            agent_script_path = self.agent_script_path
             self.attach_in_progress = {
                 "id": operation_id,
                 "phase": "attaching",
@@ -1481,6 +1619,11 @@ class MedusaAndroidBridge:
                 "output_path": self.output_path,
                 "staged_modules": staged_modules,
             }
+            self.current_target = {
+                "package_name": package_name, "device_id": device["id"], "spawn": spawn,
+                "pid": pid, "attached": False, "staged_modules": staged_modules,
+                "output_path": self.output_path,
+            }
 
         # Run blocking Frida spawn/attach + script load outside self.lock so
         # status/log reads and stdout capture can continue during slow attaches.
@@ -1488,45 +1631,30 @@ class MedusaAndroidBridge:
         attach_result: dict[str, Any] = {}
 
         def _do_attach():
-            fs = None
-            sc = None
             try:
-                fs = self.parser.frida_session_handler(
-                    parser_device,
-                    spawn,
-                    package_name,
-                    requested_pid,
-                )
+                fs = self.parser.frida_session_handler(parser_device, spawn, package_name, requested_pid)
                 if fs is None:
                     attach_result["error_none"] = True
                     return
-
-                with agent_script_path.open("r", encoding="utf-8") as handle:
-                    sc = fs.create_script(handle.read())
-                load_created_script(fs, sc, self._on_message, self._on_detached)
-
+                attach_result["session"] = fs
+                self.current_target["pid"] = self.parser.pid
+                start_script(fs, self._lifecycle, source, self._on_message, self._on_detached)
+                self._watch_cleanup()
+                attach_result["script"] = self._lifecycle.script
                 if spawn:
                     try:
                         parser_device.resume(self.parser.pid)
                     except Exception:
                         pass
-
-                attach_result["session"] = fs
-                attach_result["script"] = sc
             except Exception as exc:
                 attach_result["exception"] = exc
-                if sc is not None:
-                    try:
-                        sc.unload()
-                    except Exception:
-                        pass
-                if fs is not None:
-                    try:
-                        detach = getattr(fs, "detach", None)
-                        if callable(detach):
-                            detach()
-                    except Exception:
-                        pass
+                try:
+                    if self._lifecycle.session is None and attach_result.get("session") is not None:
+                        self._lifecycle.session = attach_result["session"]
+                    self._watch_cleanup()
+                    self._dispose_runtime()
+                except Exception as cleanup_error:
+                    attach_result["cleanup_exception"] = cleanup_error
 
         worker = threading.Thread(target=_do_attach, daemon=True)
         worker.start()
@@ -1577,20 +1705,29 @@ class MedusaAndroidBridge:
 
         if "exception" in attach_result:
             with self.lock:
-                output_path_snapshot = self.output_path
+                self.cleanup_blocked = "cleanup_exception" in attach_result
+                self._sync_lifecycle()
+                self.attach_in_progress = None
                 self._stop_recording()
                 self._uninstall_stdout_proxy()
-                if self.attach_in_progress and self.attach_in_progress.get("id") == operation_id:
-                    self.attach_in_progress = None
-                self._set_failure_from_exception("attach_app", attach_result["exception"])
-            raise RuntimeError(
-                f"Attached to {package_name} but failed to load the script. "
-                f"output_path={output_path_snapshot}. error={attach_result['exception']}"
-            ) from attach_result["exception"]
+                failure = self._lifecycle_failure(attach_result["exception"], "attach")
+                if self.cleanup_blocked:
+                    failure["cleanup_error"] = str(attach_result["cleanup_exception"])
+            error = attach_result["exception"]
+            if isinstance(error, ScriptLifecycleError):
+                raise error
+            raise ScriptLifecycleError("attach", str(error)) from error
 
         with self.lock:
-            self.session = attach_result["session"]
-            self._sync_runtime_script(attach_result["script"])
+            if self._shutting_down or self._lifecycle.detached:
+                self.cleanup_blocked = self._lifecycle.script is not None
+                self.attach_in_progress = None
+                self._sync_lifecycle()
+                error = ScriptLifecycleError("attach", "session ended before attach could be committed")
+                self._lifecycle_failure(error)
+                raise error
+            self.cleanup_blocked = False
+            self._sync_lifecycle()
 
             self.current_target = {
                 "package_name": package_name,
@@ -1609,6 +1746,7 @@ class MedusaAndroidBridge:
             self._record_event(
                 {
                     "type": "attached",
+                    **self._runtime_status(),
                     "description": package_name,
                     "device_id": device["id"],
                     "output_path": self.output_path,
@@ -1634,7 +1772,7 @@ class MedusaAndroidBridge:
         with self.lock:
             self._ensure_no_attach_in_progress("ensure a session")
             target = dict(self.current_target)
-            attached = bool(self.session and self.script and target.get("attached"))
+            attached = self._is_attached()
             effective_device_id = device_id or target.get("device_id") or self.selected_device_id
             required_modules = list(modules or [])
             if output_path:
@@ -1730,94 +1868,61 @@ class MedusaAndroidBridge:
     def detach_app(self) -> dict[str, Any]:
         with self.lock:
             self._ensure_no_attach_in_progress("detach the app")
-            script = self.script
-            session = self.session
-            self.script = None
-            self.session = None
-            self.parser.script = None
-            self.attach_in_progress = None
-            if self.current_target:
-                self.current_target["attached"] = False
+            operation_id = uuid.uuid4().hex
+            last_target = dict(self.current_target)
             output_path = self.output_path
-            last_target = dict(self.current_target) if self.current_target else {}
-            operation_id = uuid.uuid4().hex if script is not None or session is not None else None
-            if operation_id:
-                self.detach_in_progress = {
-                    "id": operation_id,
-                    "phase": "detaching",
-                    "started_at": time.time(),
-                    "package_name": last_target.get("package_name", "unknown target"),
-                    "device_id": last_target.get("device_id"),
-                    "output_path": output_path,
-                }
+            self.detach_in_progress = {
+                "id": operation_id, "phase": "detaching", "started_at": time.time(),
+                "package_name": last_target.get("package_name", "unknown target"),
+            }
+        result: dict[str, Any] = {"detached": False}
 
-        detach_result = {"detached": False}
+        def work():
+            try:
+                self._dispose_runtime()
+                result["detached"] = True
+            except Exception as exc:
+                result["exception"] = exc
 
-        def _do_detach():
-            if script is not None:
-                try:
-                    script.unload()
-                    detach_result["detached"] = True
-                except Exception:
-                    pass
+        def finish(late: bool):
+            with self.lock:
+                if self._shutting_down or not self.detach_in_progress or self.detach_in_progress.get("id") != operation_id:
+                    return
+                error = result.get("exception")
+                self.cleanup_blocked = error is not None
+                self._sync_lifecycle()
+                self.detach_in_progress = None
+                if error is None:
+                    self._stop_recording()
+                    self._uninstall_stdout_proxy()
+                else:
+                    result["error"] = self._lifecycle_failure(error)
+                self._record_event({"type": "detach-completed", "detached": result["detached"],
+                                    "timed_out": late, **self._runtime_status()})
 
-            if session is not None:
-                try:
-                    detach = getattr(session, "detach", None)
-                    if callable(detach):
-                        detach()
-                        detach_result["detached"] = True
-                except Exception:
-                    pass
-
-        if operation_id:
-            worker = threading.Thread(target=_do_detach, daemon=True)
-            worker.start()
-            worker.join(timeout=self.detach_timeout_seconds)
-            if worker.is_alive():
-                self._stop_recording()
-                self._uninstall_stdout_proxy()
-
-                def _finish_late_detach():
-                    worker.join()
-                    self._clear_detach_in_progress(
-                        operation_id,
-                        detached=detach_result["detached"],
-                        timed_out=True,
-                    )
-
-                threading.Thread(target=_finish_late_detach, daemon=True).start()
-                with self.lock:
-                    if self.detach_in_progress and self.detach_in_progress.get("id") == operation_id:
-                        self.detach_in_progress["phase"] = "cleanup_pending"
-                        self.detach_in_progress["timed_out_at"] = time.time()
-                return {
-                    "detached": detach_result["detached"],
-                    "detach_timed_out": True,
-                    "detach_timeout_seconds": self.detach_timeout_seconds,
-                    "last_target": last_target,
-                    "last_detach_reason": self.last_detach_reason,
-                    "output_path": output_path,
-                }
-
-        self._stop_recording()
-        self._uninstall_stdout_proxy()
-
-        if operation_id:
-            self._clear_detach_in_progress(
-                operation_id,
-                detached=detach_result["detached"],
-                timed_out=False,
-            )
-
+        worker = threading.Thread(target=work, daemon=True)
+        worker.start()
+        worker.join(timeout=self.detach_timeout_seconds)
+        timed_out = worker.is_alive()
+        if timed_out:
+            with self.lock:
+                self.detach_in_progress.update(phase="cleanup_pending", timed_out_at=time.time())
+                result["error"] = self._lifecycle_failure(
+                    TimeoutError("Detach timed out; cleanup is still tracked"), "detach_timeout")
+            def complete_late():
+                worker.join()
+                finish(True)
+            threading.Thread(target=complete_late, daemon=True).start()
+        else:
+            finish(False)
         with self.lock:
             return {
-                "detached": detach_result["detached"],
-                "detach_timed_out": False,
+                "detached": result["detached"] if not timed_out else False,
+                "detach_timed_out": timed_out,
                 "detach_timeout_seconds": self.detach_timeout_seconds,
-                "last_target": last_target,
-                "last_detach_reason": self.last_detach_reason,
-                "output_path": output_path,
+                "error": result.get("error"), "last_target": last_target,
+                "last_detach_reason": self.last_detach_reason, "output_path": output_path,
+                **self._runtime_status(),
             }
 
     def fast_cleanup(self) -> None:
@@ -1825,6 +1930,13 @@ class MedusaAndroidBridge:
         # holds the lock on a slow Frida spawn.
         acquired = self.lock.acquire(blocking=False)
         try:
+            self._shutting_down = True
+            self._lifecycle.session_generation += 1
+            self._lifecycle.script_generation += 1
+            self._lifecycle.detached = True
+            self._lifecycle.script_loaded = False
+            self._lifecycle.lifecycle_status = "shutdown"
+            self.reload_in_progress = None
             self.script = None
             self.session = None
             self.parser.script = None
@@ -1976,9 +2088,13 @@ class MedusaAndroidBridge:
                 "failure_classification": failure_classification,
                 "attach_in_progress": bool(self.attach_in_progress),
                 "attach_operation": dict(self.attach_in_progress) if self.attach_in_progress else None,
+                "reload_in_progress": bool(self.reload_in_progress),
+                "reload_operation": dict(self.reload_in_progress) if self.reload_in_progress else None,
+                "last_reload": dict(self.last_reload) if self.last_reload else None,
+                **self._runtime_status(),
                 "detach_in_progress": bool(self.detach_in_progress),
                 "detach_operation": dict(self.detach_in_progress) if self.detach_in_progress else None,
-                "attached": bool(self.session and self.script and self.current_target.get("attached")),
+                "attached": self._is_attached(),
                 "target": target,
                 "last_detach_reason": self.last_detach_reason,
                 "staged_modules": staged_modules,
@@ -2032,6 +2148,12 @@ class MedusaAndroidBridge:
                 "current_tool_call": status.get("current_tool_call"),
                 "failure_classification": status.get("failure_classification"),
                 "output_log": status.get("output_log"),
+                "process_alive": status.get("process_alive"),
+                "process_pids": status.get("process_pids"),
+                "recording": status.get("recording"),
+                "reload_in_progress": status.get("reload_in_progress"),
+                "last_reload": status.get("last_reload"),
+                **self._runtime_status(),
             }
 
     def recent_events(self, limit: int = 50) -> list[dict[str, Any]]:

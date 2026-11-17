@@ -1,0 +1,501 @@
+{
+    "Name": "http_communications/unified_ssl_pinning_bypass",
+    "Description": "Unified Android TLS/pinning bypass with typed Java hooks, preserved certificate chains, diagnostics, and opt-in Flutter native patches.",
+    "Help": "One module for Conscrypt, SSLContext/custom trust managers, OkHttp2/3, TrustKit, WebView/RNCWebView/Cordova, PhoneGap/Worklight, Cronet, Flutter plugins/native TLS, Appcelerator, Fabric, Netty, and Appmattus. Stage before other modules that replace TLS methods. Default native mode is off; peer and thumb modes require validation against the exact Flutter engine build. Existing hook conflicts are reported instead of overwritten. Native process crashes still require bridge/runtime diagnosis; reattach explicitly after a process restart.",
+    "Options": [
+        {
+            "name": "enable_conscrypt",
+            "help": "Enable platform/standalone Conscrypt trust hooks. Uses one certificate-chain boundary per provider.",
+            "type": "boolean",
+            "value": "true"
+        },
+        {
+            "name": "enable_sslcontext",
+            "help": "Observe SSLContext and hostname-verifier configuration and hook the actual manager/verifier classes, preserving original objects and socket factories.",
+            "type": "boolean",
+            "value": "true"
+        },
+        {
+            "name": "enable_webview",
+            "help": "Bypass WebView SSL errors, including supported React Native and Cordova clients. Generic network-error callbacks remain unchanged.",
+            "type": "boolean",
+            "value": "true"
+        },
+        {
+            "name": "flutter_native_mode",
+            "help": "off (default), peer, or thumb. Experimental build-specific signatures; thumb is 32-bit ARM only. Requires exactly one executable-range match.",
+            "type": "string",
+            "value": "off"
+        },
+        {
+            "name": "enable_dynamic_patcher",
+            "help": "Experimental bounded SSLPeerUnverifiedException caller patcher. Default false; only TLS-named candidates with supported return contracts are eligible.",
+            "type": "boolean",
+            "value": "false"
+        },
+        {
+            "name": "diagnostics",
+            "help": "Print installation, first-hit and skipped-hook diagnostics with PID/signatures. Failures and conflicts are always reported.",
+            "type": "boolean",
+            "value": "true"
+        }
+    ],
+    "Code": "(function () {
+    'use strict';
+
+    var __enable_conscrypt__ = true;
+    var __enable_sslcontext__ = true;
+    var __enable_webview__ = true;
+    var __flutter_native_mode__ = 'off';
+    var __enable_dynamic_patcher__ = false;
+    var __diagnostics__ = true;
+
+    if (!Java.available) {
+        console.log('[unified-ssl] Java is unavailable; pid=' + Process.id);
+        return;
+    }
+    if (globalThis.__medusaUnifiedSslV2) {
+        console.log('[unified-ssl] Already installed in this script; pid=' + Process.id);
+        return;
+    }
+    const state = { closed: false, installed: 0, missing: 0, failed: 0, conflicts: 0 };
+    globalThis.__medusaUnifiedSslV2 = state;
+    const entries = new Map();
+    const seenMessages = new Set();
+    const seenHosts = new Set();
+    const factories = new WeakMap();
+    const anchors = new Set();
+    const defaultFactory = Java.classFactory;
+    let nextFactory = 0;
+    const ORIGINAL = Symbol('call original once');
+    class DeferredCall { constructor(run) { this.run = run; } }
+
+    function closed() {
+        return state.closed || (typeof MedusaLifecycle !== 'undefined' && MedusaLifecycle.closing);
+    }
+    function diagnostic(kind, key, detail) {
+        if (!__diagnostics__ && kind !== 'FAILED' && kind !== 'CONFLICT') return;
+        const message = kind + ' ' + key + (detail ? ': ' + detail : '');
+        if (seenMessages.has(message)) return;
+        seenMessages.add(message);
+        console.log('[unified-ssl] ' + message + ' pid=' + Process.id);
+    }
+    function failure(key, error) {
+        state.failed++;
+        diagnostic('FAILED', key, String(error && error.message || error));
+    }
+    function hostname(value) {
+        if (value === null || value === undefined) return;
+        const host = String(value);
+        if (!host || host === 'null' || seenHosts.has(host)) return;
+        seenHosts.add(host);
+        console.log('[SSL pinning bypass] ' + host + ' (pid=' + Process.id + ')');
+    }
+    function cleanup(name, fn) {
+        if (typeof MedusaLifecycle !== 'undefined') MedusaLifecycle.addCleanup('unified-ssl: ' + name, fn);
+    }
+    function factoryId(factory) {
+        if (!factories.has(factory)) factories.set(factory, ++nextFactory);
+        return factories.get(factory);
+    }
+    function javaType(type) {
+        if (!type) throw new Error('Java type metadata missing');
+        if (type.className) return type.className.replace(/\\//g, '.');
+        const primitives = { V: 'void', Z: 'boolean', B: 'byte', S: 'short', I: 'int', J: 'long', F: 'float', D: 'double', C: 'char' };
+        if (primitives[type.name]) return primitives[type.name];
+        if (type.name && type.name[0] === 'L') return type.name.slice(1, -1).replace(/\\//g, '.');
+        if (type.name && type.name[0] === '[') return type.name.replace(/\\//g, '.');
+        throw new Error('Unrecognized Java type metadata');
+    }
+    function certificateArray(type) {
+        return type === '[Ljava.security.cert.X509Certificate;' || type === '[Ljava.security.cert.Certificate;';
+    }
+    function listType(type) {
+        return ['java.util.List', 'java.util.ArrayList', 'java.util.Collection'].indexOf(type) !== -1;
+    }
+    function chainSupported(context) {
+        return (listType(context.result) || certificateArray(context.result)) &&
+            context.args.some(type => certificateArray(type) || listType(type));
+    }
+    function successSupported(context) {
+        return ['void', 'boolean', 'java.lang.Boolean'].indexOf(context.result) !== -1 || chainSupported(context);
+    }
+    function suppliedCertificates(args, context) {
+        const certificates = [];
+        const arrayIndex = context.args.findIndex(certificateArray);
+        if (arrayIndex !== -1 && args[arrayIndex] !== null) {
+            const array = args[arrayIndex];
+            for (let i = 0; i < array.length; i++) certificates.push(array[i]);
+        } else {
+            const listIndex = context.args.findIndex(listType);
+            if (listIndex !== -1 && args[listIndex] !== null) {
+                const list = args[listIndex];
+                for (let i = 0; i < list.size(); i++) certificates.push(list.get(i));
+            }
+            if (context.method === 'verifyChain' && args[1] !== null) {
+                for (let i = 0; i < args[1].size(); i++) {
+                    const anchor = args[1].get(i);
+                    if (anchor !== null && anchor.getTrustedCert) certificates.push(anchor.getTrustedCert());
+                }
+            }
+        }
+        if (certificates.length === 0) throw new Error('No supplied certificate chain; preserving original validation');
+        if (certificateArray(context.result)) {
+            return Java.array(context.result === '[Ljava.security.cert.Certificate;' ?
+                'java.security.cert.Certificate' : 'java.security.cert.X509Certificate', certificates);
+        }
+        const list = Java.use('java.util.ArrayList').$new();
+        certificates.forEach(cert => list.add(cert));
+        return list;
+    }
+    function success(receiver, args, context) {
+        const hostIndex = context.args.indexOf('java.lang.String');
+        if (hostIndex !== -1) hostname(args[hostIndex]);
+        if (context.result === 'void') return undefined;
+        if (context.result === 'boolean') return true;
+        if (context.result === 'java.lang.Boolean') return Java.use('java.lang.Boolean').valueOf(true);
+        return suppliedCertificates(args, context);
+    }
+    function install(className, methodName, signature, handler, supported, factory) {
+        if (closed()) return 0;
+        factory = factory || defaultFactory;
+        let klass;
+        try { klass = factory.use(className); } catch (error) {
+            if (/ClassNotFoundException|ClassNotFoundError|class.*not found/i.test(String(error))) state.missing++;
+            else failure(className, error);
+            return 0;
+        }
+        let method;
+        try {
+            method = klass[methodName];
+            if (!method || !method.overloads) { state.missing++; return 0; }
+        } catch (error) { failure(className + '.' + methodName, error); return 0; }
+        let overloads;
+        try {
+            overloads = signature ? method.overloads.filter(overload => {
+                const args = overload.argumentTypes.map(javaType);
+                return args.length === signature.length && args.every((type, index) => type === signature[index]);
+            }) : method.overloads;
+            if (overloads.length === 0) throw new Error('signature unavailable');
+        }
+        catch (error) { state.missing++; diagnostic('SKIPPED', className + '.' + methodName, 'signature unavailable'); return 0; }
+        let installed = 0;
+        overloads.forEach(original => {
+            let key = className + '.' + methodName;
+            try {
+                const context = { owner: className, method: methodName,
+                    args: original.argumentTypes.map(javaType), result: javaType(original.returnType) };
+                key += '(' + context.args.join(',') + ')';
+                const identity = factoryId(factory) + ':' + key + ':' + context.result;
+                if (entries.has(identity)) { installed++; return; }
+                if (!supported(context)) {
+                    diagnostic('SKIPPED', key, 'unsupported return/signature: ' + context.result);
+                    return;
+                }
+                if (original.implementation !== null && original.implementation !== undefined) {
+                    state.conflicts++;
+                    diagnostic('CONFLICT', key, 'an existing replacement was preserved');
+                    return;
+                }
+                const previous = original.implementation;
+                const replacement = function () {
+                    const args = Array.prototype.slice.call(arguments);
+                    if (closed()) return original.apply(this, args);
+                    diagnostic('HIT', key);
+                    let decision;
+                    try { decision = handler(this, args, context); }
+                    catch (error) {
+                        failure(key, error);
+                        decision = ORIGINAL;
+                    }
+                    // Call-through happens outside the catch: original app/network
+                    // exceptions propagate once, without repeating side effects.
+                    if (decision === ORIGINAL) return original.apply(this, args);
+                    if (decision instanceof DeferredCall) return decision.run();
+                    return decision;
+                };
+                cleanup(key, function () {
+                    Java.performNow(function () {
+                        if (original.implementation === replacement) original.implementation = previous;
+                    });
+                });
+                original.implementation = replacement;
+                entries.set(identity, { original: original, replacement: replacement, key: key });
+                installed++;
+                state.installed++;
+                diagnostic('INSTALLED', key);
+            } catch (error) { failure(key, error); }
+        });
+        return installed;
+    }
+    function bypass(className, methodName, signature) {
+        return install(className, methodName, signature, success, successSupported);
+    }
+    function isConscrypt(name) {
+        return /(?:^|\\.)conscrypt\\./.test(name) || name.indexOf('android.security.net.config.') === 0;
+    }
+    function installConscrypt(className, factory) {
+        if (!__enable_conscrypt__) return 0;
+        factory = factory || defaultFactory;
+        const anchor = factoryId(factory) + ':' + className;
+        if (anchors.has(anchor)) return 1;
+        const handler = function (receiver, args, context) {
+            const clientAuth = context.args.indexOf('boolean');
+            if (clientAuth !== -1 && args[clientAuth] === true) return ORIGINAL;
+            const host = context.args.indexOf('java.lang.String');
+            if (host !== -1) hostname(args[host]);
+            return suppliedCertificates(args, context);
+        };
+        // One working validation boundary per provider, not redundant replacements
+        // of both the recursive builder and its nested verifier.
+        let count = install(className, 'checkTrustedRecursive', null, handler,
+            context => chainSupported(context) && certificateArray(context.args[0]), factory);
+        if (count === 0) count = install(className, 'verifyChain', null, handler,
+            context => listType(context.result) && listType(context.args[0]), factory);
+        if (count > 0) anchors.add(anchor);
+        return count;
+    }
+    function actualClass(object) {
+        const klass = object.getClass();
+        const loader = klass.getClassLoader();
+        return { name: klass.getName().toString(), factory: loader === null ? defaultFactory : Java.ClassFactory.get(loader) };
+    }
+    function observeTrustManager(manager) {
+        if (manager === null) return;
+        const actual = actualClass(manager);
+        if (isConscrypt(actual.name)) {
+            if (!__enable_conscrypt__) return;
+            if (actual.name.indexOf('android.security.net.config.') === 0 &&
+                    anchors.has(factoryId(defaultFactory) + ':com.android.org.conscrypt.TrustManagerImpl')) return;
+            if (installConscrypt(actual.name, actual.factory) > 0) return;
+        }
+        install(actual.name, 'checkServerTrusted', null, success, successSupported, actual.factory);
+    }
+    function installPlatformTls() {
+        if (__enable_conscrypt__) {
+            installConscrypt('com.android.org.conscrypt.TrustManagerImpl');
+            installConscrypt('org.conscrypt.TrustManagerImpl');
+            bypass('com.android.org.conscrypt.CertPinManager', 'checkChainPinning');
+            bypass('com.android.org.conscrypt.CertPinManager', 'isChainValid');
+            bypass('com.commonsware.cwac.netsecurity.conscrypt.CertPinManager', 'isChainValid');
+            ['com.android.org.conscrypt.OpenSSLSocketImpl', 'com.android.org.conscrypt.OpenSSLEngineSocketImpl',
+                'org.apache.harmony.xnet.provider.jsse.OpenSSLSocketImpl'].forEach(name => bypass(name, 'verifyCertificateChain'));
+        }
+        if (__enable_sslcontext__) {
+            install('javax.net.ssl.SSLContext', 'init',
+                ['[Ljavax.net.ssl.KeyManager;', '[Ljavax.net.ssl.TrustManager;', 'java.security.SecureRandom'],
+                function (receiver, args) {
+                    if (args[1] !== null) {
+                        for (let i = 0; i < args[1].length; i++) observeTrustManager(args[1][i]);
+                    }
+                    return ORIGINAL;
+                }, context => context.result === 'void');
+            ['setDefaultHostnameVerifier', 'setHostnameVerifier'].forEach(method => {
+                install('javax.net.ssl.HttpsURLConnection', method, ['javax.net.ssl.HostnameVerifier'],
+                    function (receiver, args) {
+                        if (args[0] !== null) {
+                            const actual = actualClass(args[0]);
+                            install(actual.name, 'verify', null, success,
+                                context => ['boolean', 'java.lang.Boolean'].indexOf(context.result) !== -1, actual.factory);
+                        }
+                        return ORIGINAL;
+                    }, context => context.result === 'void');
+            });
+        }
+        // Socket-factory setters, key managers and random sources keep their
+        // original semantics. No persistent Java.registerClass trust manager.
+    }
+    function installSdkHooks() {
+        ['okhttp3.CertificatePinner', 'com.squareup.okhttp.CertificatePinner'].forEach(name => bypass(name, 'check'));
+        bypass('okhttp3.CertificatePinner', 'check$okhttp');
+        install('okhttp3.CertificatePinner$Builder', 'add', ['java.lang.String', '[Ljava.lang.String;'],
+            (receiver, args) => { hostname(args[0]); return receiver; },
+            context => context.result === 'okhttp3.CertificatePinner$Builder');
+        ['okhttp3.internal.tls.OkHostnameVerifier', 'com.android.okhttp.internal.tls.OkHostnameVerifier',
+            'com.squareup.okhttp.internal.tls.OkHostnameVerifier', 'com.datatheorem.android.trustkit.pinning.OkHostnameVerifier',
+            'com.worklight.wlclient.certificatepinning.HostNameVerifierWithCertificatePinning',
+            'ch.boye.httpclientandroidlib.conn.ssl.AbstractVerifier', 'org.apache.http.conn.ssl.AbstractVerifier']
+            .forEach(name => bypass(name, 'verify'));
+        ['com.datatheorem.android.trustkit.pinning.PinningTrustManager', 'appcelerator.https.PinningTrustManager',
+            'io.fabric.sdk.android.services.network.PinningTrustManager',
+            'com.appmattus.certificatetransparency.internal.verifier.CertificateTransparencyTrustManager']
+            .forEach(name => bypass(name, 'checkServerTrusted'));
+        bypass('io.netty.handler.ssl.util.FingerprintTrustManagerFactory', 'checkTrusted');
+        bypass('com.worklight.wlclient.api.WLClient', 'pinTrustedCertificatePublicKey', ['java.lang.String']);
+        bypass('com.worklight.wlclient.api.WLClient', 'pinTrustedCertificatePublicKey', ['[Ljava.lang.String;']);
+        ['nl.xservices.plugins.sslCertificateChecker', 'nl.xservices.plugins.SSLCertificateChecker',
+            'com.worklight.androidgap.plugin.WLCertificatePinningPlugin'].forEach(name => {
+            install(name, 'execute', ['java.lang.String', 'org.json.JSONArray', 'org.apache.cordova.CallbackContext'],
+                function (receiver, args) {
+                    const worklight = name.indexOf('com.worklight.') === 0;
+                    const action = String(args[0]);
+                    if (args[2] === null || (worklight ? action !== 'pinTrustedCertificatePublicKey' : action !== 'check')) return ORIGINAL;
+                    return new DeferredCall(function () {
+                        if (worklight) args[2].success();
+                        else args[2].success('CONNECTION_SECURE');
+                        return true;
+                    });
+                }, context => context.result === 'boolean');
+        });
+        ['diefferson.http_certificate_pinning.HttpCertificatePinning', 'com.macif.plugin.sslpinningplugin.SslPinningPlugin']
+            .forEach(name => bypass(name, 'checkConnexion', ['java.lang.String', 'java.util.List', 'java.util.Map', 'int', 'java.lang.String']));
+        ['org.chromium.net.impl.CronetEngineBuilderImpl', 'org.chromium.net.CronetEngine$Builder'].forEach(name => {
+            install(name, 'enablePublicKeyPinningBypassForLocalTrustAnchors', ['boolean'],
+                (receiver, args) => { args[0] = true; return ORIGINAL; }, () => true);
+            install(name, 'addPublicKeyPins', ['java.lang.String', 'java.util.Set', 'boolean', 'java.util.Date'],
+                (receiver, args) => { hostname(args[0]); return receiver; },
+                context => context.result.indexOf('org.chromium.net.') === 0);
+        });
+        install('com.appmattus.certificatetransparency.internal.verifier.CertificateTransparencyInterceptor', 'intercept',
+            ['okhttp3.Interceptor$Chain'], (receiver, args) => new DeferredCall(function () {
+                const request = args[0].request();
+                hostname(request.url());
+                return args[0].proceed(request);
+            }), context => context.result === 'okhttp3.Response');
+    }
+    function installWebViewHooks() {
+        if (!__enable_webview__) return;
+        ['android.webkit.WebViewClient', 'org.apache.cordova.CordovaWebViewClient',
+            'com.reactnativecommunity.webview.RNCWebViewClient',
+            'com.reactnativecommunity.webview.RNCWebViewManager$RNCWebViewClient', 'fsimpl.fk'].forEach(name => {
+            install(name, 'onReceivedSslError', ['android.webkit.WebView', 'android.webkit.SslErrorHandler', 'android.net.http.SslError'],
+                (receiver, args) => args[1] === null ? ORIGINAL : new DeferredCall(function () {
+                    hostname(args[2] === null ? null : args[2].getUrl());
+                    args[1].proceed();
+                }), context => context.result === 'void');
+        });
+        // Non-TLS onReceivedError callbacks and WebView construction are untouched.
+    }
+    function installDynamicPatcher() {
+        if (!__enable_dynamic_patcher__) return;
+        let patched = 0;
+        const attempted = new Set();
+        function candidate(reason) {
+            if (patched >= 24 || !/pin|cert|hostname|peer not authenticated/i.test(String(reason || ''))) return;
+            const stack = Java.use('java.lang.Thread').currentThread().getStackTrace();
+            const own = Array.prototype.findIndex.call(stack,
+                frame => String(frame.getClassName()) === 'javax.net.ssl.SSLPeerUnverifiedException');
+            if (own === -1) return;
+            for (let i = own + 1; i < Math.min(stack.length, own + 8); i++) {
+                const owner = String(stack[i].getClassName()), method = String(stack[i].getMethodName());
+                if (/^(java\\.|javax\\.|android\\.|dalvik\\.|kotlin\\.)/.test(owner) || method[0] === '<') continue;
+                if (!/(CertificatePinner|Pinning|TrustManager|HostnameVerifier|Conscrypt|TrustKit|SSL|TLS)/i.test(owner + '.' + method)) continue;
+                const key = owner + '.' + method;
+                if (attempted.has(key)) return;
+                attempted.add(key);
+                if (install(owner, method, null, success, context => successSupported(context) &&
+                        context.args.some(type => certificateArray(type) || type === 'javax.net.ssl.SSLSession' || type === 'java.lang.String')) > 0) patched++;
+                return;
+            }
+        }
+        [[], ['java.lang.String']].forEach(signature => {
+            install('javax.net.ssl.SSLPeerUnverifiedException', '$init', signature,
+                (receiver, args) => { candidate(args[0]); return ORIGINAL; }, () => true);
+        });
+    }
+    function installFlutterNative() {
+        const mode = String(__flutter_native_mode__).toLowerCase();
+        if (mode === 'off') return;
+        if (mode !== 'peer' && mode !== 'thumb') { failure('Flutter', 'mode must be off, peer or thumb'); return; }
+        if (mode === 'thumb' && Process.arch !== 'arm') { failure('Flutter thumb mode', 'requires 32-bit ARM'); return; }
+        const peerPatterns = {
+            arm64: [
+                'F? 0F 1C F8 F? 5? 01 A9 F? 5? 02 A9 F? ?? 03 A9 ?? ?? ?? ?? 68 1A 40 F9',
+                'F? 43 01 D1 FE 67 01 A9 F8 5F 02 A9 F6 57 03 A9 F4 4F 04 A9 13 00 40 F9 F4 03 00 AA 68 1A 40 F9',
+                'FF 43 01 D1 FE 67 01 A9 ?? ?? 06 94 ?? 7? 06 94 68 1A 40 F9 15 15 41 F9 B5 00 00 B4 B6 4A 40 F9'
+            ],
+            arm: ['2D E9 F? 4? D0 F8 00 80 81 46 D8 F8 18 00 D0 F8 ??'],
+            x64: [
+                '55 41 57 41 56 41 55 41 54 53 50 49 89 f? 4c 8b 37 49 8b 46 30 4c 8b a? ?? 0? 00 00 4d 85 e? 74 1? 4d 8b',
+                '55 41 57 41 56 41 55 41 54 53 48 83 EC 18 49 89 FF 48 8B 1F 48 8B 43 30 4C 8B A0 28 02 00 00 4D 85 E4 74'
+            ]
+        };
+        const patterns = mode === 'thumb' ? ['2d e9 f0 4f a3 b0 82 46 50 20 10 70'] : peerPatterns[Process.arch];
+        if (!patterns) { failure('Flutter', 'unsupported architecture ' + Process.arch); return; }
+        const patchedModules = new Set();
+        const activePatches = new Map();
+        const callbacks = [];
+        function scan(module) {
+            if (closed() || module.name !== 'libflutter.so') return;
+            const key = module.base.toString();
+            if (patchedModules.has(key)) return;
+            const matches = new Map();
+            try {
+                module.enumerateRanges('r-x').forEach(range => patterns.forEach(pattern => {
+                    Memory.scanSync(range.base, range.size, pattern).forEach(match => matches.set(match.address.toString(), match.address));
+                }));
+                if (matches.size !== 1) {
+                    diagnostic('SKIPPED', 'Flutter ' + mode, matches.size + ' candidates; exactly one is required');
+                    return;
+                }
+                const address = Array.from(matches.values())[0];
+                if (Process.arch === 'arm64' && !address.and(3).isNull()) throw new Error('unaligned ARM64 candidate');
+                const target = Process.arch === 'arm' ? address.add(1) : address;
+                Instruction.parse(target); // Reject unreadable/invalid instruction starts.
+                if (mode === 'peer') {
+                    const callback = new NativeCallback(function () { return 0; }, 'int', ['pointer']);
+                    callbacks.push(callback);
+                    const patch = { active: true };
+                    Interceptor.replace(target, callback);
+                    activePatches.set(key, patch);
+                    cleanup('Flutter peer ' + target, () => {
+                        if (patch.active) { Interceptor.revert(target); Interceptor.flush(); patch.active = false; }
+                    });
+                } else {
+                    const patch = { active: true };
+                    const listener = Interceptor.attach(target, { onLeave(retval) { retval.replace(1); } });
+                    activePatches.set(key, patch);
+                    cleanup('Flutter thumb ' + target, () => {
+                        if (patch.active) { listener.detach(); patch.active = false; }
+                    });
+                }
+                patchedModules.add(key);
+                diagnostic('INSTALLED', 'Flutter ' + mode, 'offset=' + address.sub(module.base) + '; verify this signature against the exact engine build');
+            } catch (error) { failure('Flutter ' + mode, error); }
+        }
+        if (typeof Process.attachModuleObserver === 'function') {
+            const observer = Process.attachModuleObserver({ onAdded: scan,
+                onRemoved(module) {
+                    const key = module.base.toString();
+                    const patch = activePatches.get(key);
+                    if (patch) patch.active = false;
+                    activePatches.delete(key);
+                    patchedModules.delete(key);
+                } });
+            cleanup('Flutter module observer', () => observer.detach());
+        } else {
+            const existing = Process.findModuleByName('libflutter.so');
+            if (existing) scan(existing);
+            const timer = setTimeout(function () {
+                if (closed()) return;
+                const module = Process.findModuleByName('libflutter.so');
+                if (module) scan(module);
+            }, 2000);
+            cleanup('Flutter retry timer', () => clearTimeout(timer));
+        }
+        // Keep NativeCallbacks strongly referenced until managed cleanup/unload.
+        state.nativeCallbacks = callbacks;
+    }
+
+    diagnostic('LOADED', 'unified-v2', 'arch=' + Process.arch + ', flutter=' + __flutter_native_mode__);
+    installPlatformTls();
+    installSdkHooks();
+    installWebViewHooks();
+    installDynamicPatcher();
+    installFlutterNative();
+    cleanup('state', () => { state.closed = true; });
+    const check = setTimeout(function () {
+        if (closed()) return;
+        entries.forEach(entry => {
+            if (entry.original.implementation !== entry.replacement) {
+                state.conflicts++;
+                diagnostic('CONFLICT', entry.key, 'replacement changed after unified-module installation');
+            }
+        });
+    }, 1000);
+    cleanup('ownership check', () => clearTimeout(check));
+    console.log('[unified-ssl] SUMMARY pid=' + Process.id + ' installed=' + state.installed +
+        ' missing=' + state.missing + ' failed=' + state.failed + ' conflicts=' + state.conflicts);
+})();
+"
+}

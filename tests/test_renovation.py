@@ -473,6 +473,8 @@ class CompatibilityTests(unittest.TestCase):
             ('mcp', '_on_detached'), ('mcp', '_compile_with_agent_overlay'),
             ('mcp', 'fast_cleanup'), ('mcp', '_apply_agent_script'), ('mcp', 'session_status'),
             ('mcp', '_cleanup_untracked_attach'), ('mcp', '_deferred_detach_cleanup'),
+            ('mcp', '_process_status'), ('mcp', '_start_recording'),
+            ('mcp', '_set_failure'), ('mcp', '_classify_failure'),
             ('native', 'load_java_bridge'), ('native', 'add_js_bridge_if_needed'),
         }
         differences = set()

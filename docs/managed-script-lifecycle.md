@@ -104,6 +104,53 @@ recording state separately, plus the last reload and cleanup results. Script
 message events have generation IDs; events and deferred cleanup from an older session
 cannot clear a newer session's state or close its recording.
 
+## MCP failure and process diagnostics (P1)
+
+The primary `failure_classification` preserves the underlying exception and failed
+operation. A Frida stop timeout is reported as `process_stop_timeout`, even when
+its message also mentions an output log. Output failures are identified by the
+actual output-file operation or a failed writability check. Log read/metadata
+errors use `log_inspection_failed` rather than claiming that the path is unwritable.
+
+The MCP adapter observes exceptions from the device calls used by the legacy
+attach handler, including errors that handler logs and suppresses. The interactive
+handler and its existing caller-requested spawn/fallback behavior are preserved.
+
+`process_condition` and `output_condition` expose independent observations, so a
+Frida failure, frozen process and log-permission problem can be represented at the
+same time. `output_path_ready` is the configured path's writability result, or
+`null` when recording has no configured path. A concrete current exception takes
+precedence over those secondary conditions.
+
+| Field | Meaning |
+|---|---|
+| `app_alive`, `process_alive` | At least one application PID, or the original target PID, is confirmed present. `process_alive` is the compatibility alias for application presence. |
+| `package_process_alive`, `process_pids` | Result of the package-name PID lookup. |
+| `target_pid_alive`, `target_pid` | Presence of the original PID, checked independently when the package lookup does not contain it. Session reuse requires this exact PID to be confirmed alive. |
+| `pid_changed` | The old PID is confirmed absent while the application has other PIDs. This is distinct from `app_not_running`. |
+| `process_frozen`, `process_cached`, `process_state_code` | Values from the exact PID's ActivityManager block. Missing, ambiguous, restricted or timed-out observations remain `null`. |
+| `process_background` | `true` when Android explicitly reports cached/frozen state; otherwise `null`, since uncached does not by itself prove foreground state. |
+| `device_reachable` | ADB reachability observed during the read-only process probes. Frida transport/script flags separately describe the lifecycle state. |
+
+PID and freezer inspection share the configured status timeout budget. A failed
+freezer probe does not erase independently confirmed PID liveness. The probe never
+changes Android's freezer configuration or brings an app to the foreground.
+
+Failures carry an operation ID, target snapshot and session/script generations.
+`last_failure` may retain history; `last_failure_is_current` says whether it still
+applies to the current attempt and target. A new operation or target prevents an
+old failure from becoming the current diagnosis. Successful log-path operations
+clear the previous path error. An unsubstantiated historical log diagnosis is
+ignored when the path checks healthy; an actual file-operation exception remains
+visible even when the path is writable, since disk exhaustion and other I/O
+failures are independent of permission checks.
+
+Recovery guidance favors foregrounding an existing frozen app, waiting for tracked
+cleanup, or attaching to a confirmed replacement PID with `spawn=False`. App
+relaunch or spawn requires explicit caller approval and preservation of account
+and data state. Classification and status inspection themselves never restart an
+app or clear its data.
+
 ## Validation
 
 The host tests inject preparation, compilation, cleanup, unload, and load

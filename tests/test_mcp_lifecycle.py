@@ -49,6 +49,8 @@ class MCPLifecycleTests(unittest.TestCase):
         bridge._uninstall_stdout_proxy = Mock()
         bridge._process_status = Mock(return_value={
             'process_alive': True, 'process_pids': [123], 'process_alive_error': None,
+            'app_alive': True, 'target_pid_alive': True, 'target_pid': 123,
+            'pid_changed': False, 'device_reachable': True,
         })
         bridge._target_pid_alive = Mock(return_value=True)
         bridge._inspect_output_log = Mock(return_value={'writable': True, 'module_banners': {}})

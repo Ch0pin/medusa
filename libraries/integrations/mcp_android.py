@@ -53,6 +53,32 @@ TOOL_CALL_HISTORY_LIMIT = 200
 EVENT_BUFFER_LIMIT = 500
 TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 
+
+class _DeviceExceptionProbe:
+    """Observe Frida errors that the legacy parser logs instead of raising.
+
+    Calls, arguments and the parser's existing fallback behavior are preserved.
+    Only the MCP caller consumes the captured exception after a failed attach.
+    """
+
+    def __init__(self, device: Any):
+        self.device = device
+        self.last_error: Exception | None = None
+        self.stage: str | None = None
+
+    def __getattr__(self, name: str) -> Any:
+        value = getattr(self.device, name)
+        if name not in {"attach", "spawn", "kill", "resume"}:
+            return value
+        def invoke(*args, **kwargs):
+            try:
+                return value(*args, **kwargs)
+            except Exception as exc:
+                self.last_error = exc
+                self.stage = name
+                raise
+        return invoke
+
 # Instance A — port 8001
 # MEDUSA_MCP_TRANSPORT=streamable-http MEDUSA_MCP_PORT=8001 python medusa_android_mcp.py
 
@@ -134,6 +160,8 @@ class MedusaAndroidBridge:
         self.tool_call_history: list[dict[str, Any]] = []
         self.tool_call_sequence = 0
         self.last_failure: dict[str, Any] | None = None
+        self.failure_context: dict[str, Any] | None = None
+        self._failure_exception: Exception | None = None
         self.attach_timeout_seconds = float(os.getenv("MEDUSA_MCP_ATTACH_TIMEOUT", "60"))
         self.detach_timeout_seconds = float(os.getenv("MEDUSA_MCP_DETACH_TIMEOUT", "10"))
         self.status_timeout_seconds = float(os.getenv("MEDUSA_MCP_STATUS_TIMEOUT", "2"))
@@ -280,8 +308,14 @@ class MedusaAndroidBridge:
             "action": action,
             "timestamp": time.time(),
             "timestamp_iso": self._operator_timestamp(),
+            "operation_id": self.failure_context.get("id") if self.failure_context else None,
+            "operation": self.failure_context.get("operation") if self.failure_context else None,
+            "target": {key: self.current_target.get(key) for key in ("device_id", "package_name", "pid")},
+            "session_generation": self._lifecycle.session_generation,
+            "script_generation": self._lifecycle.script_generation,
         }
         self.last_failure = failure
+        self._failure_exception = None
         self._record_event(
             {
                 "type": "mcp-failure",
@@ -292,33 +326,86 @@ class MedusaAndroidBridge:
         )
         return failure
 
+    def _begin_failure_context(self, operation: str, operation_id: str | None = None) -> None:
+        self.failure_context = {"id": operation_id or uuid.uuid4().hex, "operation": operation, "started_at": time.time()}
+        self._failure_exception = None
+
+    @staticmethod
+    def _exception_chain(exc: Exception) -> list[BaseException]:
+        chain: list[BaseException] = []
+        current: BaseException | None = exc
+        while current is not None and all(current is not item for item in chain):
+            chain.append(current)
+            current = current.__cause__ or (current.__context__ if not current.__suppress_context__ else None)
+        return chain
+
+    def _failure_is_current(self, target: dict[str, Any]) -> bool:
+        failure = self.last_failure
+        if not failure:
+            return False
+        if failure.get("operation_id") != (self.failure_context.get("id") if self.failure_context else None):
+            return False
+        previous = failure.get("target") or {}
+        for key in ("device_id", "package_name", "pid"):
+            if previous.get(key) is not None and target.get(key) is not None and str(previous[key]) != str(target[key]):
+                return False
+        return (failure.get("session_generation") == self._lifecycle.session_generation
+                and failure.get("script_generation") == self._lifecycle.script_generation)
+
+    def _exception_classification(self, exc: Exception, stage: str) -> tuple[str, str]:
+        root = self._exception_chain(exc)[-1]
+        text = str(root).casefold()
+        kind = type(root).__name__
+        if stage == "output_log":
+            return "log_path_failed", "Inspect the reported filesystem/path error before retrying logging."
+        if stage == "compile" or isinstance(root, SyntaxError) or (
+                "syntaxerror" in text and (stage in {"prepare", "create", "load"} or kind == "InvalidArgumentError")):
+            return "script_compile_failed", "Correct the reported script syntax or assembly error and retry compilation."
+        if "timed out while waiting for stop from process" in text and (
+                stage in {"attach", "spawn", "resolve_process"} or kind in {"TimedOutError", "ProcessNotRespondingError"}):
+            return "process_stop_timeout", (
+                "Check the target PID and freezer state. If frozen, bring the existing app to the foreground and retry. "
+                "Relaunch the app only with explicit caller approval, preserving account and data state."
+            )
+        if re.search(r"device.*(?:offline|not found|unauthorized)|no devices/emulators found", text):
+            return "device_offline", "Reconnect or authorize the selected device and recheck its reachability."
+        if kind == "ServerNotRunningError":
+            return "frida_offline", "Verify the Frida server is reachable on the selected device."
+        if kind in {"TransportError", "ProtocolError"} or any(
+                phrase in text for phrase in ("connection is closed", "connection terminated", "connection refused")):
+            return "frida_transport_error", "Check the Frida connection and retained cleanup state before reattaching."
+        if kind in {"ProcessNotFoundError", "ProcessLookupError"}:
+            return "target_process_not_found", "Recheck the original PID and the application's current PIDs before attaching."
+        if kind == "PermissionDeniedError":
+            return "frida_permission_denied", "Check the Frida attach permissions reported by the device."
+        if stage.endswith("_timeout"):
+            return "operation_timeout", "Inspect the tracked operation; wait for its completion and cleanup before retrying."
+        if kind in {"TimedOutError", "ProcessNotRespondingError"}:
+            return "frida_timeout", "Check the target PID, freezer state and Frida transport before retrying."
+        if stage == "cleanup" and "timed out" in text:
+            return "cleanup_timeout", "Check whether the app is frozen; bring it to the foreground if needed, then retry the retained cleanup."
+        if stage in {"attach", "spawn", "resolve_process"}:
+            return "attach_failed", "Inspect the underlying exception and current process state before retrying."
+        return "script_lifecycle_failed", "Inspect the failed stage; complete cleanup before reattaching."
+
     def _set_failure_from_exception(self, tool_name: str, exc: Exception) -> dict[str, Any] | None:
+        if (self._failure_exception is not None
+                and any(item is self._failure_exception for item in self._exception_chain(exc))
+                and self._failure_is_current(self.current_target)):
+            return self.last_failure
         if isinstance(exc, ScriptLifecycleError):
             return self._lifecycle_failure(exc)
-        text = str(exc)
-        lowered = text.casefold()
-        if "force_restart=true" in lowered or "invalid package scope" in lowered:
+        lowered = str(exc).casefold()
+        if "invalid package scope" in lowered or (
+                lowered.startswith(("cannot ", "refusing ")) and any(part in lowered for part in (
+                    "force_restart=true", "still in progress", "cleanup is still pending"))):
             return None
-        if (
-            "device offline" in lowered
-            or "device not found" in lowered
-            or "no devices/emulators found" in lowered
-        ):
-            return self._set_failure("device_offline", text, "Reconnect or wake the Android device.")
-        if "frida" in lowered and (
-            "unable to connect" in lowered
-            or "connection refused" in lowered
-            or "closed" in lowered
-            or "not reachable" in lowered
-        ):
-            return self._set_failure("frida_offline", text, "Verify the Frida device/session is reachable.")
-        if "compile" in lowered or "script is compiled" in lowered or "syntaxerror" in lowered:
-            return self._set_failure("script_compile_failed", text, "Fix or clear the staged hook script/modules.")
-        if "output" in lowered and ("log" in lowered or "path" in lowered):
-            return self._set_failure("log_path_failed", text, "Set a writable .log output path.")
-        if tool_name in {"attach_app", "ensure_session", "restart_app"}:
-            return self._set_failure("attach_failed", text, "Check device, process state, Frida, and staged modules.")
-        return None
+        stage = "output_log" if tool_name in {
+            "set_output_path", "check_output_log", "clear_output_log", "rotate_output_log",
+        } else "attach" if tool_name in {"attach_app", "ensure_session", "restart_app"} else "unknown"
+        if stage == "unknown" and self._exception_classification(exc, stage)[0] == "script_lifecycle_failed":
+            return None
+        return self._lifecycle_failure(exc, stage)
 
     def _capture_console_output(self, data: str) -> None:
         with self._console_lock:
@@ -446,15 +533,14 @@ class MedusaAndroidBridge:
 
     def _lifecycle_failure(self, exc: Exception, stage: str | None = None) -> dict[str, Any]:
         failure_stage = getattr(exc, "stage", stage or "unknown")
-        cause = exc.__cause__ or exc
-        failure = self._set_failure(
-            "script_compile_failed" if failure_stage == "compile" else "script_lifecycle_failed",
-            str(exc), "Inspect the failed stage; retry cleanup before reattaching. App restart requires explicit approval.",
-        )
+        cause = self._exception_chain(exc)[-1]
+        category, action = self._exception_classification(exc, failure_stage)
+        failure = self._set_failure(category, str(exc), action)
         failure.update(stage=failure_stage, exception_type=type(cause).__name__,
                        exception_message=str(cause),
                        traceback="".join(traceback.format_exception(exc)),
                        **self._runtime_status())
+        self._failure_exception = exc
         return failure
 
     def _release_exited_target(self) -> None:
@@ -483,7 +569,7 @@ class MedusaAndroidBridge:
             "Same-process reattachment is blocked while cleanup is uncertain.",
         )
 
-    def _target_pid_alive(self, target: dict[str, Any]) -> bool | None:
+    def _target_pid_alive(self, target: dict[str, Any], timeout: float | None = None) -> bool | None:
         """Confirm PID absence independently of the package's process name."""
         try:
             pid = int(target["pid"])
@@ -491,7 +577,8 @@ class MedusaAndroidBridge:
                 return None
             result = subprocess.run(
                 ["adb", "-s", str(target["device_id"]), "shell", "ps", "-A", "-o", "PID"],
-                capture_output=True, text=True, check=False, timeout=self.status_timeout_seconds,
+                capture_output=True, text=True, check=False,
+                timeout=self.status_timeout_seconds if timeout is None else timeout,
             )
             rows = result.stdout.split()
             if result.returncode != 0 or result.stderr.strip() or len(rows) < 2 or rows[0] != "PID":
@@ -974,28 +1061,26 @@ class MedusaAndroidBridge:
         safe_package = package_name.replace(os.sep, "_")
         output_target = Path(output_path).expanduser()
 
-        # If a filename is provided, use it exactly. Otherwise treat the value
-        # as a directory and create a per-session log file inside it.
-        if output_target.suffix:
-            _validate_log_file_path(output_target)
-            output_target.parent.mkdir(parents=True, exist_ok=True)
-            output_path = output_target.resolve()
-        else:
-            output_root = output_target.resolve()
-            output_root.mkdir(parents=True, exist_ok=True)
-            output_path = output_root / f"{safe_package}-{timestamp}.log"
-
         try:
+            # All validation, directory creation and file opening belong to the
+            # output stage; no inference from an exception mentioning "log".
+            if output_target.suffix:
+                _validate_log_file_path(output_target)
+                output_target.parent.mkdir(parents=True, exist_ok=True)
+                output_path = output_target.resolve()
+            else:
+                output_root = output_target.resolve()
+                output_root.mkdir(parents=True, exist_ok=True)
+                output_path = output_root / f"{safe_package}-{timestamp}.log"
             self.recording_file = output_path.open("a", encoding="utf-8")
         except Exception as exc:
-            self._set_failure(
-                "log_path_failed",
-                f"Unable to open output log {output_path}: {exc}",
-                "Set a writable .log output path or directory.",
-            )
+            error = ScriptLifecycleError("output_log", f"Unable to prepare output path {output_target}: {exc}")
+            error.__cause__ = exc
+            failure = self._lifecycle_failure(error)
+            failure["output_path"] = str(Path(output_path).expanduser().resolve())
             if self.stdout_proxy is not None:
                 self.stdout_proxy.set_file_stream(None)
-            raise
+            raise error from exc
         if self.stdout_proxy is not None:
             self.stdout_proxy.set_file_stream(self.recording_file)
         self.output_path = str(output_path)
@@ -1224,6 +1309,55 @@ class MedusaAndroidBridge:
 
         return health
 
+    @staticmethod
+    def _output_condition(health: dict[str, Any]) -> dict[str, Any]:
+        if (health.get("output_path") and health.get("is_directory") is True
+                and Path(health["output_path"]).suffix):
+            return {"category": "log_path_failed", "message": "The configured log-file path is a directory.",
+                    "action": "Choose a .log file, or a directory path without a file suffix."}
+        if health.get("output_path") and health.get("writable") is False:
+            return {"category": "log_path_failed", "message": health.get("writable_error") or
+                    f"Output path is not writable: {health['output_path']}",
+                    "action": "Fix the reported path permissions or select a writable output path."}
+        if health.get("output_path") and health.get("error"):
+            return {"category": "log_inspection_failed", "message": health["error"],
+                    "action": "Inspect the reported log read/metadata error."}
+        return {"category": "none", "message": None, "action": None}
+
+    @staticmethod
+    def _process_condition(status: dict[str, Any]) -> dict[str, Any]:
+        if status.get("device_reachable") is False:
+            return {"category": "device_offline", "message": status.get("process_alive_error"),
+                    "action": "Reconnect or authorize the selected device, then retry the read-only status check."}
+        if status.get("pid_changed") is True:
+            return {"category": "target_pid_changed",
+                    "message": f"Original PID {status.get('target_pid')} exited; current application PIDs: {status.get('process_pids')}.",
+                    "action": "Finish previous-session cleanup, then explicitly attach to a current PID with spawn=False."}
+        if status.get("process_frozen") is True:
+            return {"category": "process_frozen",
+                    "message": f"Android reports PID {status.get('process_state_pid')} as frozen.",
+                    "action": "Bring the existing app to the foreground and retry the retained operation; preserve its process and account state."}
+        if status.get("target_pid_alive") is False and status.get("app_alive") is not False:
+            return {"category": "target_process_exited", "message": "The original target PID is no longer present.",
+                    "action": "Recheck application PIDs and complete old-session cleanup before an explicit attach."}
+        if status.get("app_alive") is False:
+            return {"category": "app_not_running", "message": "No application process is currently confirmed running.",
+                    "action": "Ask the caller to open the app; attach to its existing process. Relaunch/spawn requires explicit caller approval."}
+        return {"category": "none", "message": None, "action": None}
+
+    def _current_failure(self, target: dict[str, Any], output_health: dict[str, Any]) -> dict[str, Any] | None:
+        if not self._failure_is_current(target):
+            return None
+        failure = dict(self.last_failure)
+        if failure["category"] == "log_path_failed" and failure.get("stage") != "output_log":
+            failed_path = failure.get("output_path")
+            inspected_path = output_health.get("output_path")
+            if inspected_path and (failed_path is None or str(failed_path) == str(inspected_path)):
+                if output_health.get("writable") is True and self._output_condition(output_health)["category"] == "none":
+                    return None
+        failure["age_seconds"] = round(time.time() - failure["timestamp"], 3)
+        return failure
+
     def _classify_failure(
         self,
         process_status: dict[str, Any] | None = None,
@@ -1234,64 +1368,29 @@ class MedusaAndroidBridge:
             process_status = self._process_status(target)
         if output_health is None:
             output_health = self._inspect_output_log()
-
-        output_path = output_health.get("output_path")
-        if output_path and output_health.get("error") and not output_health.get("is_directory"):
-            return {
-                "category": "log_path_failed",
-                "message": str(output_health.get("error")),
-                "action": "Set a writable .log output path.",
-            }
-        if output_path and output_health.get("writable") is False:
-            return {
-                "category": "log_path_failed",
-                "message": f"Output log is not writable: {output_path}",
-                "action": "Fix permissions or choose another .log output path.",
-            }
-
-        process_error = str(process_status.get("process_alive_error") or "")
-        lowered_error = process_error.casefold()
-        if (
-            "device offline" in lowered_error
-            or "device not found" in lowered_error
-            or "no devices/emulators found" in lowered_error
-        ):
-            return {
-                "category": "device_offline",
-                "message": process_error,
-                "action": "Reconnect or wake the Android device.",
-            }
-        if process_status.get("process_alive") is False and target.get("package_name"):
-            return {
-                "category": "app_not_running",
-                "message": f"{target.get('package_name')} is not running on {target.get('device_id')}.",
-                "action": "Start the app or reattach with spawn=True.",
-            }
-
-        attached = bool(self.session and self.script and target.get("attached"))
-        if not attached and self.last_failure:
-            failure = dict(self.last_failure)
-            failure["age_seconds"] = round(time.time() - float(failure.get("timestamp", time.time())), 3)
-            return failure
-
-        loaded_modules = list(target.get("staged_modules") or [])
-        frida_events_seen = any(
-            event.get("type") in {"send", "error", "console"}
-            for event in self.events
-        )
-        module_banners = output_health.get("module_banners") or {}
-        if attached and loaded_modules and not frida_events_seen and not module_banners.get("appeared"):
-            return {
-                "category": "no_module_output_yet",
-                "message": "The session is attached, but no Frida/module output has appeared yet.",
-                "action": "Trigger app behavior covered by the staged modules or verify module selection.",
-            }
-
-        return {
-            "category": "none",
-            "message": None,
-            "action": None,
-        }
+        process_condition = self._process_condition(process_status)
+        output_condition = self._output_condition(output_health)
+        failure = self._current_failure(target, output_health)
+        # A concrete exception keeps precedence over independent health issues.
+        # In particular, mentioning a log filename cannot turn an attach timeout
+        # into a log-path diagnosis.
+        if failure is not None:
+            result = failure
+        elif process_condition["category"] != "none" and (
+                process_condition["category"] != "process_frozen" or self._has_live_session() or self.cleanup_blocked):
+            result = dict(process_condition)
+        elif output_condition["category"] != "none":
+            result = dict(output_condition)
+        elif (self._is_attached() and target.get("staged_modules")
+                and not any(event.get("type") in {"send", "error", "console"} for event in self.events)
+                and not (output_health.get("module_banners") or {}).get("appeared")):
+            result = {"category": "no_module_output_yet",
+                      "message": "The session is attached, but no Frida/module output has appeared yet.",
+                      "action": "Trigger app behavior covered by the staged modules or verify module selection."}
+        else:
+            result = {"category": "none", "message": None, "action": None}
+        result.update(process_condition=process_condition, output_condition=output_condition)
+        return result
 
     def _rotated_log_path(self, path: Path) -> Path:
         timestamp = time.strftime("%Y%m%d-%H%M%S")
@@ -1313,6 +1412,7 @@ class MedusaAndroidBridge:
         if not self._has_live_session():
             return False
         operation_id = uuid.uuid4().hex
+        self._begin_failure_context("reload", operation_id)
         state = self._lifecycle
         original_script = state.script
         result: dict[str, Any] = {}
@@ -1417,6 +1517,7 @@ class MedusaAndroidBridge:
         reload_if_attached: bool = True,
         event_start_index: int | None = None,
     ) -> dict[str, Any]:
+        self._begin_failure_context("compile_and_reload")
         try:
             compile_result = self._compile_with_agent_overlay()
         except Exception as exc:
@@ -1546,7 +1647,7 @@ class MedusaAndroidBridge:
                 or target.get("device_id") == effective_device_id
             )
             same_spawn = bool(target.get("spawn")) == bool(spawn)
-            if same_package and same_device and same_spawn and status.get("process_alive") is True:
+            if same_package and same_device and same_spawn and status.get("target_pid_alive") is True:
                 return {
                     "reused": True,
                     "changed": False,
@@ -1580,8 +1681,14 @@ class MedusaAndroidBridge:
         operation_id = uuid.uuid4().hex
         with self.lock:
             self._ensure_no_attach_in_progress("attach an app")
+            self._begin_failure_context("attach", operation_id)
+            self.current_target = {
+                "package_name": package_name, "device_id": effective_device_id,
+                "spawn": spawn, "pid": pid, "attached": False,
+            }
 
             device = self._ensure_device(effective_device_id)
+            self.current_target["device_id"] = device["id"]
 
             stage_result = {"added": [], "missing": []}
             if reset_staging:
@@ -1632,8 +1739,15 @@ class MedusaAndroidBridge:
 
         def _do_attach():
             try:
-                fs = self.parser.frida_session_handler(parser_device, spawn, package_name, requested_pid)
+                observed_device = _DeviceExceptionProbe(parser_device)
+                fs = self.parser.frida_session_handler(observed_device, spawn, package_name, requested_pid)
+                try:
+                    self.current_target["pid"] = int(self.parser.pid)
+                except (TypeError, ValueError):
+                    pass
                 if fs is None:
+                    if observed_device.last_error is not None:
+                        raise ScriptLifecycleError(observed_device.stage or "attach", str(observed_device.last_error)) from observed_device.last_error
                     attach_result["error_none"] = True
                     return
                 attach_result["session"] = fs
@@ -1799,8 +1913,8 @@ class MedusaAndroidBridge:
             reasons.append("device_mismatch")
         if bool(target.get("spawn")) != bool(spawn):
             reasons.append("spawn_mismatch")
-        if status.get("process_alive") is not True:
-            reasons.append("process_not_confirmed_alive")
+        if status.get("target_pid_alive") is not True:
+            reasons.append("target_pid_not_confirmed_alive")
         if missing_modules:
             reasons.append("missing_modules")
         if normalized_output_path and status.get("output_path") != normalized_output_path:
@@ -1869,6 +1983,7 @@ class MedusaAndroidBridge:
         with self.lock:
             self._ensure_no_attach_in_progress("detach the app")
             operation_id = uuid.uuid4().hex
+            self._begin_failure_context("detach", operation_id)
             last_target = dict(self.current_target)
             output_path = self.output_path
             self.detach_in_progress = {
@@ -1955,71 +2070,121 @@ class MedusaAndroidBridge:
         self._stop_recording()
         self._uninstall_stdout_proxy()
 
+    @staticmethod
+    def _parse_android_process_state(dump: str, pid: int) -> dict[str, Any]:
+        result = {"process_state_pid": pid, "process_frozen": None, "process_cached": None,
+                  "process_background": None, "process_state_code": None, "process_state_error": None}
+        lines = dump.splitlines()
+        pattern = re.compile(r"^\s*\*APP\*.*?ProcessRecord\{[^}]*?\s" + str(pid) + r":")
+        starts = [index for index, line in enumerate(lines) if pattern.search(line)]
+        if len(starts) != 1:
+            result["process_state_error"] = "Exact target PID block is unavailable or ambiguous in ActivityManager output"
+            return result
+        start = starts[0]
+        indent = len(lines[start]) - len(lines[start].lstrip())
+        end = next((i for i in range(start + 1, len(lines)) if lines[i].strip()
+                    and len(lines[i]) - len(lines[i].lstrip()) <= indent), len(lines))
+        block = "\n".join(lines[start:end])
+        for field, token in (("process_frozen", "isFrozen"), ("process_cached", "cached")):
+            matches = set(re.findall(r"\b" + token + r"=(true|false)\b", block))
+            if len(matches) == 1:
+                result[field] = matches.pop() == "true"
+        state = re.search(r"\bcurProcState=(-?\d+)\b", block)
+        if state:
+            result["process_state_code"] = int(state.group(1))
+        # Cached/frozen is positive evidence of background state. Uncached is
+        # not proof of foreground, so preserve unknown instead of guessing.
+        if result["process_cached"] is True or result["process_frozen"] is True:
+            result["process_background"] = True
+        if result["process_frozen"] is None:
+            result["process_state_error"] = "Freezer state is not exposed unambiguously for this PID"
+        return result
+
+    def _android_process_state(self, target: dict[str, Any], pid: int, timeout: float) -> dict[str, Any]:
+        result = {"process_state_pid": pid, "process_frozen": None, "process_cached": None,
+                  "process_background": None, "process_state_code": None, "process_state_error": None}
+        if timeout <= 0:
+            result["process_state_error"] = "Process status time budget exhausted before freezer inspection"
+            return result
+        try:
+            observed = subprocess.run(
+                ["adb", "-s", str(target["device_id"]), "shell", "dumpsys", "activity", "processes"],
+                capture_output=True, text=True, check=False, timeout=timeout,
+            )
+            if observed.returncode != 0 or observed.stderr.strip():
+                result["process_state_error"] = observed.stderr.strip() or "ActivityManager inspection failed"
+            else:
+                result = self._parse_android_process_state(observed.stdout, pid)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            result["process_state_error"] = str(exc)
+        result["process_state_observed_at"] = time.time()
+        return result
+
     def _process_status(self, target: dict[str, Any]) -> dict[str, Any]:
-        package_name = target.get("package_name")
-        device_id = target.get("device_id")
-        expected_pid = target.get("pid")
-
+        package_name, device_id = target.get("package_name"), target.get("device_id")
+        try:
+            expected_pid = int(target["pid"]) if target.get("pid") is not None else None
+            if expected_pid is not None and expected_pid <= 0:
+                expected_pid = None
+        except (TypeError, ValueError):
+            expected_pid = None
+        status: dict[str, Any] = {
+            "process_alive": None, "app_alive": None, "package_process_alive": None,
+            "process_alive_error": None, "process_pids": [], "process_pid_matches_target": None,
+            "target_pid": expected_pid, "target_pid_alive": None, "pid_changed": None,
+            "device_reachable": None, "process_frozen": None, "process_cached": None,
+            "process_background": None, "process_state_pid": None, "process_state_code": None,
+            "process_state_error": None, "process_status_observed_at": time.time(),
+        }
         if not package_name or not device_id:
-            return {
-                "process_alive": None,
-                "process_alive_error": "no target package/device",
-                "process_pids": [],
-                "process_pid_matches_target": None,
-            }
-
+            status["process_alive_error"] = "no target package/device"
+            return status
+        deadline = time.monotonic() + self.status_timeout_seconds
         try:
             result = subprocess.run(
                 ["adb", "-s", str(device_id), "shell", "pidof", str(package_name)],
-                capture_output=True,
-                text=True,
-                timeout=self.status_timeout_seconds,
-                check=False,
+                capture_output=True, text=True, timeout=max(0.001, self.status_timeout_seconds), check=False,
             )
-        except subprocess.TimeoutExpired:
-            return {
-                "process_alive": None,
-                "process_alive_error": f"pidof timed out after {self.status_timeout_seconds}s",
-                "process_pids": [],
-                "process_pid_matches_target": None,
-            }
-        except Exception as exc:
-            return {
-                "process_alive": None,
-                "process_alive_error": str(exc),
-                "process_pids": [],
-                "process_pid_matches_target": None,
-            }
-
-        stdout = result.stdout.strip()
-        stderr = result.stderr.strip()
-        if result.returncode != 0 and not stdout:
-            return {
-                "process_alive": None if stderr else False,
-                "process_alive_error": stderr or None,
-                "process_pids": [],
-                "process_pid_matches_target": False if expected_pid else None,
-            }
-
-        pids: list[int] = []
-        for token in stdout.split():
-            try:
-                pids.append(int(token))
-            except ValueError:
-                pass
-
-        pid_matches = None
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            status["process_alive_error"] = str(exc)
+            return status
+        stdout, stderr = result.stdout.strip(), result.stderr.strip()
+        if re.search(r"device.*(?:offline|not found|unauthorized)|no devices/emulators found", stderr.casefold()):
+            status.update(device_reachable=False, process_alive_error=stderr)
+            return status
+        tokens = stdout.split()
+        if result.returncode not in (0, 1) or stderr or any(not token.isdecimal() or int(token) <= 0 for token in tokens):
+            status["process_alive_error"] = stderr or "pidof returned invalid PID data or an unsuccessful status"
+        else:
+            pids = list(dict.fromkeys(int(token) for token in tokens))
+            status.update(process_pids=pids, package_process_alive=bool(pids), device_reachable=True)
+            if expected_pid is not None:
+                status["process_pid_matches_target"] = expected_pid in pids
         if expected_pid is not None:
-            try:
-                pid_matches = int(expected_pid) in pids
-            except (TypeError, ValueError):
-                pid_matches = False
-        return {
-            "process_alive": pid_matches if expected_pid is not None else bool(pids),
-            "process_alive_error": stderr or None,
-            "process_pids": pids,
-            "process_pid_matches_target": pid_matches,
-        }
+            if expected_pid in status["process_pids"]:
+                status["target_pid_alive"] = True
+            else:
+                remaining = deadline - time.monotonic()
+                if remaining > 0:
+                    status["target_pid_alive"] = self._target_pid_alive(target, timeout=remaining)
+                if status["target_pid_alive"] is not None:
+                    status["device_reachable"] = True
+            status["pid_changed"] = (
+                bool(status["process_pids"]) if status["target_pid_alive"] is False
+                else False if status["target_pid_alive"] is True else None
+            )
+        if status["target_pid_alive"] is True or status["package_process_alive"] is True:
+            status["app_alive"] = True
+        elif status["package_process_alive"] is False and (expected_pid is None or status["target_pid_alive"] is False):
+            status["app_alive"] = False
+        # Compatibility alias now describes app presence; callers must use the
+        # separate exact-PID field to decide whether a session can be reused.
+        status["process_alive"] = status["app_alive"]
+        state_pid = expected_pid if status["target_pid_alive"] is True else (
+            status["process_pids"][0] if expected_pid is None and status["process_pids"] else None)
+        if state_pid is not None:
+            status.update(self._android_process_state(target, state_pid, deadline - time.monotonic()))
+        return status
 
     def _output_log_status(self) -> dict[str, Any]:
         if not self.output_path:
@@ -2085,6 +2250,12 @@ class MedusaAndroidBridge:
                 "current_tool_call": dict(self.current_tool_call) if self.current_tool_call else None,
                 "recent_tool_calls": [dict(call) for call in self.tool_call_history[-10:]],
                 "last_failure": dict(self.last_failure) if self.last_failure else None,
+                "failure_context": dict(self.failure_context) if self.failure_context else None,
+                "last_failure_is_current": self._current_failure(target, output_log) is not None,
+                "output_path_ready": (False if failure_classification["output_condition"]["category"] == "log_path_failed"
+                                      else output_log.get("writable")) if output_log.get("output_path") else None,
+                "process_condition": failure_classification["process_condition"],
+                "output_condition": failure_classification["output_condition"],
                 "failure_classification": failure_classification,
                 "attach_in_progress": bool(self.attach_in_progress),
                 "attach_operation": dict(self.attach_in_progress) if self.attach_in_progress else None,
@@ -2150,6 +2321,13 @@ class MedusaAndroidBridge:
                 "output_log": status.get("output_log"),
                 "process_alive": status.get("process_alive"),
                 "process_pids": status.get("process_pids"),
+                **{key: status.get(key) for key in (
+                    "app_alive", "package_process_alive", "target_pid", "target_pid_alive", "pid_changed",
+                    "device_reachable", "process_frozen", "process_cached", "process_background",
+                    "process_state_pid", "process_state_code", "process_state_error", "process_alive_error",
+                    "process_condition", "output_condition", "output_path_ready", "last_failure_is_current",
+                    "failure_context",
+                )},
                 "recording": status.get("recording"),
                 "reload_in_progress": status.get("reload_in_progress"),
                 "last_reload": status.get("last_reload"),

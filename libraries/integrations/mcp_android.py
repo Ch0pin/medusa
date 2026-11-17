@@ -1331,7 +1331,7 @@ class MedusaAndroidBridge:
                     "action": "Reconnect or authorize the selected device, then retry the read-only status check."}
         if status.get("pid_changed") is True:
             return {"category": "target_pid_changed",
-                    "message": f"Original PID {status.get('target_pid')} exited; current application PIDs: {status.get('process_pids')}.",
+                    "message": f"Target PID {status.get('target_pid')} is absent; current application PIDs: {status.get('process_pids')}.",
                     "action": "Finish previous-session cleanup, then explicitly attach to a current PID with spawn=False."}
         if status.get("process_frozen") is True:
             return {"category": "process_frozen",

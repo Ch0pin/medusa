@@ -142,6 +142,8 @@ class FailureClassificationTests(unittest.TestCase):
         result = self.classify(process=dict(self.live, target_pid_alive=False, process_pids=[456], pid_changed=True))
         self.assertEqual(result['category'], 'target_pid_changed')
         self.assertIn('spawn=False', result['action'])
+        self.assertIn('Target PID 123 is absent', result['message'])
+        self.assertNotIn('exited', result['message'])  # The requested PID may never have existed.
 
     def test_frozen_condition_preserves_the_underlying_timeout(self):
         self.bridge._lifecycle_failure(ScriptLifecycleError('cleanup', 'confirmation timed out'))

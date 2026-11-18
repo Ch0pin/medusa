@@ -111,6 +111,9 @@ mango> pull com.my.app
 mango> import /path/to/apk
 ```
 
+Mango can also create verified debuggable APK copies with `patch`, validate/sign split sets with `patchmultiple`, and inject Frida Gadget with `patch gadget`.
+Run `patch --help` or `patch gadget --help` for options. Signing options are optional; the bundled test key remains the default. See the [APK patching guide](docs/mango-apk-patching.md) for requirements, verification, and installation considerations.
+
 ## MCP Server Support
 
 This is optional and not required for the standard Medusa CLI workflow.

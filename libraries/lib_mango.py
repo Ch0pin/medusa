@@ -32,6 +32,7 @@ from libraries.logging_config import setup_logging
 from libraries.lib_adb import AndroidDevice
 from libraries.manifest_diff import ManifestDiff, ManifestParser
 from libraries.android_flags import describe_flags, INTENT_FLAGS, PENDING_INTENT_FLAGS, CONTENT_FLAGS
+from libraries.cli.mango_patch import patch_command
 from libraries.questions import *
 from libraries.lib_guava import *
 
@@ -43,13 +44,9 @@ logger = logging.getLogger(__name__)
 current_dir = os.getcwd()
 
 BASE = os.path.dirname(__file__)
-APKTOOL_URL = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.2.jar"
 MEDUSA_AGENT_URL = "https://github.com/Ch0pin/medusa/files/13833921/agent.zip"
 APKTOOL = os.path.abspath(os.path.join(BASE, '../dependencies/apktool.jar'))
 MEDUSA_AGENT = os.path.abspath(os.path.join(BASE, '../dependencies/agent.apk'))
-DEBUGGABLE_APK = os.getcwd() + "/debuggable.apk"
-ALIGNED_APK = os.getcwd() + "/debuggable_aligned_signed.apk"
-TMP_FOLDER = os.getcwd() + "/tmp_dir"
 SIGNATURE = os.path.abspath(os.path.join(BASE, '../dependencies/common.jks'))
 PLAYSTORE_VERSION_PATTERN_0 = re.compile(r'\[\[\["([0-9]+\.[0-9]+\.[0-9]+)"\]\],\[\[\[33\]\],\[\[\[23,"[0-9]+\.[0-9]+"\]\]\]\]')
 PLAYSTORE_VERSION_PATTERN_1 = re.compile(r'\[\[\["([0-9]+\.[0-9]+(\.[0-9]+)?)"\]\],')
@@ -111,9 +108,16 @@ DESCRIPTION """ + """
 
     man                             Display this message.       
 
-    patch [full path to apk]        Change the debuggable flage of the AndroidManifest.xml to true for a given apk. The 
-                                    command requires apksigner and zipalign to have been installed.
-                                    (Example: patch /path/to/foo.apk)
+    patch [full path to apk]        Create a verified debuggable APK copy. Requires Java, Apktool, apksigner and zipalign.
+                                    Signing options are optional; the bundled test key is used by default.
+                                    Run patch --help for signing keys, output directories and overwrite options.
+
+    patch gadget [apk paths...]     Inject Frida Gadget into an APK or split set. Signing options are optional.
+                                    Run patch gadget --help for ABI, download, loading and signing options.
+
+    patchmultiple [apk paths...]    Patch a base APK and re-sign its matching splits as one validated set.
+                                    Signing options are optional; the bundled test key is used by default.
+                                    Run patchmultiple --help for options.
 
     proxy [get|reset|set] [ip:port] Change/view the connected device's configuration proxy. If adb runs as root it 
                                     can be used with the '-t' flag to set a transparent proxy. 
@@ -706,27 +710,19 @@ $adb remount
         ad.print_native_crash_log()
 
     def do_patch(self, line):
-        """Usage: patch /full/path/to/foo.apk
-        Changes the debuggable flag of the AndroidManifest.xml to true for a given apk. 
-        The command requires apksigner and zipalign to have been installed."""
-
-        if len(line.arg_list) > 0:
-            self.patch_apk(line.arg_list[0])
-        else:
-            logger.error("[!] Usage: patch /full/path/to/foo.apk")
+        """Usage: patch /full/path/to/foo.apk [options]
+        Create a verified debuggable copy. Signing options are optional; the bundled test key is used by default.
+        Run patch --help for signing/output options.
+        Use patch gadget /full/path/to/foo.apk [options] for Frida Gadget injection; see patch gadget --help."""
+        self._patch_files(line.arg_list, multiple=False)
         
 
 
     def do_patchmultiple(self, line):
         """Usage: patchmultiple /full/path/to/foo.apk /full/path/to/split_config.en.apk ...
-        Changes the debuggable flag of the AndroidManifest.xml to true for a given apks. It is used for bundled apk patching.
-        The command requires apksigner and zipalign to have been installed."""
-
-        if len(line.arg_list)>1:
-            for file in line.arg_list:
-                self.patch_apk(file)
-        else:
-            logger.error("[!] Usage: patchmultiple /full/path/to/foo.apk /full/path/to/split_config.en.apk ...")
+        Validate and patch a split APK set. Signing options are optional; the bundled test key is used by default.
+        Run patchmultiple --help for options."""
+        self._patch_files(line.arg_list, multiple=True)
             
 
 
@@ -2182,69 +2178,9 @@ $adb remount
 
 
     def patch_apk(self, file: str):
-        """Patches an apk to make it debuggable"""
-        text_to_search = "<application"
-        replacement_text = '<application android:debuggable="true" '
-        APP_FOLDER = os.path.join(TMP_FOLDER, os.path.basename(file))
+        """Compatibility entry point for patching one APK."""
+        self._patch_files([file], multiple=False)
 
-        if os.path.exists(file):
-            file_name, extension = os.path.splitext(file)
-            ALIGNED_APK = file_name + '_debuggable' + extension
-            try:
-                if not self.does_exist("apksigner"):
-                    logger.error("[!] apksigner is not installed, quitting !")
-                    return
-                if not self.does_exist("zipalign"):
-                    logger.error("[!] zipalign is not installed, quitting !")
-                    return
-                if not os.path.exists(APKTOOL):
-                    if Polar('[?] apktool has not been downloaded, do you want to do it now ?').ask():
-                        logger.info("[+] Downloading apktool from " + APKTOOL_URL + " to " +APKTOOL)
-                        self.download_file(APKTOOL_URL, APKTOOL)
-
-                logger.info("[+] Unpacking the apk...")
-                if os.path.exists(APP_FOLDER):
-                    if Polar('[?] Folder' + APP_FOLDER + ' already exists. Do you want to remove the old resources?').ask():
-                        logger.info("[+] Removing old resources...")
-                        shutil.rmtree(APP_FOLDER)
-                    else:
-                        logger.info("[!] The application will use the existing directory")
-
-                subprocess.run('java -jar ' + APKTOOL + f' d {file} -o {APP_FOLDER}', shell=True)
-
-                logger.info("[+] Extracting the manifest...")
-                with open(APP_FOLDER + '/AndroidManifest.xml', 'rt') as f:
-                    data = f.read()
-
-                logger.info("[+] Setting the debug flag to true...")
-
-                if 'android:debuggable="true"' in data:
-                    logger.error("[!] Application is already debuggable !")
-                else:
-                    data = data.replace(text_to_search, replacement_text)
-
-                    with open(APP_FOLDER + '/AndroidManifest.xml', 'wt') as f:
-                        f.write(data)
-                    logger.info("[+] Repacking the app...")
-                    subprocess.run('java -jar ' + APKTOOL + f' b {APP_FOLDER} -o {DEBUGGABLE_APK}', shell=True)
-                    logger.info("[+] Aligning the apk file...")
-                    subprocess.run(f'zipalign -p -v 4 {DEBUGGABLE_APK} {ALIGNED_APK}', shell=True)
-                    logger.info("[+] Signing the apk...")
-                    subprocess.run(
-                        f'apksigner sign --ks {SIGNATURE} -ks-key-alias common --ks-pass pass:password --key-pass pass:password  {ALIGNED_APK}',
-                        shell=True)
-                    logger.info("[+] Removing the unsigned apk...")
-                    os.remove(DEBUGGABLE_APK)
-                    logger.info("[+] Original file: " + file)
-                    logger.info("[+] Debuggable file: " + ALIGNED_APK)
-
-                if not Polar('[?] Do you want to keep the extracted resources ?').ask():
-                    shutil.rmtree(APP_FOLDER)
-                    if len(os.listdir(TMP_FOLDER)) == 0:
-                        logger.info(f"[+] {TMP_FOLDER} is empty, removing it...")
-                        shutil.rmtree(TMP_FOLDER)
-            except Exception as e:
-                logger.error(e)
-
-        else:
-            logger.error("[!] File doesn't exist.")
+    def _patch_files(self, files, *, multiple):
+        patch_command(files, multiple=multiple, apktool=APKTOOL, keystore=SIGNATURE,
+                      ask=lambda message, default=False: Polar(message, default=default).ask(), logger=logger)

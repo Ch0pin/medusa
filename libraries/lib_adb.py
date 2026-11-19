@@ -63,20 +63,20 @@ class AndroidDevice:
                 logger.warning(f"Received invalid PID value for package '{pkg}': '{pid_str}'")
             return None
 
-    def print_dev_properties(self):
-        print(Fore.GREEN+'\nDevice properties:\n'+Fore.RESET)
-        self.print_dev_property('ro.product.manufacturer')
-        self.print_dev_property('ro.product.name')
-        self.print_dev_property('ro.build.version.')
-        self.print_dev_property('ro.build.id')
-        self.print_dev_property('ro.build.tags')
+    def print_dev_properties(self, *, output=print):
+        output(Fore.GREEN+'\nDevice properties:\n'+Fore.RESET)
+        self.print_dev_property('ro.product.manufacturer', output=output)
+        self.print_dev_property('ro.product.name', output=output)
+        self.print_dev_property('ro.build.version.', output=output)
+        self.print_dev_property('ro.build.id', output=output)
+        self.print_dev_property('ro.build.tags', output=output)
 
-    def print_dev_property(self, prop):
+    def print_dev_property(self, prop, *, output=print):
         for property in self.properties:
             if prop in str(property):
-                print(property.split(':')[0] + ':', end='')
+                output(property.split(':')[0] + ':', end='')
 
-                print(Fore.GREEN + property.split(':')[1] + Fore.RESET)
+                output(Fore.GREEN + property.split(':')[1] + Fore.RESET)
 
     def print_java_crash_log(self):
         p = subprocess.Popen((["adb", "-s", self.id, "logcat", "-s", "AndroidRuntime"]), stdout=subprocess.PIPE,

@@ -114,6 +114,16 @@ mango> import /path/to/apk
 Mango can also create verified debuggable APK copies with `patch`, validate/sign split sets with `patchmultiple`, and inject Frida Gadget with `patch gadget`.
 Run `patch --help` or `patch gadget --help` for options. Signing options are optional; the bundled test key remains the default. See the [APK patching guide](docs/mango-apk-patching.md) for requirements, verification, and installation considerations.
 
+Mango report commands support file redirection, append, and shell pipes:
+
+```text
+show exposure > /path/to/reports/exposure.txt
+show exposure >> /path/to/reports/exposure.txt
+show exposure | grep exported
+```
+
+Reports retain their terminal formatting and use plain text without terminal colour escapes when redirected. Prompts, progress messages, and diagnostics remain on the console. Use quotes around output filenames containing spaces.
+
 ## MCP Server Support
 
 This is optional and not required for the standard Medusa CLI workflow.

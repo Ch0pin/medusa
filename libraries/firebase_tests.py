@@ -164,6 +164,8 @@ def print_security_report_lines(
     firebase_db_url: Optional[str] = None,
     bucket: Optional[str] = None,
     region: str = "us-central1",
+    *,
+    output=print,
 ) -> None:
     """
     Clean, readable report with separators between tests.
@@ -255,20 +257,20 @@ def print_security_report_lines(
             return f"curl \"https://{region}-{project_id}.cloudfunctions.net/<functionName>\""
 
         return None
-    print(SEPARATOR)
+    output(SEPARATOR)
     for idx, r in enumerate(rows):
         badge = status_badge(r.status)
-        print(f"{badge}  {r.test} — {r.result}")
+        output(f"{badge}  {r.test} — {r.result}")
 
         if needs_attention(r.status):
             cmd = curl_for(r.test)
             if cmd:
-                print("  Next step:")
-                print(f"    {cmd}")
+                output("  Next step:")
+                output(f"    {cmd}")
 
         # Print separator between entries (not after the last one)
         if idx != len(rows) - 1:
-            print(SEPARATOR)
+            output(SEPARATOR)
 # --------------------------- Probes ---------------------------
 
 # AUTH

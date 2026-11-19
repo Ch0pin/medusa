@@ -81,15 +81,15 @@ def decode_flags(value: int, flags_dict: dict):
     return [name for name, flag in flags_dict.items() if value & flag]
 
 
-def describe_flags(value: int, flags_dict: dict, title: str = "Flags"):
+def describe_flags(value: int, flags_dict: dict, title: str = "Flags", *, output=print):
     """Pretty-print which flags correspond to a numeric value."""
-    print(f"\n{title}")
-    print("=" * len(title))
-    print(f"Value: {value} (0x{value:X})")
+    output(f"\n{title}")
+    output("=" * len(title))
+    output(f"Value: {value} (0x{value:X})")
     matched = decode_flags(value, flags_dict)
     if matched:
-        print("Matched flags:")
+        output("Matched flags:")
         for flag in matched:
-            print(f"  • {flag}")
+            output(f"  • {flag}")
     else:
-        print("  (No known flags matched)")
+        output("  (No known flags matched)")

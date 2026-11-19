@@ -185,6 +185,7 @@ DESCRIPTION """ + """
     """
 
 class parser(cmd2.Cmd):
+    _report_ansi = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
     NO_APP_LOADED_MSG = "No application is loaded, use the load command to load and app or import a new apk."
     base_directory = os.path.dirname(__file__)
     prompt = Fore.BLUE + Style.BRIGHT + 'mango➤' + Fore.RESET + Style.RESET_ALL
@@ -224,6 +225,17 @@ class parser(cmd2.Cmd):
         )
         self._callback = None 
         self.bind_to(self.observe_device_change)
+
+    def _report(self, *values, sep=' ', end='\n'):
+        """Write report text to cmd2's active stream, retaining print formatting."""
+        if not self.stdout.isatty():
+            values = tuple(self._report_ansi.sub('', str(value)) for value in values)
+        try:
+            print(*values, sep=sep, end=end, file=self.stdout)
+        except BrokenPipeError:
+            # A pipe consumer may finish before the report does (for example head).
+            if self.broken_pipe_warning:
+                self.perror(self.broken_pipe_warning)
 
     @property
     def device(self):
@@ -380,9 +392,9 @@ class parser(cmd2.Cmd):
             notes = self.database.get_all_notes(self.current_app_sha256)
             if notes:
                 for index, sha256, cmt in notes:
-                    logger.info(f'{index}) {cmt}')
+                    self._report(f'{index}) {cmt}')
             else:
-                logger.info("No notes found.")
+                self._report("No notes found.")
 
         elif note_option in ('del', 'update'):
             action = "delete" if note_option == 'del' else "update"
@@ -421,9 +433,9 @@ class parser(cmd2.Cmd):
 
         try:
             flag_value = int(line.arg_list[0], 0)  # Auto-detect base (hex, dec, etc.)
-            describe_flags(flag_value, INTENT_FLAGS, "In the context of Intents:")
-            describe_flags(flag_value, PENDING_INTENT_FLAGS, "In the context of Pending Intents:")
-            describe_flags(flag_value, CONTENT_FLAGS, "In the context of Content Providers:")
+            describe_flags(flag_value, INTENT_FLAGS, "In the context of Intents:", output=self._report)
+            describe_flags(flag_value, PENDING_INTENT_FLAGS, "In the context of Pending Intents:", output=self._report)
+            describe_flags(flag_value, CONTENT_FLAGS, "In the context of Content Providers:", output=self._report)
 
 
         except ValueError:
@@ -467,7 +479,7 @@ class parser(cmd2.Cmd):
             package_name = line.arg_list[0]
             manifests = self.database.get_manifests_for_package(package_name)
             if not manifests or len(manifests) < 2:
-                logger.info(f"Not more than one manifests found for package '{package_name}' to perform a diff.")
+                self._report(f"Not more than one manifests found for package '{package_name}' to perform a diff.")
                 return
             versions = {
                 int(version_code): manifest_bytes.decode('utf-8', errors='ignore')
@@ -475,7 +487,7 @@ class parser(cmd2.Cmd):
             }
             diff_tool = ManifestDiff(package_name, versions)
             text_report = diff_tool.generate_diff_report()
-            print(text_report)
+            self._report(text_report)
         except Exception as e:
             logger.error(f"An error occurred while generating the manifest diff: {e}", exc_info=True)
 
@@ -692,14 +704,14 @@ $adb remount
             topic = line.split(' ')[0]
             h = self.highlight(topic, HELP_MESSAGE)
             if h == '':
-                print(f"[i] No help available for '{topic}'")
+                self._report(f"[i] No help available for '{topic}'")
             else:
-                print(h)
+                self._report(h)
         else:
             line = " "
             topic = "optionally"
             h = self.highlight(topic, HELP_MESSAGE)
-            print(h)
+            self._report(h)
 
     def do_nlog(self, line):
         """Usage: nlog
@@ -744,7 +756,7 @@ $adb remount
                 
                 if match:
                     latest_version = match.group(1).strip()
-                    print(f"{app_id} latest version: {latest_version}")
+                    self._report(f"{app_id} latest version: {latest_version}")
                 else:
                     match = PLAYSTORE_VERSION_PATTERN_1.search(page_content)
                     if match:
@@ -755,7 +767,7 @@ $adb remount
             else:
                 logger.error(f"Failed to retrieve the page. Status code: {response.status_code}")
 
-            print(os.popen(
+            self._report(os.popen(
                 f"adb -s {self.device.id} shell am start -W -a android.intent.action.VIEW -d market://details?id={line.split(' ')[0]}").read())
         else:
             logger.error("Wrong arguments given.")
@@ -853,13 +865,14 @@ $adb remount
         the results as a list of tuples.
         Run: 'show database' to get the db structure including table names"""
 
+        res = None
         try:
-            print(line)
+            self._report(line)
             res = self.database.query_db(str(line))
-            print(res)
+            self._report(res)
 
         except Exception as e:
-            print(e)
+            self.perror(e)
         return res
 
     def do_screencap(self, line):
@@ -928,39 +941,40 @@ $adb remount
                         for j in range(i+1, min(i+3, len(lines))):  # Look max 2 lines ahead
                             match = re.search(r'".*"', lines[j])
                             if match:
-                                logger.info(f"Found resource {hex_string}: {match.group(0)}")
+                                self._report(f"Found resource {hex_string}: {match.group(0)}")
                                 found = True
                                 break 
                 if not found:
-                    logger.info(f"Resource {hex_string} not found in {apk_path}")
+                    self._report(f"Resource {hex_string} not found in {apk_path}")
 
             else:
                 if self.current_app_sha256 is None:
                     logger.error(self.NO_APP_LOADED_MSG) 
-                print(RED + 'Searching Activities:' + RESET)
+                    return
+                self._report(RED + 'Searching Activities:' + RESET)
                 if not self.real_search(what, self.activities):
-                    logger.info(f'No Activities found containing: {what} !')
+                    self._report(f'No Activities found containing: {what} !')
 
-                print(RED + 'Searching Services:' + RESET)
+                self._report(RED + 'Searching Services:' + RESET)
                 if not self.real_search(what, self.services):
-                    logger.info(f'No Services found containing: {what} !')
+                    self._report(f'No Services found containing: {what} !')
 
-                print(RED + 'Searching Receivers:' + RESET)
+                self._report(RED + 'Searching Receivers:' + RESET)
                 if not self.real_search(what, self.receivers):
-                    logger.info(f'No Receivers found containing: {what} !')
+                    self._report(f'No Receivers found containing: {what} !')
 
-                print(RED + 'Searching Providers:' + RESET)
+                self._report(RED + 'Searching Providers:' + RESET)
                 if not self.real_search(what, self.providers):
-                    logger.info(f'No Providers found containing: {what} !')
+                    self._report(f'No Providers found containing: {what} !')
 
-                print(RED + 'Searching in resources:' + RESET)
+                self._report(RED + 'Searching in resources:' + RESET)
                 found = False
                 for line1 in self.strings.split('\n'):
                     if what.casefold() in line1:
-                        print(line1.replace(what.casefold(), Fore.GREEN + what.casefold() + Fore.RESET))
+                        self._report(line1.replace(what.casefold(), Fore.GREEN + what.casefold() + Fore.RESET))
                         found = True
                 if not found:
-                    logger.info(f'No Strings found containing: {what} !')
+                    self._report(f'No Strings found containing: {what} !')
         except Exception as e:
             logger.error(e)
 
@@ -1002,9 +1016,9 @@ $adb remount
 
         def print_section(title, func, *args, **kwargs):
             """Unified section printer with consistent style and background."""
-            print(Back.BLUE + Fore.WHITE + Style.BRIGHT + f"[+] {title}:" + Style.RESET_ALL)
+            self._report(Back.BLUE + Fore.WHITE + Style.BRIGHT + f"[+] {title}:" + Style.RESET_ALL)
             func(*args, **kwargs)
-            print()  # small spacing between sections
+            self._report()  # small spacing between sections
 
         if not line.arg_list:
             logger.info(
@@ -1024,7 +1038,7 @@ $adb remount
             self.print_device_info()
         else:
             if self.current_app_sha256 is None:
-                print(self.NO_APP_LOADED_MSG)
+                self.perror(self.NO_APP_LOADED_MSG)
             else:
                 if 'permissions' in what:
                     self.print_permissions()
@@ -1097,13 +1111,13 @@ $adb remount
                 elif 'intentFilters' in what:
                     self.print_intent_filters()
                 elif 'manifest' in what:
-                    print(self.manifest[0][0].decode('utf-8'))
+                    self._report(self.manifest[0][0].decode('utf-8'))
                 elif 'strings' in what:
                     self.print_strings()
                 elif 'libraries' in what:
                     self.print_libraries()
                 elif 'exposure' in what:
-                    print(
+                    self._report(
                         "|----------------------------------- [ ⚠️  ] Potential attack targets [ ⚠️  ] ---------------------------------------|\n[+] Deeplinks:")
                     self.print_deeplinks()
 
@@ -1119,7 +1133,7 @@ $adb remount
                         print_section(title, lambda *_, fs=funcs: [f(False) if f != self.print_permissions else f(True) for f in fs])
 
                     if '-v' in flag:
-                        print(Back.BLUE + Fore.WHITE + Style.BRIGHT + f"[+] Firebase Configuration:" + Style.RESET_ALL)
+                        self._report(Back.BLUE + Fore.WHITE + Style.BRIGHT + f"[+] Firebase Configuration:" + Style.RESET_ALL)
                         found = False
                         keywords = [
                             ('google_app_id', 'google_app_id_value'),
@@ -1139,7 +1153,7 @@ $adb remount
                                     if match:
                                         values = match.group(1)
                                         extracted_values[keyword] = values
-                                        print(f'{keyword.ljust(25)}: {values}') 
+                                        self._report(f'{keyword.ljust(25)}: {values}')
                                         found = True
                         try:
                             project_id = extracted_values.get('project_id')
@@ -1180,8 +1194,8 @@ $adb remount
                                     "configuration_version": "1"
                                 }
                             logger.info(f"Firebase configuration:\n")
-                            print(json.dumps(firebase_config, indent=2))
-                            print(Back.BLUE + Fore.WHITE + Style.BRIGHT + f"[+] Security Test Results:" + Style.RESET_ALL)
+                            self._report(json.dumps(firebase_config, indent=2))
+                            self._report(Back.BLUE + Fore.WHITE + Style.BRIGHT + f"[+] Security Test Results:" + Style.RESET_ALL)
 
                             from libraries.firebase_tests import (
                                 spinner,
@@ -1262,6 +1276,7 @@ $adb remount
                                 firebase_db_url=firebase_db_url,
                                 bucket=google_storage_bucket,
                                 region="us-central1",
+                                output=self._report,
                             )
 
 
@@ -1512,11 +1527,11 @@ $adb remount
                 if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
-                    print(display_text)
+                    self._report(display_text)
         except Exception as e:
             logger.error(e)
         finally:
-            print(Style.RESET_ALL)
+            self._report(Style.RESET_ALL)
 
     def print_activity_alias(self, all=True):
         try:
@@ -1535,11 +1550,11 @@ $adb remount
                 if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
-                    print(display_text)
+                    self._report(display_text)
         except Exception as e:
             logger.error(e)
         finally:
-            print(Style.RESET_ALL)
+            self._report(Style.RESET_ALL)
 
     def print_application_info(self, info):
         if len(info) == 0:
@@ -1550,7 +1565,7 @@ $adb remount
         if(self.manifest):
             sharedUserId = ManifestParser(self.manifest[0][0]).get_manifest_attribute('sharedUserId')
         
-        print(Fore.RED + Style.BRIGHT + """
+        self._report(Fore.RED + Style.BRIGHT + """
 [------------------------------------Package Details---------------------------------------]:
 |    Original Filename :{}
 |    Application Name  :{}
@@ -1572,23 +1587,23 @@ $adb remount
         """.format(info[0][14], info[0][1], info[0][2], sharedUserId, info[0][3], info[0][4],
                    info[0][5], info[0][6], info[0][7], info[0][0], info[0][10], info[0][11],
                    info[0][15], info[0][16]) + Style.RESET_ALL)
-        print(BLUE + "[i] Notes:" + RESET)
+        self._report(BLUE + "[i] Notes:" + RESET)
         notes = self.database.get_all_notes(info[0][0])
         if len(notes) == 0:
-            print("No notes found!")
+            self._report("No notes found!")
         else:
             for index, sha256, cmt in notes:
-                print(f'{index}) {cmt}')
+                self._report(f'{index}) {cmt}')
 
 
     def print_database_structure(self):
         res = self.database.query_db("SELECT name FROM sqlite_master WHERE type='table';")
         for entry in res:
-            print(Fore.GREEN + "-" * 40 + f"\nTable Name: {entry[0]}\n" + "-" * 40 + Fore.RESET)
+            self._report(Fore.GREEN + "-" * 40 + f"\nTable Name: {entry[0]}\n" + "-" * 40 + Fore.RESET)
             columns = self.database.query_db(f"PRAGMA table_info({entry[0]});")
-            print("{c: <25} {t: <15}".format(c="Column Name", t="Type"))
+            self._report("{c: <25} {t: <15}".format(c="Column Name", t="Type"))
             for column in columns:
-                print("{c: <25} {t: <15}".format(c=column[1], t=column[2]))
+                self._report("{c: <25} {t: <15}".format(c=column[1], t=column[2]))
 
     def print_deeplinks(self, quiet=False, max_display=500):
         self.total_deep_links = []
@@ -1617,7 +1632,7 @@ $adb remount
             if component != activity:
                 component = activity
                 if not quiet:
-                    print(
+                    self._report(
                         Fore.GREEN + '-' * len(component) +
                         Fore.YELLOW + '\nDeeplinks that start: ' +
                         Fore.CYAN + f'{component}' +
@@ -1653,34 +1668,34 @@ $adb remount
             if not quiet:
                 #max_display = 500
                 for link in links[:max_display]:
-                    print(link)
+                    self._report(link)
                 if len(links) > max_display:
-                    print(Fore.MAGENTA + f"Showing {max_display} of {len(links)} deeplinks. Use 'show deeplinks -n <number>' to adjust the limit." + Fore.RESET)
+                    self._report(Fore.MAGENTA + f"Showing {max_display} of {len(links)} deeplinks. Use 'show deeplinks -n <number>' to adjust the limit." + Fore.RESET)
         if not quiet:
-            print(Fore.GREEN + f"\n✓ Processed {len(self.deeplinks)} activities. "
+            self._report(Fore.GREEN + f"\n✓ Processed {len(self.deeplinks)} activities. "
                 f"Generated {len(self.total_deep_links)} deeplinks.\n" + Fore.RESET)
 
     def print_device_info(self):   
         if self.device is not None:
-            AndroidDevice(self.device.id).print_dev_properties()
+            AndroidDevice(self.device.id).print_dev_properties(output=self._report)
         else:
             logger.info("No loaded device found!")
 
     def print_intent_filters(self):
         for attribs in self.intent_filters:
             l = len(attribs[0])
-            print(Fore.GREEN + '-' * l + f'\nComponent:{attribs[0]}' + Fore.RESET)
+            self._report(Fore.GREEN + '-' * l + f'\nComponent:{attribs[0]}' + Fore.RESET)
 
             if attribs[1]:
-                print('Action(s): ' + attribs[1].replace('|', ' # '))
+                self._report('Action(s): ' + attribs[1].replace('|', ' # '))
             if attribs[2]:
-                print('Category: ' + attribs[2].replace('|', ' # '))
+                self._report('Category: ' + attribs[2].replace('|', ' # '))
 
-            print(Fore.GREEN + '-' * l + Fore.RESET)
-        print(Style.RESET_ALL)
+            self._report(Fore.GREEN + '-' * l + Fore.RESET)
+        self._report(Style.RESET_ALL)
 
     def print_libraries(self):
-        print('Application Libraries: ' + ' '.join(str(entry) for entry in self.libraries))
+        self._report('Application Libraries: ' + ' '.join(str(entry) for entry in self.libraries))
 
     def print_permissions(self, custom_only=False):
         display_text = ''
@@ -1694,15 +1709,15 @@ $adb remount
                     else:
                         display_text += Fore.RESET
                     display_text += permission[2] + Fore.RESET + '\n'
-                print(display_text, end='')
+                self._report(display_text, end='')
                 display_text = ''
         else:
             for permission in self.permissions:
-                print("#" * 92)
+                self._report("#" * 92)
                 display_text = Fore.GREEN + 'Name:' + Fore.RESET + permission[1] + '\n'
                 display_text += Fore.GREEN + 'Type:' + Fore.RESET + permission[2] + '\n'
                 display_text += Fore.GREEN + 'Description:' + Fore.RESET + permission[4] + '\n'
-                print(display_text)
+                self._report(display_text)
 
     def print_providers(self, all=True):
         try:
@@ -1722,20 +1737,22 @@ $adb remount
                 if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
-                    print(display_text)
+                    self._report(display_text)
         except Exception as e:
             logger.error(e)
         finally:
-            print(Style.RESET_ALL)
+            self._report(Style.RESET_ALL)
 
     def print_proxy(self):
 
         settings = os.popen(f"adb -s {self.device.id} shell settings get global http_proxy").read()
-        print(WHITE + "--------------Global proxy settings-----------------:" + RESET)
-        print(f'Current proxy: {settings}')
-        print(WHITE + "--------------IP tables settings--------------------:" + RESET)
-        output = subprocess.run(f"""adb -s {self.device.id} shell 'echo "iptables -t nat -L" | su'""", shell=True)
-        print(output)
+        self._report(WHITE + "--------------Global proxy settings-----------------:" + RESET)
+        self._report(f'Current proxy: {settings}')
+        self._report(WHITE + "--------------IP tables settings--------------------:" + RESET)
+        output = subprocess.run(f"""adb -s {self.device.id} shell 'echo "iptables -t nat -L" | su'""",
+                                shell=True, stdout=subprocess.PIPE, text=True)
+        self._report(output.stdout, end='')
+        self._report(subprocess.CompletedProcess(output.args, output.returncode))
 
     def print_receivers(self, all=True, flag=None):
         try:
@@ -1744,7 +1761,7 @@ $adb remount
                     (["adb", "-s", self.device.id, "shell", "dumpsys", "activity", "broadcasts", self.package]),
                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 for line in p.stdout:
-                    print(line.decode("utf-8").rstrip())
+                    self._report(line.decode("utf-8").rstrip())
                 return
             display_text = ''
             for attribs in self.receivers:
@@ -1759,11 +1776,11 @@ $adb remount
                 if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
-                    print(display_text)
+                    self._report(display_text)
         except Exception as e:
             logger.error(e)
         finally:
-            print(Style.RESET_ALL)
+            self._report(Style.RESET_ALL)
 
     def print_services(self, all=True):
         try:
@@ -1779,23 +1796,23 @@ $adb remount
                 if (not all) and (not attribs[3] or ('true' not in attribs[3])):
                     continue
                 else:
-                    print(display_text)
+                    self._report(display_text)
         except Exception as e:
             logger.error(e)
         finally:
-            print(Style.RESET_ALL)
+            self._report(Style.RESET_ALL)
 
     def print_secrets(self, verified_only=False):
         try:
-            logger.info("[+] Secrets stored:")
+            self._report("[+] Secrets stored:")
 
             if not self.secrets or not self.secrets[0]:
-                logger.info("No secrets found!")
+                self._report("No secrets found!")
                 return
 
             json_string = self.secrets[0][2]
             if not json_string or not json_string.strip():
-                logger.info("No secrets found!")
+                self._report("No secrets found!")
                 return
 
             json_secrets = json.loads(json_string)
@@ -1827,9 +1844,9 @@ $adb remount
                     bar = "=" * max(40, len(header) + 8)
 
                     if verified:
-                        print(f"{Back.GREEN}{Fore.BLACK}{header}{Style.RESET_ALL}")
+                        self._report(f"{Back.GREEN}{Fore.BLACK}{header}{Style.RESET_ALL}")
                     else:
-                        print(f"{Back.RED}{Fore.BLACK}{header}{Style.RESET_ALL}")
+                        self._report(f"{Back.RED}{Fore.BLACK}{header}{Style.RESET_ALL}")
 
                     # Print fields in order, then any remaining fields
                     printed = set()
@@ -1842,13 +1859,13 @@ $adb remount
                         key_str = f"{Fore.CYAN}{key:<{key_width}}{Style.RESET_ALL}"
                         if "\n" in val:
                             first, *rest = val.splitlines()
-                            print(f"{key_str}: {Fore.WHITE}{first}{Style.RESET_ALL}")
+                            self._report(f"{key_str}: {Fore.WHITE}{first}{Style.RESET_ALL}")
                             for line in rest:
-                                print(f"{' ' * (key_width + 2)}{Fore.WHITE}{line}{Style.RESET_ALL}")
+                                self._report(f"{' ' * (key_width + 2)}{Fore.WHITE}{line}{Style.RESET_ALL}")
                         else:
-                            print(f"{key_str}: {Fore.WHITE}{val}{Style.RESET_ALL}")
+                            self._report(f"{key_str}: {Fore.WHITE}{val}{Style.RESET_ALL}")
 
-                    print(f"{Fore.BLACK}{bar}{Style.RESET_ALL}")
+                    self._report(f"{Fore.BLACK}{bar}{Style.RESET_ALL}")
 
             else:
                 logger.warning("Secrets are not in the expected list format.")
@@ -1860,7 +1877,7 @@ $adb remount
     
     def print_strings(self):
         for string in self.strings.split('\n'):
-            print(string)
+            self._report(string)
 
     ###################################################### real defs start ############################################################
 
@@ -1895,13 +1912,15 @@ $adb remount
         found = False
         for module in obj:
             if word.casefold() in module[1].casefold():
-                print(module[1].replace(word.casefold(), Fore.GREEN + word.casefold() + Fore.RESET))
+                self._report(module[1].replace(word.casefold(), Fore.GREEN + word.casefold() + Fore.RESET))
                 found = True
         return found
 
     ###################################################### rest of defs start ############################################################
 
     def print_avail_apps(self, count_pkg=False, ask=False):
+        # Interactive selection menus stay on the console; listing reports redirect.
+        output = print if ask else self._report
         res = self.database.query_db(
             "SELECT sha256, packageName, versionName, framework, androidManifest FROM Application;"
         )
@@ -1911,13 +1930,13 @@ $adb remount
                 sort_by_exposure = Polar("Sort by exposure (default by package name) ?", False).ask()
             else:
                 sort_by_exposure = False
-            print(
+            output(
                 Fore.GREEN + "[i] Available applications:\n" + Fore.RESET +
                 "-" * 7 + " " + "-" * 35 + "  " + "-" * 20 + "  " + "-" * 60
             )
             
                              
-            print(
+            output(
                 "{0:^7} {1:^35}  {2:^20}  {3:<60}".format(
                     "index",
                     "sha256",
@@ -1926,7 +1945,7 @@ $adb remount
                 )
             )
 
-            print(
+            output(
                 "-" * 7 + " " + "-" * 35 + "  " + "-" * 20 + "  " + "-" * 60
             )
             
@@ -1974,7 +1993,7 @@ $adb remount
                 short_hash = app['sha256'][:30] + "..." if len(app['sha256']) > 30 else app['sha256']
                 suid_field = (app.get('sharedUserId') or "").ljust(20)[:20]  # safe, fixed width 32 chars
 
-                print(
+                output(
                     Fore.CYAN + Style.BRIGHT +
                     "{0:^7} {1:<35}  {2:<20}  {3:<60}".format(
                         idx,

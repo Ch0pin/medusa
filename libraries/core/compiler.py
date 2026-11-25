@@ -37,7 +37,8 @@ def assemble_agent(
         delay = parts[1]
         hooks.append('\n\nsetTimeout(function() {\n')
     hooks.append(layout.preamble)
-    if layout.jni_prolog is not None and any('JNICalls' in mod.path for mod in catalog.staged):
+    if layout.jni_prolog is not None and any('JNICalls' in mod.path or 'JNICalls' in mod.Name.split('/')
+                                           for mod in catalog.staged):
         hooks.append(layout.jni_prolog)
     hooks.append(catalog.compile())
     if delay:

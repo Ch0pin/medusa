@@ -211,9 +211,9 @@ class ParserTests(unittest.TestCase):
                 with self.subTest(platform=platform, method=name):
                     node = method_ast(getattr(app, name))
                     self.assertEqual(ast.dump(node.args, include_attributes=False, **AST_DUMP_OPTIONS), expected['arguments'])
-                    # Device selection is unified; iOS compile uses the new bridge build.
-                    # Dedicated tests exercise these two intentional changes.
-                    if name in {'do_loaddevice', 'do_compile', 'do_exit'}:
+                    # Dedicated tests cover unified selection, compilation, exit
+                    # ownership, and validated multi-root catalog loading.
+                    if name in {'do_loaddevice', 'do_compile', 'do_exit', 'do_reload'}:
                         continue
                     actual = hashlib.sha256(ast.dump(node, include_attributes=False, **AST_DUMP_OPTIONS).encode()).hexdigest()
                     self.assertEqual(actual, expected['ast_sha256'])
@@ -457,6 +457,12 @@ class CompatibilityTests(unittest.TestCase):
             'mcp': importlib.import_module('medusa_android_mcp').MedusaAndroidBridge,
         }
         reviewed_changes = {
+            # Catalog metadata/roots and optional lossless log presentations.
+            ('android', 'do_reload'), ('ios', 'do_reload'),
+            ('mcp', 'list_modules'), ('mcp', 'get_module_source'), ('mcp', '_resolve_module'),
+            ('mcp', '_record_event'), ('mcp', '_install_stdout_proxy'),
+            ('mcp', 'recent_events'), ('mcp', 'tail_output'), ('mcp', '_slice_recent_events'),
+            ('mcp', 'set_hook_script'), ('mcp', 'append_hook_script'), ('mcp', 'clear_hook_script'),
             # MCP device recovery replaces stale same-ID handles; interactive
             # device selection remains covered by the unchanged baseline.
             ('mcp', 'select_device'), ('mcp', '_ensure_device'),

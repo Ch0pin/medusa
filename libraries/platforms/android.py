@@ -1129,10 +1129,8 @@ class Parser(SharedParser):
         logger.info("Loading modules...")
         self.modManager = ModuleManager()
         self.snippets = []
-        for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'modules')):
-            for filename in filenames:
-                if filename.endswith('.med'):
-                    self.modManager.add(os.path.join(root, filename))
+        from libraries.core.modules import configured_module_roots
+        self.modManager.refresh(configured_module_roots(self.base_directory), suffix='.med')
 
         for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'snippets')):
             for filename in sorted(filenames):

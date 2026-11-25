@@ -285,10 +285,8 @@ class Parser(SharedParser):
         """
         print("[i] Loading modules...")
         self.modManager = ModuleManager()
-        for root, directories, filenames in os.walk(os.path.join(self.base_directory, 'modules')):
-            for filename in filenames:
-                if filename.endswith('.imed'):
-                    self.modManager.add(os.path.join(root, filename))
+        from libraries.core.modules import configured_module_roots
+        self.modManager.refresh(configured_module_roots(self.base_directory), suffix='.imed')
 
         if "-r" in line.split(' ')[0]:
             self.modManager.reset()

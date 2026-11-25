@@ -126,6 +126,8 @@ Reports retain their terminal formatting and use plain text without terminal col
 
 ## MCP Server Support
 
+MCP supports module catalog refresh, validated file imports, additional module roots, and optional compact diagnostic views. Raw log files remain complete. See the [module catalog and logging guide](docs/module-catalog-and-logs.md).
+
 This is optional and not required for the standard Medusa CLI workflow.
 
 To use the Android MCP server (`medusa_android_mcp.py`), install the MCP requirements and run:

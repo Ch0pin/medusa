@@ -43,6 +43,8 @@ from libraries.core.sessions import (
     CONTROL_MESSAGE, ScriptLifecycleError, start_script, reload_script, stop_script,
 )
 from libraries.core.state import SessionState
+from libraries.core.modules import ModuleLoadError, configured_module_roots
+from libraries.integrations.log_aggregation import ConsoleAggregator, compact_events, compact_lines, same_console_event, combine_events
 
 from libraries.platforms import android as medusa_app
 
@@ -103,32 +105,71 @@ mcp = MCPServer(
 
 class MedusaAndroidBridge:
     class StdoutMirror:
-        def __init__(self, base_stream, event_callback):
+        def __init__(self, base_stream, event_callback, *, compact=False, context=None):
             self.base_stream = base_stream
             self.event_callback = event_callback
             self.file_stream = None
+            self.compact = compact
+            self.context = context
+            self.lock = threading.RLock()
+            self.console_error = None
+            self.aggregator = ConsoleAggregator(self._display)
+
+        def _display(self, data):
+            try:
+                self.base_stream.write(data)
+            except (BrokenPipeError, ValueError) as exc:
+                self.console_error = str(exc)
+
+        def _flush_display(self):
+            try:
+                self.base_stream.flush()
+            except (BrokenPipeError, ValueError) as exc:
+                self.console_error = str(exc)
 
         def set_file_stream(self, file_stream):
-            self.file_stream = file_stream
+            with self.lock:
+                self.aggregator.finish()
+                self._flush_display()
+                self.file_stream = file_stream
+
+        def set_compact(self, enabled):
+            with self.lock:
+                self.aggregator.finish()
+                self._flush_display()
+                self.compact = enabled
+
+        def finish(self):
+            with self.lock:
+                self.aggregator.finish()
+                self._flush_display()
 
         def write(self, data):
             if not data:
                 return 0
 
-            self.base_stream.write(data)
-            self.base_stream.flush()
-
-            if self.file_stream is not None:
-                self.file_stream.write(data)
-                self.file_stream.flush()
-
-            self.event_callback(data)
+            with self.lock:
+                context = (*self.context(), getattr(self.file_stream, 'name', None)) if self.context else None
+                if self.file_stream is not None:
+                    self.file_stream.write(data)
+                    self.file_stream.flush()
+                if self.compact:
+                    self.aggregator.feed(data, context)
+                else:
+                    self._display(data)
+                self._flush_display()
+                if self.context:
+                    self.event_callback(data, context=context)
+                else:
+                    self.event_callback(data)
             return len(data)
 
         def flush(self):
-            self.base_stream.flush()
-            if self.file_stream is not None:
-                self.file_stream.flush()
+            with self.lock:
+                self.aggregator.finish()
+                self._flush_display()
+                if self.file_stream is not None:
+                    self.file_stream.flush()
 
         def isatty(self):
             return hasattr(self.base_stream, "isatty") and self.base_stream.isatty()
@@ -144,6 +185,7 @@ class MedusaAndroidBridge:
         self.lock = threading.RLock()
         # Frida can emit console output synchronously while a caller owns self.lock.
         self._console_lock = threading.RLock()
+        self._event_lock = threading.RLock()
         self.parser = medusa_app.Parser()
         self.parser.interactive = False
 
@@ -161,6 +203,8 @@ class MedusaAndroidBridge:
         self._cleanup_watched_script = None
         self._shutting_down = False
         self.events: list[dict[str, Any]] = []
+        self._event_sequence = 0
+        self.console_aggregation_enabled = False
         self.last_detach_reason: str | None = None
         self.current_target: dict[str, Any] = {}
         self.output_path: str | None = None
@@ -168,11 +212,13 @@ class MedusaAndroidBridge:
         self.original_stdout = None
         self.stdout_proxy = None
         self.console_buffer = ""
+        self._console_buffer_context = None
         self.selected_device_id: str | None = None
         self._invalid_device = None
         self.last_device_recovery: dict[str, Any] | None = None
         self.selected_output_path: str | None = None
         self.selected_modules: list[str] = []
+        self.module_roots_override: list[str] | None = None
         self.agent_overlay_script = ""
         self.attach_in_progress: dict[str, Any] | None = None
         self.detach_in_progress: dict[str, Any] | None = None
@@ -189,6 +235,11 @@ class MedusaAndroidBridge:
         self.parser.do_reload("dummy")
 
     def _record_event(self, message: dict[str, Any], payload: Any = None) -> None:
+        # This lock is independent of the command lock used by runtime callers.
+        with self._event_lock:
+            self._append_event(message, payload)
+
+    def _append_event(self, message: dict[str, Any], payload: Any = None) -> None:
         event: dict[str, Any] = {
             "timestamp": time.time(),
             "type": message.get("type", "unknown"),
@@ -200,8 +251,12 @@ class MedusaAndroidBridge:
 
         if payload is not None:
             event["has_binary_payload"] = True
-
-        self.events.append(event)
+        self._event_sequence += 1
+        event['event_sequence'] = self._event_sequence
+        if self.console_aggregation_enabled and self.events and same_console_event(self.events[-1], event):
+            self.events[-1] = combine_events(self.events[-1], event)
+        else:
+            self.events.append(event)
         if len(self.events) > EVENT_BUFFER_LIMIT:
             self.events = self.events[-EVENT_BUFFER_LIMIT:]
 
@@ -432,33 +487,55 @@ class MedusaAndroidBridge:
             return None
         return self._lifecycle_failure(exc, stage)
 
-    def _capture_console_output(self, data: str) -> None:
+    def _console_context(self):
+        return self._lifecycle.session_generation, self._lifecycle.script_generation, self.current_target.get('pid')
+
+    def _console_event(self, line, context):
+        context = context or (*self._console_context(), self.output_path)
+        session, script, pid, path = context
+        self._record_event({'type': 'console', 'payload': line,
+                            'observed_session_generation': session, 'observed_script_generation': script,
+                            'observed_pid': pid, 'output_path': path})
+
+    def _capture_console_output(self, data: str, context=None) -> None:
         with self._console_lock:
+            context = context or (*self._console_context(), self.output_path)
+            if context != self._console_buffer_context:
+                if self.console_buffer:
+                    self._console_event(self.console_buffer, self._console_buffer_context)
+                    self.console_buffer = ''
+                self._console_buffer_context = context
             self.console_buffer += data
             while "\n" in self.console_buffer:
                 line, self.console_buffer = self.console_buffer.split("\n", 1)
                 line = line.rstrip("\r")
                 if line:
-                    self._record_event({"type": "console", "payload": line})
+                    self._console_event(line, context)
 
     def _install_stdout_proxy(self) -> None:
         if self.stdout_proxy is not None:
             return
 
         self.original_stdout = sys.stdout
-        self.stdout_proxy = self.StdoutMirror(self.original_stdout, self._capture_console_output)
+        self.stdout_proxy = self.StdoutMirror(self.original_stdout, self._capture_console_output,
+                                              compact=self.console_aggregation_enabled, context=self._console_context)
         sys.stdout = self.stdout_proxy
 
     def _uninstall_stdout_proxy(self) -> None:
+        # Never acquire the mirror lock while holding _console_lock: a Frida
+        # writer calls _capture_console_output while owning the mirror lock.
+        if self.stdout_proxy is not None:
+            self.stdout_proxy.finish()
         with self._console_lock:
             if self.stdout_proxy is None:
                 return
 
             try:
                 if self.console_buffer.strip():
-                    self._record_event({"type": "console", "payload": self.console_buffer.rstrip("\r")})
+                    self._console_event(self.console_buffer.rstrip("\r"), self._console_buffer_context)
             finally:
                 self.console_buffer = ""
+                self._console_buffer_context = None
                 sys.stdout = self.original_stdout
                 self.stdout_proxy = None
                 self.original_stdout = None
@@ -994,9 +1071,12 @@ class MedusaAndroidBridge:
                 modules = [mod for mod in modules if lowered in mod.Name.casefold()]
 
             return {
+                **self.parser.modManager.catalog_status(),
+                "catalog_count": len(self.parser.modManager.available),
                 "count": len(modules),
                 "categories": sorted(self.parser.modManager.categories),
                 "modules": [mod.Name for mod in modules],
+                "module_details": [{"name": mod.Name, "path": mod.path} for mod in modules],
             }
 
     def _resolve_module(self, module_name: str):
@@ -1008,7 +1088,7 @@ class MedusaAndroidBridge:
         if len(prefix_matches) == 1:
             return prefix_matches[0]
         if not prefix_matches:
-            raise RuntimeError(f"No Medusa module matched: {module_name}")
+            raise RuntimeError(f"No Medusa module matched: {module_name}. Use refresh_modules to rescan; list_modules includes roots and load errors.")
 
         raise RuntimeError(
             f"Module name is ambiguous: {module_name}. "
@@ -1025,7 +1105,35 @@ class MedusaAndroidBridge:
                 "path": mod.path,
                 "options": mod.Options,
                 "code": mod.Code,
+                "source": dict(self.parser.modManager.sources.get(mod.path, {})),
             }
+
+    def refresh_modules(self, additional_roots: list[str] | None = None) -> dict[str, Any]:
+        with self.lock:
+            self._ensure_no_attach_in_progress("refresh the module catalog")
+            roots = self.module_roots_override if additional_roots is None else additional_roots
+            resolved = configured_module_roots(self.parser.base_directory, roots)
+            result = self.parser.modManager.refresh(resolved, suffix='.med', preserve_names=self.selected_modules)
+            if additional_roots is not None:
+                self.module_roots_override = list(additional_roots)
+            return {**result, "selected_modules": list(self.selected_modules),
+                    "staged_modules": [mod.Name for mod in self.parser.modManager.staged],
+                    "active_session_changed": False}
+
+    def import_module(self, module_path: str, stage: bool = True) -> dict[str, Any]:
+        with self.lock:
+            self._ensure_no_attach_in_progress("import a module")
+            try:
+                mod = self.parser.modManager.import_file(module_path, suffix='.med')
+            except ModuleLoadError as exc:
+                return {"imported": False, "staged": False, "error": exc.details}
+            if stage:
+                if mod.Name not in self.selected_modules:
+                    self.selected_modules.append(mod.Name)
+                self.parser.modManager.stage_verbadim(mod.Name)
+            return {"imported": True, "staged": stage, "name": mod.Name, "path": mod.path,
+                    "code_length": len(mod.Code), "source": dict(self.parser.modManager.sources.get(mod.path, {})),
+                    "selected_modules": list(self.selected_modules), "active_session_changed": False}
 
     def list_staged_modules(self) -> dict[str, Any]:
         with self.lock:
@@ -1805,7 +1913,12 @@ class MedusaAndroidBridge:
         if start_index < 0:
             start_index = 0
         limit = max(1, min(limit, 100))
-        return self.events[start_index:start_index + limit]
+        events = [dict(event) for event in self.events
+                  if event.get('last_event_sequence', event.get('event_sequence', 0)) > start_index][:limit]
+        for event in events:
+            if event.get('repeat_count', 1) > 1:
+                event['new_repeat_count'] = min(event['repeat_count'], event['last_event_sequence'] - start_index)
+        return events
 
     def _reload_active_script(self, timeout: float = 10.0) -> bool:
         self._ensure_no_attach_in_progress("reload the script")
@@ -1942,7 +2055,7 @@ class MedusaAndroidBridge:
             "reload_skipped_reason": reload_skipped_reason,
             "reload_result": reload_result,
             **self._runtime_status(),
-            "new_event_count": len(self.events) - event_start_index if event_start_index is not None else None,
+            "new_event_count": self._event_sequence - event_start_index if event_start_index is not None else None,
             "new_events": self._slice_recent_events(event_start_index) if event_start_index is not None else [],
             **compile_result,
         }
@@ -1958,7 +2071,7 @@ class MedusaAndroidBridge:
     def set_hook_script(self, script: str, reload_if_attached: bool = True) -> dict[str, Any]:
         with self.lock:
             self._ensure_no_attach_in_progress("set the hook script")
-            event_start_index = len(self.events)
+            event_start_index = self._event_sequence
             self.agent_overlay_script = script
             result = self._apply_agent_script(
                 reload_if_attached=reload_if_attached,
@@ -1970,7 +2083,7 @@ class MedusaAndroidBridge:
     def append_hook_script(self, script: str, reload_if_attached: bool = True) -> dict[str, Any]:
         with self.lock:
             self._ensure_no_attach_in_progress("append to the hook script")
-            event_start_index = len(self.events)
+            event_start_index = self._event_sequence
             self.agent_overlay_script += script
             result = self._apply_agent_script(
                 reload_if_attached=reload_if_attached,
@@ -1982,7 +2095,7 @@ class MedusaAndroidBridge:
     def clear_hook_script(self, reload_if_attached: bool = True) -> dict[str, Any]:
         with self.lock:
             self._ensure_no_attach_in_progress("clear the hook script")
-            event_start_index = len(self.events)
+            event_start_index = self._event_sequence
             self.agent_overlay_script = ""
             result = self._apply_agent_script(
                 reload_if_attached=reload_if_attached,
@@ -2727,6 +2840,9 @@ class MedusaAndroidBridge:
                 "staged_modules": staged_modules,
                 "loaded_modules": loaded_modules,
                 "event_count": len(self.events),
+                "raw_event_count": self._event_sequence,
+                "console_aggregation": {"enabled": self.console_aggregation_enabled,
+                                         "console_error": getattr(self.stdout_proxy, 'console_error', None)},
                 "recording": self.recording_file is not None,
                 "output_path": self.output_path,
                 "output_log": output_log,
@@ -2790,10 +2906,22 @@ class MedusaAndroidBridge:
                 **self._runtime_status(),
             }
 
-    def recent_events(self, limit: int = 50) -> list[dict[str, Any]]:
+    def set_console_aggregation(self, enabled: bool = True) -> dict[str, Any]:
+        with self.lock:
+            self._ensure_no_attach_in_progress("configure console aggregation")
+            if not isinstance(enabled, bool):
+                raise ValueError('enabled must be a boolean')
+            if self.stdout_proxy is not None:
+                self.stdout_proxy.set_compact(enabled)
+            self.console_aggregation_enabled = enabled
+            return {"enabled": enabled, "raw_log_preserved": True,
+                    "scope": "consecutive identical console messages in the same observed context"}
+
+    def recent_events(self, limit: int = 50, compact: bool = False) -> list[dict[str, Any]]:
         with self.lock:
             limit = max(1, min(limit, 200))
-            return self.events[-limit:]
+            events = self.events[-limit:]
+            return compact_events(events) if compact else events
 
     def tail_output(
         self,
@@ -2801,6 +2929,7 @@ class MedusaAndroidBridge:
         since_line: int | None = None,
         line_offset: int | None = None,
         cursor: Any = None,
+        compact: bool = False,
     ) -> dict[str, Any]:
         with self.lock:
             target, source = self._resolve_tail_target()
@@ -2892,6 +3021,11 @@ class MedusaAndroidBridge:
             start_line = max(0, min(start_line, total_lines))
             end_line = min(total_lines, start_line + lines)
             tail = "".join(content_lines[start_line:end_line])
+            presentation = {}
+            if compact:
+                tail, groups = compact_lines(content_lines[start_line:end_line], start_line)
+                presentation = {"compacted": True, "display_line_count": len(tail.splitlines()),
+                                "repeat_groups": groups, "summary_scope": "returned_raw_lines"}
             stat_result = target.stat()
             next_cursor = {
                 "path": str(target),
@@ -2904,6 +3038,7 @@ class MedusaAndroidBridge:
             return {
                 "output_path": str(target),
                 "content": tail,
+                **presentation,
                 "line_count": end_line - start_line,
                 "exists": True,
                 "source": source,
@@ -3031,8 +3166,28 @@ def get_module_source(module_name: str) -> dict[str, Any]:
 
 
 @mcp.tool()
+def refresh_modules(additional_roots: list[str] | None = None) -> dict[str, Any]:
+    """Refresh the module catalog, preserving selected/staged work and the active script.
+
+    None reuses configured roots; [] resets additional roots to none. Roots are
+    session-scoped. MEDUSA_MODULE_ROOTS configures persistent startup defaults.
+    """
+    return _call_tool("refresh_modules", bridge.refresh_modules, additional_roots=additional_roots)
+
+
+@mcp.tool()
+def import_module(module_path: str, stage: bool = True) -> dict[str, Any]:
+    """Validate/import a .med file under its declared Name; optionally stage it for a later compile/attach.
+
+    This does not execute JavaScript or reload the live session. Source paths and
+    schema/name-collision errors are returned without copying Code into scratchpad.
+    """
+    return _call_tool("import_module", bridge.import_module, module_path=module_path, stage=stage)
+
+
+@mcp.tool()
 def list_staged_modules() -> dict[str, Any]:
-    """Show selected modules, currently active staged modules, and hook-script state."""
+    """Show selected/compiler-staged modules and hook-script state; staging does not imply runtime loading."""
     return _call_tool("list_staged_modules", bridge.list_staged_modules)
 
 
@@ -3210,9 +3365,15 @@ def session_summary() -> dict[str, Any]:
 
 
 @mcp.tool()
-def recent_events(limit: int = 50) -> list[dict[str, Any]]:
-    """Return the in-memory event buffer for Frida send/error/attach/detach notifications plus mirrored console output."""
-    return _call_tool("recent_events", bridge.recent_events, limit=limit)
+def recent_events(limit: int = 50, compact: bool = False) -> list[dict[str, Any]]:
+    """Return recent events; compact folds adjacent identical console records with counts and timestamps."""
+    return _call_tool("recent_events", bridge.recent_events, limit=limit, compact=compact)
+
+
+@mcp.tool()
+def set_console_aggregation(enabled: bool = True) -> dict[str, Any]:
+    """Optionally fold repeated console diagnostics with counts; raw disk logs stay complete."""
+    return _call_tool("set_console_aggregation", bridge.set_console_aggregation, enabled=enabled)
 
 
 @mcp.tool()
@@ -3221,8 +3382,9 @@ def tail_output(
     since_line: int | None = None,
     line_offset: int | None = None,
     cursor: Any = None,
+    compact: bool = False,
 ) -> dict[str, Any]:
-    """Read the on-disk Medusa output log by tail or from a specific line offset, with fallback to the selected output path."""
+    """Read a log slice; compact optionally summarizes duplicate lines while cursors retain raw line offsets."""
     return _call_tool(
         "tail_output",
         bridge.tail_output,
@@ -3230,6 +3392,7 @@ def tail_output(
         since_line=since_line,
         line_offset=line_offset,
         cursor=cursor,
+        compact=compact,
     )
 
 

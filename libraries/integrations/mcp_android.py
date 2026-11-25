@@ -18,6 +18,7 @@ default than stdio for MCP clients.
 from __future__ import annotations
 
 import atexit
+import math
 import os
 import re
 import signal
@@ -133,6 +134,13 @@ class MedusaAndroidBridge:
             return hasattr(self.base_stream, "isatty") and self.base_stream.isatty()
 
     def __init__(self) -> None:
+        try:
+            self.attach_stability_window_seconds = float(os.getenv("MEDUSA_MCP_ATTACH_STABILITY_WINDOW", "1"))
+        except ValueError as exc:
+            raise ValueError("MEDUSA_MCP_ATTACH_STABILITY_WINDOW must be between 0 and 10 seconds") from exc
+        if not math.isfinite(self.attach_stability_window_seconds) or not 0 <= self.attach_stability_window_seconds <= 10:
+            raise ValueError("MEDUSA_MCP_ATTACH_STABILITY_WINDOW must be between 0 and 10 seconds")
+        self.last_attach_stability: dict[str, Any] | None = None
         self.lock = threading.RLock()
         # Frida can emit console output synchronously while a caller owns self.lock.
         self._console_lock = threading.RLock()
@@ -515,6 +523,210 @@ class MedusaAndroidBridge:
             "cleanup_result": dict(state.cleanup_result) if state.cleanup_result else None,
             "last_cleanup": dict(self.last_cleanup) if self.last_cleanup else None,
         }
+
+    def _current_attach_stability(self) -> dict[str, Any] | None:
+        report = self.last_attach_stability
+        if not report or any(report.get(key) != getattr(self._lifecycle, key) for key in (
+                "session_generation", "script_generation")):
+            return None
+        if any(str(report.get(key)) != str(self.current_target.get(key)) for key in ("pid", "device_id", "package_name")):
+            return None
+        return dict(report)
+
+    def _stability_sample(self, target, session, script, generations, *, timeout):
+        sample: dict[str, Any] = {"checked_at": time.time(), "pid_alive": None,
+                                  "transport_alive": None, "script_loaded": None}
+        state = self._lifecycle
+        if self._shutting_down:
+            return dict(sample, reason="shutdown")
+        if (state.session is not session or state.script is not script
+                or (state.session_generation, state.script_generation) != generations):
+            return dict(sample, reason="session_or_script_changed")
+        try:
+            sample["pid_alive"] = self._target_pid_alive(target, timeout=timeout)
+        except Exception as exc:
+            sample["pid_error"] = str(exc)
+        if (state.session is not session or state.script is not script
+                or (state.session_generation, state.script_generation) != generations):
+            return dict(sample, reason="session_or_script_changed")
+        try:
+            detached = getattr(session, "is_detached", state.detached)
+            destroyed = getattr(script, "is_destroyed", False)
+            detached = detached() if callable(detached) else detached
+            destroyed = destroyed() if callable(destroyed) else destroyed
+            sample["transport_alive"] = bool(session is not None and not state.detached and detached is not True)
+            sample["script_loaded"] = False if destroyed is True else state.script_loaded
+            if detached is True:
+                state.detached = True
+                self.cleanup_blocked = state.script is not None
+            if destroyed is True:
+                state.script_loaded = False
+                self.cleanup_blocked = True
+        except Exception as exc:
+            sample["state_error"] = str(exc)
+        sample["checked_at"] = time.time()
+        if sample["pid_alive"] is False:
+            sample["reason"] = "target_pid_exited"
+        elif sample["transport_alive"] is False:
+            sample["reason"] = "frida_session_detached"
+        elif sample["script_loaded"] is False:
+            sample["reason"] = "script_unloaded"
+        return sample
+
+    def _observe_attach_stability(self, operation_id: str, target: dict[str, Any]) -> dict[str, Any]:
+        window = self.attach_stability_window_seconds
+        started = time.monotonic()
+        state = self._lifecycle
+        session, script = state.session, state.script
+        generations = (state.session_generation, state.script_generation)
+        report: dict[str, Any] = {
+            "operation_id": operation_id, "package_name": target.get("package_name"),
+            "device_id": target.get("device_id"), "pid": target.get("pid"),
+            "modules": list(target.get("staged_modules") or []),
+            "session_generation": generations[0], "script_generation": generations[1],
+            "requested_window_seconds": window, "started_at": time.time(),
+            "status": "observing", "checks": 0, "unknown_checks": 0,
+            "transport_check": "frida_session_state", "reason": None,
+        }
+        self.last_attach_stability = report
+        # Each PID probe is bounded, including the final probe at the end of the
+        # window. No RPC or user hook code is invoked by these observations.
+        end = started + window
+        probe_budget = 0.5
+        hard_deadline = end + probe_budget
+        if window == 0:
+            report.update(status="disabled", reason="window_disabled")
+        else:
+            while True:
+                operation = self.attach_in_progress or {}
+                if operation.get("id") != operation_id:
+                    report.update(status="failed", reason="attach_operation_changed")
+                    break
+                remaining = hard_deadline - time.monotonic()
+                if remaining <= 0:
+                    report.update(status="inconclusive", reason="observation_deadline")
+                    break
+                final_check = time.monotonic() >= end
+                sample = self._stability_sample(target, session, script, generations,
+                                                timeout=min(probe_budget, remaining))
+                report["checks"] += 1
+                report["last_check"] = sample
+                if sample.get("reason"):
+                    report.update(status="failed", reason=sample["reason"])
+                    break
+                if time.monotonic() > hard_deadline:
+                    report.update(status="inconclusive", reason="observation_deadline")
+                    break
+                if any(sample.get(key) is not True for key in ("pid_alive", "transport_alive", "script_loaded")):
+                    report["unknown_checks"] += 1
+                if final_check:
+                    passed = report["checks"] >= 2 and report["unknown_checks"] == 0
+                    report.update(status="passed" if passed else "inconclusive",
+                                  reason=None if passed else "health_not_confirmed")
+                    break
+                time.sleep(min(0.2, max(0, end - time.monotonic())))
+        # Catch a detach delivered during the final ADB read, including when the
+        # caller explicitly disables the observation delay.
+        if report["status"] != "failed" and (self._shutting_down or state.detached or state.script_loaded is False):
+            report.update(status="failed", reason="session_ended_before_response")
+        report.update(finished_at=time.time(), observed_seconds=round(time.monotonic() - started, 4),
+                      detach_reason=self.last_detach_reason)
+        recent = [event for event in list(self.events)
+                  if event.get("timestamp", 0) >= (self.failure_context or {}).get("started_at", report["started_at"])
+                  and event.get("type") in {"console", "log", "error"}
+                  and event.get("session_generation", generations[0]) == generations[0]]
+        report["recent_output"] = [
+            {"timestamp": event.get("timestamp"), "type": event.get("type"),
+             "text": str(event.get("payload", event.get("description", "")))[:1000]}
+            for event in recent[-10:]
+        ]
+        return report
+
+    def _finish_attach_stability(self, operation_id: str, target: dict[str, Any]) -> dict[str, Any]:
+        try:
+            report = self._observe_attach_stability(operation_id, target)
+        except BaseException:
+            with self.lock:
+                if self.attach_in_progress and self.attach_in_progress.get("id") == operation_id:
+                    self.attach_in_progress = None
+            raise
+        with self.lock:
+            if not self.attach_in_progress or self.attach_in_progress.get("id") != operation_id:
+                return dict(report)
+            self.attach_in_progress = None
+            if self._current_attach_stability() is None:
+                return dict(report)
+            self._sync_lifecycle()
+            self.current_target["attached"] = self._is_attached()
+            if report["status"] in {"failed", "inconclusive"}:
+                category = "attach_unstable" if report["status"] == "failed" else "attach_unverified"
+                failure = self._set_failure(
+                    category, f"Attach observation {report['status']} after {report['observed_seconds']}s: {report['reason']}",
+                    "Inspect the PID, detach details, modules and recent output. Any application restart requires explicit approval.",
+                )
+                failure["attach_stability"] = dict(report)
+            elif self.last_failure and self.last_failure.get("category") in {"attach_unstable", "attach_unverified"}:
+                self.last_failure = None
+                self._failure_exception = None
+            self._record_event({"type": "attach-stability", "status": report["status"],
+                                "pid": report["pid"], "observed_seconds": report["observed_seconds"],
+                                "reason": report["reason"], "operation_id": operation_id})
+        return dict(report)
+
+    def _recheck_attach_stability(self, target: dict[str, Any]) -> bool:
+        with self.lock:
+            report = self._current_attach_stability()
+            if self.attach_stability_window_seconds == 0 or report and report["status"] == "passed":
+                return False
+            self._ensure_no_attach_in_progress("verify attach stability")
+            operation_id = uuid.uuid4().hex
+            self._begin_failure_context("attach_stability", operation_id)
+            self.attach_in_progress = {"id": operation_id, "phase": "stabilizing", "started_at": time.time(),
+                                       "package_name": target.get("package_name"), "pid": target.get("pid")}
+        self._finish_attach_stability(operation_id, target)
+        return True
+
+    def _attach_action(self, status: dict[str, Any], success_action: str) -> str:
+        if not self._is_attached():
+            status["attached"] = False
+        report = self._current_attach_stability()
+        # One last snapshot prevents ensure_session from returning action=attached
+        # alongside a status which already reports a detached/dead target.
+        if status.get("attached") is False or status.get("target_pid_alive") is False:
+            status["attached"] = False
+            if "target" in status:
+                status["target"] = dict(status["target"], attached=False)
+            if report and report["status"] != "failed":
+                report.update(status="failed", reason="session_ended_before_response", finished_at=time.time(),
+                              detach_reason=status.get("last_detach_reason"), failure_phase="response_validation",
+                              response_check={"checked_at": time.time(), "attached": status.get("attached"),
+                                              "pid_alive": status.get("target_pid_alive")})
+                self.last_attach_stability = report
+                failure = self._set_failure("attach_unstable", "Session ended before the attach response was returned.",
+                                            "Inspect session status and recent events before proceeding.")
+                failure["attach_stability"] = dict(report)
+                status["attach_stability"] = dict(report)
+                if "output_log" in status:
+                    status["last_failure"] = dict(failure)
+                    status["failure_classification"] = self._classify_failure(status, status["output_log"])
+            return "attach_unstable"
+        if report and report["status"] == "failed":
+            return "attach_unstable"
+        if report and report["status"] == "passed" and status.get("target_pid_alive") is None:
+            report.update(status="inconclusive", reason="pid_unconfirmed_before_response",
+                          failure_phase="response_validation", finished_at=time.time())
+            self.last_attach_stability = report
+            failure = self._set_failure("attach_unverified", "Final status could not confirm the original target PID.",
+                                        "Recheck process health before proceeding; preserve the existing session.")
+            failure["attach_stability"] = dict(report)
+            status["attach_stability"] = dict(report)
+            if "output_log" in status:
+                status["last_failure"] = dict(failure)
+                status["failure_classification"] = self._classify_failure(status, status["output_log"])
+            return "attach_unverified"
+        if report and report["status"] == "inconclusive":
+            return "attach_unverified"
+        return success_action
 
     def _watch_cleanup(self) -> None:
         # Keep the old generation's cleanup report after the shared loader resets
@@ -1291,7 +1503,9 @@ class MedusaAndroidBridge:
         return bool(self._lifecycle.session is not None and not self._lifecycle.detached)
 
     def _is_attached(self) -> bool:
-        return bool(self._has_live_session() and self._lifecycle.script_loaded is True
+        stability = self._current_attach_stability()
+        return bool(not (stability and stability["status"] == "failed")
+                    and self._has_live_session() and self._lifecycle.script_loaded is True
                     and not self.cleanup_blocked and not self.reload_in_progress
                     and not self.attach_in_progress and not self.detach_in_progress)
 
@@ -1834,19 +2048,24 @@ class MedusaAndroidBridge:
             )
             same_spawn = bool(target.get("spawn")) == bool(spawn)
             if same_package and same_device and same_spawn and status.get("target_pid_alive") is True:
+                if self._recheck_attach_stability(target):
+                    status = self.session_status()
+                action = self._attach_action(status, "reused")
                 return {
                     "reused": True,
                     "changed": False,
+                    "action": action,
                     "device": {
                         "id": target.get("device_id"),
                         "name": str(getattr(self.parser.device, "name", "")) or None,
                         "type": str(getattr(self.parser.device, "type", "")) or None,
                     },
-                    "target": target,
+                    "target": status.get("target", target),
                     "stage_result": {"added": [], "missing": []},
                     "output_path": status.get("output_path"),
                     "status": status,
                     "device_recovery": status.get("device_recovery"),
+                    "attach_stability": self._current_attach_stability(),
                 }
 
             should_detach = bool(self.session or self.script)
@@ -1870,6 +2089,8 @@ class MedusaAndroidBridge:
             self._ensure_no_attach_in_progress("attach an app")
             self._begin_failure_context("attach", operation_id)
             self.last_device_recovery = None
+            self.last_attach_stability = None
+            self.last_detach_reason = None
             self.current_target = {
                 "package_name": package_name, "device_id": effective_device_id,
                 "spawn": spawn, "pid": pid, "attached": False,
@@ -2049,14 +2270,14 @@ class MedusaAndroidBridge:
             raise ScriptLifecycleError("attach", str(error)) from error
 
         with self.lock:
-            if self._shutting_down or self._lifecycle.detached:
+            if self._shutting_down:
                 self.cleanup_blocked = self._lifecycle.script is not None
                 self.attach_in_progress = None
                 self._sync_lifecycle()
                 error = ScriptLifecycleError("attach", "session ended before attach could be committed")
                 self._lifecycle_failure(error)
                 raise error
-            self.cleanup_blocked = False
+            self.cleanup_blocked = bool(self._lifecycle.detached and self._lifecycle.script is not None)
             self._sync_lifecycle()
 
             self.current_target = {
@@ -2064,18 +2285,23 @@ class MedusaAndroidBridge:
                 "device_id": device["id"],
                 "spawn": spawn,
                 "pid": self.parser.pid,
-                "attached": True,
-                "detach_reason": None,
+                "attached": False,
+                "detach_reason": self.last_detach_reason,
                 "staged_modules": staged_modules,
                 "output_path": self.output_path,
             }
-            self.last_detach_reason = None
             self.last_failure = None
             if self.attach_in_progress and self.attach_in_progress.get("id") == operation_id:
-                self.attach_in_progress = None
+                self.attach_in_progress["phase"] = "stabilizing"
+
+        self._finish_attach_stability(operation_id, dict(self.current_target))
+        with self.lock:
+            report = self._current_attach_stability()
+            action = self._attach_action({"attached": self._is_attached(),
+                                          "target_pid_alive": (report or {}).get("last_check", {}).get("pid_alive")}, "attached")
             self._record_event(
                 {
-                    "type": "attached",
+                    "type": "attached" if action == "attached" else action,
                     **self._runtime_status(),
                     "description": package_name,
                     "device_id": device["id"],
@@ -2084,11 +2310,13 @@ class MedusaAndroidBridge:
             )
 
             return {
+                "action": action,
                 "device": device,
-                "target": self.current_target,
+                "target": dict(self.current_target),
                 "stage_result": stage_result,
                 "output_path": output_path_snapshot,
                 "device_recovery": dict(self.last_device_recovery) if self.last_device_recovery else None,
+                "attach_stability": self._current_attach_stability(),
             }
 
     def ensure_session(
@@ -2138,10 +2366,13 @@ class MedusaAndroidBridge:
             reasons.append("output_path_mismatch")
 
         if not reasons:
+            if self._recheck_attach_stability(target):
+                status = self.session_status()
             return {
                 "changed": False,
-                "action": "reused",
+                "action": self._attach_action(status, "reused"),
                 "status": status,
+                "attach_stability": self._current_attach_stability(),
                 "missing_modules": [],
             }
 
@@ -2156,13 +2387,19 @@ class MedusaAndroidBridge:
             reuse_if_attached=False,
             force_restart=force_restart,
         )
+        status = self.session_status()
+        action = self._attach_action(status, attach.get("action", "attached"))
+        if action in {"attach_unstable", "attach_unverified"}:
+            attach = dict(attach, action=action, attach_stability=self._current_attach_stability(),
+                          target=dict(attach["target"], attached=status.get("attached", False)))
         return {
             "changed": True,
-            "action": "attached",
+            "action": action,
             "reasons": reasons,
             "missing_modules": missing_modules,
             "attach": attach,
-            "status": self.session_status(),
+            "status": status,
+            "attach_stability": self._current_attach_stability(),
         }
 
     def restart_app(self, spawn: bool | None = None, force_restart: bool = False) -> dict[str, Any]:
@@ -2468,6 +2705,7 @@ class MedusaAndroidBridge:
                 "recent_tool_calls": [dict(call) for call in self.tool_call_history[-10:]],
                 "last_failure": dict(self.last_failure) if self.last_failure else None,
                 "device_recovery": dict(self.last_device_recovery) if self.last_device_recovery else None,
+                "attach_stability": self._current_attach_stability(),
                 "failure_context": dict(self.failure_context) if self.failure_context else None,
                 "last_failure_is_current": self._current_failure(target, output_log) is not None,
                 "output_path_ready": (False if failure_classification["output_condition"]["category"] == "log_path_failed"
@@ -2544,7 +2782,7 @@ class MedusaAndroidBridge:
                     "device_reachable", "process_frozen", "process_cached", "process_background",
                     "process_state_pid", "process_state_code", "process_state_error", "process_alive_error",
                     "process_condition", "output_condition", "output_path_ready", "last_failure_is_current",
-                    "failure_context", "device_recovery",
+                    "failure_context", "device_recovery", "attach_stability",
                 )},
                 "recording": status.get("recording"),
                 "reload_in_progress": status.get("reload_in_progress"),

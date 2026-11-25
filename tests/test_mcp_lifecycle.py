@@ -39,6 +39,9 @@ class MCPLifecycleTests(unittest.TestCase):
         self.bridge = mcp_android.MedusaAndroidBridge()
         self.addCleanup(self.bridge.cleanup)
         bridge = self.bridge
+        # These fixtures isolate lifecycle operations. Stability-window behavior
+        # is exercised separately with bounded synthetic process probes.
+        bridge.attach_stability_window_seconds = 0
         bridge.parser.pid = 123
         bridge.parser.device = SimpleNamespace(id='fixture-device', name='Fixture', type='usb', resume=Mock())
         bridge.parser.my_message_handler = Mock()

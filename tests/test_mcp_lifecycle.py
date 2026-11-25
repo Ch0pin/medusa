@@ -53,6 +53,10 @@ class MCPLifecycleTests(unittest.TestCase):
             'pid_changed': False, 'device_reachable': True,
         })
         bridge._target_pid_alive = Mock(return_value=True)
+        bridge._read_attach_identity = Mock(return_value={
+            'verified': True, 'pid': 123, 'boot_id': '00000000-0000-0000-0000-000000000001',
+            'start_time_ticks': '12345', 'process_name': 'fixture.package',
+        })
         bridge._inspect_output_log = Mock(return_value={'writable': True, 'module_banners': {}})
         scratch = Module(str(Path(directory) / 'scratchpad.med'), 'scratchpad', '', '', '// human work')
         bridge.parser.modManager.available.append(scratch)

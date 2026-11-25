@@ -457,6 +457,9 @@ class CompatibilityTests(unittest.TestCase):
             'mcp': importlib.import_module('medusa_android_mcp').MedusaAndroidBridge,
         }
         reviewed_changes = {
+            # MCP device recovery replaces stale same-ID handles; interactive
+            # device selection remains covered by the unchanged baseline.
+            ('mcp', 'select_device'), ('mcp', '_ensure_device'),
             ('android', '__init__'), ('ios', '__init__'),
             ('android', 'preloop'), ('ios', 'preloop'),
             ('android', 'do_loaddevice'), ('ios', 'do_loaddevice'),

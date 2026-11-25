@@ -61,10 +61,13 @@ class _DeviceExceptionProbe:
     Only the MCP caller consumes the captured exception after a failed attach.
     """
 
-    def __init__(self, device: Any):
+    def __init__(self, device: Any, observe_attach: Any = None):
         self.device = device
         self.last_error: Exception | None = None
         self.stage: str | None = None
+        self.attach_pid: int | None = None
+        self.attach_identity: dict[str, Any] | None = None
+        self.observe_attach = observe_attach
 
     def __getattr__(self, name: str) -> Any:
         value = getattr(self.device, name)
@@ -72,6 +75,13 @@ class _DeviceExceptionProbe:
             return value
         def invoke(*args, **kwargs):
             try:
+                if name == "attach":
+                    try:
+                        self.attach_pid = int(args[0])
+                    except (IndexError, TypeError, ValueError):
+                        self.attach_pid = None
+                    if self.observe_attach is not None and self.attach_pid is not None:
+                        self.attach_identity = self.observe_attach(self.attach_pid)
                 return value(*args, **kwargs)
             except Exception as exc:
                 self.last_error = exc
@@ -151,6 +161,8 @@ class MedusaAndroidBridge:
         self.stdout_proxy = None
         self.console_buffer = ""
         self.selected_device_id: str | None = None
+        self._invalid_device = None
+        self.last_device_recovery: dict[str, Any] | None = None
         self.selected_output_path: str | None = None
         self.selected_modules: list[str] = []
         self.agent_overlay_script = ""
@@ -361,6 +373,11 @@ class MedusaAndroidBridge:
         if stage == "compile" or isinstance(root, SyntaxError) or (
                 "syntaxerror" in text and (stage in {"prepare", "create", "load"} or kind == "InvalidArgumentError")):
             return "script_compile_failed", "Correct the reported script syntax or assembly error and retry compilation."
+        if self._is_device_gone(exc):
+            return "device_lost", (
+                "Inspect device_recovery for current Frida visibility and the bounded retry result. "
+                "Reselect the device after connectivity recovers; preserve the running app and its data."
+            )
         if "timed out while waiting for stop from process" in text and (
                 stage in {"attach", "spawn", "resolve_process"} or kind in {"TimedOutError", "ProcessNotRespondingError"}):
             return "process_stop_timeout", (
@@ -541,6 +558,8 @@ class MedusaAndroidBridge:
                        traceback="".join(traceback.format_exception(exc)),
                        **self._runtime_status())
         self._failure_exception = exc
+        if self.last_device_recovery and self.last_device_recovery.get("operation_id") == failure.get("operation_id"):
+            failure["device_recovery"] = dict(self.last_device_recovery)
         return failure
 
     def _release_exited_target(self) -> None:
@@ -678,8 +697,10 @@ class MedusaAndroidBridge:
             if selected not in devices:
                 raise RuntimeError(f"Unknown device_id: {selected}")
 
+            # Bind the object actually enumerated, including a fresh handle with
+            # the same ID. The old ID-only shortcut retained dead USB objects.
+            self._bind_device(devices[selected])
             self.selected_device_id = selected
-            self._ensure_device(selected)
             return {
                 "device_id": selected,
                 "name": str(devices[selected].name),
@@ -990,7 +1011,26 @@ class MedusaAndroidBridge:
 
     def _ensure_device(self, device_id: str | None) -> dict[str, Any]:
         selected_id = self._select_device_id(device_id)
-        if getattr(self.parser.device, "id", None) != selected_id:
+        if self.parser.device is not None and self.parser.device is self._invalid_device:
+            recovery = {
+                "operation_id": (self.failure_context or {}).get("id"), "device_id": selected_id,
+                "pid": self.current_target.get("pid"), "started_at": time.time(),
+                "phase": "before_attach", "outcome": "refreshing", "retry_attempted": False,
+            }
+            self.last_device_recovery = recovery
+            candidate = self._enumerate_recovery_device(selected_id, recovery)
+            if candidate is None:
+                recovery.update(outcome="failed", skip_reason="device_absent_or_enumeration_failed")
+                error = frida.InvalidOperationError("device is gone")
+                raise self._recovery_error(error, recovery) from error
+            try:
+                self._bind_device(candidate)
+            except Exception as error:
+                recovery.update(outcome="failed", refresh_error=str(error))
+                raise self._recovery_error(error, recovery) from error
+            recovery["outcome"] = "refreshed"
+            self._record_event({"type": "device-recovery", **recovery})
+        elif getattr(self.parser.device, "id", None) != selected_id:
             self.parser.device_id = selected_id
             self.parser.do_loaddevice("dummy")
 
@@ -999,6 +1039,152 @@ class MedusaAndroidBridge:
             "name": str(self.parser.device.name),
             "type": str(getattr(self.parser.device, "type", "unknown")),
         }
+
+    @staticmethod
+    def _is_device_gone(exc: Exception) -> bool:
+        root = MedusaAndroidBridge._exception_chain(exc)[-1]
+        return (isinstance(root, frida.InvalidOperationError)
+                and any(text in str(root).casefold() for text in ("device is gone", "device is lost")))
+
+    def _bind_device(self, device: Any, *, initialize_controller: bool = True) -> None:
+        lost = getattr(device, "is_lost", False)
+        if callable(lost):
+            lost = lost()
+        if lost is True:
+            raise frida.InvalidOperationError("device is gone; enumerated device is marked lost")
+        previous = self.parser.device
+        controller = self.parser.device_controller
+        if initialize_controller and (getattr(previous, "id", None) != device.id or controller is None):
+            controller = medusa_app.AndroidDevice(device.id)
+        self.parser.device_id = device.id
+        self.parser.device = device
+        self.parser.device_controller = controller
+        native = self.parser.native_handler
+        if native is not None and getattr(native, "device", None) is previous:
+            native.device = device
+        self._invalid_device = None
+
+    def _read_attach_identity(self, device_id: str, pid: int, timeout: float | None = None) -> dict[str, Any]:
+        """Read-only identity check; unknown identity never authorizes a retry."""
+        result: dict[str, Any] = {"pid": pid, "verified": False, "observed_at": time.time()}
+        if pid <= 0 or timeout is not None and timeout <= 0:
+            return dict(result, error="invalid PID or attach deadline exceeded")
+        try:
+            probe = subprocess.run(
+                ["adb", "-s", device_id, "shell", "cat", "/proc/sys/kernel/random/boot_id",
+                 f"/proc/{pid}/stat", f"/proc/{pid}/cmdline"],
+                capture_output=True, text=True, errors="replace", check=False,
+                timeout=self.status_timeout_seconds if timeout is None else min(timeout, self.status_timeout_seconds),
+            )
+            if probe.returncode or probe.stderr.strip():
+                return dict(result, error=probe.stderr.strip() or f"process identity probe exited {probe.returncode}")
+            boot, stat, cmdline = probe.stdout.split("\n", 2)
+            if not re.fullmatch(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", boot):
+                return dict(result, error="invalid device boot identity")
+            if not stat.startswith(f"{pid} ("):
+                return dict(result, error="process stat PID mismatch")
+            fields = stat.rsplit(") ", 1)[1].split()
+            start_time = fields[19]  # /proc/PID/stat field 22; fields[0] is field 3.
+            process_name = cmdline.split("\x00", 1)[0]
+            if not start_time.isdecimal() or not process_name:
+                return dict(result, error="incomplete process identity")
+            return dict(result, verified=True, boot_id=boot, start_time_ticks=start_time, process_name=process_name)
+        except (OSError, subprocess.TimeoutExpired, ValueError, IndexError) as exc:
+            return dict(result, error=str(exc))
+
+    def _enumerate_recovery_device(self, device_id: str, recovery: dict[str, Any]):
+        try:
+            candidate = next((device for device in frida.enumerate_devices() if device.id == device_id), None)
+            recovery["device_enumerated"] = candidate is not None
+            return candidate
+        except Exception as exc:
+            recovery.update(device_enumerated=None, enumeration_error=str(exc))
+            return None
+
+    def _recovery_error(self, error: Exception, recovery: dict[str, Any]) -> ScriptLifecycleError:
+        self._record_event({"type": "device-recovery", **recovery})
+        detail = (f"device_enumerated={recovery.get('device_enumerated')}; "
+                  f"retry_attempted={recovery.get('retry_attempted', False)}; "
+                  f"recovery={recovery.get('outcome')}")
+        if recovery.get("skip_reason"):
+            detail += f"; retry_skipped_reason={recovery['skip_reason']}"
+        return ScriptLifecycleError("attach", f"{error}; {detail}")
+
+    def _retry_lost_device(self, probe: _DeviceExceptionProbe, device_id: str, operation_id: str,
+                           spawn: bool, deadline: float):
+        """One exact-PID attach retry, before any script or partial session exists."""
+        error = probe.last_error
+        self._invalid_device = probe.device
+        recovery: dict[str, Any] = {
+            "operation_id": operation_id, "device_id": device_id, "pid": probe.attach_pid,
+            "started_at": time.time(), "device_enumerated": None, "retry_attempted": False,
+            "outcome": "checking", "identity_before": probe.attach_identity,
+            "original_exception_type": type(error).__name__, "original_error": str(error),
+        }
+        self.last_device_recovery = recovery
+        candidate = self._enumerate_recovery_device(device_id, recovery)
+
+        def skip(reason):
+            recovery.update(outcome="skipped", skip_reason=reason)
+            raise self._recovery_error(error, recovery) from error
+
+        def retry_gate():
+            operation = self.attach_in_progress or {}
+            if self._shutting_down or time.monotonic() >= deadline:
+                return "shutdown_or_attach_deadline"
+            if operation.get("id") != operation_id or operation.get("phase") != "attaching":
+                return "attach_operation_no_longer_active"
+            if (self.cleanup_blocked or self.reload_in_progress or self.detach_in_progress
+                    or self._lifecycle.session is not None or self._lifecycle.script is not None
+                    or self.session is not None or self.script is not None):
+                return "cleanup_not_confirmed"
+            return None
+
+        if spawn:
+            skip("spawn_requested")
+        if probe.stage != "attach" or probe.attach_pid is None:
+            skip("no_failed_pid_attach")
+        # The caller may own self.lock while joining this worker. Mutations are
+        # serialized by attach_in_progress; read its token without waiting on it.
+        reason = retry_gate()
+        if reason:
+            skip(reason)
+        if not probe.attach_identity or probe.attach_identity.get("verified") is not True:
+            skip("original_process_identity_unverified")
+        if candidate is None:
+            skip("device_absent_or_enumeration_failed")
+        after = self._read_attach_identity(device_id, probe.attach_pid, deadline - time.monotonic())
+        recovery["identity_after"] = after
+        if after.get("verified") is not True:
+            skip("current_process_identity_unverified")
+        keys = ("pid", "boot_id", "start_time_ticks", "process_name")
+        if any(after.get(key) != probe.attach_identity.get(key) for key in keys):
+            skip("process_identity_changed")
+        reason = retry_gate()
+        if reason:
+            skip(reason)
+        try:
+            self._bind_device(candidate, initialize_controller=False)
+        except Exception as exc:
+            recovery["refresh_error"] = str(exc)
+            skip("device_refresh_failed")
+        reason = retry_gate()
+        if reason:
+            skip(reason)
+        recovery.update(outcome="retrying", retry_attempted=True,
+                        device_object_replaced=candidate is not probe.device)
+        try:
+            session = candidate.attach(probe.attach_pid)
+        except Exception as retry_error:
+            if self._is_device_gone(retry_error):
+                self._invalid_device = candidate
+            recovery.update(outcome="failed", retry_error=str(retry_error),
+                            retry_exception_type=type(retry_error).__name__)
+            raise self._recovery_error(retry_error, recovery) from retry_error
+        self.parser.pid = probe.attach_pid
+        recovery.update(outcome="recovered", completed_at=time.time())
+        self._record_event({"type": "device-recovery", **recovery})
+        return session
 
     def _reset_staging(self) -> None:
         scratchpad = self.parser.modManager.getModule("scratchpad")
@@ -1660,6 +1846,7 @@ class MedusaAndroidBridge:
                     "stage_result": {"added": [], "missing": []},
                     "output_path": status.get("output_path"),
                     "status": status,
+                    "device_recovery": status.get("device_recovery"),
                 }
 
             should_detach = bool(self.session or self.script)
@@ -1682,6 +1869,7 @@ class MedusaAndroidBridge:
         with self.lock:
             self._ensure_no_attach_in_progress("attach an app")
             self._begin_failure_context("attach", operation_id)
+            self.last_device_recovery = None
             self.current_target = {
                 "package_name": package_name, "device_id": effective_device_id,
                 "spawn": spawn, "pid": pid, "attached": False,
@@ -1735,12 +1923,20 @@ class MedusaAndroidBridge:
         # Run blocking Frida spawn/attach + script load outside self.lock so
         # status/log reads and stdout capture can continue during slow attaches.
         attach_timeout = self.attach_timeout_seconds
+        attach_deadline = time.monotonic() + attach_timeout
         attach_result: dict[str, Any] = {}
 
         def _do_attach():
             try:
-                observed_device = _DeviceExceptionProbe(parser_device)
+                observed_device = _DeviceExceptionProbe(
+                    parser_device,
+                    observe_attach=(lambda target_pid: self._read_attach_identity(
+                        device["id"], target_pid, attach_deadline - time.monotonic())) if not spawn else None,
+                )
                 fs = self.parser.frida_session_handler(observed_device, spawn, package_name, requested_pid)
+                if fs is None and observed_device.last_error is not None and self._is_device_gone(observed_device.last_error):
+                    fs = self._retry_lost_device(observed_device, device["id"], operation_id, spawn, attach_deadline)
+                    device.update(name=str(self.parser.device.name), type=str(getattr(self.parser.device, "type", "unknown")))
                 try:
                     self.current_target["pid"] = int(self.parser.pid)
                 except (TypeError, ValueError):
@@ -1752,6 +1948,10 @@ class MedusaAndroidBridge:
                     return
                 attach_result["session"] = fs
                 self.current_target["pid"] = self.parser.pid
+                operation = self.attach_in_progress or {}
+                if (self._shutting_down or time.monotonic() >= attach_deadline
+                        or operation.get("id") != operation_id or operation.get("phase") != "attaching"):
+                    raise ScriptLifecycleError("attach_timeout", "attach completed after its deadline; script was not loaded")
                 start_script(fs, self._lifecycle, source, self._on_message, self._on_detached)
                 self._watch_cleanup()
                 attach_result["script"] = self._lifecycle.script
@@ -1762,9 +1962,25 @@ class MedusaAndroidBridge:
                         pass
             except Exception as exc:
                 attach_result["exception"] = exc
+                if self._is_device_gone(exc):
+                    self._invalid_device = self.parser.device
+                    if self.last_device_recovery is None:
+                        recovery = {
+                            "operation_id": operation_id, "device_id": device["id"], "pid": self.current_target.get("pid"),
+                            "retry_attempted": False, "outcome": "skipped", "skip_reason": "failure_after_attach",
+                            "started_at": time.time(),
+                        }
+                        self.last_device_recovery = recovery
+                        self._enumerate_recovery_device(device["id"], recovery)
+                        self._record_event({"type": "device-recovery", **recovery})
+                if self.last_device_recovery and self.last_device_recovery.get("outcome") == "recovered":
+                    self.last_device_recovery.update(outcome="failed_after_retry", final_error=str(exc))
                 try:
                     if self._lifecycle.session is None and attach_result.get("session") is not None:
                         self._lifecycle.session = attach_result["session"]
+                        # This handle has not necessarily reached start_script's
+                        # binding step yet. Cleanup must detach it, not discard it.
+                        self._lifecycle.detached = False
                     self._watch_cleanup()
                     self._dispose_runtime()
                 except Exception as cleanup_error:
@@ -1872,6 +2088,7 @@ class MedusaAndroidBridge:
                 "target": self.current_target,
                 "stage_result": stage_result,
                 "output_path": output_path_snapshot,
+                "device_recovery": dict(self.last_device_recovery) if self.last_device_recovery else None,
             }
 
     def ensure_session(
@@ -2250,6 +2467,7 @@ class MedusaAndroidBridge:
                 "current_tool_call": dict(self.current_tool_call) if self.current_tool_call else None,
                 "recent_tool_calls": [dict(call) for call in self.tool_call_history[-10:]],
                 "last_failure": dict(self.last_failure) if self.last_failure else None,
+                "device_recovery": dict(self.last_device_recovery) if self.last_device_recovery else None,
                 "failure_context": dict(self.failure_context) if self.failure_context else None,
                 "last_failure_is_current": self._current_failure(target, output_log) is not None,
                 "output_path_ready": (False if failure_classification["output_condition"]["category"] == "log_path_failed"
@@ -2326,7 +2544,7 @@ class MedusaAndroidBridge:
                     "device_reachable", "process_frozen", "process_cached", "process_background",
                     "process_state_pid", "process_state_code", "process_state_error", "process_alive_error",
                     "process_condition", "output_condition", "output_path_ready", "last_failure_is_current",
-                    "failure_context",
+                    "failure_context", "device_recovery",
                 )},
                 "recording": status.get("recording"),
                 "reload_in_progress": status.get("reload_in_progress"),
